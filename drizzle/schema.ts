@@ -1,17 +1,16 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import {
+  int,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  varchar,
+  boolean,
+  float,
+} from "drizzle-orm/mysql-core";
 
-/**
- * Core user table backing auth flow.
- * Extend this file with additional tables as your product grows.
- * Columns use camelCase to match both database fields and generated types.
- */
 export const users = mysqlTable("users", {
-  /**
-   * Surrogate primary key. Auto-incremented numeric value managed by the database.
-   * Use this for relations between tables.
-   */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
   email: varchar("email", { length: 320 }),
@@ -25,4 +24,50 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-// TODO: Add your tables here
+// ─── Lead Sessions ──────────────────────────────────────────────
+// Groups a batch of leads generated in one run
+export const leadSessions = mysqlTable("lead_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  industry: varchar("industry", { length: 128 }).notNull(),
+  location: varchar("location", { length: 128 }).notNull(),
+  seniorityLevel: varchar("seniorityLevel", { length: 64 }).notNull(),
+  requestedCount: int("requestedCount").notNull(),
+  generatedCount: int("generatedCount").default(0).notNull(),
+  enrichedCount: int("enrichedCount").default(0).notNull(),
+  status: mysqlEnum("status", ["pending", "running", "done", "error"]).default("pending").notNull(),
+  errorMessage: text("errorMessage"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  completedAt: timestamp("completedAt"),
+});
+
+export type LeadSession = typeof leadSessions.$inferSelect;
+export type InsertLeadSession = typeof leadSessions.$inferInsert;
+
+// ─── Leads ──────────────────────────────────────────────────────
+export const leads = mysqlTable("leads", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull(),
+  userId: int("userId").notNull(),
+
+  // Company info
+  companyName: varchar("companyName", { length: 256 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  website: varchar("website", { length: 512 }),
+  industry: varchar("industry", { length: 128 }).notNull(),
+  location: varchar("location", { length: 128 }),
+  companySize: varchar("companySize", { length: 64 }),
+  seniorityLevel: varchar("seniorityLevel", { length: 64 }),
+  contactName: varchar("contactName", { length: 256 }),
+  linkedinUrl: varchar("linkedinUrl", { length: 512 }),
+  companyDescription: text("companyDescription"),
+
+  // AI enrichment
+  icebreaker: text("icebreaker"),
+  isEnriched: boolean("isEnriched").default(false).notNull(),
+
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Lead = typeof leads.$inferSelect;
+export type InsertLead = typeof leads.$inferInsert;
