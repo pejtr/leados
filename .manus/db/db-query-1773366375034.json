@@ -1,0 +1,9 @@
+{
+  "query": "ALTER TABLE `team_members` ADD COLUMN `email` varchar(320) NOT NULL DEFAULT '';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute ALTER TABLE `team_members` ADD COLUMN `email` varchar(320) NOT NULL DEFAULT '';",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 350
+}

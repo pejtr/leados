@@ -7,6 +7,7 @@ import {
   varchar,
   boolean,
   float,
+  decimal,
 } from "drizzle-orm/mysql-core";
 
 export const users = mysqlTable("users", {
@@ -25,7 +26,6 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 // ─── Lead Sessions ──────────────────────────────────────────────
-// Groups a batch of leads generated in one run
 export const leadSessions = mysqlTable("lead_sessions", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
@@ -72,8 +72,52 @@ export const leads = mysqlTable("leads", {
   // Pipeline status
   status: mysqlEnum("status", ["new", "contacted", "replied", "qualified", "disqualified"]).default("new").notNull(),
 
+  // Quality rating
+  qualityRating: mysqlEnum("qualityRating", ["good", "bad"]),
+  qualityNote: varchar("qualityNote", { length: 256 }),
+
+  // ROI tracking
+  dealValue: decimal("dealValue", { precision: 12, scale: 2 }),
+  dealClosed: boolean("dealClosed").default(false).notNull(),
+  dealClosedAt: timestamp("dealClosedAt"),
+  currency: varchar("currency", { length: 8 }).default("USD"),
+
+  // Team assignment
+  assignedTo: int("assignedTo"),
+
+  // Segment preset
+  segment: varchar("segment", { length: 64 }),
+
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type Lead = typeof leads.$inferSelect;
 export type InsertLead = typeof leads.$inferInsert;
+
+// ─── Email Templates ────────────────────────────────────────────
+export const emailTemplates = mysqlTable("email_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 128 }).notNull(),
+  subject: varchar("subject", { length: 256 }).notNull(),
+  body: text("body").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type EmailTemplate = typeof emailTemplates.$inferSelect;
+export type InsertEmailTemplate = typeof emailTemplates.$inferInsert;
+
+// ─── Team Members ───────────────────────────────────────────────
+export const teamMembers = mysqlTable("team_members", {
+  id: int("id").autoincrement().primaryKey(),
+  ownerId: int("ownerId").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  name: text("name"),
+  role: mysqlEnum("role", ["admin", "agent", "viewer"]).default("agent").notNull(),
+  status: mysqlEnum("status", ["pending", "active"]).default("pending").notNull(),
+  invitedAt: timestamp("invitedAt").defaultNow().notNull(),
+});
+
+export type TeamMember = typeof teamMembers.$inferSelect;
+export type InsertTeamMember = typeof teamMembers.$inferInsert;

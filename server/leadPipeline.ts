@@ -7,6 +7,100 @@
  */
 import { invokeLLM } from "./_core/llm";
 
+// ─── Segment Presets ────────────────────────────────────────────
+
+export interface SegmentPreset {
+  id: string;
+  label: string;
+  icon: string;
+  industry: string;
+  defaultLocation: string;
+  defaultCount: number;
+  defaultSeniority: string;
+  icebreakerTone: string;
+  description: string;
+}
+
+export const SEGMENT_PRESETS: SegmentPreset[] = [
+  {
+    id: "finance-insurance",
+    label: "Insurance Leads",
+    icon: "Shield",
+    industry: "Finance",
+    defaultLocation: "United States",
+    defaultCount: 20,
+    defaultSeniority: "Manager",
+    icebreakerTone: "professional and trust-focused",
+    description: "Target financial advisors, insurance brokers, and wealth managers.",
+  },
+  {
+    id: "finance-mortgage",
+    label: "Mortgage & Lending",
+    icon: "Home",
+    industry: "Finance",
+    defaultLocation: "United States",
+    defaultCount: 20,
+    defaultSeniority: "Director",
+    icebreakerTone: "consultative and ROI-focused",
+    description: "Target mortgage brokers, lending officers, and real estate finance teams.",
+  },
+  {
+    id: "finance-investment",
+    label: "Investment & Wealth",
+    icon: "TrendingUp",
+    industry: "Finance",
+    defaultLocation: "United States",
+    defaultCount: 15,
+    defaultSeniority: "C-Level",
+    icebreakerTone: "sophisticated and value-driven",
+    description: "Target investment managers, private equity, and wealth management firms.",
+  },
+  {
+    id: "real-estate",
+    label: "Real Estate",
+    icon: "Building2",
+    industry: "Real Estate",
+    defaultLocation: "United States",
+    defaultCount: 25,
+    defaultSeniority: "Manager",
+    icebreakerTone: "local market-focused and relationship-driven",
+    description: "Target real estate agents, brokers, developers, and property managers.",
+  },
+  {
+    id: "mlm-recruitment",
+    label: "MLM & Recruitment",
+    icon: "Users",
+    industry: "Consulting",
+    defaultLocation: "United States",
+    defaultCount: 30,
+    defaultSeniority: "Manager",
+    icebreakerTone: "opportunity-focused and motivational",
+    description: "Target team leaders, network marketers, and recruitment professionals.",
+  },
+  {
+    id: "b2b-saas",
+    label: "B2B SaaS",
+    icon: "Zap",
+    industry: "SaaS",
+    defaultLocation: "United States",
+    defaultCount: 20,
+    defaultSeniority: "VP",
+    icebreakerTone: "tech-savvy and efficiency-focused",
+    description: "Target SaaS companies, software vendors, and technology decision-makers.",
+  },
+  {
+    id: "b2b-general",
+    label: "B2B General",
+    icon: "Briefcase",
+    industry: "Consulting",
+    defaultLocation: "United States",
+    defaultCount: 20,
+    defaultSeniority: "Director",
+    icebreakerTone: "professional and solution-oriented",
+    description: "Target B2B companies across industries with custom products or services.",
+  },
+];
+
 export const SUPPORTED_INDUSTRIES = [
   "Technology", "Finance", "Healthcare", "Education", "Retail",
   "Manufacturing", "Real Estate", "Marketing", "Legal", "Consulting",
@@ -464,10 +558,11 @@ export interface PipelineOptions {
   apifyToken?: string;
   useApify?: boolean;
   enrichEmails?: boolean;
+  segment?: string;
   onProgress?: (step: string, current: number, total: number) => void;
 }
 
-export async function runLeadPipeline(opts: PipelineOptions): Promise<RawLead[]> {
+export async function runLeadPipeline(opts: PipelineOptions): Promise<{ leads: RawLead[] }> {
   const { industry, location, count, seniorityLevel, apifyToken, useApify, onProgress } = opts;
 
   // Determine effective Apify token: prefer explicit param, fall back to env var
@@ -506,5 +601,5 @@ export async function runLeadPipeline(opts: PipelineOptions): Promise<RawLead[]>
     enriched.push({ ...lead, icebreaker, isEnriched: true });
   }
 
-  return enriched;
+  return { leads: enriched };
 }

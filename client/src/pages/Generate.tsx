@@ -52,6 +52,17 @@ interface Lead {
 
 const SENIORITY_LEVELS = ["Manager", "Director", "VP", "C-Level", "Head of"];
 
+const SEGMENT_PRESETS = [
+  { label: "Finance", emoji: "💰", industry: "Financial Services", seniority: "Director", location: "United States" },
+  { label: "Insurance", emoji: "🛡️", industry: "Insurance", seniority: "Manager", location: "United States" },
+  { label: "Mortgages", emoji: "🏠", industry: "Real Estate", seniority: "Manager", location: "United States" },
+  { label: "Investments", emoji: "📈", industry: "Investment Management", seniority: "C-Level", location: "United States" },
+  { label: "Real Estate", emoji: "🏢", industry: "Real Estate", seniority: "Director", location: "United States" },
+  { label: "MLM / Network", emoji: "🔗", industry: "Direct Sales", seniority: "Manager", location: "United States" },
+  { label: "SaaS / Tech", emoji: "💻", industry: "Technology", seniority: "VP", location: "United States" },
+  { label: "Healthcare", emoji: "🏥", industry: "Healthcare", seniority: "Director", location: "United States" },
+];
+
 const PIPELINE_STEPS_APIFY = [
   "Validating industry with AI",
   "Connecting to LinkedIn via Apify",
@@ -234,6 +245,28 @@ export default function Generate() {
                       </label>
                     </div>
                   )}
+                </div>
+
+                {/* Segment Presets */}
+                <div className="space-y-2">
+                  <Label>Quick Presets</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {SEGMENT_PRESETS.map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => {
+                          setIndustry(preset.industry);
+                          setSeniorityLevel(preset.seniority);
+                          setLocation(preset.location);
+                        }}
+                        className="inline-flex items-center gap-1 text-xs rounded-full border border-border bg-input px-2.5 py-1 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
+                      >
+                        <span>{preset.emoji}</span>
+                        <span>{preset.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">

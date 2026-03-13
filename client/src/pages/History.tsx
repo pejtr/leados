@@ -29,8 +29,9 @@ import {
   Trash2,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { ThumbsUp, ThumbsDown, CheckSquare, Square, Minus } from "lucide-react";
 
 const PAGE_SIZE = 20;
 
@@ -50,6 +51,8 @@ export default function History() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<LeadStatus>("contacted");
 
   const { data: industries } = trpc.leads.industries.useQuery();
   const utils = trpc.useUtils();
@@ -117,6 +120,56 @@ export default function History() {
   };
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
+
+  const pageIds = useMemo(() => (data?.items ?? []).map((l) => l.id), [data]);
+  const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.has(id));
+  const someSelected = pageIds.some((id) => selectedIds.has(id)) && !allSelected;
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedIds((prev) => { const n = new Set(prev); pageIds.forEach((id) => n.delete(id)); return n; });
+    } else {
+      setSelectedIds((prev) => { const n = new Set(prev); pageIds.forEach((id) => n.add(id)); return n; });
+    }
+  };
+
+  const toggleOne = (id: number) => {
+    setSelectedIds((prev) => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  };
+
+  const bulkUpdateStatus = trpc.leads.bulkUpdateStatus.useMutation({
+    onSuccess: (_, vars) => {
+      toast.success(`Updated ${vars.leadIds.length} leads to "${STATUS_CONFIG[vars.status as LeadStatus]?.label ?? vars.status}"`);
+      setSelectedIds(new Set());
+      utils.leads.list.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const bulkDelete = trpc.leads.bulkDelete.useMutation({
+    onSuccess: (_, vars) => {
+      toast.success(`Deleted ${vars.leadIds.length} leads`);
+      setSelectedIds(new Set());
+      utils.leads.list.invalidate();
+      utils.leads.stats.invalidate();
+      utils.leads.sessions.invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleBulkExportCsv = () => {
+    const selected = (data?.items ?? []).filter((l) => selectedIds.has(l.id));
+    if (!selected.length) { toast.error("No leads selected"); return; }
+    const headers = ["Company Name","Email","Website","Industry","Location","Company Size","Seniority","Contact","Status","Data Source","AI Enriched","Icebreaker"];
+    const escape = (v: any) => { if (v == null) return ""; const s = String(v); return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s; };
+    const rows = selected.map((l) => [l.companyName,l.email,l.website,l.industry,l.location,l.companySize,l.seniorityLevel,l.contactName,l.status,l.dataSource,l.isEnriched,l.icebreaker].map(escape).join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = `leads-selected-${Date.now()}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported ${selected.length} leads as CSV`);
+  };
 
   return (
     <DashboardLayout>
@@ -230,9 +283,47 @@ export default function History() {
               </Card>
             ) : (
               <>
+                {/* Bulk actions toolbar */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{data.total} leads total</span>
-                  <span>Page {page + 1} of {Math.max(1, totalPages)}</span>
+                  <div className="flex items-center gap-2">
+                    <button onClick={toggleAll} className="p-1 rounded hover:bg-secondary transition-colors" title="Select all on page">
+                      {allSelected ? <CheckSquare className="h-4 w-4 text-primary" /> : someSelected ? <Minus className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />}
+                    </button>
+                    <span>{data.total} leads total</span>
+                    {selectedIds.size > 0 && (
+                      <span className="text-primary font-medium">· {selectedIds.size} selected</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {selectedIds.size > 0 && (
+                      <>
+                        <Select value={bulkStatus} onValueChange={(v) => setBulkStatus(v as LeadStatus)}>
+                          <SelectTrigger className="h-6 text-[10px] w-[110px] bg-input border-border">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(Object.keys(STATUS_CONFIG) as LeadStatus[]).map((s) => (
+                              <SelectItem key={s} value={s} className="text-xs">{STATUS_CONFIG[s].label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Button size="sm" variant="outline" className="h-6 text-[10px] px-2"
+                          disabled={bulkUpdateStatus.isPending}
+                          onClick={() => bulkUpdateStatus.mutate({ leadIds: Array.from(selectedIds), status: bulkStatus })}>
+                          Set Status
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={handleBulkExportCsv}>
+                          Export CSV
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 text-destructive hover:text-destructive"
+                          disabled={bulkDelete.isPending}
+                          onClick={() => { if (confirm(`Delete ${selectedIds.size} leads?`)) bulkDelete.mutate({ leadIds: Array.from(selectedIds) }); }}>
+                          Delete
+                        </Button>
+                      </>
+                    )}
+                    <span className="ml-2">Page {page + 1} of {Math.max(1, totalPages)}</span>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -242,6 +333,8 @@ export default function History() {
                       lead={lead}
                       expanded={expandedId === lead.id}
                       onToggle={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
+                      selected={selectedIds.has(lead.id)}
+                      onSelect={() => toggleOne(lead.id)}
                     />
                   ))}
                 </div>
@@ -287,13 +380,26 @@ function HistoryLeadRow({
   lead,
   expanded,
   onToggle,
+  selected,
+  onSelect,
 }: {
   lead: any;
   expanded: boolean;
   onToggle: () => void;
+  selected?: boolean;
+  onSelect?: () => void;
 }) {
   const [status, setStatus] = useState<LeadStatus>((lead.status as LeadStatus) ?? "new");
+  const [quality, setQuality] = useState<string | null>(lead.qualityRating ?? null);
   const utils = trpc.useUtils();
+
+  const rateQuality = trpc.leads.rateQuality.useMutation({
+    onSuccess: (_, vars) => {
+      setQuality(vars.rating);
+      toast.success(vars.rating === "good" ? "Marked as good lead" : "Marked as bad lead");
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const updateStatus = trpc.leads.updateStatus.useMutation({
     onSuccess: (_, vars) => {
@@ -308,9 +414,16 @@ function HistoryLeadRow({
   const isLinkedIn = lead.dataSource === "linkedin_apify";
 
   return (
-    <Card className="bg-card border-border hover:border-border/60 transition-colors">
+    <Card className={cn("bg-card border-border hover:border-border/60 transition-colors", selected && "border-primary/40 bg-primary/5")}>
       <CardContent className="pt-3 pb-3">
         <div className="flex items-start gap-3">
+          {/* Checkbox */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onSelect?.(); }}
+            className="mt-0.5 shrink-0 p-0.5 rounded text-muted-foreground hover:text-primary transition-colors"
+          >
+            {selected ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />}
+          </button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-semibold text-foreground">{lead.companyName}</span>
@@ -443,6 +556,32 @@ function HistoryLeadRow({
                 <p className="text-xs text-muted-foreground italic leading-relaxed">{lead.icebreaker}</p>
               </div>
             )}
+            {/* Quality rating */}
+            <div className="flex items-center gap-2 pt-1">
+              <span className="text-xs text-muted-foreground">Lead quality:</span>
+              <button
+                onClick={() => rateQuality.mutate({ leadId: lead.id, rating: "good" })}
+                className={cn(
+                  "flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors",
+                  quality === "good"
+                    ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                    : "border-border text-muted-foreground hover:text-emerald-400 hover:border-emerald-500/30"
+                )}
+              >
+                <ThumbsUp className="h-3 w-3" /> Good
+              </button>
+              <button
+                onClick={() => rateQuality.mutate({ leadId: lead.id, rating: "bad" })}
+                className={cn(
+                  "flex items-center gap-1 text-xs px-2 py-1 rounded-full border transition-colors",
+                  quality === "bad"
+                    ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
+                    : "border-border text-muted-foreground hover:text-rose-400 hover:border-rose-500/30"
+                )}
+              >
+                <ThumbsDown className="h-3 w-3" /> Bad
+              </button>
+            </div>
             <p className="text-xs text-muted-foreground">
               Generated: {new Date(lead.createdAt).toLocaleString()}
             </p>

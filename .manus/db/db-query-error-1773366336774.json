@@ -1,0 +1,8 @@
+{
+  "query": "ALTER TABLE `team_members` \n  ADD COLUMN `email` varchar(320) NOT NULL DEFAULT '' AFTER `ownerId`,\n  ADD COLUMN `name` text AFTER `email`,\n  ADD COLUMN `role` enum('admin','agent','viewer') NOT NULL DEFAULT 'agent' AFTER `name`,\n  ADD COLUMN `status` enum('pending','active') NOT NULL DEFAULT 'pending' AFTER `role`;\nALTER TABLE `team_members` DROP COLUMN `memberId`;\nALTER TABLE `team_members` DROP COLUMN `memberRole`;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute ALTER TABLE `team_members` \n  ADD COLUMN `email` varchar(320) NOT NULL DEFAULT '' AFTER `ownerId`,\n  ADD COLUMN `name` text AFTER `email`,\n  ADD COLUMN `role` enum('admin','agent','viewer') NOT NULL DEFAULT 'agent' AFTER `name`,\n  ADD COLUMN `status` enum('pending','active') NOT NULL DEFAULT 'pending' AFTER `role`;\nALTER TABLE `team_members` DROP COLUMN `memberId`;\nALTER TABLE `team_members` DROP COLUMN `memberRole`;",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 1: Unknown column 'email' in 'team_members'"
+  ]
+}

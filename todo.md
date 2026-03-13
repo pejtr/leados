@@ -1,59 +1,73 @@
-# AI Lead Generation Platform - TODO
+# AI Lead Generation Platform — Full Roadmap
 
-## Backend
-- [x] Database schema: leads table with all metadata fields
-- [x] Database schema: lead_sessions table for grouping generation runs
-- [x] Run migration SQL
-- [x] DB helpers: insert lead, get leads, get stats, get sessions
-- [x] tRPC router: leads.generate (full pipeline: validate → scrape → enrich → save)
-- [x] tRPC router: leads.list (with filter/search/pagination)
-- [x] tRPC router: leads.stats (totals, enrichment rate, industry breakdown)
-- [x] tRPC router: leads.export (JSON download)
-- [x] tRPC router: leads.sessions (list generation sessions)
-- [x] tRPC router: leads.deleteSession
+## Core (Completed)
+- [x] Database schema: leads + lead_sessions tables
+- [x] tRPC routers: generate, list, stats, export, sessions, deleteSession
+- [x] Lead generation pipeline: AI validate → Apify LinkedIn scrape → email enrichment → AI icebreaker
+- [x] Dashboard with stats cards and recent sessions
+- [x] Generate Leads page with data source selector and real-time progress
+- [x] Lead History with search, industry filter, pagination
+- [x] Statistics page with Recharts charts
+- [x] JSON + CSV export (Generate + History)
+- [x] Lead status tracking: new/contacted/replied/qualified/disqualified
+- [x] Inline status dropdown in History
+- [x] Status filter in History
+- [x] Email enrichment via caprolok/website-email-phone-finder (Apify)
+- [x] Apify token validated (LEADGEN22)
+- [x] 17 Vitest tests passing
 
-## Frontend
-- [x] Global dark theme + CSS variables
-- [x] DashboardLayout with sidebar navigation
-- [x] Dashboard home page with stats cards
-- [x] Lead generation form (industry, location, count, seniority, Apify token)
-- [x] Real-time progress/status during generation
-- [x] Lead results view with icebreaker display
-- [x] Lead history page with search + filter by industry/date
-- [x] Statistics page with charts (industry breakdown, enrichment rate)
-- [x] JSON export download button
-- [ ] Google Sheets export (webhook URL input - planned)
+## Kanban Board View
+- [x] Kanban board page with drag-and-drop pipeline columns (New/Contacted/Replied/Qualified/Disqualified)
+- [x] Install @dnd-kit/core
+- [x] Optimistic drag-and-drop status updates
+- [x] Lead count badge per column header
+- [x] Compact lead card design for Kanban view
+- [x] Kanban route in App.tsx and DashboardLayout nav
 
-## Quality
-- [x] Vitest: leads router unit tests (10 tests passing)
-- [ ] Checkpoint + publish
+## Bulk Actions
+- [x] Checkbox on each lead row in list view
+- [x] Select all / deselect all checkbox in header
+- [x] Bulk status update dropdown + Set Status button
+- [x] Bulk CSV export for selected leads
+- [x] Bulk delete with confirmation dialog
+- [x] bulkUpdateStatus and bulkDelete tRPC mutations
 
-## Apify Integration
-- [x] Add APIFY_TOKEN secret to environment
-- [x] Rewrite leadPipeline.ts to use harvestapi/linkedin-company-search actor via Apify REST API
-- [x] Map actor output fields (name, website, description, employeeCount, industries, locations) to lead schema
-- [x] Add scraper source field to leads table (linkedin_apify | mock)
-- [x] Add data source selector to Generate page (LinkedIn via Apify / Demo data)
-- [x] Show real-time Apify run status (queued → running → succeeded)
-- [x] Graceful fallback to mock data when Apify token is missing or run fails
-- [x] Update Vitest tests for new pipeline (12 tests passing)
+## Email Outreach Templates
+- [x] DB schema: email_templates table
+- [x] Migration SQL for email_templates
+- [x] tRPC: templates.list, templates.create, templates.update, templates.delete
+- [x] Templates page with editor and variable preview
+- [x] Copy-to-clipboard for filled template
 
-## CSV Export
-- [x] Add csvExport tRPC query returning CSV string
-- [x] Add CSV download button to Generate page results header
-- [x] Add CSV download button to Lead History page toolbar
+## Industry Segment Presets
+- [x] Segment preset buttons on Generate form (Finance, Insurance, Mortgages, Investments, Real Estate, MLM, SaaS, Healthcare)
+- [x] One-click preset fills industry, seniority, location
 
-## Lead Status Tracking
-- [x] Add status enum column to leads table (new | contacted | replied | qualified | disqualified)
-- [x] Run migration SQL for status column
-- [x] Add leads.updateStatus tRPC mutation
-- [x] Add status badge + inline status changer dropdown to Lead History page
-- [x] Add status filter to Lead History search bar
+## Lead Quality Rating System
+- [x] qualityRating column in leads table
+- [x] Thumbs up / thumbs down buttons in History expanded row
+- [x] tRPC: leads.rateQuality mutation
 
-## Email Finder Enrichment (Website scraper via Apify)
-- [x] Integrate caprolok/website-email-phone-finder actor into leadPipeline.ts
-- [x] Call email finder after LinkedIn scrape, before icebreaker generation
-- [x] Update lead email field with found email if empty
-- [x] Add "Email found" badge to lead cards
-- [x] Add enrichEmails toggle to Generate form (optional, costs Apify credits)
-- [x] 17 Vitest tests passing (all 3 test files)
+## ROI Tracking
+- [x] dealValue and dealClosed columns in leads table
+- [x] ROI page with deal value input per lead
+- [x] Revenue vs cost dashboard (total pipeline value, closed deals, conversion rate)
+- [x] ROI route in App.tsx and DashboardLayout nav
+
+## Team Management
+- [x] team_members table with email-based invites
+- [x] Team page: invite by email, assign role (admin/agent)
+- [x] tRPC: team.invite, team.list, team.remove, team.updateRole
+
+## Public Landing Page
+- [x] Hero section with CTA
+- [x] Features section with icons
+- [x] How it works section
+- [x] Stats / social proof
+- [x] Testimonials
+- [x] Pricing section (3 tiers)
+- [x] CTA contact form
+
+## Quality & Polish
+- [x] 17 Vitest tests passing (3 test files)
+- [ ] Final checkpoint + publish
