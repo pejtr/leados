@@ -59,6 +59,8 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    // Start autopilot scheduler
+    import("../autopilotScheduler").then(m => m.startAutopilotScheduler()).catch(console.error);
   });
 }
 

@@ -22,21 +22,37 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Zap, History, BarChart3, Mail, Users, Kanban, DollarSign } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Zap, History, BarChart3, Mail, Users, Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code, Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Zap, label: "Generate Leads", path: "/generate" },
-  { icon: History, label: "Lead History", path: "/history" },
-  { icon: BarChart3, label: "Statistics", path: "/stats" },
-  { icon: Mail, label: "Email Templates", path: "/templates" },
-  { icon: Users, label: "Team", path: "/team" },
-  { icon: Kanban, label: "Pipeline Board", path: "/kanban" },
-  { icon: DollarSign, label: "ROI Tracker", path: "/roi" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", group: "core" },
+  { icon: Zap, label: "Generate Leads", path: "/generate", group: "core" },
+  { icon: History, label: "Lead History", path: "/history", group: "core" },
+  { icon: Kanban, label: "Pipeline Board", path: "/kanban", group: "core" },
+  { icon: Target, label: "ICP Builder", path: "/icp", group: "intelligence" },
+  { icon: Code, label: "Tracking Pixel", path: "/tracking", group: "intelligence" },
+  { icon: Cpu, label: "Tech Stack", path: "/tech-stack", group: "intelligence" },
+  { icon: ListFilter, label: "Smart Lists", path: "/smart-lists", group: "intelligence" },
+  { icon: ShieldCheck, label: "Email Verify", path: "/email-verify", group: "intelligence" },
+  { icon: UserCheck, label: "AI SDR Agent", path: "/sdr", group: "automation" },
+  { icon: Bot, label: "AI Agents", path: "/ai-agents", group: "automation" },
+  { icon: Bot, label: "Autopilot", path: "/autopilot", group: "automation" },
+  { icon: GitBranch, label: "Campaigns", path: "/campaigns", group: "automation" },
+  { icon: Timer, label: "Speed-to-Lead", path: "/speed-to-lead", group: "automation" },
+  { icon: Lightbulb, label: "Next Actions", path: "/next-actions", group: "automation" },
+  { icon: Bell, label: "Smart Alerts", path: "/alerts", group: "automation" },
+  { icon: Ear, label: "Social Listening", path: "/social", group: "insights" },
+  { icon: Target, label: "B2B Matching", path: "/matching", group: "insights" },
+  { icon: BarChart3, label: "Statistics", path: "/stats", group: "insights" },
+  { icon: DollarSign, label: "ROI Tracker", path: "/roi", group: "insights" },
+  { icon: Mail, label: "Email Templates", path: "/templates", group: "settings" },
+  { icon: Users, label: "Team", path: "/team", group: "settings" },
+  { icon: Building, label: "Agency Panel", path: "/agency", group: "settings" },
+  { icon: Webhook, label: "Integrations", path: "/integrations", group: "settings" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -188,24 +204,36 @@ function DashboardLayoutContent({
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0">
+          <SidebarContent className="gap-0 overflow-y-auto">
             <SidebarMenu className="px-2 py-1">
-              {menuItems.map(item => {
-                const isActive = location === item.path;
+              {(["core", "intelligence", "automation", "insights", "settings"] as const).map((group) => {
+                const groupLabels: Record<string, string> = { core: "", intelligence: "Intelligence", automation: "Automation", insights: "Insights", settings: "Settings" };
+                const groupItems = menuItems.filter(i => i.group === group);
+                if (groupItems.length === 0) return null;
                 return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      isActive={isActive}
-                      onClick={() => setLocation(item.path)}
-                      tooltip={item.label}
-                      className={`h-10 transition-all font-normal`}
-                    >
-                      <item.icon
-                        className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}
-                      />
-                      <span>{item.label}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <div key={group}>
+                    {groupLabels[group] && !isCollapsed && (
+                      <div className="px-3 pt-4 pb-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">{groupLabels[group]}</span>
+                      </div>
+                    )}
+                    {groupItems.map(item => {
+                      const isActive = location === item.path;
+                      return (
+                        <SidebarMenuItem key={item.path}>
+                          <SidebarMenuButton
+                            isActive={isActive}
+                            onClick={() => setLocation(item.path)}
+                            tooltip={item.label}
+                            className="h-9 transition-all font-normal"
+                          >
+                            <item.icon className={`h-4 w-4 ${isActive ? "text-primary" : ""}`} />
+                            <span>{item.label}</span>
+                          </SidebarMenuButton>
+                        </SidebarMenuItem>
+                      );
+                    })}
+                  </div>
                 );
               })}
             </SidebarMenu>

@@ -36,6 +36,13 @@
       "when": 1773365677110,
       "tag": "0004_soft_rattler",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1773426689605,
+      "tag": "0005_outgoing_wendigo",
+      "breakpoints": true
     }
   ]
 }

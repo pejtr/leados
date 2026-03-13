@@ -2,7 +2,7 @@
   "lang": {
     "en": "English",
     "cs": "Čeština",
-    "sk": "Slovenčina"
+    "de": "Deutsch"
   },
   "nav": {
     "features": "Features",
@@ -42,6 +42,16 @@
     "feature5Desc": "Log deal values, track closed deals, and calculate your exact return on investment per lead generation session.",
     "feature6Title": "Team Collaboration",
     "feature6Desc": "Invite your sales team, assign leads to agents, and manage roles — all from one centralized dashboard.",
+    "feature7Title": "B2B Matching",
+    "feature7Desc": "Define your Ideal Customer Profile and let AI find companies that match your criteria across industry, size, and location.",
+    "feature8Title": "AI SDR Agent",
+    "feature8Desc": "Automate personalized outreach campaigns with AI-generated emails, follow-ups, and reply tracking.",
+    "feature9Title": "Next Best Action",
+    "feature9Desc": "Get AI-powered recommendations for your next move on each lead — call, email, LinkedIn, or qualify.",
+    "feature10Title": "Social Listening",
+    "feature10Desc": "Monitor social platforms for buying signals and convert intent signals into qualified leads automatically.",
+    "feature11Title": "Autopilot Mode",
+    "feature11Desc": "Schedule recurring lead generation runs. Set it once and let the system generate fresh leads on autopilot.",
     "howTitle": "From zero to qualified leads in minutes",
     "step1Title": "Configure",
     "step1Desc": "Choose your target industry, location, seniority level, and segment preset. Set up in under 60 seconds.",

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,13 +10,15 @@ import { useTranslation } from "react-i18next";
 import {
   Zap, Shield, TrendingUp, Users, Mail, BarChart3, CheckCircle2,
   ArrowRight, Star, Building2, Target, Download, Sparkles, Globe,
-  ChevronRight, Phone, MessageSquare,
+  ChevronRight, Phone, MessageSquare, UserCheck, Lightbulb, Ear, Bot,
+  Menu, X,
 } from "lucide-react";
 
 export default function Landing() {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
   const { t } = useTranslation();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleCTA = () => {
     if (user) {
@@ -32,6 +35,11 @@ export default function Landing() {
     { icon: TrendingUp, title: t("landing.feature4Title"), description: t("landing.feature4Desc"), color: "text-purple-400", bg: "bg-purple-400/10" },
     { icon: Mail, title: t("landing.feature5Title"), description: t("landing.feature5Desc"), color: "text-pink-400", bg: "bg-pink-400/10" },
     { icon: Users, title: t("landing.feature6Title"), description: t("landing.feature6Desc"), color: "text-orange-400", bg: "bg-orange-400/10" },
+    { icon: Target, title: t("landing.feature7Title"), description: t("landing.feature7Desc"), color: "text-cyan-400", bg: "bg-cyan-400/10" },
+    { icon: UserCheck, title: t("landing.feature8Title"), description: t("landing.feature8Desc"), color: "text-rose-400", bg: "bg-rose-400/10" },
+    { icon: Lightbulb, title: t("landing.feature9Title"), description: t("landing.feature9Desc"), color: "text-amber-400", bg: "bg-amber-400/10" },
+    { icon: Ear, title: t("landing.feature10Title"), description: t("landing.feature10Desc"), color: "text-teal-400", bg: "bg-teal-400/10" },
+    { icon: Bot, title: t("landing.feature11Title"), description: t("landing.feature11Desc"), color: "text-indigo-400", bg: "bg-indigo-400/10" },
   ];
 
   const STEPS = [
@@ -51,7 +59,7 @@ export default function Landing() {
     {
       name: t("landing.plan1Name"),
       price: t("landing.plan1Price"),
-      period: t("landing.plan1Price") === "Free" || t("landing.plan1Price") === "Zdarma" || t("landing.plan1Price") === "Zadarmo" ? "" : t("landing.pricingMonthly"),
+      period: ["Free", "Zdarma", "Kostenlos"].includes(t("landing.plan1Price")) ? "" : t("landing.pricingMonthly"),
       description: t("landing.plan1Desc"),
       features: [t("landing.plan1Feature1"), t("landing.plan1Feature2"), t("landing.plan1Feature3"), t("landing.plan1Feature4")],
       cta: t("landing.plan1Cta"),
@@ -88,20 +96,25 @@ export default function Landing() {
     <div className="min-h-screen bg-[#0a0a0f] text-white">
       {/* ── Nav ── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
               <Zap className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-lg tracking-tight">LeadGen AI</span>
           </div>
-          <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
+
+          {/* Desktop nav links */}
+          <div className="hidden lg:flex items-center gap-8 text-sm text-white/60">
             <a href="#features" className="hover:text-white transition-colors">{t("nav.features")}</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">{t("nav.howItWorks")}</a>
             <a href="#pricing" className="hover:text-white transition-colors">{t("nav.pricing")}</a>
             <a href="#testimonials" className="hover:text-white transition-colors">{t("nav.testimonials")}</a>
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* Desktop right side */}
+          <div className="hidden md:flex items-center gap-2">
             <LanguageSwitcher variant="flags" />
             {user ? (
               <Button onClick={() => navigate("/dashboard")} size="sm" className="bg-violet-600 hover:bg-violet-700">
@@ -112,37 +125,76 @@ export default function Landing() {
                 <Button variant="ghost" size="sm" className="text-white/70 hover:text-white" onClick={() => window.location.href = getLoginUrl()}>
                   {t("nav.login")}
                 </Button>
-                <Button size="sm" className="bg-violet-600 hover:bg-violet-700" onClick={handleCTA}>
+                <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-xs sm:text-sm whitespace-nowrap" onClick={handleCTA}>
                   {t("landing.ctaPrimary")}
                 </Button>
               </>
             )}
           </div>
+
+          {/* Mobile: language flags + hamburger */}
+          <div className="flex md:hidden items-center gap-2">
+            <LanguageSwitcher variant="flags" className="scale-90" />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile menu dropdown */}
+        {mobileMenuOpen && (
+          <div className="md:hidden border-t border-white/5 bg-[#0a0a0f]/95 backdrop-blur-xl">
+            <div className="px-4 py-4 space-y-3">
+              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/60 hover:text-white py-2">{t("nav.features")}</a>
+              <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/60 hover:text-white py-2">{t("nav.howItWorks")}</a>
+              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/60 hover:text-white py-2">{t("nav.pricing")}</a>
+              <a href="#testimonials" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/60 hover:text-white py-2">{t("nav.testimonials")}</a>
+              <div className="pt-3 border-t border-white/5 flex flex-col gap-2">
+                {user ? (
+                  <Button onClick={() => { navigate("/dashboard"); setMobileMenuOpen(false); }} size="sm" className="bg-violet-600 hover:bg-violet-700 w-full">
+                    {t("nav.goToDashboard")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="ghost" size="sm" className="text-white/70 hover:text-white w-full justify-center" onClick={() => window.location.href = getLoginUrl()}>
+                      {t("nav.login")}
+                    </Button>
+                    <Button size="sm" className="bg-violet-600 hover:bg-violet-700 w-full" onClick={handleCTA}>
+                      {t("landing.ctaPrimary")}
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* ── Hero ── */}
-      <section className="pt-32 pb-24 px-6 relative overflow-hidden">
+      <section className="pt-24 sm:pt-32 pb-16 sm:pb-24 px-4 sm:px-6 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-violet-600/20 rounded-full blur-[120px]" />
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] sm:w-[800px] h-[300px] sm:h-[400px] bg-violet-600/20 rounded-full blur-[120px]" />
         </div>
         <div className="max-w-5xl mx-auto text-center relative">
-          <Badge className="mb-6 bg-violet-500/20 text-violet-300 border-violet-500/30 px-4 py-1.5 text-sm">
-            <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+          <Badge className="mb-4 sm:mb-6 bg-violet-500/20 text-violet-300 border-violet-500/30 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm">
+            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
             {t("landing.badge")}
           </Badge>
-          <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-[1.05]">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight mb-4 sm:mb-6 leading-[1.1] sm:leading-[1.05]">
             <span className="bg-gradient-to-r from-violet-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
               {t("landing.heroTitle")}
             </span>
           </h1>
-          <p className="text-xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-base sm:text-xl text-white/60 max-w-2xl mx-auto mb-6 sm:mb-10 leading-relaxed px-2">
             {t("landing.heroSubtitle")}
           </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <Button
               size="lg"
-              className="bg-violet-600 hover:bg-violet-700 text-white px-8 h-12 text-base font-semibold shadow-lg shadow-violet-500/25"
+              className="bg-violet-600 hover:bg-violet-700 text-white px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base font-semibold shadow-lg shadow-violet-500/25 w-full sm:w-auto"
               onClick={handleCTA}
             >
               {t("landing.ctaPrimary")}
@@ -151,45 +203,45 @@ export default function Landing() {
             <Button
               size="lg"
               variant="outline"
-              className="border-white/10 text-white/80 hover:bg-white/5 px-8 h-12 text-base"
+              className="border-white/10 text-white/80 hover:bg-white/5 px-6 sm:px-8 h-11 sm:h-12 text-sm sm:text-base w-full sm:w-auto"
               onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
             >
               {t("landing.ctaSecondary")}
             </Button>
           </div>
-          <p className="mt-4 text-sm text-white/30">{t("landing.ctaNote")}</p>
+          <p className="mt-3 sm:mt-4 text-xs sm:text-sm text-white/30">{t("landing.ctaNote")}</p>
         </div>
       </section>
 
       {/* ── Stats Bar ── */}
-      <section className="py-12 px-6 border-y border-white/5 bg-white/[0.02]">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+      <section className="py-8 sm:py-12 px-4 sm:px-6 border-y border-white/5 bg-white/[0.02]">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8">
           {STATS.map((s) => (
             <div key={s.label} className="text-center">
-              <div className="text-3xl font-black text-white mb-1">{s.value}</div>
-              <div className="text-sm text-white/50">{s.label}</div>
+              <div className="text-2xl sm:text-3xl font-black text-white mb-1">{s.value}</div>
+              <div className="text-xs sm:text-sm text-white/50">{s.label}</div>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Features ── */}
-      <section id="features" className="py-24 px-6">
+      <section id="features" className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-blue-500/20 text-blue-300 border-blue-500/30">Features</Badge>
-            <h2 className="text-4xl font-black mb-4">{t("landing.featuresTitle")}</h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">{t("landing.featuresSubtitle")}</p>
+          <div className="text-center mb-10 sm:mb-16">
+            <Badge className="mb-3 sm:mb-4 bg-blue-500/20 text-blue-300 border-blue-500/30">Features</Badge>
+            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.featuresTitle")}</h2>
+            <p className="text-white/50 text-sm sm:text-lg max-w-2xl mx-auto">{t("landing.featuresSubtitle")}</p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {FEATURES.map((f) => (
               <Card key={f.title} className="bg-white/[0.03] border-white/[0.06] hover:border-white/10 transition-all hover:bg-white/[0.05] group">
-                <CardContent className="p-6">
-                  <div className={`w-10 h-10 rounded-xl ${f.bg} flex items-center justify-center mb-4`}>
-                    <f.icon className={`w-5 h-5 ${f.color}`} />
+                <CardContent className="p-4 sm:p-6">
+                  <div className={`w-9 sm:w-10 h-9 sm:h-10 rounded-xl ${f.bg} flex items-center justify-center mb-3 sm:mb-4`}>
+                    <f.icon className={`w-4 sm:w-5 h-4 sm:h-5 ${f.color}`} />
                   </div>
-                  <h3 className="font-bold text-white mb-2">{f.title}</h3>
-                  <p className="text-sm text-white/50 leading-relaxed">{f.description}</p>
+                  <h3 className="font-bold text-white mb-1.5 sm:mb-2 text-sm sm:text-base">{f.title}</h3>
+                  <p className="text-xs sm:text-sm text-white/50 leading-relaxed">{f.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -198,21 +250,21 @@ export default function Landing() {
       </section>
 
       {/* ── How It Works ── */}
-      <section id="how-it-works" className="py-24 px-6 bg-white/[0.02] border-y border-white/5">
+      <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 bg-white/[0.02] border-y border-white/5">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-green-500/20 text-green-300 border-green-500/30">Process</Badge>
-            <h2 className="text-4xl font-black mb-4">{t("landing.howTitle")}</h2>
+          <div className="text-center mb-10 sm:mb-16">
+            <Badge className="mb-3 sm:mb-4 bg-green-500/20 text-green-300 border-green-500/30">Process</Badge>
+            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.howTitle")}</h2>
           </div>
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
             {STEPS.map((step) => (
-              <div key={step.number} className="flex gap-5">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 border border-violet-500/20 flex items-center justify-center">
-                  <span className="text-sm font-black text-violet-400">{step.number}</span>
+              <div key={step.number} className="flex gap-4 sm:gap-5">
+                <div className="flex-shrink-0 w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 border border-violet-500/20 flex items-center justify-center">
+                  <span className="text-xs sm:text-sm font-black text-violet-400">{step.number}</span>
                 </div>
                 <div>
-                  <h3 className="font-bold text-white mb-2">{step.title}</h3>
-                  <p className="text-sm text-white/50 leading-relaxed">{step.description}</p>
+                  <h3 className="font-bold text-white mb-1.5 sm:mb-2 text-sm sm:text-base">{step.title}</h3>
+                  <p className="text-xs sm:text-sm text-white/50 leading-relaxed">{step.description}</p>
                 </div>
               </div>
             ))}
@@ -221,14 +273,14 @@ export default function Landing() {
       </section>
 
       {/* ── Segment Presets ── */}
-      <section className="py-24 px-6">
+      <section className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-orange-500/20 text-orange-300 border-orange-500/30">Industry Presets</Badge>
-            <h2 className="text-4xl font-black mb-4">Specialized for your industry</h2>
-            <p className="text-white/50 text-lg">Pre-configured targeting for the highest-converting B2B segments.</p>
+          <div className="text-center mb-10 sm:mb-16">
+            <Badge className="mb-3 sm:mb-4 bg-orange-500/20 text-orange-300 border-orange-500/30">Industry Presets</Badge>
+            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">Specialized for your industry</h2>
+            <p className="text-white/50 text-sm sm:text-lg">Pre-configured targeting for the highest-converting B2B segments.</p>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {[
               { icon: Shield, label: "Insurance & Finance", color: "from-blue-500/20 to-blue-600/10 border-blue-500/20" },
               { icon: Building2, label: "Real Estate", color: "from-green-500/20 to-green-600/10 border-green-500/20" },
@@ -237,11 +289,11 @@ export default function Landing() {
             ].map((seg) => (
               <div
                 key={seg.label}
-                className={`p-5 rounded-xl bg-gradient-to-br ${seg.color} border flex flex-col items-center gap-3 text-center cursor-pointer hover:scale-105 transition-transform`}
+                className={`p-3 sm:p-5 rounded-xl bg-gradient-to-br ${seg.color} border flex flex-col items-center gap-2 sm:gap-3 text-center cursor-pointer hover:scale-105 transition-transform`}
                 onClick={handleCTA}
               >
-                <seg.icon className="w-7 h-7 text-white/70" />
-                <span className="text-sm font-semibold text-white/80">{seg.label}</span>
+                <seg.icon className="w-5 sm:w-7 h-5 sm:h-7 text-white/70" />
+                <span className="text-xs sm:text-sm font-semibold text-white/80">{seg.label}</span>
               </div>
             ))}
           </div>
@@ -249,25 +301,25 @@ export default function Landing() {
       </section>
 
       {/* ── Testimonials ── */}
-      <section id="testimonials" className="py-24 px-6 bg-white/[0.02] border-y border-white/5">
+      <section id="testimonials" className="py-16 sm:py-24 px-4 sm:px-6 bg-white/[0.02] border-y border-white/5">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-yellow-500/20 text-yellow-300 border-yellow-500/30">Testimonials</Badge>
-            <h2 className="text-4xl font-black mb-4">{t("landing.testimonialsTitle")}</h2>
+          <div className="text-center mb-10 sm:mb-16">
+            <Badge className="mb-3 sm:mb-4 bg-yellow-500/20 text-yellow-300 border-yellow-500/30">Testimonials</Badge>
+            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.testimonialsTitle")}</h2>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {TESTIMONIALS.map((testimonial) => (
               <Card key={testimonial.name} className="bg-white/[0.03] border-white/[0.06]">
-                <CardContent className="p-6">
-                  <div className="flex gap-0.5 mb-4">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex gap-0.5 mb-3 sm:mb-4">
                     {Array.from({ length: testimonial.rating }).map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <Star key={i} className="w-3.5 sm:w-4 h-3.5 sm:h-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
-                  <p className="text-sm text-white/70 leading-relaxed mb-4">"{testimonial.text}"</p>
+                  <p className="text-xs sm:text-sm text-white/70 leading-relaxed mb-3 sm:mb-4">"{testimonial.text}"</p>
                   <div>
-                    <div className="font-semibold text-sm text-white">{testimonial.name}</div>
-                    <div className="text-xs text-white/40">{testimonial.role}</div>
+                    <div className="font-semibold text-xs sm:text-sm text-white">{testimonial.name}</div>
+                    <div className="text-[10px] sm:text-xs text-white/40">{testimonial.role}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -277,14 +329,14 @@ export default function Landing() {
       </section>
 
       {/* ── Pricing ── */}
-      <section id="pricing" className="py-24 px-6">
+      <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-violet-500/20 text-violet-300 border-violet-500/30">Pricing</Badge>
-            <h2 className="text-4xl font-black mb-4">{t("landing.pricingTitle")}</h2>
-            <p className="text-white/50 text-lg">{t("landing.pricingSubtitle")}</p>
+          <div className="text-center mb-10 sm:mb-16">
+            <Badge className="mb-3 sm:mb-4 bg-violet-500/20 text-violet-300 border-violet-500/30">Pricing</Badge>
+            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.pricingTitle")}</h2>
+            <p className="text-white/50 text-sm sm:text-lg">{t("landing.pricingSubtitle")}</p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {PRICING.map((plan) => (
               <Card
                 key={plan.name}
@@ -295,28 +347,28 @@ export default function Landing() {
               >
                 {plan.highlighted && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-violet-600 text-white border-0 px-3">{t("common.mostPopular")}</Badge>
+                    <Badge className="bg-violet-600 text-white border-0 px-3 text-xs">{t("common.mostPopular")}</Badge>
                   </div>
                 )}
-                <CardContent className="p-6">
-                  <div className="mb-6">
-                    <h3 className="font-bold text-lg text-white mb-1">{plan.name}</h3>
-                    <p className="text-sm text-white/50 mb-4">{plan.description}</p>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="mb-4 sm:mb-6">
+                    <h3 className="font-bold text-base sm:text-lg text-white mb-1">{plan.name}</h3>
+                    <p className="text-xs sm:text-sm text-white/50 mb-3 sm:mb-4">{plan.description}</p>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-black text-white">{plan.price}</span>
-                      <span className="text-white/40 text-sm">{plan.period}</span>
+                      <span className="text-3xl sm:text-4xl font-black text-white">{plan.price}</span>
+                      <span className="text-white/40 text-xs sm:text-sm">{plan.period}</span>
                     </div>
                   </div>
-                  <ul className="space-y-2.5 mb-6">
+                  <ul className="space-y-2 sm:space-y-2.5 mb-4 sm:mb-6">
                     {plan.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-sm text-white/70">
-                        <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0" />
+                      <li key={f} className="flex items-center gap-2 text-xs sm:text-sm text-white/70">
+                        <CheckCircle2 className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-400 flex-shrink-0" />
                         {f}
                       </li>
                     ))}
                   </ul>
                   <Button
-                    className={`w-full ${plan.highlighted ? "bg-violet-600 hover:bg-violet-700" : "bg-white/10 hover:bg-white/15 text-white"}`}
+                    className={`w-full text-sm ${plan.highlighted ? "bg-violet-600 hover:bg-violet-700" : "bg-white/10 hover:bg-white/15 text-white"}`}
                     onClick={handleCTA}
                   >
                     {plan.cta}
@@ -329,14 +381,14 @@ export default function Landing() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-24 px-6 border-t border-white/5">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t border-white/5">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl font-black mb-4">{t("landing.ctaTitle")}</h2>
-          <p className="text-white/50 text-lg mb-8">{t("landing.ctaSubtitle")}</p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.ctaTitle")}</h2>
+          <p className="text-white/50 text-sm sm:text-lg mb-6 sm:mb-8">{t("landing.ctaSubtitle")}</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
             <Button
               size="lg"
-              className="bg-violet-600 hover:bg-violet-700 px-10 h-12 text-base font-semibold"
+              className="bg-violet-600 hover:bg-violet-700 px-8 sm:px-10 h-11 sm:h-12 text-sm sm:text-base font-semibold w-full sm:w-auto"
               onClick={handleCTA}
             >
               {t("landing.ctaButton")} <ArrowRight className="w-4 h-4 ml-2" />
@@ -344,7 +396,7 @@ export default function Landing() {
             <Button
               size="lg"
               variant="outline"
-              className="border-white/10 text-white/70 hover:bg-white/5 px-8 h-12"
+              className="border-white/10 text-white/70 hover:bg-white/5 px-6 sm:px-8 h-11 sm:h-12 w-full sm:w-auto"
               onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
@@ -355,18 +407,18 @@ export default function Landing() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="py-10 px-6 border-t border-white/5 bg-white/[0.01]">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="py-8 sm:py-10 px-4 sm:px-6 border-t border-white/5 bg-white/[0.01]">
+        <div className="max-w-6xl mx-auto flex flex-col gap-4 sm:gap-0 sm:flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
               <Zap className="w-3 h-3 text-white" />
             </div>
             <span className="font-bold text-sm">LeadGen AI</span>
           </div>
-          <p className="text-xs text-white/30">© 2026 LeadGen AI. {t("landing.footerRights")}</p>
-          <div className="flex items-center gap-4">
+          <p className="text-xs text-white/30 order-3 sm:order-2">© 2026 LeadGen AI. {t("landing.footerRights")}</p>
+          <div className="flex items-center gap-3 sm:gap-4 order-2 sm:order-3 flex-wrap justify-center">
             <LanguageSwitcher variant="flags" />
-            <div className="flex gap-6 text-xs text-white/30">
+            <div className="flex gap-4 sm:gap-6 text-xs text-white/30">
               <a href="#" className="hover:text-white/60 transition-colors">Privacy Policy</a>
               <a href="#" className="hover:text-white/60 transition-colors">Terms of Service</a>
             </div>

@@ -2,7 +2,7 @@
   "lang": {
     "en": "English",
     "cs": "Čeština",
-    "sk": "Slovenčina"
+    "de": "Deutsch"
   },
   "nav": {
     "features": "Funkce",
@@ -42,6 +42,16 @@
     "feature5Desc": "Zaznamenávejte hodnoty obchodů, sledujte uzavřené obchody a vypočítejte přesnou návratnost investic za každou generovací session.",
     "feature6Title": "Týmová spolupráce",
     "feature6Desc": "Pozvěte svůj obchodní tým, přiřazujte leady agentům a spravujte role — vše z jednoho centrálního dashboardu.",
+    "feature7Title": "B2B Matching",
+    "feature7Desc": "Definujte svůj ideální profil zákazníka a nechte AI najít firmy odpovídající vašim kritériím podle odvětví, velikosti a lokality.",
+    "feature8Title": "AI SDR Agent",
+    "feature8Desc": "Automatizujte personalizované outreach kampaně s AI generovanými e-maily, follow-upy a sledováním odpovědí.",
+    "feature9Title": "Next Best Action",
+    "feature9Desc": "Získejte AI doporučení pro další krok u každého leadu — zavolat, napsat e-mail, LinkedIn nebo kvalifikovat.",
+    "feature10Title": "Social Listening",
+    "feature10Desc": "Monitorujte sociální sítě pro nákupní signály a automaticky konvertujte záměry na kvalifikované leady.",
+    "feature11Title": "Autopilot",
+    "feature11Desc": "Naplánujte opakované generování leadů. Nastavte jednou a nechte systém generovat čerstvé leady na autopilota.",
     "howTitle": "Od nuly ke kvalifikovaným leadům za minuty",
     "step1Title": "Nastavte",
     "step1Desc": "Vyberte cílové odvětví, lokalitu, úroveň seniority a segment preset. Nastavení za méně než 60 sekund.",

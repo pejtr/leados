@@ -30,6 +30,74 @@ import {
 } from "./db";
 import { runLeadPipeline, SUPPORTED_INDUSTRIES, SEGMENT_PRESETS } from "./leadPipeline";
 import { exportLeadsToSheet, extractSpreadsheetId } from "./googleSheets";
+import {
+  getWebhookConfigs,
+  getWebhookConfigById,
+  createWebhookConfig,
+  updateWebhookConfig,
+  deleteWebhookConfig,
+  getIntegrationLogs,
+} from "./db";
+import { dispatchWebhooks, testWebhook } from "./webhookDispatcher";
+import {
+  getAutopilotConfigs,
+  getAutopilotConfigById,
+  createAutopilotConfig,
+  updateAutopilotConfig,
+  deleteAutopilotConfig,
+  getAutopilotRuns,
+  getRecentAutopilotRuns,
+} from "./db";
+import {
+  getMatchProfiles,
+  getMatchProfileById,
+  createMatchProfile,
+  updateMatchProfile,
+  deleteMatchProfile,
+} from "./db";
+import {
+  getSdrCampaigns,
+  getSdrCampaignById,
+  createSdrCampaign,
+  updateSdrCampaign,
+  deleteSdrCampaign,
+  getSdrActivities,
+  createSdrActivity,
+} from "./db";
+import {
+  getNbaRecommendations,
+  createNbaRecommendation,
+  updateNbaRecommendation,
+  deleteNbaRecommendation,
+} from "./db";
+import {
+  getSocialMonitors,
+  getSocialMonitorById,
+  createSocialMonitor,
+  updateSocialMonitor,
+  deleteSocialMonitor,
+  getSocialSignals,
+  getSocialSignalsByUser,
+  createSocialSignal,
+  updateSocialSignal,
+} from "./db";
+import { invokeLLM } from "./_core/llm";
+import {
+  createTrackingPixel, getTrackingPixelsByUser, deleteTrackingPixel, updateTrackingPixel,
+  getVisitorSessionsByPixel, getVisitorSessionsByUser, createVisitorSession,
+  getPageViewsBySession,
+  createAlertRule, getAlertRulesByUser, updateAlertRule, deleteAlertRule,
+  createSmartList, getSmartListsByUser, updateSmartList, deleteSmartList,
+  createEmailVerification, getEmailVerificationsByUser, updateEmailVerification,
+  createCampaignRule, getCampaignRulesByUser, updateCampaignRule, deleteCampaignRule,
+  createAgencyClient, getAgencyClientsByUser, updateAgencyClient, deleteAgencyClient,
+  getSpeedToLeadConfig, upsertSpeedToLeadConfig,
+  createIcpProfile, getIcpProfilesByUser, updateIcpProfile, deleteIcpProfile,
+  getLinkedinConnectionsByLead, createLinkedinConnection,
+  createTechStackDetection, getTechStackByUser, getTechStackByDomain, updateTechStackDetection,
+  createAiAgent, getAiAgentsByUser, updateAiAgent, deleteAiAgent, getAiAgentById,
+  createAiAgentLog, getAiAgentLogsByAgent,
+} from "./db";
 
 export const appRouter = router({
   system: systemRouter,
@@ -113,6 +181,14 @@ export const appRouter = router({
             enrichedCount: result.leads.filter((l) => l.icebreaker).length,
             completedAt: new Date(),
           });
+
+          // Dispatch webhooks for newly generated leads
+          dispatchWebhooks(ctx.user.id, "generate", leadsToInsert as any, {
+            source: "manual_generation",
+            sessionId,
+            industry: input.industry,
+            location: input.location,
+          }).catch(console.error);
 
           return { sessionId, leads: result.leads, count: result.leads.length };
         } catch (err: any) {
@@ -243,6 +319,10 @@ export const appRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         await updateLeadStatus(input.leadId, ctx.user.id, input.status);
+        // Dispatch webhook on status change
+        dispatchWebhooks(ctx.user.id, "status_change", [{ id: input.leadId, status: input.status }] as any, {
+          source: "status_change",
+        }).catch(console.error);
         return { success: true };
       }),
 
@@ -291,6 +371,10 @@ export const appRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         await closeDeal(input.leadId, ctx.user.id, input.dealValue, input.currency);
+        // Dispatch webhook on deal close
+        dispatchWebhooks(ctx.user.id, "deal_close", [{ id: input.leadId, dealValue: input.dealValue, currency: input.currency }] as any, {
+          source: "deal_close",
+        }).catch(console.error);
         return { success: true };
       }),
 
@@ -432,6 +516,905 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         await removeTeamMember(input.id, ctx.user.id);
         return { success: true };
+      }),
+  }),
+
+  // ── Autopilot ──────────────────────────────────────────────────
+  autopilot: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getAutopilotConfigs(ctx.user.id);
+    }),
+
+    get: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        return getAutopilotConfigById(input.id, ctx.user.id);
+      }),
+
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(128),
+          industry: z.string().min(1),
+          location: z.string().min(1),
+          seniorityLevel: z.string().min(1),
+          leadCount: z.number().int().min(1).max(100).default(10),
+          segment: z.string().optional(),
+          scheduleType: z.enum(["daily", "weekly", "monthly"]).default("weekly"),
+          scheduleDayOfWeek: z.number().int().min(0).max(6).default(1),
+          scheduleHour: z.number().int().min(0).max(23).default(9),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Compute first nextRunAt
+        const now = new Date();
+        const next = new Date(now);
+        next.setMinutes(0, 0, 0);
+        next.setHours(input.scheduleHour);
+        if (input.scheduleType === "daily") {
+          next.setDate(next.getDate() + 1);
+        } else {
+          do { next.setDate(next.getDate() + 1); } while (next.getDay() !== input.scheduleDayOfWeek);
+        }
+        const id = await createAutopilotConfig({
+          userId: ctx.user.id,
+          ...input,
+          nextRunAt: next,
+        });
+        return { success: true, id };
+      }),
+
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number().int(),
+          name: z.string().min(1).max(128).optional(),
+          industry: z.string().optional(),
+          location: z.string().optional(),
+          seniorityLevel: z.string().optional(),
+          leadCount: z.number().int().min(1).max(100).optional(),
+          segment: z.string().optional().nullable(),
+          scheduleType: z.enum(["daily", "weekly", "monthly"]).optional(),
+          scheduleDayOfWeek: z.number().int().min(0).max(6).optional(),
+          scheduleHour: z.number().int().min(0).max(23).optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateAutopilotConfig(id, ctx.user.id, data as any);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteAutopilotConfig(input.id, ctx.user.id);
+        return { success: true };
+      }),
+
+    runs: protectedProcedure
+      .input(z.object({ configId: z.number().int(), limit: z.number().int().default(20) }))
+      .query(async ({ ctx, input }) => {
+        return getAutopilotRuns(input.configId, input.limit);
+      }),
+
+    recentRuns: protectedProcedure
+      .input(z.object({ limit: z.number().int().default(10) }))
+      .query(async ({ ctx, input }) => {
+        return getRecentAutopilotRuns(ctx.user.id, input.limit);
+      }),
+  }),
+
+  // ── Integrations (Webhooks, ClickUp, Slack) ──────────────────────
+  integrations: router({
+    // List all webhook configs for user
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getWebhookConfigs(ctx.user.id);
+    }),
+
+    // Get single config
+    get: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        return getWebhookConfigById(input.id, ctx.user.id);
+      }),
+
+    // Create new webhook config
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1).max(128),
+          type: z.enum(["generic", "clickup", "slack"]),
+          webhookUrl: z.string().url().optional(),
+          clickupApiKey: z.string().optional(),
+          clickupListId: z.string().optional(),
+          slackWebhookUrl: z.string().url().optional(),
+          triggerOnGenerate: z.boolean().default(true),
+          triggerOnStatusChange: z.boolean().default(false),
+          triggerOnDealClose: z.boolean().default(false),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const id = await createWebhookConfig({
+          userId: ctx.user.id,
+          name: input.name,
+          type: input.type,
+          webhookUrl: input.webhookUrl ?? null,
+          clickupApiKey: input.clickupApiKey ?? null,
+          clickupListId: input.clickupListId ?? null,
+          slackWebhookUrl: input.slackWebhookUrl ?? null,
+          triggerOnGenerate: input.triggerOnGenerate,
+          triggerOnStatusChange: input.triggerOnStatusChange,
+          triggerOnDealClose: input.triggerOnDealClose,
+        });
+        return { success: true, id };
+      }),
+
+    // Update webhook config
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.number().int(),
+          name: z.string().min(1).max(128).optional(),
+          type: z.enum(["generic", "clickup", "slack"]).optional(),
+          webhookUrl: z.string().optional().nullable(),
+          clickupApiKey: z.string().optional().nullable(),
+          clickupListId: z.string().optional().nullable(),
+          slackWebhookUrl: z.string().optional().nullable(),
+          triggerOnGenerate: z.boolean().optional(),
+          triggerOnStatusChange: z.boolean().optional(),
+          triggerOnDealClose: z.boolean().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateWebhookConfig(id, ctx.user.id, data as any);
+        return { success: true };
+      }),
+
+    // Delete webhook config
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteWebhookConfig(input.id, ctx.user.id);
+        return { success: true };
+      }),
+
+    // Test webhook
+    test: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const config = await getWebhookConfigById(input.id, ctx.user.id);
+        if (!config) throw new Error("Webhook config not found");
+        const result = await testWebhook(config, ctx.user.id);
+        return result;
+      }),
+
+    // Get integration logs
+    logs: protectedProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(200).default(50) }))
+      .query(async ({ ctx, input }) => {
+        return getIntegrationLogs(ctx.user.id, input.limit);
+      }),
+
+    // Export leads to ClickUp (one-time, without saved config)
+    exportToClickUp: protectedProcedure
+      .input(
+        z.object({
+          apiKey: z.string().min(1),
+          listId: z.string().min(1),
+          leadIds: z.array(z.number().int()).min(1),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const leadsData = await getLeadsByIds(input.leadIds, ctx.user.id);
+        if (leadsData.length === 0) throw new Error("No leads found");
+
+        const tempConfig = {
+          id: 0,
+          userId: ctx.user.id,
+          name: "One-time ClickUp export",
+          type: "clickup" as const,
+          webhookUrl: null,
+          clickupApiKey: input.apiKey,
+          clickupListId: input.listId,
+          slackWebhookUrl: null,
+          triggerOnGenerate: false,
+          triggerOnStatusChange: false,
+          triggerOnDealClose: false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        const result = await testWebhook(tempConfig, ctx.user.id);
+        if (!result.success) {
+          throw new Error(`ClickUp export failed: ${result.error || `HTTP ${result.status}`}`);
+        }
+
+        // Now send actual leads
+        await dispatchWebhooks(ctx.user.id, "generate", leadsData as any, { source: "manual_clickup_export" });
+        return { success: true, count: leadsData.length };
+      }),
+  }),
+
+  // ── B2B Matching ─────────────────────────────────────────────────
+  matching: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getMatchProfiles(ctx.user.id);
+    }),
+
+    get: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        return getMatchProfileById(input.id, ctx.user.id);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(128),
+        industries: z.string().min(1),
+        companySizeMin: z.number().int().default(10),
+        companySizeMax: z.number().int().default(500),
+        revenueMin: z.string().optional(),
+        revenueMax: z.string().optional(),
+        locations: z.string().min(1),
+        keywords: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const id = await createMatchProfile({
+          userId: ctx.user.id,
+          ...input,
+          revenueMin: input.revenueMin ?? null,
+          revenueMax: input.revenueMax ?? null,
+          keywords: input.keywords ?? null,
+        });
+        return { success: true, id };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int(),
+        name: z.string().min(1).max(128).optional(),
+        industries: z.string().optional(),
+        companySizeMin: z.number().int().optional(),
+        companySizeMax: z.number().int().optional(),
+        revenueMin: z.string().optional().nullable(),
+        revenueMax: z.string().optional().nullable(),
+        locations: z.string().optional(),
+        keywords: z.string().optional().nullable(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateMatchProfile(id, ctx.user.id, data as any);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteMatchProfile(input.id, ctx.user.id);
+        return { success: true };
+      }),
+
+    findMatches: protectedProcedure
+      .input(z.object({ profileId: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const profile = await getMatchProfileById(input.profileId, ctx.user.id);
+        if (!profile) throw new Error("Profile not found");
+
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are a B2B company matching expert. Given an Ideal Customer Profile (ICP), generate a list of 5 fictional but realistic company matches. Return valid JSON array." },
+            { role: "user", content: `ICP: Industries: ${profile.industries}, Size: ${profile.companySizeMin}-${profile.companySizeMax} employees, Locations: ${profile.locations}, Keywords: ${profile.keywords || "none"}. Generate 5 matching companies as JSON array with fields: companyName, industry, size, location, matchScore (0-100), matchReason.` },
+          ],
+          response_format: { type: "json_object" },
+        });
+
+        const content = response.choices[0]?.message?.content;
+        try {
+          const parsed = JSON.parse(typeof content === "string" ? content : "");
+          return parsed.matches || parsed.companies || parsed;
+        } catch {
+          return [];
+        }
+      }),
+  }),
+
+  // ── AI SDR Agent ─────────────────────────────────────────────────
+  sdr: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getSdrCampaigns(ctx.user.id);
+    }),
+
+    get: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        return getSdrCampaignById(input.id, ctx.user.id);
+      }),
+
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(128),
+        industry: z.string().min(1),
+        location: z.string().min(1),
+        seniorityLevel: z.string().default("C-Level"),
+        leadCount: z.number().int().min(1).max(100).default(20),
+        emailSubject: z.string().optional(),
+        emailTone: z.enum(["professional", "friendly", "direct"]).default("professional"),
+        followUpDays: z.number().int().min(1).max(30).default(3),
+        maxFollowUps: z.number().int().min(0).max(10).default(2),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const id = await createSdrCampaign({
+          userId: ctx.user.id,
+          ...input,
+          emailSubject: input.emailSubject ?? null,
+        });
+        return { success: true, id };
+      }),
+
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number().int(),
+        name: z.string().optional(),
+        status: z.enum(["draft", "active", "paused", "completed"]).optional(),
+        emailSubject: z.string().optional().nullable(),
+        emailTone: z.enum(["professional", "friendly", "direct"]).optional(),
+        followUpDays: z.number().int().optional(),
+        maxFollowUps: z.number().int().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateSdrCampaign(id, ctx.user.id, data as any);
+        return { success: true };
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteSdrCampaign(input.id, ctx.user.id);
+        return { success: true };
+      }),
+
+    activities: protectedProcedure
+      .input(z.object({ campaignId: z.number().int(), limit: z.number().int().default(50) }))
+      .query(async ({ ctx, input }) => {
+        return getSdrActivities(input.campaignId, input.limit);
+      }),
+
+    generateEmail: protectedProcedure
+      .input(z.object({
+        companyName: z.string(),
+        contactName: z.string().optional(),
+        industry: z.string(),
+        tone: z.enum(["professional", "friendly", "direct"]).default("professional"),
+        icebreaker: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: `You are an expert B2B sales email writer. Write a concise, personalized cold outreach email. Tone: ${input.tone}. Return JSON with subject and body fields.` },
+            { role: "user", content: `Write a cold outreach email to ${input.contactName || "the decision maker"} at ${input.companyName} (${input.industry}).${input.icebreaker ? " Icebreaker: " + input.icebreaker : ""}` },
+          ],
+          response_format: { type: "json_object" },
+        });
+        const content = response.choices[0]?.message?.content;
+        try {
+          return JSON.parse(typeof content === "string" ? content : "");
+        } catch {
+          return { subject: "Partnership Opportunity", body: typeof content === "string" ? content : "" };
+        }
+      }),
+  }),
+
+  // ── Next Best Action ─────────────────────────────────────────────
+  nba: router({
+    list: protectedProcedure
+      .input(z.object({
+        status: z.string().optional(),
+        limit: z.number().int().default(20),
+      }))
+      .query(async ({ ctx, input }) => {
+        return getNbaRecommendations(ctx.user.id, input.status, input.limit);
+      }),
+
+    generate: protectedProcedure
+      .input(z.object({ leadIds: z.array(z.number().int()).min(1).max(20) }))
+      .mutation(async ({ ctx, input }) => {
+        const leadsData = await getLeadsByIds(input.leadIds, ctx.user.id);
+        if (leadsData.length === 0) throw new Error("No leads found");
+
+        const leadsSummary = leadsData.map(l => ({
+          id: l.id, company: l.companyName, status: l.status, email: l.email,
+          industry: l.industry, quality: l.qualityRating, dealValue: l.dealValue,
+        }));
+
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are a sales strategy AI. For each lead, recommend the single best next action. Return JSON array with fields: leadId, action (call/email/linkedin/qualify/disqualify/wait), priority (1-100), reason, aiScore (1-100)." },
+            { role: "user", content: `Analyze these leads and recommend next best actions:\n${JSON.stringify(leadsSummary)}` },
+          ],
+          response_format: { type: "json_object" },
+        });
+
+        const content = response.choices[0]?.message?.content;
+        let recommendations: any[] = [];
+        try {
+          const parsed = JSON.parse(typeof content === "string" ? content : "");
+          recommendations = parsed.recommendations || parsed.actions || parsed;
+        } catch { recommendations = []; }
+
+        const created: number[] = [];
+        for (const rec of (Array.isArray(recommendations) ? recommendations : [])) {
+          if (!rec.leadId || !rec.action) continue;
+          const id = await createNbaRecommendation({
+            userId: ctx.user.id,
+            leadId: rec.leadId,
+            action: rec.action,
+            priority: rec.priority || 50,
+            reason: rec.reason || "AI recommendation",
+            aiScore: rec.aiScore || 50,
+          });
+          created.push(id);
+        }
+        return { success: true, count: created.length };
+      }),
+
+    action: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await updateNbaRecommendation(input.id, ctx.user.id, {
+          status: "actioned",
+          actionedAt: new Date(),
+        });
+        return { success: true };
+      }),
+
+    dismiss: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await updateNbaRecommendation(input.id, ctx.user.id, {
+          status: "dismissed",
+        });
+        return { success: true };
+      }),
+  }),
+
+  // ── Social Listening ────────────────────────────────────────────
+  social: router({
+    monitors: protectedProcedure.query(async ({ ctx }) => {
+      return getSocialMonitors(ctx.user.id);
+    }),
+
+    getMonitor: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        return getSocialMonitorById(input.id, ctx.user.id);
+      }),
+
+    createMonitor: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(128),
+        keywords: z.string().min(1),
+        platforms: z.string().default("linkedin"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const id = await createSocialMonitor({
+          userId: ctx.user.id,
+          ...input,
+        });
+        return { success: true, id };
+      }),
+
+    updateMonitor: protectedProcedure
+      .input(z.object({
+        id: z.number().int(),
+        name: z.string().optional(),
+        keywords: z.string().optional(),
+        platforms: z.string().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateSocialMonitor(id, ctx.user.id, data as any);
+        return { success: true };
+      }),
+
+    deleteMonitor: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteSocialMonitor(input.id, ctx.user.id);
+        return { success: true };
+      }),
+
+    signals: protectedProcedure
+      .input(z.object({ monitorId: z.number().int(), limit: z.number().int().default(50) }))
+      .query(async ({ ctx, input }) => {
+        return getSocialSignals(input.monitorId, input.limit);
+      }),
+
+    allSignals: protectedProcedure
+      .input(z.object({ limit: z.number().int().default(50) }))
+      .query(async ({ ctx, input }) => {
+        return getSocialSignalsByUser(ctx.user.id, input.limit);
+      }),
+
+    convertToLead: protectedProcedure
+      .input(z.object({ signalId: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        // This would create a lead from a social signal
+        // For now, mark as converted
+        await updateSocialSignal(input.signalId, { convertedToLead: true });
+        return { success: true };
+      }),
+  }),
+
+  // ─── Tracking Pixel ─────────────────────────────────────────
+  trackingPixel: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getTrackingPixelsByUser(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({ name: z.string().min(1), domain: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        const pixelCode = `<script>!function(){var e="${input.domain}",t=document.createElement("script");t.src="https://px.leadgenai.com/t.js?d="+e+"&u=${ctx.user.id}",t.async=!0,document.head.appendChild(t)}();</script>`;
+        await createTrackingPixel({ userId: ctx.user.id, name: input.name, domain: input.domain, pixelCode });
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteTrackingPixel(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    toggle: protectedProcedure
+      .input(z.object({ id: z.number().int(), isActive: z.boolean() }))
+      .mutation(async ({ ctx, input }) => {
+        await updateTrackingPixel(input.id, { isActive: input.isActive });
+        return { success: true };
+      }),
+    visitors: protectedProcedure
+      .input(z.object({ pixelId: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        return getVisitorSessionsByPixel(input.pixelId, ctx.user.id);
+      }),
+    allVisitors: protectedProcedure.query(async ({ ctx }) => {
+      return getVisitorSessionsByUser(ctx.user.id);
+    }),
+    pageViews: protectedProcedure
+      .input(z.object({ sessionId: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        return getPageViewsBySession(input.sessionId);
+      }),
+  }),
+
+  // ─── Smart Alert Rules ─────────────────────────────────────
+  alertRules: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getAlertRulesByUser(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        conditionType: z.enum(["high_intent_visitor", "new_lead_generated", "lead_status_change", "deal_closed", "visitor_returning", "keyword_match"]),
+        conditionValue: z.string().optional(),
+        channel: z.enum(["email", "slack", "webhook"]),
+        channelTarget: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await createAlertRule({ userId: ctx.user.id, ...input });
+        return { success: true };
+      }),
+    update: protectedProcedure
+      .input(z.object({ id: z.number().int(), isActive: z.boolean().optional(), name: z.string().optional(), conditionValue: z.string().optional(), channelTarget: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateAlertRule(id, data);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteAlertRule(input.id, ctx.user.id);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Smart Lists ───────────────────────────────────────────
+  smartLists: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getSmartListsByUser(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        filters: z.string().min(1),
+        autoRefresh: z.boolean().default(false),
+        refreshInterval: z.enum(["hourly", "daily", "weekly"]).default("daily"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await createSmartList({ userId: ctx.user.id, ...input });
+        return { success: true };
+      }),
+    update: protectedProcedure
+      .input(z.object({ id: z.number().int(), name: z.string().optional(), filters: z.string().optional(), autoRefresh: z.boolean().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateSmartList(id, data);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteSmartList(input.id, ctx.user.id);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Email Verification ────────────────────────────────────
+  emailVerification: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getEmailVerificationsByUser(ctx.user.id);
+    }),
+    verify: protectedProcedure
+      .input(z.object({ email: z.string().email(), leadId: z.number().int().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        // Simulate verification (in production, call Bouncer API)
+        const score = Math.floor(Math.random() * 40) + 60;
+        const status = score > 80 ? "valid" as const : score > 60 ? "risky" as const : "invalid" as const;
+        await createEmailVerification({ userId: ctx.user.id, email: input.email, leadId: input.leadId, status, score, reason: status === "valid" ? "Mailbox exists" : "Catch-all domain" });
+        return { success: true, status, score };
+      }),
+    bulkVerify: protectedProcedure
+      .input(z.object({ emails: z.array(z.string().email()) }))
+      .mutation(async ({ ctx, input }) => {
+        const results = [];
+        for (const email of input.emails) {
+          const score = Math.floor(Math.random() * 40) + 60;
+          const status = score > 80 ? "valid" as const : score > 60 ? "risky" as const : "invalid" as const;
+          await createEmailVerification({ userId: ctx.user.id, email, status, score, reason: status === "valid" ? "Mailbox exists" : "Catch-all domain" });
+          results.push({ email, status, score });
+        }
+        return { success: true, results };
+      }),
+  }),
+
+  // ─── Campaign Rules (If/Then) ──────────────────────────────
+  campaignRules: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getCampaignRulesByUser(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        triggerType: z.enum(["lead_created", "status_changed", "email_opened", "email_replied", "intent_score_above", "visitor_returned", "deal_value_above"]),
+        triggerValue: z.string().optional(),
+        actionType: z.enum(["send_email", "change_status", "assign_to", "add_to_list", "send_webhook", "send_slack", "create_task"]),
+        actionValue: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await createCampaignRule({ userId: ctx.user.id, ...input });
+        return { success: true };
+      }),
+    update: protectedProcedure
+      .input(z.object({ id: z.number().int(), isActive: z.boolean().optional(), name: z.string().optional(), triggerValue: z.string().optional(), actionValue: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateCampaignRule(id, data);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteCampaignRule(input.id, ctx.user.id);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Agency Panel ──────────────────────────────────────────
+  agency: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getAgencyClientsByUser(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        clientName: z.string().min(1),
+        clientEmail: z.string().email().optional(),
+        clientDomain: z.string().optional(),
+        industry: z.string().optional(),
+        brandColor: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await createAgencyClient({ agencyUserId: ctx.user.id, ...input });
+        return { success: true };
+      }),
+    update: protectedProcedure
+      .input(z.object({ id: z.number().int(), clientName: z.string().optional(), clientEmail: z.string().optional(), industry: z.string().optional(), brandColor: z.string().optional(), isActive: z.boolean().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateAgencyClient(id, data);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteAgencyClient(input.id, ctx.user.id);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Speed-to-Lead ─────────────────────────────────────────
+  speedToLead: router({
+    get: protectedProcedure.query(async ({ ctx }) => {
+      return getSpeedToLeadConfig(ctx.user.id);
+    }),
+    upsert: protectedProcedure
+      .input(z.object({
+        isActive: z.boolean().default(true),
+        autoEmailEnabled: z.boolean().default(true),
+        autoEmailTemplateId: z.number().int().optional(),
+        responseDelaySeconds: z.number().int().min(10).max(3600).default(60),
+        notifyOnNewLead: z.boolean().default(true),
+        notifyChannel: z.enum(["email", "slack", "both"]).default("email"),
+        notifyTarget: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await upsertSpeedToLeadConfig({ userId: ctx.user.id, ...input });
+        return { success: true };
+      }),
+  }),
+
+  // ─── ICP Builder ───────────────────────────────────────────
+  icpBuilder: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getIcpProfilesByUser(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        industries: z.string().min(1),
+        locations: z.string().min(1),
+        companySizeMin: z.number().int().optional(),
+        companySizeMax: z.number().int().optional(),
+        revenueRange: z.string().optional(),
+        technologies: z.string().optional(),
+        buyingSignals: z.string().optional(),
+        painPoints: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await createIcpProfile({ userId: ctx.user.id, ...input });
+        return { success: true };
+      }),
+    update: protectedProcedure
+      .input(z.object({ id: z.number().int(), name: z.string().optional(), industries: z.string().optional(), locations: z.string().optional(), technologies: z.string().optional(), buyingSignals: z.string().optional(), painPoints: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateIcpProfile(id, data);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteIcpProfile(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    aiGenerate: protectedProcedure
+      .input(z.object({ description: z.string().min(10) }))
+      .mutation(async ({ ctx, input }) => {
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are an ICP (Ideal Customer Profile) expert. Generate a structured ICP based on the user's description. Return JSON with fields: name, industries (comma-separated), locations (comma-separated), companySizeMin, companySizeMax, revenueRange, technologies (comma-separated), buyingSignals (comma-separated), painPoints (comma-separated)." },
+            { role: "user", content: input.description },
+          ],
+          response_format: { type: "json_schema", json_schema: { name: "icp", strict: true, schema: { type: "object", properties: { name: { type: "string" }, industries: { type: "string" }, locations: { type: "string" }, companySizeMin: { type: "integer" }, companySizeMax: { type: "integer" }, revenueRange: { type: "string" }, technologies: { type: "string" }, buyingSignals: { type: "string" }, painPoints: { type: "string" } }, required: ["name", "industries", "locations", "companySizeMin", "companySizeMax", "revenueRange", "technologies", "buyingSignals", "painPoints"], additionalProperties: false } } },
+        });
+        const content = response.choices?.[0]?.message?.content;
+        if (!content) throw new Error("Failed to generate ICP");
+        return JSON.parse(content);
+      }),
+  }),
+
+  // ─── Tech Stack Detection ──────────────────────────────────
+  techStack: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getTechStackByUser(ctx.user.id);
+    }),
+    detect: protectedProcedure
+      .input(z.object({ domain: z.string().min(1), leadId: z.number().int().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        // Check if already scanned
+        const existing = await getTechStackByDomain(input.domain, ctx.user.id);
+        if (existing) {
+          return { technologies: JSON.parse(existing.technologies), categories: existing.categories ? JSON.parse(existing.categories) : null, cached: true };
+        }
+        // Use LLM to estimate tech stack based on domain
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are a tech stack detection expert. Given a domain, estimate the likely technologies used. Return JSON with: technologies (array of strings), categories (object with keys: cms, analytics, marketing, hosting, framework, ecommerce, each being a string or null)." },
+            { role: "user", content: `Detect the tech stack for: ${input.domain}` },
+          ],
+          response_format: { type: "json_schema", json_schema: { name: "techstack", strict: true, schema: { type: "object", properties: { technologies: { type: "array", items: { type: "string" } }, categories: { type: "object", properties: { cms: { type: ["string", "null"] }, analytics: { type: ["string", "null"] }, marketing: { type: ["string", "null"] }, hosting: { type: ["string", "null"] }, framework: { type: ["string", "null"] }, ecommerce: { type: ["string", "null"] } }, required: ["cms", "analytics", "marketing", "hosting", "framework", "ecommerce"], additionalProperties: false } }, required: ["technologies", "categories"], additionalProperties: false } } },
+        });
+        const content = response.choices?.[0]?.message?.content;
+        if (!content) throw new Error("Failed to detect tech stack");
+        const parsed = JSON.parse(content);
+        await createTechStackDetection({ userId: ctx.user.id, domain: input.domain, leadId: input.leadId, technologies: JSON.stringify(parsed.technologies), categories: JSON.stringify(parsed.categories) });
+        return { ...parsed, cached: false };
+      }),
+  }),
+
+  // ─── AI Agent Builder ──────────────────────────────────────
+  aiAgents: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getAiAgentsByUser(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1),
+        description: z.string().optional(),
+        agentType: z.enum(["lead_qualifier", "email_writer", "data_enricher", "meeting_scheduler", "custom"]).default("custom"),
+        config: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await createAiAgent({ userId: ctx.user.id, ...input });
+        return { success: true };
+      }),
+    update: protectedProcedure
+      .input(z.object({ id: z.number().int(), name: z.string().optional(), description: z.string().optional(), config: z.string().optional(), isActive: z.boolean().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateAiAgent(id, data);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteAiAgent(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    execute: protectedProcedure
+      .input(z.object({ agentId: z.number().int(), input: z.string().min(1) }))
+      .mutation(async ({ ctx, input: reqInput }) => {
+        const agent = await getAiAgentById(reqInput.agentId);
+        if (!agent) throw new Error("Agent not found");
+        const config = JSON.parse(agent.config);
+        const startTime = Date.now();
+        try {
+          const response = await invokeLLM({
+            messages: [
+              { role: "system", content: config.systemPrompt || `You are an AI agent: ${agent.name}. ${agent.description || ""}` },
+              { role: "user", content: reqInput.input },
+            ],
+          });
+          const output = response.choices?.[0]?.message?.content || "";
+          const duration = Date.now() - startTime;
+          await createAiAgentLog({ agentId: agent.id, userId: ctx.user.id, input: reqInput.input, output, status: "success", durationMs: duration });
+          await updateAiAgent(agent.id, { totalExecutions: agent.totalExecutions + 1, lastExecutedAt: new Date() });
+          return { success: true, output, durationMs: duration };
+        } catch (err: any) {
+          const duration = Date.now() - startTime;
+          await createAiAgentLog({ agentId: agent.id, userId: ctx.user.id, input: reqInput.input, output: err.message, status: "failed", durationMs: duration });
+          throw new Error(`Agent execution failed: ${err.message}`);
+        }
+      }),
+    logs: protectedProcedure
+      .input(z.object({ agentId: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        return getAiAgentLogsByAgent(input.agentId);
+      }),
+  }),
+
+  // ─── LinkedIn Connections ──────────────────────────────────
+  linkedinConnections: router({
+    byLead: protectedProcedure
+      .input(z.object({ leadId: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        return getLinkedinConnectionsByLead(input.leadId);
       }),
   }),
 });

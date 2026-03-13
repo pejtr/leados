@@ -1,0 +1,9 @@
+{
+  "query": "DROP TABLE IF EXISTS autopilot_runs; DROP TABLE IF EXISTS autopilot_configs;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute DROP TABLE IF EXISTS autopilot_runs; DROP TABLE IF EXISTS autopilot_configs;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 314
+}

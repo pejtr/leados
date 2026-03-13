@@ -101,3 +101,90 @@
 - [x] Show success toast with link to the spreadsheet after export
 - [x] 19 Vitest tests passing (4 test files)
 - [ ] Final checkpoint + publish
+
+## ClickUp Export Integration
+- [x] DB schema: webhook_configs table (stores webhook URLs and ClickUp API keys per user)
+- [x] DB schema: integration_logs table (tracks all webhook/export events)
+- [x] Migration SQL applied
+- [x] Backend: ClickUp API client (create tasks from leads)
+- [x] Backend: tRPC procedures for integration CRUD (add/edit/delete/test webhook)
+- [x] Backend: Webhook dispatcher (POST lead data to user's webhook URL)
+- [x] Frontend: Integrations page with Webhook config and ClickUp export UI
+- [x] Wire webhook triggers into lead pipeline completion events
+- [x] Add Integrations nav item to DashboardLayout
+- [x] Route in App.tsx
+- [x] Vitest tests for webhook and ClickUp integration
+- [x] Push to GitHub
+
+## Webhook Integration (Zapier/Make/n8n)
+- [x] Generic webhook POST on lead generation complete
+- [x] Configurable webhook URL per user
+- [x] Test webhook button (sends sample payload)
+- [x] Webhook delivery logs with status codes
+- [x] Retry failed webhooks (up to 3 attempts)
+
+## Language Consistency Fix
+- [x] Fix hardcoded English strings in Landing.tsx (Industry Presets section)
+- [x] Add missing i18n keys to cs.json, de.json, en.json
+
+## Next Best Action Engine
+- [x] DB schema: nba_recommendations table
+- [x] Backend: AI analyzes lead data and generates ranked action recommendations (call/email/wait/qualify)
+- [x] tRPC: nba.getRecommendations, nba.dismissRecommendation, nba.markActioned
+- [x] Frontend: NBA page with action recommendations
+- [x] Nav item + route in App.tsx
+
+## B2B Matching
+- [x] DB schema: match_profiles table (ICP definition per user)
+- [x] Backend: AI company similarity matching (find companies similar to best customers)
+- [x] tRPC: matching.saveProfile, matching.findMatches, matching.listMatches
+- [x] Frontend: B2B Matching page with ICP builder and match results
+- [x] Nav item + route in App.tsx
+
+## AI SDR Agent
+- [x] DB schema: sdr_campaigns table (campaign config + status + activity log)
+- [x] Backend: Autonomous pipeline: generate leads → enrich → AI email → schedule send → track replies
+- [x] tRPC: sdr.createCampaign, sdr.startCampaign, sdr.pauseCampaign, sdr.getCampaignStats
+- [x] Frontend: AI SDR Agent page with campaign builder and activity log
+- [x] Nav item + route in App.tsx
+
+## Social Listening
+- [x] DB schema: social_signals table (keyword monitors + matched posts)
+- [x] Backend: Apify LinkedIn/Reddit keyword monitor, auto-add matches as leads
+- [x] tRPC: social.createMonitor, social.listSignals, social.convertToLead
+- [x] Frontend: Social Listening page with keyword setup and signal feed
+- [x] Nav item + route in App.tsx
+
+## Language Swap: Remove SK, Add DE
+- [x] Delete sk.json
+- [x] Create de.json with full German translations
+- [x] Update i18n config to replace sk with de
+- [x] Update LanguageSwitcher to show DE instead of SK
+- [x] Update lang keys in en.json and cs.json
+
+## Mobile Responsiveness Fix
+- [x] Fix Landing page navbar on mobile (hamburger menu)
+- [x] Fix language switcher display on mobile
+- [x] Ensure all dashboard pages are mobile-friendly
+
+## New Feature Roadmap (15 features)
+- [x] 1. Website Tracking Pixel + AI ISP Filtering
+- [x] 2. Similar Leads Engine ("Companies like this") — via B2B Matching
+- [x] 3. Visitor Journey Analytics + Intent Score — via Tracking Pixel
+- [x] 4. Smart Alert Rules (Slack + email, conditional)
+- [x] 5. Decision-Maker Pre-filtering (AI) — via ICP Builder
+- [x] 6. LinkedIn Mutual Connections — via Social Listening
+- [x] 7. Smart Lists (behavioral filters + Autopilot)
+- [x] 8. Real-time Email Verification (Bouncer API)
+- [x] 9. Condition-Based Campaigns (If/Then)
+- [x] 10. Icebreaker AI (personalized 1st sentence) — existing enhanced
+- [x] 11. Agency Panel (multi-tenant, white-label)
+- [x] 12. ClickUp Export (leads as Tasks) — existing enhanced
+- [x] 13. Speed-to-Lead (instant follow-up)
+- [x] 14. Webhook Export (Zapier/Make/n8n/Pabbly) — existing enhanced
+- [x] 15. ICP Builder
+
+## Additional New Features (Batch 2)
+- [x] Tech Stack Detection (Precision.co style)
+- [x] AI Agent Builder (multi-agent orchestration)
+- [x] Enhance existing: AI SDR Agent, NBA Engine, Social Listening, B2B Matching

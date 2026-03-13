@@ -1,0 +1,61 @@
+{
+  "query": "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'autopilot_configs';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'autopilot_configs';",
+  "rows": [
+    {
+      "COLUMN_NAME": "id"
+    },
+    {
+      "COLUMN_NAME": "userId"
+    },
+    {
+      "COLUMN_NAME": "name"
+    },
+    {
+      "COLUMN_NAME": "industry"
+    },
+    {
+      "COLUMN_NAME": "location"
+    },
+    {
+      "COLUMN_NAME": "count"
+    },
+    {
+      "COLUMN_NAME": "seniorityLevel"
+    },
+    {
+      "COLUMN_NAME": "segment"
+    },
+    {
+      "COLUMN_NAME": "frequency"
+    },
+    {
+      "COLUMN_NAME": "isActive"
+    },
+    {
+      "COLUMN_NAME": "lastRunAt"
+    },
+    {
+      "COLUMN_NAME": "nextRunAt"
+    },
+    {
+      "COLUMN_NAME": "totalRunCount"
+    },
+    {
+      "COLUMN_NAME": "totalLeadsGenerated"
+    },
+    {
+      "COLUMN_NAME": "createdAt"
+    },
+    {
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "COLUMN_NAME": "leadCount"
+    }
+  ],
+  "messages": [],
+  "stdout": "COLUMN_NAME\nid\nuserId\nname\nindustry\nlocation\ncount\nseniorityLevel\nsegment\nfrequency\nisActive\nlastRunAt\nnextRunAt\ntotalRunCount\ntotalLeadsGenerated\ncreatedAt\nupdatedAt\nleadCount\n",
+  "stderr": "",
+  "execution_time_ms": 55
+}

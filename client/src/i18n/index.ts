@@ -3,8 +3,8 @@ import LanguageDetector from "i18next-browser-languagedetector";
 import { initReactI18next } from "react-i18next";
 
 import cs from "./cs.json";
+import de from "./de.json";
 import en from "./en.json";
-import sk from "./sk.json";
 
 i18n
   .use(LanguageDetector)
@@ -13,10 +13,10 @@ i18n
     resources: {
       en: { translation: en },
       cs: { translation: cs },
-      sk: { translation: sk },
+      de: { translation: de },
     },
     fallbackLng: "en",
-    supportedLngs: ["en", "cs", "sk"],
+    supportedLngs: ["en", "cs", "de"],
     detection: {
       order: ["localStorage", "navigator"],
       caches: ["localStorage"],
@@ -31,7 +31,7 @@ export default i18n;
 export const SUPPORTED_LANGUAGES = [
   { code: "en", label: "EN", fullLabel: "English", flag: "🇬🇧" },
   { code: "cs", label: "CS", fullLabel: "Čeština", flag: "🇨🇿" },
-  { code: "sk", label: "SK", fullLabel: "Slovenčina", flag: "🇸🇰" },
+  { code: "de", label: "DE", fullLabel: "Deutsch", flag: "🇩🇪" },
 ] as const;
 
-export type LangCode = "en" | "cs" | "sk";
+export type LangCode = "en" | "cs" | "de";
