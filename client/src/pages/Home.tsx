@@ -2,13 +2,20 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
-import { BarChart3, Loader2, Sparkles, TrendingUp, Users, Zap } from "lucide-react";
+import {
+  BarChart3, Bell, CheckCircle2, Clock, Lightbulb, Loader2,
+  Mail, Phone, Sparkles, Timer, TrendingUp, Users, Zap, Linkedin,
+  XCircle, ArrowRight, Shield,
+} from "lucide-react";
 import { useLocation } from "wouter";
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const { data: stats, isLoading } = trpc.leads.stats.useQuery();
   const { data: sessions } = trpc.leads.sessions.useQuery();
+  const { data: nbaItems, isLoading: nbaLoading } = trpc.nba.list.useQuery({ limit: 5 });
+  const { data: alerts, isLoading: alertsLoading } = trpc.alertRules.list.useQuery();
+  const { data: stlConfig, isLoading: stlLoading } = trpc.speedToLead.get.useQuery();
 
   const enrichmentRate =
     stats && stats.totalLeads > 0
@@ -19,7 +26,7 @@ export default function Home() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 max-w-6xl">
+      <div className="space-y-6 max-w-7xl">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -28,10 +35,7 @@ export default function Home() {
               AI-powered B2B lead generation overview
             </p>
           </div>
-          <Button
-            onClick={() => setLocation("/generate")}
-            className="gap-2"
-          >
+          <Button onClick={() => setLocation("/generate")} className="gap-2">
             <Zap className="h-4 w-4" />
             Generate Leads
           </Button>
@@ -69,8 +73,192 @@ export default function Home() {
           />
         </div>
 
-        {/* Industry Breakdown + Recent Sessions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* NBA + Speed-to-Lead Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* NBA Recommendations Widget */}
+          <Card className="bg-card border-border lg:col-span-2">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-md bg-amber-500/10">
+                    <Lightbulb className="h-4 w-4 text-amber-400" />
+                  </div>
+                  <CardTitle className="text-base font-semibold">Next Best Actions</CardTitle>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-foreground gap-1"
+                  onClick={() => setLocation("/next-actions")}
+                >
+                  View all <ArrowRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {nbaLoading ? (
+                <div className="flex items-center justify-center h-40">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : !nbaItems || nbaItems.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+                  <Lightbulb className="h-8 w-8 mb-2 opacity-30" />
+                  <p className="text-sm">No recommendations yet.</p>
+                  <p className="text-xs mt-1">Generate leads and get AI-powered action suggestions.</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {nbaItems.slice(0, 5).map((item: any) => (
+                    <NbaCard key={item.id} item={item} />
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Speed-to-Lead Widget */}
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-md bg-cyan-500/10">
+                    <Timer className="h-4 w-4 text-cyan-400" />
+                  </div>
+                  <CardTitle className="text-base font-semibold">Speed-to-Lead</CardTitle>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-foreground gap-1"
+                  onClick={() => setLocation("/speed-to-lead")}
+                >
+                  Configure <ArrowRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {stlLoading ? (
+                <div className="flex items-center justify-center h-48">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : !stlConfig ? (
+                <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+                  <Timer className="h-8 w-8 mb-2 opacity-30" />
+                  <p className="text-sm text-center">Not configured yet</p>
+                  <Button
+                    variant="link"
+                    className="text-primary text-sm mt-2 h-auto p-0"
+                    onClick={() => setLocation("/speed-to-lead")}
+                  >
+                    Set up instant follow-up →
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
+                    <div className="flex items-center gap-2">
+                      <div className={`h-2.5 w-2.5 rounded-full ${stlConfig.isActive ? "bg-emerald-400 animate-pulse" : "bg-muted-foreground/30"}`} />
+                      <span className="text-sm font-medium text-foreground">Status</span>
+                    </div>
+                    <span className={`text-sm font-semibold ${stlConfig.isActive ? "text-emerald-400" : "text-muted-foreground"}`}>
+                      {stlConfig.isActive ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <StlMetric
+                      label="Response Time"
+                      value={stlConfig.responseDelaySeconds ? `${stlConfig.responseDelaySeconds}s` : "—"}
+                      icon={<Clock className="h-3.5 w-3.5" />}
+                    />
+                    <StlMetric
+                      label="Auto Email"
+                      value={stlConfig.autoEmailEnabled ? "On" : "Off"}
+                      icon={<Mail className="h-3.5 w-3.5" />}
+                    />
+                    <StlMetric
+                      label="Notifications"
+                      value={stlConfig.notifyOnNewLead ? "On" : "Off"}
+                      icon={<Bell className="h-3.5 w-3.5" />}
+                    />
+                    <StlMetric
+                      label="Channel"
+                      value={stlConfig.notifyChannel ?? "—"}
+                      icon={<Shield className="h-3.5 w-3.5" />}
+                    />
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Alerts + Industry + Sessions Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Alerts Widget */}
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-md bg-rose-500/10">
+                    <Bell className="h-4 w-4 text-rose-400" />
+                  </div>
+                  <CardTitle className="text-base font-semibold">Smart Alerts</CardTitle>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-foreground gap-1"
+                  onClick={() => setLocation("/alerts")}
+                >
+                  Manage <ArrowRight className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {alertsLoading ? (
+                <div className="flex items-center justify-center h-40">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : !alerts || alerts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
+                  <Bell className="h-8 w-8 mb-2 opacity-30" />
+                  <p className="text-sm">No alert rules configured.</p>
+                  <Button
+                    variant="link"
+                    className="text-primary text-sm mt-1 h-auto p-0"
+                    onClick={() => setLocation("/alerts")}
+                  >
+                    Create your first alert →
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {alerts.slice(0, 5).map((alert: any) => (
+                    <div
+                      key={alert.id}
+                      className="flex items-center gap-3 p-2.5 rounded-lg bg-secondary/50"
+                    >
+                      <div className={`h-2 w-2 rounded-full shrink-0 ${alert.isActive ? "bg-emerald-400" : "bg-muted-foreground/30"}`} />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground truncate">{alert.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatConditionType(alert.conditionType)} → {alert.channel}
+                        </p>
+                      </div>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${
+                        alert.isActive
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "bg-muted text-muted-foreground"
+                      }`}>
+                        {alert.isActive ? "ON" : "OFF"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Industry Breakdown */}
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">
@@ -84,11 +272,11 @@ export default function Home() {
               ) : stats?.industryBreakdown.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
                   <BarChart3 className="h-8 w-8 mb-2 opacity-30" />
-                  <p className="text-sm">No data yet. Generate your first leads.</p>
+                  <p className="text-sm">No data yet.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {stats?.industryBreakdown.slice(0, 6).map((item, i) => {
+                  {stats?.industryBreakdown.slice(0, 6).map((item) => {
                     const max = stats.industryBreakdown[0]?.count ?? 1;
                     const pct = Math.round((item.count / max) * 100);
                     return (
@@ -134,7 +322,7 @@ export default function Home() {
                   {recentSessions.map((session) => (
                     <div
                       key={session.id}
-                      className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
+                      className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
                     >
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-foreground truncate">
@@ -146,9 +334,6 @@ export default function Home() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0 ml-2">
                         <StatusBadge status={session.status} />
-                        <span className="text-xs text-muted-foreground">
-                          {new Date(session.createdAt).toLocaleDateString()}
-                        </span>
                       </div>
                     </div>
                   ))}
@@ -164,7 +349,7 @@ export default function Home() {
             <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <QuickAction
                 icon={<Zap className="h-5 w-5" />}
                 title="Generate Leads"
@@ -174,14 +359,20 @@ export default function Home() {
               />
               <QuickAction
                 icon={<Users className="h-5 w-5" />}
-                title="View History"
-                description="Browse all previously generated leads"
-                onClick={() => setLocation("/history")}
+                title="View Pipeline"
+                description="Manage leads in Kanban board"
+                onClick={() => setLocation("/kanban")}
+              />
+              <QuickAction
+                icon={<Lightbulb className="h-5 w-5" />}
+                title="AI Recommendations"
+                description="Get AI-powered next best actions"
+                onClick={() => setLocation("/next-actions")}
               />
               <QuickAction
                 icon={<BarChart3 className="h-5 w-5" />}
                 title="View Statistics"
-                description="Analyze your lead generation performance"
+                description="Analyze your performance"
                 onClick={() => setLocation("/stats")}
               />
             </div>
@@ -189,6 +380,66 @@ export default function Home() {
         </Card>
       </div>
     </DashboardLayout>
+  );
+}
+
+// ─── Sub-components ─────────────────────────────────────────
+
+function NbaCard({ item }: { item: any }) {
+  const actionIcons: Record<string, React.ReactNode> = {
+    call: <Phone className="h-3.5 w-3.5" />,
+    email: <Mail className="h-3.5 w-3.5" />,
+    linkedin: <Linkedin className="h-3.5 w-3.5" />,
+    qualify: <CheckCircle2 className="h-3.5 w-3.5" />,
+    disqualify: <XCircle className="h-3.5 w-3.5" />,
+    wait: <Clock className="h-3.5 w-3.5" />,
+  };
+  const actionColors: Record<string, string> = {
+    call: "bg-blue-500/15 text-blue-400 border-blue-500/20",
+    email: "bg-violet-500/15 text-violet-400 border-violet-500/20",
+    linkedin: "bg-sky-500/15 text-sky-400 border-sky-500/20",
+    qualify: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+    disqualify: "bg-red-500/15 text-red-400 border-red-500/20",
+    wait: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+  };
+  const priorityColor = item.priority >= 70 ? "text-rose-400" : item.priority >= 40 ? "text-amber-400" : "text-muted-foreground";
+
+  return (
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary/80 transition-colors">
+      <div className={`p-2 rounded-lg border ${actionColors[item.action] ?? "bg-muted text-muted-foreground border-border"}`}>
+        {actionIcons[item.action] ?? <Lightbulb className="h-3.5 w-3.5" />}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-foreground truncate">
+            {item.action?.charAt(0).toUpperCase() + item.action?.slice(1)} — Lead #{item.leadId}
+          </p>
+          <span className={`text-[10px] font-bold ${priorityColor}`}>
+            P{item.priority}
+          </span>
+        </div>
+        <p className="text-xs text-muted-foreground truncate mt-0.5">{item.reason}</p>
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <div className="h-1.5 w-12 bg-secondary rounded-full overflow-hidden">
+          <div
+            className="h-full rounded-full bg-primary/70 transition-all"
+            style={{ width: `${item.aiScore ?? 50}%` }}
+          />
+        </div>
+        <span className="text-[10px] text-muted-foreground w-6 text-right">{item.aiScore ?? "—"}</span>
+      </div>
+    </div>
+  );
+}
+
+function StlMetric({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
+  return (
+    <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-secondary/50">
+      <div className="text-muted-foreground">{icon}</div>
+      <span className="text-sm font-semibold text-foreground">{value}</span>
+      <span className="text-[10px] text-muted-foreground">{label}</span>
+    </div>
   );
 }
 
@@ -228,8 +479,10 @@ function StatCard({
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
     done: "bg-emerald-500/15 text-emerald-400",
+    completed: "bg-emerald-500/15 text-emerald-400",
     running: "bg-blue-500/15 text-blue-400",
     error: "bg-red-500/15 text-red-400",
+    failed: "bg-red-500/15 text-red-400",
     pending: "bg-yellow-500/15 text-yellow-400",
   };
   return (
@@ -264,4 +517,16 @@ function QuickAction({
       </div>
     </button>
   );
+}
+
+function formatConditionType(type: string): string {
+  const map: Record<string, string> = {
+    high_intent_visitor: "High Intent",
+    new_lead_generated: "New Lead",
+    lead_status_change: "Status Change",
+    deal_closed: "Deal Closed",
+    visitor_returning: "Returning Visitor",
+    keyword_match: "Keyword Match",
+  };
+  return map[type] ?? type;
 }

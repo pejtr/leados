@@ -188,3 +188,18 @@
 - [x] Tech Stack Detection (Precision.co style)
 - [x] AI Agent Builder (multi-agent orchestration)
 - [x] Enhance existing: AI SDR Agent, NBA Engine, Social Listening, B2B Matching
+
+## Dashboard Widgets
+- [x] NBA recommendations widget (top 5 priority actions)
+- [x] Recent alerts widget (last 5 triggered alerts)
+- [x] Speed-to-Lead metrics widget (response time, config status)
+- [x] Backend: uses existing endpoints (nba.list, alertRules.list, speedToLead.get)
+
+## Futuristic Process Diagram
+- [x] Replace "How It Works" section with quantum-tech futuristic animated diagram
+- [x] Simple but sophisticated visual explaining the lead gen process
+- [x] CSS-only animations (no JS libraries needed)
+
+## A/B Test Mockup
+- [x] Create /landing-b route with alternative design variant
+- [x] Different hero layout, color accents, or CTA positioning for comparison

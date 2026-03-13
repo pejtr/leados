@@ -29,11 +29,13 @@ import SpeedToLead from "./pages/SpeedToLead";
 import IcpBuilder from "./pages/IcpBuilder";
 import TechStack from "./pages/TechStack";
 import AiAgentBuilder from "./pages/AiAgentBuilder";
+import LandingB from "./pages/LandingB";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/landing-b" component={LandingB} />
       <Route path="/dashboard" component={Home} />
       <Route path="/generate" component={Generate} />
       <Route path="/history" component={History} />

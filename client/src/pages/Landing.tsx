@@ -249,25 +249,124 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── How It Works ── */}
-      <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 bg-white/[0.02] border-y border-white/5">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
-            <Badge className="mb-3 sm:mb-4 bg-green-500/20 text-green-300 border-green-500/30">Process</Badge>
+      {/* ── How It Works — Quantum Process Diagram ── */}
+      <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 bg-[#060610] border-y border-white/5 relative overflow-hidden">
+        {/* Ambient background effects */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[150px]" />
+          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-cyan-600/5 rounded-full blur-[150px]" />
+          {/* Grid overlay */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        </div>
+
+        <div className="max-w-6xl mx-auto relative">
+          <div className="text-center mb-12 sm:mb-20">
+            <Badge className="mb-3 sm:mb-4 bg-cyan-500/20 text-cyan-300 border-cyan-500/30 font-mono text-[10px] sm:text-xs tracking-widest">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 mr-2 animate-pulse" />
+              QUANTUM PIPELINE v3.0
+            </Badge>
             <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.howTitle")}</h2>
+            <p className="text-white/40 text-sm sm:text-base max-w-xl mx-auto font-light">Multi-stage AI orchestration with real-time data fusion</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-            {STEPS.map((step) => (
-              <div key={step.number} className="flex gap-4 sm:gap-5">
-                <div className="flex-shrink-0 w-10 sm:w-12 h-10 sm:h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 border border-violet-500/20 flex items-center justify-center">
-                  <span className="text-xs sm:text-sm font-black text-violet-400">{step.number}</span>
-                </div>
-                <div>
-                  <h3 className="font-bold text-white mb-1.5 sm:mb-2 text-sm sm:text-base">{step.title}</h3>
-                  <p className="text-xs sm:text-sm text-white/50 leading-relaxed">{step.description}</p>
-                </div>
-              </div>
-            ))}
+
+          {/* ── Desktop: Horizontal Pipeline ── */}
+          <div className="hidden lg:block">
+            {/* Connection line */}
+            <div className="absolute top-[calc(50%+20px)] left-[10%] right-[10%] h-px">
+              <div className="h-full bg-gradient-to-r from-violet-500/0 via-violet-500/40 to-cyan-500/0" />
+              <div className="absolute inset-0 h-full bg-gradient-to-r from-violet-500/0 via-white/20 to-cyan-500/0 animate-pulse" />
+            </div>
+
+            <div className="grid grid-cols-4 gap-6 relative">
+              {/* Node 1: Signal Capture */}
+              <ProcessNode
+                step="01"
+                title={t("landing.step1Title")}
+                description={t("landing.step1Desc")}
+                icon={<Target className="w-5 h-5" />}
+                color="violet"
+                metrics={["LinkedIn API", "Web Scraping", "Intent Data"]}
+                delay={0}
+              />
+              {/* Node 2: AI Enrichment */}
+              <ProcessNode
+                step="02"
+                title={t("landing.step2Title")}
+                description={t("landing.step2Desc")}
+                icon={<Sparkles className="w-5 h-5" />}
+                color="blue"
+                metrics={["GPT-4 Analysis", "Email Verify", "Score: 0→100"]}
+                delay={1}
+              />
+              {/* Node 3: Smart Routing */}
+              <ProcessNode
+                step="03"
+                title={t("landing.step3Title")}
+                description={t("landing.step3Desc")}
+                icon={<Zap className="w-5 h-5" />}
+                color="cyan"
+                metrics={["Auto-Sequence", "A/B Testing", "Multi-Channel"]}
+                delay={2}
+              />
+              {/* Node 4: Revenue */}
+              <ProcessNode
+                step="04"
+                title={t("landing.step4Title")}
+                description={t("landing.step4Desc")}
+                icon={<TrendingUp className="w-5 h-5" />}
+                color="emerald"
+                metrics={["CRM Sync", "ROI Track", "Auto-Report"]}
+                delay={3}
+              />
+            </div>
+          </div>
+
+          {/* ── Mobile: Vertical Pipeline ── */}
+          <div className="lg:hidden space-y-4 relative">
+            {/* Vertical connection line */}
+            <div className="absolute left-6 top-8 bottom-8 w-px bg-gradient-to-b from-violet-500/40 via-cyan-500/30 to-emerald-500/40" />
+
+            <MobileProcessNode
+              step="01"
+              title={t("landing.step1Title")}
+              description={t("landing.step1Desc")}
+              icon={<Target className="w-4 h-4" />}
+              color="violet"
+              metrics={["LinkedIn API", "Web Scraping", "Intent Data"]}
+            />
+            <MobileProcessNode
+              step="02"
+              title={t("landing.step2Title")}
+              description={t("landing.step2Desc")}
+              icon={<Sparkles className="w-4 h-4" />}
+              color="blue"
+              metrics={["GPT-4 Analysis", "Email Verify", "Score: 0→100"]}
+            />
+            <MobileProcessNode
+              step="03"
+              title={t("landing.step3Title")}
+              description={t("landing.step3Desc")}
+              icon={<Zap className="w-4 h-4" />}
+              color="cyan"
+              metrics={["Auto-Sequence", "A/B Testing", "Multi-Channel"]}
+            />
+            <MobileProcessNode
+              step="04"
+              title={t("landing.step4Title")}
+              description={t("landing.step4Desc")}
+              icon={<TrendingUp className="w-4 h-4" />}
+              color="emerald"
+              metrics={["CRM Sync", "ROI Track", "Auto-Report"]}
+            />
+          </div>
+
+          {/* Data throughput bar */}
+          <div className="mt-12 sm:mt-16 flex items-center justify-center gap-4 sm:gap-8 text-[10px] sm:text-xs font-mono text-white/25 tracking-wider">
+            <span>LATENCY: &lt;200ms</span>
+            <span className="hidden sm:inline">|</span>
+            <span>THROUGHPUT: 10K leads/hr</span>
+            <span className="hidden sm:inline">|</span>
+            <span>UPTIME: 99.97%</span>
           </div>
         </div>
       </section>
@@ -425,6 +524,156 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+
+// ─── Quantum Process Diagram Components ─────────────────────
+
+function ProcessNode({
+  step, title, description, icon, color, metrics, delay,
+}: {
+  step: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  color: "violet" | "blue" | "cyan" | "emerald";
+  metrics: string[];
+  delay: number;
+}) {
+  const colorMap = {
+    violet: {
+      glow: "shadow-violet-500/20",
+      border: "border-violet-500/30",
+      bg: "bg-violet-500/10",
+      text: "text-violet-400",
+      dot: "bg-violet-400",
+      ring: "ring-violet-500/20",
+      metricBg: "bg-violet-500/10",
+      metricText: "text-violet-300",
+    },
+    blue: {
+      glow: "shadow-blue-500/20",
+      border: "border-blue-500/30",
+      bg: "bg-blue-500/10",
+      text: "text-blue-400",
+      dot: "bg-blue-400",
+      ring: "ring-blue-500/20",
+      metricBg: "bg-blue-500/10",
+      metricText: "text-blue-300",
+    },
+    cyan: {
+      glow: "shadow-cyan-500/20",
+      border: "border-cyan-500/30",
+      bg: "bg-cyan-500/10",
+      text: "text-cyan-400",
+      dot: "bg-cyan-400",
+      ring: "ring-cyan-500/20",
+      metricBg: "bg-cyan-500/10",
+      metricText: "text-cyan-300",
+    },
+    emerald: {
+      glow: "shadow-emerald-500/20",
+      border: "border-emerald-500/30",
+      bg: "bg-emerald-500/10",
+      text: "text-emerald-400",
+      dot: "bg-emerald-400",
+      ring: "ring-emerald-500/20",
+      metricBg: "bg-emerald-500/10",
+      metricText: "text-emerald-300",
+    },
+  };
+  const c = colorMap[color];
+
+  return (
+    <div
+      className={`relative group`}
+      style={{ animationDelay: `${delay * 200}ms` }}
+    >
+      {/* Hexagonal node indicator */}
+      <div className="flex justify-center mb-5">
+        <div className={`relative w-14 h-14 rounded-2xl ${c.bg} ${c.border} border flex items-center justify-center shadow-lg ${c.glow} ring-1 ${c.ring}`}>
+          <div className={c.text}>{icon}</div>
+          {/* Pulse ring */}
+          <div className={`absolute inset-0 rounded-2xl ${c.border} border animate-ping opacity-20`} />
+        </div>
+      </div>
+
+      {/* Step number */}
+      <div className="text-center mb-3">
+        <span className={`font-mono text-[10px] tracking-[0.3em] ${c.text} opacity-60`}>STEP {step}</span>
+      </div>
+
+      {/* Content card */}
+      <div className={`p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/10 transition-all group-hover:bg-white/[0.04]`}>
+        <h3 className="font-bold text-white text-sm mb-2 text-center">{title}</h3>
+        <p className="text-xs text-white/40 leading-relaxed text-center mb-4">{description}</p>
+
+        {/* Tech metrics */}
+        <div className="space-y-1.5">
+          {metrics.map((m) => (
+            <div key={m} className="flex items-center gap-2">
+              <div className={`w-1 h-1 rounded-full ${c.dot}`} />
+              <span className={`text-[10px] font-mono ${c.metricText} opacity-70`}>{m}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Data flow indicator */}
+      <div className="flex justify-center mt-3">
+        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${c.metricBg}`}>
+          <div className={`w-1 h-1 rounded-full ${c.dot} animate-pulse`} />
+          <span className={`text-[9px] font-mono ${c.metricText} opacity-50`}>ACTIVE</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileProcessNode({
+  step, title, description, icon, color, metrics,
+}: {
+  step: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  color: "violet" | "blue" | "cyan" | "emerald";
+  metrics: string[];
+}) {
+  const colorMap = {
+    violet: { bg: "bg-violet-500/10", border: "border-violet-500/30", text: "text-violet-400", dot: "bg-violet-400", metricText: "text-violet-300" },
+    blue: { bg: "bg-blue-500/10", border: "border-blue-500/30", text: "text-blue-400", dot: "bg-blue-400", metricText: "text-blue-300" },
+    cyan: { bg: "bg-cyan-500/10", border: "border-cyan-500/30", text: "text-cyan-400", dot: "bg-cyan-400", metricText: "text-cyan-300" },
+    emerald: { bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400", dot: "bg-emerald-400", metricText: "text-emerald-300" },
+  };
+  const c = colorMap[color];
+
+  return (
+    <div className="flex gap-4 relative pl-2">
+      {/* Node dot on the vertical line */}
+      <div className="flex-shrink-0 relative z-10">
+        <div className={`w-10 h-10 rounded-xl ${c.bg} ${c.border} border flex items-center justify-center`}>
+          <div className={c.text}>{icon}</div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 pb-2">
+        <div className="flex items-center gap-2 mb-1">
+          <span className={`font-mono text-[9px] tracking-[0.2em] ${c.text} opacity-60`}>STEP {step}</span>
+        </div>
+        <h3 className="font-bold text-white text-sm mb-1">{title}</h3>
+        <p className="text-xs text-white/40 leading-relaxed mb-2">{description}</p>
+        <div className="flex flex-wrap gap-1.5">
+          {metrics.map((m) => (
+            <span key={m} className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${c.bg} ${c.metricText} opacity-70`}>
+              {m}
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
