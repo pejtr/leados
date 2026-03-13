@@ -4,125 +4,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { getLoginUrl } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useTranslation } from "react-i18next";
 import {
   Zap, Shield, TrendingUp, Users, Mail, BarChart3, CheckCircle2,
   ArrowRight, Star, Building2, Target, Download, Sparkles, Globe,
   ChevronRight, Phone, MessageSquare,
 } from "lucide-react";
 
-const FEATURES = [
-  {
-    icon: Zap,
-    title: "AI-Powered Lead Generation",
-    description: "Generate hundreds of qualified B2B leads in minutes using LinkedIn data scraped via Apify, enriched with AI-written icebreakers tailored to each company.",
-    color: "text-yellow-400",
-    bg: "bg-yellow-400/10",
-  },
-  {
-    icon: Target,
-    title: "Industry Segment Presets",
-    description: "Pre-configured templates for Finance (insurance, mortgages, investments), Real Estate, MLM, and B2B — each with optimized prompts and targeting defaults.",
-    color: "text-blue-400",
-    bg: "bg-blue-400/10",
-  },
-  {
-    icon: Shield,
-    title: "Lead Quality Rating",
-    description: "Rate each lead as good or bad, log rejection reasons, and track your quality score over time. Replace bad leads with a single click.",
-    color: "text-green-400",
-    bg: "bg-green-400/10",
-  },
-  {
-    icon: TrendingUp,
-    title: "ROI & Deal Tracking",
-    description: "Mark deals as closed, log deal values, and see your total revenue, average deal size, and close rate — all in one dashboard.",
-    color: "text-purple-400",
-    bg: "bg-purple-400/10",
-  },
-  {
-    icon: Mail,
-    title: "Email Outreach Templates",
-    description: "Save reusable outreach templates with smart variables ({{companyName}}, {{icebreaker}}, {{industry}}) that auto-fill with each lead's data.",
-    color: "text-pink-400",
-    bg: "bg-pink-400/10",
-  },
-  {
-    icon: Users,
-    title: "Team Collaboration",
-    description: "Invite team members, assign leads to agents, and manage your entire sales team from one platform with role-based access control.",
-    color: "text-orange-400",
-    bg: "bg-orange-400/10",
-  },
-];
-
-const STEPS = [
-  { number: "01", title: "Choose Your Segment", description: "Select from Finance, Real Estate, MLM, B2B, or configure a custom industry target with your preferred location and seniority level." },
-  { number: "02", title: "AI Scrapes LinkedIn", description: "Our pipeline connects to LinkedIn via Apify, finds matching companies, and automatically discovers contact emails from their websites." },
-  { number: "03", title: "AI Writes Icebreakers", description: "Each lead gets a unique, personalized icebreaker message written by GPT-4 based on the company's actual website content and description." },
-  { number: "04", title: "Close Deals & Track ROI", description: "Manage your pipeline in Kanban view, export to CSV/Excel, use email templates, and track revenue from every closed deal." },
-];
-
-const TESTIMONIALS = [
-  {
-    name: "Martin Novák",
-    role: "Financial Advisor, Prague",
-    text: "I generate 30–40 qualified finance leads every week. The AI icebreakers are so good that my reply rate doubled in the first month.",
-    rating: 5,
-  },
-  {
-    name: "Jana Horáková",
-    role: "Real Estate Broker, Brno",
-    text: "The Real Estate segment preset is perfect. I get exactly the right companies in my target region, and the email templates save me hours every week.",
-    rating: 5,
-  },
-  {
-    name: "Tomáš Blažek",
-    role: "B2B Sales Director",
-    text: "We replaced three separate tools with this platform. LinkedIn scraping, email enrichment, CRM pipeline, and ROI tracking — all in one place.",
-    rating: 5,
-  },
-];
-
-const PRICING = [
-  {
-    name: "Starter",
-    price: "$49",
-    period: "/month",
-    description: "Perfect for individual sales professionals",
-    features: ["100 leads/month", "AI icebreakers", "CSV & JSON export", "Email templates", "Lead status tracking"],
-    cta: "Start Free Trial",
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    price: "$149",
-    period: "/month",
-    description: "For growing sales teams",
-    features: ["500 leads/month", "LinkedIn live scraping", "Email enrichment", "Kanban pipeline", "ROI tracking", "Team collaboration (5 users)", "Priority support"],
-    cta: "Start Free Trial",
-    highlighted: true,
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    period: "",
-    description: "For large teams and agencies",
-    features: ["Unlimited leads", "Custom segment presets", "Dedicated Apify quota", "API access", "Unlimited team members", "SLA & dedicated support", "Custom integrations"],
-    cta: "Contact Sales",
-    highlighted: false,
-  },
-];
-
-const STATS = [
-  { value: "32,000+", label: "Leads Generated" },
-  { value: "94%", label: "AI Enrichment Rate" },
-  { value: "30–40%", label: "Avg. Meeting Rate" },
-  { value: "7 segments", label: "Industry Presets" },
-];
-
 export default function Landing() {
   const { user, loading } = useAuth();
   const [, navigate] = useLocation();
+  const { t } = useTranslation();
 
   const handleCTA = () => {
     if (user) {
@@ -131,6 +24,65 @@ export default function Landing() {
       window.location.href = getLoginUrl();
     }
   };
+
+  const FEATURES = [
+    { icon: Zap, title: t("landing.feature1Title"), description: t("landing.feature1Desc"), color: "text-yellow-400", bg: "bg-yellow-400/10" },
+    { icon: Target, title: t("landing.feature2Title"), description: t("landing.feature2Desc"), color: "text-blue-400", bg: "bg-blue-400/10" },
+    { icon: Shield, title: t("landing.feature3Title"), description: t("landing.feature3Desc"), color: "text-green-400", bg: "bg-green-400/10" },
+    { icon: TrendingUp, title: t("landing.feature4Title"), description: t("landing.feature4Desc"), color: "text-purple-400", bg: "bg-purple-400/10" },
+    { icon: Mail, title: t("landing.feature5Title"), description: t("landing.feature5Desc"), color: "text-pink-400", bg: "bg-pink-400/10" },
+    { icon: Users, title: t("landing.feature6Title"), description: t("landing.feature6Desc"), color: "text-orange-400", bg: "bg-orange-400/10" },
+  ];
+
+  const STEPS = [
+    { number: "01", title: t("landing.step1Title"), description: t("landing.step1Desc") },
+    { number: "02", title: t("landing.step2Title"), description: t("landing.step2Desc") },
+    { number: "03", title: t("landing.step3Title"), description: t("landing.step3Desc") },
+    { number: "04", title: t("landing.step4Title"), description: t("landing.step4Desc") },
+  ];
+
+  const TESTIMONIALS = [
+    { name: t("landing.testimonial1Name"), role: t("landing.testimonial1Role"), text: t("landing.testimonial1Text"), rating: 5 },
+    { name: t("landing.testimonial2Name"), role: t("landing.testimonial2Role"), text: t("landing.testimonial2Text"), rating: 5 },
+    { name: t("landing.testimonial3Name"), role: t("landing.testimonial3Role"), text: t("landing.testimonial3Text"), rating: 5 },
+  ];
+
+  const PRICING = [
+    {
+      name: t("landing.plan1Name"),
+      price: t("landing.plan1Price"),
+      period: t("landing.plan1Price") === "Free" || t("landing.plan1Price") === "Zdarma" || t("landing.plan1Price") === "Zadarmo" ? "" : t("landing.pricingMonthly"),
+      description: t("landing.plan1Desc"),
+      features: [t("landing.plan1Feature1"), t("landing.plan1Feature2"), t("landing.plan1Feature3"), t("landing.plan1Feature4")],
+      cta: t("landing.plan1Cta"),
+      highlighted: false,
+    },
+    {
+      name: t("landing.plan2Name"),
+      price: t("landing.plan2Price"),
+      period: t("landing.pricingMonthly"),
+      description: t("landing.plan2Desc"),
+      features: [t("landing.plan2Feature1"), t("landing.plan2Feature2"), t("landing.plan2Feature3"), t("landing.plan2Feature4"), t("landing.plan2Feature5"), t("landing.plan2Feature6"), t("landing.plan2Feature7")],
+      cta: t("landing.plan2Cta"),
+      highlighted: true,
+    },
+    {
+      name: t("landing.plan3Name"),
+      price: t("landing.plan3Price"),
+      period: t("landing.pricingMonthly"),
+      description: t("landing.plan3Desc"),
+      features: [t("landing.plan3Feature1"), t("landing.plan3Feature2"), t("landing.plan3Feature3"), t("landing.plan3Feature4"), t("landing.plan3Feature5"), t("landing.plan3Feature6")],
+      cta: t("landing.plan3Cta"),
+      highlighted: false,
+    },
+  ];
+
+  const STATS = [
+    { value: "32,000+", label: t("landing.statsLeads") },
+    { value: "94%", label: t("landing.statsEnrichment") },
+    { value: "12+", label: t("landing.statsIndustries") },
+    { value: "<5", label: t("landing.statsTime") },
+  ];
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white">
@@ -144,23 +96,24 @@ export default function Landing() {
             <span className="font-bold text-lg tracking-tight">LeadGen AI</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-white/60">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">How it Works</a>
-            <a href="#pricing" className="hover:text-white transition-colors">Pricing</a>
-            <a href="#testimonials" className="hover:text-white transition-colors">Testimonials</a>
+            <a href="#features" className="hover:text-white transition-colors">{t("nav.features")}</a>
+            <a href="#how-it-works" className="hover:text-white transition-colors">{t("nav.howItWorks")}</a>
+            <a href="#pricing" className="hover:text-white transition-colors">{t("nav.pricing")}</a>
+            <a href="#testimonials" className="hover:text-white transition-colors">{t("nav.testimonials")}</a>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitcher variant="flags" />
             {user ? (
               <Button onClick={() => navigate("/dashboard")} size="sm" className="bg-violet-600 hover:bg-violet-700">
-                Go to Dashboard <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                {t("nav.goToDashboard")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             ) : (
               <>
                 <Button variant="ghost" size="sm" className="text-white/70 hover:text-white" onClick={() => window.location.href = getLoginUrl()}>
-                  Sign In
+                  {t("nav.login")}
                 </Button>
                 <Button size="sm" className="bg-violet-600 hover:bg-violet-700" onClick={handleCTA}>
-                  Get Started Free
+                  {t("landing.ctaPrimary")}
                 </Button>
               </>
             )}
@@ -170,24 +123,21 @@ export default function Landing() {
 
       {/* ── Hero ── */}
       <section className="pt-32 pb-24 px-6 relative overflow-hidden">
-        {/* Background glow */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-violet-600/20 rounded-full blur-[120px]" />
         </div>
         <div className="max-w-5xl mx-auto text-center relative">
           <Badge className="mb-6 bg-violet-500/20 text-violet-300 border-violet-500/30 px-4 py-1.5 text-sm">
             <Sparkles className="w-3.5 h-3.5 mr-1.5" />
-            32,000+ leads generated in 2025
+            {t("landing.badge")}
           </Badge>
           <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-[1.05]">
-            The{" "}
             <span className="bg-gradient-to-r from-violet-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              smartest
-            </span>{" "}
-            B2B lead generation platform
+              {t("landing.heroTitle")}
+            </span>
           </h1>
           <p className="text-xl text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Generate qualified leads from LinkedIn, enrich them with verified emails and AI-written icebreakers, manage your pipeline, and track ROI — all in one platform built to outperform any agency.
+            {t("landing.heroSubtitle")}
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
@@ -195,7 +145,7 @@ export default function Landing() {
               className="bg-violet-600 hover:bg-violet-700 text-white px-8 h-12 text-base font-semibold shadow-lg shadow-violet-500/25"
               onClick={handleCTA}
             >
-              Start Generating Leads Free
+              {t("landing.ctaPrimary")}
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             <Button
@@ -204,10 +154,10 @@ export default function Landing() {
               className="border-white/10 text-white/80 hover:bg-white/5 px-8 h-12 text-base"
               onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
             >
-              See How It Works
+              {t("landing.ctaSecondary")}
             </Button>
           </div>
-          <p className="mt-4 text-sm text-white/30">No credit card required · First 50 leads free</p>
+          <p className="mt-4 text-sm text-white/30">{t("landing.ctaNote")}</p>
         </div>
       </section>
 
@@ -228,10 +178,8 @@ export default function Landing() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-blue-500/20 text-blue-300 border-blue-500/30">Features</Badge>
-            <h2 className="text-4xl font-black mb-4">Everything you need to dominate B2B sales</h2>
-            <p className="text-white/50 text-lg max-w-2xl mx-auto">
-              Built to replace your entire lead generation stack — from prospecting to pipeline management to ROI reporting.
-            </p>
+            <h2 className="text-4xl font-black mb-4">{t("landing.featuresTitle")}</h2>
+            <p className="text-white/50 text-lg max-w-2xl mx-auto">{t("landing.featuresSubtitle")}</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {FEATURES.map((f) => (
@@ -254,11 +202,10 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-green-500/20 text-green-300 border-green-500/30">Process</Badge>
-            <h2 className="text-4xl font-black mb-4">From zero to qualified leads in minutes</h2>
-            <p className="text-white/50 text-lg">Our fully automated pipeline handles every step of the lead generation process.</p>
+            <h2 className="text-4xl font-black mb-4">{t("landing.howTitle")}</h2>
           </div>
           <div className="grid md:grid-cols-2 gap-8">
-            {STEPS.map((step, i) => (
+            {STEPS.map((step) => (
               <div key={step.number} className="flex gap-5">
                 <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 border border-violet-500/20 flex items-center justify-center">
                   <span className="text-sm font-black text-violet-400">{step.number}</span>
@@ -306,21 +253,21 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-yellow-500/20 text-yellow-300 border-yellow-500/30">Testimonials</Badge>
-            <h2 className="text-4xl font-black mb-4">Trusted by sales professionals</h2>
+            <h2 className="text-4xl font-black mb-4">{t("landing.testimonialsTitle")}</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t) => (
-              <Card key={t.name} className="bg-white/[0.03] border-white/[0.06]">
+            {TESTIMONIALS.map((testimonial) => (
+              <Card key={testimonial.name} className="bg-white/[0.03] border-white/[0.06]">
                 <CardContent className="p-6">
                   <div className="flex gap-0.5 mb-4">
-                    {Array.from({ length: t.rating }).map((_, i) => (
+                    {Array.from({ length: testimonial.rating }).map((_, i) => (
                       <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     ))}
                   </div>
-                  <p className="text-sm text-white/70 leading-relaxed mb-4">"{t.text}"</p>
+                  <p className="text-sm text-white/70 leading-relaxed mb-4">"{testimonial.text}"</p>
                   <div>
-                    <div className="font-semibold text-sm text-white">{t.name}</div>
-                    <div className="text-xs text-white/40">{t.role}</div>
+                    <div className="font-semibold text-sm text-white">{testimonial.name}</div>
+                    <div className="text-xs text-white/40">{testimonial.role}</div>
                   </div>
                 </CardContent>
               </Card>
@@ -334,8 +281,8 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-violet-500/20 text-violet-300 border-violet-500/30">Pricing</Badge>
-            <h2 className="text-4xl font-black mb-4">Simple, transparent pricing</h2>
-            <p className="text-white/50 text-lg">Start free, scale as you grow. No hidden fees.</p>
+            <h2 className="text-4xl font-black mb-4">{t("landing.pricingTitle")}</h2>
+            <p className="text-white/50 text-lg">{t("landing.pricingSubtitle")}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {PRICING.map((plan) => (
@@ -348,7 +295,7 @@ export default function Landing() {
               >
                 {plan.highlighted && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-violet-600 text-white border-0 px-3">Most Popular</Badge>
+                    <Badge className="bg-violet-600 text-white border-0 px-3">{t("common.mostPopular")}</Badge>
                   </div>
                 )}
                 <CardContent className="p-6">
@@ -384,15 +331,15 @@ export default function Landing() {
       {/* ── CTA ── */}
       <section className="py-24 px-6 border-t border-white/5">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-4xl font-black mb-4">Ready to generate your first leads?</h2>
-          <p className="text-white/50 text-lg mb-8">Join hundreds of sales professionals who generate qualified B2B leads every day with LeadGen AI.</p>
+          <h2 className="text-4xl font-black mb-4">{t("landing.ctaTitle")}</h2>
+          <p className="text-white/50 text-lg mb-8">{t("landing.ctaSubtitle")}</p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button
               size="lg"
               className="bg-violet-600 hover:bg-violet-700 px-10 h-12 text-base font-semibold"
               onClick={handleCTA}
             >
-              Get Started Free <ArrowRight className="w-4 h-4 ml-2" />
+              {t("landing.ctaButton")} <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
             <Button
               size="lg"
@@ -401,7 +348,7 @@ export default function Landing() {
               onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
-              Contact Sales
+              {t("landing.plan3Cta")}
             </Button>
           </div>
         </div>
@@ -416,11 +363,13 @@ export default function Landing() {
             </div>
             <span className="font-bold text-sm">LeadGen AI</span>
           </div>
-          <p className="text-xs text-white/30">© 2026 LeadGen AI. All rights reserved.</p>
-          <div className="flex gap-6 text-xs text-white/30">
-            <a href="#" className="hover:text-white/60 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white/60 transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white/60 transition-colors">Contact</a>
+          <p className="text-xs text-white/30">© 2026 LeadGen AI. {t("landing.footerRights")}</p>
+          <div className="flex items-center gap-4">
+            <LanguageSwitcher variant="flags" />
+            <div className="flex gap-6 text-xs text-white/30">
+              <a href="#" className="hover:text-white/60 transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-white/60 transition-colors">Terms of Service</a>
+            </div>
           </div>
         </div>
       </footer>

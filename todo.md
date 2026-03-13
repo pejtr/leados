@@ -71,3 +71,21 @@
 ## Quality & Polish
 - [x] 17 Vitest tests passing (3 test files)
 - [ ] Final checkpoint + publish
+
+## Internationalization (i18n) — EN / CS / SK
+- [x] Install react-i18next and i18next
+- [x] Create translation files: en.json, cs.json, sk.json
+- [x] Set up i18n provider in main.tsx with localStorage persistence
+- [x] Build LanguageSwitcher component (EN / CS / SK toggle)
+- [x] Add LanguageSwitcher to Landing page navbar and DashboardLayout sidebar footer
+- [x] Translate Landing page (hero, features, how it works, pricing, testimonials, CTA)
+- [x] Translate DashboardLayout (nav items, user menu)
+- [x] Translate Home/Dashboard page (stats cards, quick actions)
+- [x] Translate Generate page (form labels, segment presets, progress messages)
+- [x] Translate History page (search, filters, bulk actions, lead cards)
+- [x] Translate Kanban page (column headers, card labels)
+- [x] Translate Stats page (chart labels, metric names)
+- [x] Translate ROI page (deal value input, metrics)
+- [x] Translate Templates page (editor, variable hints)
+- [x] Translate Team page (invite form, role labels)
+- [ ] Final checkpoint + publish

@@ -1,4 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -211,6 +212,11 @@ function DashboardLayoutContent({
           </SidebarContent>
 
           <SidebarFooter className="p-3">
+            {!isCollapsed && (
+              <div className="px-1 pb-2">
+                <LanguageSwitcher variant="pills" className="w-full justify-center" />
+              </div>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
@@ -264,6 +270,7 @@ function DashboardLayoutContent({
                 </div>
               </div>
             </div>
+            <LanguageSwitcher variant="pills" className="mr-2" />
           </div>
         )}
         <main className="flex-1 p-4">{children}</main>
