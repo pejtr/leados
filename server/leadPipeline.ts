@@ -1,6 +1,9 @@
 /**
  * Lead Generation Pipeline
- * Validates industry → scrapes leads → enriches with website content → generates AI icebreakers
+ * Validates industry → scrapes leads (LinkedIn via Apify OR mock) → enriches with AI icebreakers
+ *
+ * Apify actor used: harvestapi/linkedin-company-search
+ * Docs: https://apify.com/harvestapi/linkedin-company-search
  */
 import { invokeLLM } from "./_core/llm";
 
@@ -11,7 +14,34 @@ export const SUPPORTED_INDUSTRIES = [
   "Media", "Hospitality", "Energy", "Automotive", "Telecommunications",
 ];
 
+// LinkedIn industry ID map (harvestapi uses numeric IDs)
+// Full list: https://github.com/HarvestAPI/linkedin-industry-codes-v2
+const LINKEDIN_INDUSTRY_IDS: Record<string, number[]> = {
+  Technology: [96, 4, 6],           // IT Services, Software Development, Computer Hardware
+  Finance: [43, 41, 1810],          // Financial Services, Banking, Investment Management
+  Healthcare: [14, 139, 2266],      // Hospitals, Medical Practices, Biotechnology Research
+  Education: [69, 68],              // E-Learning, Higher Education
+  Retail: [27, 47],                 // Retail, Consumer Goods
+  Manufacturing: [22, 30],          // Industrial Automation, Machinery Manufacturing
+  "Real Estate": [44],              // Real Estate
+  Marketing: [80, 1862],            // Advertising Services, Marketing Services
+  Legal: [10],                      // Law Practice
+  Consulting: [2, 1862],            // Business Consulting, Management Consulting
+  "E-commerce": [27, 47],           // Retail, Consumer Goods
+  SaaS: [4, 96],                    // Software Development, IT Services
+  Fintech: [43, 4],                 // Financial Services, Software Development
+  Biotech: [139, 2266],             // Biotechnology Research, Pharmaceutical Manufacturing
+  Logistics: [16, 24],              // Freight and Package Transportation, Truck Transportation
+  Media: [6, 35],                   // Broadcast Media Production, Entertainment Providers
+  Hospitality: [31, 53],            // Hospitality, Restaurants
+  Energy: [3, 138],                 // Oil and Gas, Utilities
+  Automotive: [1, 23],              // Motor Vehicle Manufacturing, Automotive
+  Telecommunications: [8],          // Telecommunications
+};
+
 // ─── Types ───────────────────────────────────────────────────────
+
+export type DataSource = "mock" | "linkedin_apify";
 
 export interface RawLead {
   companyName: string;
@@ -26,6 +56,7 @@ export interface RawLead {
   companyDescription: string;
   icebreaker: string;
   isEnriched: boolean;
+  dataSource: DataSource;
 }
 
 // ─── 1. Industry Validation ──────────────────────────────────────
@@ -62,18 +93,160 @@ export async function validateIndustry(input: string): Promise<{ industry: strin
       },
     });
     const content = response.choices[0]?.message?.content;
-    if (content && typeof content === 'string') return JSON.parse(content);
+    if (content && typeof content === "string") return JSON.parse(content);
   } catch (e) {
     console.warn("[validateIndustry] LLM error, falling back:", e);
   }
-  // Fallback: simple string match
-  const matched = SUPPORTED_INDUSTRIES.find((i) => i.toLowerCase().includes(input.toLowerCase()) || input.toLowerCase().includes(i.toLowerCase()));
+  const matched = SUPPORTED_INDUSTRIES.find(
+    (i) => i.toLowerCase().includes(input.toLowerCase()) || input.toLowerCase().includes(i.toLowerCase())
+  );
   return matched
     ? { industry: matched, confidence: 0.85, isValid: true }
     : { industry: input, confidence: 0.4, isValid: true };
 }
 
-// ─── 2. Mock Lead Scraper ────────────────────────────────────────
+// ─── 2. Apify LinkedIn Scraper ───────────────────────────────────
+
+interface ApifyLinkedInCompany {
+  id?: string | number;
+  universalName?: string;
+  name?: string;
+  tagline?: string;
+  website?: string;
+  phone?: string | null;
+  employeeCount?: number;
+  employeeCountRange?: { start?: number; end?: number | null };
+  description?: string;
+  industries?: Array<{ id?: string; name?: string }>;
+  locations?: Array<{
+    city?: string;
+    country?: string;
+    headquarter?: boolean;
+    parsed?: { text?: string; country?: string; city?: string };
+  }>;
+  specialities?: string[];
+  linkedinUrl?: string;
+  navigationUrl?: string;
+  logo?: string;
+  foundedOn?: { year?: number };
+}
+
+function mapEmployeeRange(count?: number, range?: { start?: number; end?: number | null }): string {
+  if (range?.start) {
+    return range.end ? `${range.start}-${range.end}` : `${range.start}+`;
+  }
+  if (count) {
+    if (count <= 10) return "1-10";
+    if (count <= 50) return "11-50";
+    if (count <= 200) return "51-200";
+    if (count <= 1000) return "201-1000";
+    if (count <= 5000) return "1001-5000";
+    return "5000+";
+  }
+  return "";
+}
+
+function extractHQ(locations?: ApifyLinkedInCompany["locations"]): string {
+  if (!locations?.length) return "";
+  const hq = locations.find((l) => l.headquarter) ?? locations[0];
+  return hq?.parsed?.text ?? `${hq?.city ?? ""}, ${hq?.country ?? ""}`.replace(/^, |, $/, "");
+}
+
+function buildLinkedInUrl(item: ApifyLinkedInCompany): string {
+  if (item.linkedinUrl) return item.linkedinUrl;
+  if (item.navigationUrl) return item.navigationUrl;
+  if (item.universalName) return `https://www.linkedin.com/company/${item.universalName}/`;
+  return "";
+}
+
+/**
+ * Run the harvestapi/linkedin-company-search Apify actor synchronously
+ * and wait for results. Uses the run-sync endpoint with a 3-minute timeout.
+ */
+export async function scrapeLeadsApify(
+  industry: string,
+  location: string,
+  count: number,
+  seniorityLevel: string,
+  apifyToken: string
+): Promise<RawLead[]> {
+  const industryIds = LINKEDIN_INDUSTRY_IDS[industry] ?? [];
+
+  // Build actor input
+  const actorInput: Record<string, unknown> = {
+    scraperMode: "full",
+    searchQuery: industry,
+    maxItems: Math.min(count, 50),
+  };
+
+  // Add location filter if provided
+  if (location && location.toLowerCase() !== "worldwide" && location.toLowerCase() !== "global") {
+    actorInput.locations = [location];
+  }
+
+  // Add industry IDs filter if we have a mapping
+  if (industryIds.length > 0) {
+    actorInput.industryIds = industryIds;
+  }
+
+  console.log(`[Apify] Starting harvestapi/linkedin-company-search run for "${industry}" in "${location}", max ${count} items`);
+  console.log(`[Apify] Input:`, JSON.stringify(actorInput));
+
+  try {
+    // Use run-sync-get-dataset-items to run and immediately get results
+    const url = `https://api.apify.com/v2/acts/harvestapi~linkedin-company-search/run-sync-get-dataset-items?token=${apifyToken}&timeout=180&memory=256`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(actorInput),
+      signal: AbortSignal.timeout(200_000), // 200s client-side timeout
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Apify HTTP ${response.status}: ${errorText.slice(0, 300)}`);
+    }
+
+    const data = (await response.json()) as ApifyLinkedInCompany[];
+    console.log(`[Apify] Received ${data.length} companies from LinkedIn`);
+
+    if (!Array.isArray(data) || data.length === 0) {
+      console.warn("[Apify] Empty result set, falling back to mock data");
+      return generateMockLeads(industry, location, count, seniorityLevel);
+    }
+
+    return data.slice(0, count).map((item): RawLead => {
+      const hqLocation = extractHQ(item.locations) || location;
+      const industryName = item.industries?.[0]?.name ?? industry;
+      const companySize = mapEmployeeRange(item.employeeCount, item.employeeCountRange);
+      const linkedinUrl = buildLinkedInUrl(item);
+      const website = item.website ?? "";
+      const slug = item.universalName ?? item.name?.toLowerCase().replace(/[^a-z0-9]/g, "") ?? "";
+
+      return {
+        companyName: item.name ?? "Unknown Company",
+        email: website ? `contact@${new URL(website.startsWith("http") ? website : `https://${website}`).hostname}` : "",
+        website,
+        industry: industryName,
+        location: hqLocation,
+        companySize,
+        seniorityLevel,
+        contactName: "",
+        linkedinUrl,
+        companyDescription: item.description ?? item.tagline ?? "",
+        icebreaker: "",
+        isEnriched: false,
+        dataSource: "linkedin_apify",
+      };
+    });
+  } catch (e) {
+    console.warn("[Apify] Scraping failed, falling back to mock data:", e);
+    return generateMockLeads(industry, location, count, seniorityLevel);
+  }
+}
+
+// ─── 3. Mock Lead Scraper ────────────────────────────────────────
 
 const COMPANY_TEMPLATES: Record<string, string[]> = {
   Technology: ["TechCorp Solutions", "DataStream Inc", "CloudNova", "ByteForge", "NexGen Systems", "Quantum Dynamics", "InnovateTech", "CyberPulse", "DevMatrix", "AlgoWave"],
@@ -123,50 +296,10 @@ export function generateMockLeads(industry: string, location: string, count: num
       companyDescription: `${company} is a leading ${industry.toLowerCase()} company based in ${location}, delivering innovative solutions to modern businesses.`,
       icebreaker: "",
       isEnriched: false,
+      dataSource: "mock",
     });
   }
   return leads;
-}
-
-// ─── 3. Apify Scraper ────────────────────────────────────────────
-
-export async function scrapeLeadsApify(
-  industry: string,
-  location: string,
-  count: number,
-  seniorityLevel: string,
-  apifyToken: string
-): Promise<RawLead[]> {
-  try {
-    const response = await fetch(
-      `https://api.apify.com/v2/acts/curious_coder~linkedin-company-search/run-sync-get-dataset-items?token=${apifyToken}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ searchQuery: `${industry} companies in ${location}`, maxResults: count }),
-        signal: AbortSignal.timeout(120_000),
-      }
-    );
-    if (!response.ok) throw new Error(`Apify HTTP ${response.status}`);
-    const data = await response.json() as any[];
-    return data.map((item) => ({
-      companyName: item.name ?? "Unknown",
-      email: item.email ?? "",
-      website: item.website ?? "",
-      industry,
-      location,
-      companySize: String(item.staffCount ?? ""),
-      seniorityLevel,
-      contactName: "",
-      linkedinUrl: item.linkedInUrl ?? "",
-      companyDescription: item.description ?? "",
-      icebreaker: "",
-      isEnriched: false,
-    }));
-  } catch (e) {
-    console.warn("[scrapeLeadsApify] Failed, using mock data:", e);
-    return generateMockLeads(industry, location, count, seniorityLevel);
-  }
 }
 
 // ─── 4. Website Scraper ──────────────────────────────────────────
@@ -180,15 +313,13 @@ export async function scrapeWebsite(url: string): Promise<string> {
     });
     if (!response.ok) return "";
     const html = await response.text();
-    // Simple HTML strip
-    const text = html
+    return html
       .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
       .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
       .replace(/<[^>]+>/g, " ")
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 2000);
-    return text;
   } catch {
     return "";
   }
@@ -212,7 +343,7 @@ Company: ${lead.companyName}
 Industry: ${lead.industry}
 Location: ${lead.location}
 Size: ${lead.companySize}
-Contact: ${lead.contactName} (${lead.seniorityLevel})
+Contact: ${lead.contactName || "the team"} (${lead.seniorityLevel})
 About: ${description.slice(0, 400)}
 
 Return ONLY the icebreaker text, no quotes or extra formatting.`,
@@ -220,7 +351,7 @@ Return ONLY the icebreaker text, no quotes or extra formatting.`,
       ],
     });
     const msg = response.choices[0]?.message?.content;
-    return (typeof msg === 'string' ? msg.trim() : '') || '';
+    return (typeof msg === "string" ? msg.trim() : "") || "";
   } catch (e) {
     console.warn("[generateIcebreaker] LLM error:", e);
     return `I came across ${lead.companyName} and was impressed by your work in ${lead.industry}. I'd love to explore how we might collaborate.`;
@@ -235,22 +366,31 @@ export interface PipelineOptions {
   count: number;
   seniorityLevel: string;
   apifyToken?: string;
+  useApify?: boolean;
   onProgress?: (step: string, current: number, total: number) => void;
 }
 
 export async function runLeadPipeline(opts: PipelineOptions): Promise<RawLead[]> {
-  const { industry, location, count, seniorityLevel, apifyToken, onProgress } = opts;
+  const { industry, location, count, seniorityLevel, apifyToken, useApify, onProgress } = opts;
+
+  // Determine effective Apify token: prefer explicit param, fall back to env var
+  const effectiveToken = apifyToken || process.env.APIFY_TOKEN;
+  const shouldUseApify = (useApify !== false) && !!effectiveToken;
 
   // Step 1: Validate industry
-  onProgress?.("Validating industry...", 0, count);
+  onProgress?.("Validating industry with AI...", 0, count);
   const validated = await validateIndustry(industry);
   const resolvedIndustry = validated.industry;
 
   // Step 2: Scrape leads
-  onProgress?.("Scraping leads...", 0, count);
-  const rawLeads = apifyToken
-    ? await scrapeLeadsApify(resolvedIndustry, location, count, seniorityLevel, apifyToken)
-    : generateMockLeads(resolvedIndustry, location, count, seniorityLevel);
+  let rawLeads: RawLead[];
+  if (shouldUseApify && effectiveToken) {
+    onProgress?.("Connecting to LinkedIn via Apify...", 0, count);
+    rawLeads = await scrapeLeadsApify(resolvedIndustry, location, count, seniorityLevel, effectiveToken);
+  } else {
+    onProgress?.("Generating demo leads...", 0, count);
+    rawLeads = generateMockLeads(resolvedIndustry, location, count, seniorityLevel);
+  }
 
   // Step 3: Enrich with icebreakers
   const enriched: RawLead[] = [];

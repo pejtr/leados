@@ -40,6 +40,7 @@ export const appRouter = router({
           count: z.number().int().min(1).max(50).default(10),
           seniorityLevel: z.string().default("Manager"),
           apifyToken: z.string().optional(),
+          useApify: z.boolean().default(true),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -64,6 +65,7 @@ export const appRouter = router({
             count: input.count,
             seniorityLevel: input.seniorityLevel,
             apifyToken: input.apifyToken,
+            useApify: input.useApify,
           });
 
           // Persist leads
@@ -83,6 +85,7 @@ export const appRouter = router({
               companyDescription: l.companyDescription || null,
               icebreaker: l.icebreaker || null,
               isEnriched: l.isEnriched,
+              dataSource: l.dataSource,
             }))
           );
 

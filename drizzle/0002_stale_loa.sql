@@ -1,0 +1,1 @@
+ALTER TABLE `leads` ADD `dataSource` enum('mock','linkedin_apify') DEFAULT 'mock' NOT NULL;

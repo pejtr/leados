@@ -66,6 +66,9 @@ export const leads = mysqlTable("leads", {
   icebreaker: text("icebreaker"),
   isEnriched: boolean("isEnriched").default(false).notNull(),
 
+  // Data source
+  dataSource: mysqlEnum("dataSource", ["mock", "linkedin_apify"]).default("mock").notNull(),
+
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

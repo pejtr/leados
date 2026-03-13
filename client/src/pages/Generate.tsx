@@ -19,14 +19,18 @@ import {
   ChevronUp,
   Download,
   ExternalLink,
+  Linkedin,
   Loader2,
   MapPin,
   MessageSquare,
   Sparkles,
   Users,
   Zap,
+  Database,
+  Globe,
 } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface Lead {
   id: number;
@@ -39,12 +43,27 @@ interface Lead {
   seniorityLevel: string | null;
   contactName: string | null;
   linkedinUrl: string | null;
+  companyDescription: string | null;
   icebreaker: string | null;
   isEnriched: boolean;
+  dataSource: string;
   createdAt: Date;
 }
 
 const SENIORITY_LEVELS = ["Manager", "Director", "VP", "C-Level", "Head of"];
+
+const PIPELINE_STEPS_APIFY = [
+  "Validating industry with AI",
+  "Connecting to LinkedIn via Apify",
+  "Scraping company profiles",
+  "Generating personalized icebreakers",
+];
+
+const PIPELINE_STEPS_MOCK = [
+  "Validating industry with AI",
+  "Generating demo lead data",
+  "Generating personalized icebreakers",
+];
 
 export default function Generate() {
   const [industry, setIndustry] = useState("Technology");
@@ -52,9 +71,11 @@ export default function Generate() {
   const [count, setCount] = useState(10);
   const [seniorityLevel, setSeniorityLevel] = useState("Manager");
   const [apifyToken, setApifyToken] = useState("");
+  const [useApify, setUseApify] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [results, setResults] = useState<Lead[]>([]);
   const [sessionId, setSessionId] = useState<number | null>(null);
+  const [currentStep, setCurrentStep] = useState(0);
 
   const { data: industries } = trpc.leads.industries.useQuery();
   const utils = trpc.useUtils();
@@ -63,11 +84,13 @@ export default function Generate() {
     onSuccess: (data) => {
       setResults(data.leads as Lead[]);
       setSessionId(data.sessionId);
+      setCurrentStep(0);
       toast.success(`Generated ${data.count} leads successfully!`);
       utils.leads.stats.invalidate();
       utils.leads.sessions.invalidate();
     },
     onError: (err) => {
+      setCurrentStep(0);
       toast.error(`Generation failed: ${err.message}`);
     },
   });
@@ -75,12 +98,14 @@ export default function Generate() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setResults([]);
+    setCurrentStep(1);
     generate.mutate({
       industry,
       location,
       count: Math.min(50, Math.max(1, count)),
       seniorityLevel,
       apifyToken: apifyToken || undefined,
+      useApify,
     });
   };
 
@@ -96,6 +121,10 @@ export default function Generate() {
     toast.success("Leads exported as JSON");
   };
 
+  const steps = useApify ? PIPELINE_STEPS_APIFY : PIPELINE_STEPS_MOCK;
+  const linkedInLeads = results.filter((l) => l.dataSource === "linkedin_apify").length;
+  const mockLeads = results.filter((l) => l.dataSource === "mock").length;
+
   return (
     <DashboardLayout>
       <div className="max-w-6xl space-y-6">
@@ -107,7 +136,7 @@ export default function Generate() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-6 items-start">
           {/* Form */}
           <Card className="bg-card border-border">
             <CardHeader className="pb-4">
@@ -115,6 +144,52 @@ export default function Generate() {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
+
+                {/* Data Source Selector */}
+                <div className="space-y-2">
+                  <Label>Data Source</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUseApify(true)}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs font-medium transition-all",
+                        useApify
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-input text-muted-foreground hover:border-border/80"
+                      )}
+                    >
+                      <Linkedin className="h-4 w-4" />
+                      <span>LinkedIn</span>
+                      <span className={cn("text-[10px]", useApify ? "text-primary/70" : "text-muted-foreground/60")}>
+                        via Apify · Live data
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUseApify(false)}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs font-medium transition-all",
+                        !useApify
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-input text-muted-foreground hover:border-border/80"
+                      )}
+                    >
+                      <Database className="h-4 w-4" />
+                      <span>Demo Data</span>
+                      <span className={cn("text-[10px]", !useApify ? "text-primary/70" : "text-muted-foreground/60")}>
+                        Mock · No token needed
+                      </span>
+                    </button>
+                  </div>
+                  {useApify && (
+                    <p className="text-[11px] text-emerald-400 flex items-center gap-1">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Apify token configured — live LinkedIn scraping enabled
+                    </p>
+                  )}
+                </div>
+
                 <div className="space-y-1.5">
                   <Label htmlFor="industry">Industry</Label>
                   <Select value={industry} onValueChange={setIndustry}>
@@ -135,7 +210,7 @@ export default function Generate() {
                     id="location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. United States, Germany"
+                    placeholder="e.g. United States, Germany, London"
                     className="bg-input border-border"
                   />
                 </div>
@@ -179,17 +254,17 @@ export default function Generate() {
                   </button>
                   {showAdvanced && (
                     <div className="mt-3 space-y-1.5">
-                      <Label htmlFor="apify">Apify Token (optional)</Label>
+                      <Label htmlFor="apify">Override Apify Token</Label>
                       <Input
                         id="apify"
                         type="password"
                         value={apifyToken}
                         onChange={(e) => setApifyToken(e.target.value)}
-                        placeholder="apify_api_... (leave blank for demo data)"
+                        placeholder="apify_api_... (uses server token by default)"
                         className="bg-input border-border"
                       />
                       <p className="text-xs text-muted-foreground">
-                        Without a token, realistic demo data is used.
+                        Leave blank to use the server-configured Apify token.
                       </p>
                     </div>
                   )}
@@ -222,28 +297,26 @@ export default function Generate() {
             {generate.isPending && (
               <Card className="bg-card border-border border-primary/30">
                 <CardContent className="pt-5 pb-5">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 mb-4">
                     <div className="relative">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     </div>
                     <div>
                       <p className="text-sm font-medium text-foreground">
-                        AI is generating and enriching your leads...
+                        {useApify ? "Scraping LinkedIn & enriching leads with AI..." : "Generating & enriching leads with AI..."}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        Validating industry → Scraping leads → Generating AI icebreakers
+                        This may take 1–3 minutes for live LinkedIn data
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4 space-y-2">
-                    {["Validating industry with AI", "Scraping lead data", "Generating personalized icebreakers"].map(
-                      (step, i) => (
-                        <div key={step} className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Loader2 className="h-3 w-3 animate-spin text-primary shrink-0" />
-                          {step}
-                        </div>
-                      )
-                    )}
+                  <div className="space-y-2">
+                    {steps.map((step, i) => (
+                      <div key={step} className="flex items-center gap-2 text-xs">
+                        <Loader2 className="h-3 w-3 animate-spin text-primary shrink-0" />
+                        <span className="text-muted-foreground">{step}</span>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -251,12 +324,26 @@ export default function Generate() {
 
             {/* Results header */}
             {results.length > 0 && (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                  <span className="text-sm font-medium text-foreground">
-                    {results.length} leads generated
-                  </span>
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                    <span className="text-sm font-medium text-foreground">
+                      {results.length} leads generated
+                    </span>
+                  </div>
+                  {linkedInLeads > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full px-2 py-0.5">
+                      <Linkedin className="h-3 w-3" />
+                      {linkedInLeads} from LinkedIn
+                    </span>
+                  )}
+                  {mockLeads > 0 && (
+                    <span className="inline-flex items-center gap-1 text-xs bg-muted text-muted-foreground border border-border rounded-full px-2 py-0.5">
+                      <Database className="h-3 w-3" />
+                      {mockLeads} demo
+                    </span>
+                  )}
                   <span className="text-xs text-muted-foreground">
                     · {results.filter((l) => l.isEnriched).length} enriched with AI
                   </span>
@@ -270,7 +357,7 @@ export default function Generate() {
 
             {/* Lead cards */}
             {results.length > 0 ? (
-              <div className="space-y-3 max-h-[680px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
                 {results.map((lead) => (
                   <LeadCard key={lead.id} lead={lead} />
                 ))}
@@ -293,88 +380,118 @@ export default function Generate() {
 
 function LeadCard({ lead }: { lead: Lead }) {
   const [expanded, setExpanded] = useState(false);
+  const isLinkedIn = lead.dataSource === "linkedin_apify";
 
   return (
     <Card className="bg-card border-border hover:border-border/80 transition-colors">
       <CardContent className="pt-4 pb-4">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-sm font-semibold text-foreground">{lead.companyName}</h3>
-              {lead.isEnriched && (
-                <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20">
-                  <Sparkles className="h-2.5 w-2.5" />
-                  AI Enriched
-                </span>
-              )}
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Building2 className="h-4 w-4 text-primary" />
             </div>
-            {lead.contactName && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                <Users className="inline h-3 w-3 mr-1" />
-                {lead.contactName}
-              </p>
-            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-sm text-foreground truncate">{lead.companyName}</span>
+                {isLinkedIn ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full px-1.5 py-0.5 shrink-0">
+                    <Linkedin className="h-2.5 w-2.5" />
+                    LinkedIn
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[10px] bg-muted text-muted-foreground border border-border rounded-full px-1.5 py-0.5 shrink-0">
+                    Demo
+                  </span>
+                )}
+                {lead.isEnriched && (
+                  <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full px-1.5 py-0.5 shrink-0">
+                    <Sparkles className="h-2.5 w-2.5" />
+                    AI enriched
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                <span className="text-xs text-muted-foreground">{lead.industry}</span>
+                {lead.location && (
+                  <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    {lead.location}
+                  </span>
+                )}
+                {lead.companySize && (
+                  <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                    <Users className="h-3 w-3" />
+                    {lead.companySize} employees
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
-          <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground shrink-0">
-            {lead.seniorityLevel}
-          </span>
-        </div>
 
-        <div className="flex flex-wrap gap-2 mt-2">
-          {lead.industry && (
-            <MetaTag icon={<Building2 className="h-3 w-3" />} label={lead.industry} />
-          )}
-          {lead.location && (
-            <MetaTag icon={<MapPin className="h-3 w-3" />} label={lead.location} />
-          )}
-          {lead.companySize && (
-            <MetaTag icon={<Users className="h-3 w-3" />} label={lead.companySize} />
-          )}
-        </div>
-
-        {lead.email && (
-          <p className="text-xs text-primary mt-2 truncate">{lead.email}</p>
-        )}
-
-        {lead.website && (
-          <a
-            href={lead.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mt-1 transition-colors"
-          >
-            <ExternalLink className="h-3 w-3" />
-            {lead.website.replace(/^https?:\/\//, "")}
-          </a>
-        )}
-
-        {lead.icebreaker && (
-          <div className="mt-3">
+          <div className="flex items-center gap-1.5 shrink-0">
+            {lead.website && (
+              <a
+                href={lead.website}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                title="Visit website"
+              >
+                <Globe className="h-3.5 w-3.5" />
+              </a>
+            )}
+            {lead.linkedinUrl && (
+              <a
+                href={lead.linkedinUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1.5 rounded-md text-muted-foreground hover:text-blue-400 hover:bg-blue-500/10 transition-colors"
+                title="View on LinkedIn"
+              >
+                <Linkedin className="h-3.5 w-3.5" />
+              </a>
+            )}
             <button
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors"
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             >
-              <MessageSquare className="h-3 w-3" />
-              {expanded ? "Hide icebreaker" : "Show AI icebreaker"}
-              {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
-            {expanded && (
-              <div className="mt-2 pl-3 border-l-2 border-violet-500/30 text-xs text-muted-foreground italic leading-relaxed">
-                {lead.icebreaker}
+          </div>
+        </div>
+
+        {expanded && (
+          <div className="mt-4 space-y-3 border-t border-border pt-3">
+            {lead.email && (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground w-20 shrink-0">Email</span>
+                <span className="text-foreground font-mono">{lead.email}</span>
+              </div>
+            )}
+            {lead.contactName && (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-muted-foreground w-20 shrink-0">Contact</span>
+                <span className="text-foreground">{lead.contactName} · {lead.seniorityLevel}</span>
+              </div>
+            )}
+            {lead.companyDescription && (
+              <div className="flex gap-2 text-xs">
+                <span className="text-muted-foreground w-20 shrink-0">About</span>
+                <span className="text-foreground/80 leading-relaxed">{lead.companyDescription.slice(0, 300)}{lead.companyDescription.length > 300 ? "..." : ""}</span>
+              </div>
+            )}
+            {lead.icebreaker && (
+              <div className="rounded-lg bg-primary/5 border border-primary/20 p-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-medium text-primary">AI Icebreaker</span>
+                </div>
+                <p className="text-xs text-foreground/90 leading-relaxed italic">"{lead.icebreaker}"</p>
               </div>
             )}
           </div>
         )}
       </CardContent>
     </Card>
-  );
-}
-
-function MetaTag({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
-      {icon}
-      {label}
-    </span>
   );
 }
