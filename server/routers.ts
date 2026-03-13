@@ -29,6 +29,7 @@ import {
   assignLead,
 } from "./db";
 import { runLeadPipeline, SUPPORTED_INDUSTRIES, SEGMENT_PRESETS } from "./leadPipeline";
+import { exportLeadsToSheet, extractSpreadsheetId } from "./googleSheets";
 
 export const appRouter = router({
   system: systemRouter,
@@ -337,6 +338,61 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         await deleteEmailTemplate(input.id, ctx.user.id);
         return { success: true };
+      }),
+  }),
+
+  // ── Google Sheets Export ─────────────────────────────────────────
+  sheets: router({
+    // Returns the service account email users must share their sheet with
+    serviceEmail: publicProcedure.query(() => {
+      const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+      if (!json) return null;
+      try {
+        const parsed = JSON.parse(json);
+        return parsed.client_email as string;
+      } catch {
+        return null;
+      }
+    }),
+
+    export: protectedProcedure
+      .input(z.object({
+        spreadsheetUrl: z.string().min(1),
+        sheetName: z.string().default("Leads"),
+        leadIds: z.array(z.number().int()).optional(),
+        sessionId: z.number().int().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const spreadsheetId = extractSpreadsheetId(input.spreadsheetUrl);
+        // Get leads to export
+        let leadsToExport: any[];
+        if (input.leadIds && input.leadIds.length > 0) {
+          leadsToExport = await getLeadsByIds(input.leadIds, ctx.user.id);
+        } else if (input.sessionId) {
+          leadsToExport = await getLeadsBySession(input.sessionId);
+        } else {
+          const result = await getLeads({ userId: ctx.user.id, limit: 1000, offset: 0 });
+          leadsToExport = result.items ?? [];
+        }
+        if (leadsToExport.length === 0) {
+          throw new Error("No leads found to export");
+        }
+        const sheetLeads = leadsToExport.map((l: any) => ({
+          companyName: l.companyName ?? "",
+          email: l.email ?? "",
+          website: l.website ?? "",
+          industry: l.industry ?? "",
+          location: l.location ?? "",
+          companySize: l.companySize ?? "",
+          seniorityLevel: l.seniorityLevel ?? "",
+          icebreaker: l.icebreaker ?? "",
+          status: l.status ?? "new",
+          qualityRating: l.qualityRating ?? "",
+          dealValue: l.dealValue ?? null,
+          dataSource: l.dataSource ?? "mock",
+          createdAt: l.createdAt,
+        }));
+        return exportLeadsToSheet(spreadsheetId, input.sheetName, sheetLeads);
       }),
   }),
 

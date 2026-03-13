@@ -31,7 +31,8 @@ import {
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { ThumbsUp, ThumbsDown, CheckSquare, Square, Minus } from "lucide-react";
+import { ThumbsUp, ThumbsDown, CheckSquare, Square, Minus, Sheet } from "lucide-react";
+import SheetsExportModal from "@/components/SheetsExportModal";
 
 const PAGE_SIZE = 20;
 
@@ -53,6 +54,8 @@ export default function History() {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [bulkStatus, setBulkStatus] = useState<LeadStatus>("contacted");
+  const [sheetsModalOpen, setSheetsModalOpen] = useState(false);
+  const [sheetsLeadIds, setSheetsLeadIds] = useState<number[] | undefined>(undefined);
 
   const { data: industries } = trpc.leads.industries.useQuery();
   const utils = trpc.useUtils();
@@ -190,6 +193,15 @@ export default function History() {
             <Button variant="outline" size="sm" onClick={handleExportJson} className="gap-1.5">
               <Download className="h-3.5 w-3.5" />
               JSON
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setSheetsLeadIds(undefined); setSheetsModalOpen(true); }}
+              className="gap-1.5 border-green-600/40 text-green-500 hover:bg-green-600/10"
+            >
+              <Sheet className="h-3.5 w-3.5" />
+              Sheets
             </Button>
           </div>
         </div>
@@ -372,6 +384,12 @@ export default function History() {
           </div>
         </div>
       </div>
+      <SheetsExportModal
+        open={sheetsModalOpen}
+        onClose={() => setSheetsModalOpen(false)}
+        leadIds={sheetsLeadIds}
+        label={sheetsLeadIds ? `${sheetsLeadIds.length} selected leads` : "all leads"}
+      />
     </DashboardLayout>
   );
 }

@@ -28,8 +28,10 @@ import {
   Zap,
   Database,
   Globe,
+  Sheet,
 } from "lucide-react";
 import { useState } from "react";
+import SheetsExportModal from "@/components/SheetsExportModal";
 import { cn } from "@/lib/utils";
 
 interface Lead {
@@ -86,6 +88,7 @@ export default function Generate() {
   const [enrichEmails, setEnrichEmails] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [results, setResults] = useState<Lead[]>([]);
+  const [sheetsModalOpen, setSheetsModalOpen] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
 
@@ -439,6 +442,15 @@ export default function Generate() {
                     <Download className="h-3.5 w-3.5" />
                     JSON
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSheetsModalOpen(true)}
+                    className="gap-1.5 border-green-600/40 text-green-500 hover:bg-green-600/10"
+                  >
+                    <Sheet className="h-3.5 w-3.5" />
+                    Sheets
+                  </Button>
                 </div>
               </div>
             )}
@@ -462,6 +474,12 @@ export default function Generate() {
           </div>
         </div>
       </div>
+      <SheetsExportModal
+        open={sheetsModalOpen}
+        onClose={() => setSheetsModalOpen(false)}
+        leadIds={results.map((l) => l.id)}
+        label={`${results.length} generated leads`}
+      />
     </DashboardLayout>
   );
 }

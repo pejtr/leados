@@ -89,3 +89,15 @@
 - [x] Translate Templates page (editor, variable hints)
 - [x] Translate Team page (invite form, role labels)
 - [ ] Final checkpoint + publish
+
+## Google Sheets Integration
+- [x] Research and choose integration approach (Google Sheets API with service account)
+- [x] Install googleapis npm package
+- [x] Add GOOGLE_SERVICE_ACCOUNT_JSON secret to environment
+- [x] Build backend: sheetsExport tRPC procedure (takes spreadsheetId + leads, appends rows)
+- [x] Auto-create header row if sheet is empty
+- [x] Build frontend: Google Sheets export modal with spreadsheet URL input
+- [x] Add "Export to Google Sheets" button to History toolbar and Generate results
+- [x] Show success toast with link to the spreadsheet after export
+- [x] 19 Vitest tests passing (4 test files)
+- [ ] Final checkpoint + publish
