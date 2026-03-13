@@ -302,7 +302,103 @@ export function generateMockLeads(industry: string, location: string, count: num
   return leads;
 }
 
-// ─── 4. Website Scraper ──────────────────────────────────────────
+// ─── 4. Email Finder (Apify: caprolok/website-email-phone-finder) ──────────────
+
+interface EmailFinderResult {
+  domain: string;
+  emails: string[];
+  link?: string;
+}
+
+/**
+ * Given a list of leads, batch-enrich their email fields using the
+ * caprolok/website-email-phone-finder Apify actor.
+ * Only enriches leads that have a website but no email yet.
+ */
+export async function enrichEmailsWithApify(
+  leads: RawLead[],
+  apifyToken: string
+): Promise<RawLead[]> {
+  // Only process leads that have a website but are missing an email
+  const toEnrich = leads.filter((l) => l.website && !l.email);
+  if (toEnrich.length === 0) return leads;
+
+  // Extract clean domain names from website URLs
+  const domainMap = new Map<string, number[]>(); // domain → indices in `leads`
+  for (let i = 0; i < leads.length; i++) {
+    const lead = leads[i]!;
+    if (!lead.website || lead.email) continue;
+    try {
+      const url = lead.website.startsWith("http") ? lead.website : `https://${lead.website}`;
+      const domain = new URL(url).hostname.replace(/^www\./, "");
+      if (!domainMap.has(domain)) domainMap.set(domain, []);
+      domainMap.get(domain)!.push(i);
+    } catch {
+      // skip malformed URLs
+    }
+  }
+
+  const domains = Array.from(domainMap.keys());
+  if (domains.length === 0) return leads;
+
+  console.log(`[EmailFinder] Enriching ${domains.length} domains via Apify`);
+
+  try {
+    const url = `https://api.apify.com/v2/acts/caprolok~website-email-phone-finder/run-sync-get-dataset-items?token=${apifyToken}&timeout=120&memory=256`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ domains }),
+      signal: AbortSignal.timeout(150_000),
+    });
+
+    if (!response.ok) {
+      console.warn(`[EmailFinder] Apify HTTP ${response.status}, skipping email enrichment`);
+      return leads;
+    }
+
+    const results = (await response.json()) as EmailFinderResult[];
+    console.log(`[EmailFinder] Got results for ${results.length} domains`);
+
+    // Build domain → best email map
+    const emailMap = new Map<string, string>();
+    for (const result of results) {
+      const domain = result.domain.replace(/^www\./, "");
+      const emails = (result.emails ?? []).filter(
+        (e) => e && !e.startsWith("noreply") && !e.startsWith("no-reply") && !e.includes("example.com")
+      );
+      if (emails.length > 0) {
+        // Prefer contact/sales/info emails, otherwise take the first
+        const preferred = emails.find((e) =>
+          /^(contact|sales|info|hello|hi|team|support)@/.test(e)
+        ) ?? emails[0]!;
+        emailMap.set(domain, preferred);
+      }
+    }
+
+    // Apply found emails back to leads
+    return leads.map((lead, i) => {
+      if (lead.email) return lead; // already has email
+      try {
+        const url = lead.website?.startsWith("http") ? lead.website : `https://${lead.website}`;
+        const domain = new URL(url!).hostname.replace(/^www\./, "");
+        const foundEmail = emailMap.get(domain);
+        if (foundEmail) {
+          console.log(`[EmailFinder] Found email for ${lead.companyName}: ${foundEmail}`);
+          return { ...lead, email: foundEmail };
+        }
+      } catch {
+        // skip
+      }
+      return lead;
+    });
+  } catch (e) {
+    console.warn("[EmailFinder] Failed, skipping email enrichment:", e);
+    return leads;
+  }
+}
+
+// ─── 5. Website Scraper ──────────────────────────────────────────
 
 export async function scrapeWebsite(url: string): Promise<string> {
   if (!url || !url.startsWith("http")) return "";
@@ -367,6 +463,7 @@ export interface PipelineOptions {
   seniorityLevel: string;
   apifyToken?: string;
   useApify?: boolean;
+  enrichEmails?: boolean;
   onProgress?: (step: string, current: number, total: number) => void;
 }
 
@@ -390,6 +487,13 @@ export async function runLeadPipeline(opts: PipelineOptions): Promise<RawLead[]>
   } else {
     onProgress?.("Generating demo leads...", 0, count);
     rawLeads = generateMockLeads(resolvedIndustry, location, count, seniorityLevel);
+  }
+
+  // Step 2b: Email enrichment (optional)
+  const shouldEnrichEmails = opts.enrichEmails !== false && shouldUseApify && effectiveToken;
+  if (shouldEnrichEmails && effectiveToken) {
+    onProgress?.("Finding contact emails via website scraping...", 0, rawLeads.length);
+    rawLeads = await enrichEmailsWithApify(rawLeads, effectiveToken);
   }
 
   // Step 3: Enrich with icebreakers

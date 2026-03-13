@@ -19,7 +19,9 @@ import {
   ChevronUp,
   Download,
   ExternalLink,
+  Linkedin,
   Loader2,
+  Mail,
   MapPin,
   MessageSquare,
   Search,
@@ -28,12 +30,24 @@ import {
   Users,
 } from "lucide-react";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
+
+type LeadStatus = "new" | "contacted" | "replied" | "qualified" | "disqualified";
+
+const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string; bg: string; border: string }> = {
+  new:          { label: "New",          color: "text-sky-400",    bg: "bg-sky-500/10",    border: "border-sky-500/20" },
+  contacted:    { label: "Contacted",    color: "text-amber-400",  bg: "bg-amber-500/10",  border: "border-amber-500/20" },
+  replied:      { label: "Replied",      color: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20" },
+  qualified:    { label: "Qualified",    color: "text-emerald-400",bg: "bg-emerald-500/10",border: "border-emerald-500/20" },
+  disqualified: { label: "Disqualified", color: "text-rose-400",   bg: "bg-rose-500/10",   border: "border-rose-500/20" },
+};
 
 export default function History() {
   const [search, setSearch] = useState("");
   const [industry, setIndustry] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(0);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
@@ -43,6 +57,7 @@ export default function History() {
   const { data, isLoading } = trpc.leads.list.useQuery({
     search: search || undefined,
     industry: industry === "all" ? undefined : industry,
+    status: statusFilter === "all" ? undefined : statusFilter,
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
   });
@@ -59,13 +74,37 @@ export default function History() {
     onError: (err) => toast.error(`Delete failed: ${err.message}`),
   });
 
-  const exportQuery = trpc.leads.export.useQuery(
-    { industry: industry === "all" ? undefined : industry },
+  const exportCsvQuery = trpc.leads.exportCsv.useQuery(
+    {
+      industry: industry === "all" ? undefined : industry,
+      status: statusFilter === "all" ? undefined : statusFilter,
+    },
     { enabled: false }
   );
 
-  const handleExport = async () => {
-    const result = await exportQuery.refetch();
+  const exportJsonQuery = trpc.leads.export.useQuery(
+    {
+      industry: industry === "all" ? undefined : industry,
+      status: statusFilter === "all" ? undefined : statusFilter,
+    },
+    { enabled: false }
+  );
+
+  const handleExportCsv = async () => {
+    const result = await exportCsvQuery.refetch();
+    if (!result.data) { toast.error("No leads to export"); return; }
+    const blob = new Blob([result.data], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `leads-history-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Exported as CSV");
+  };
+
+  const handleExportJson = async () => {
+    const result = await exportJsonQuery.refetch();
     if (!result.data?.length) { toast.error("No leads to export"); return; }
     const blob = new Blob([JSON.stringify(result.data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -74,7 +113,7 @@ export default function History() {
     a.download = `leads-history-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success(`Exported ${result.data.length} leads`);
+    toast.success(`Exported ${result.data.length} leads as JSON`);
   };
 
   const totalPages = data ? Math.ceil(data.total / PAGE_SIZE) : 0;
@@ -87,13 +126,19 @@ export default function History() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Lead History</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Browse, search, and export all previously generated leads.
+              Browse, search, manage pipeline status, and export all generated leads.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5">
-            <Download className="h-3.5 w-3.5" />
-            Export All
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleExportCsv} className="gap-1.5">
+              <Download className="h-3.5 w-3.5" />
+              CSV
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportJson} className="gap-1.5">
+              <Download className="h-3.5 w-3.5" />
+              JSON
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -108,13 +153,24 @@ export default function History() {
             />
           </div>
           <Select value={industry} onValueChange={(v) => { setIndustry(v); setPage(0); }}>
-            <SelectTrigger className="w-[180px] bg-input border-border">
+            <SelectTrigger className="w-[170px] bg-input border-border">
               <SelectValue placeholder="All industries" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All industries</SelectItem>
               {(industries ?? []).map((ind) => (
                 <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
+            <SelectTrigger className="w-[150px] bg-input border-border">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {(Object.keys(STATUS_CONFIG) as LeadStatus[]).map((s) => (
+                <SelectItem key={s} value={s}>{STATUS_CONFIG[s].label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -236,6 +292,21 @@ function HistoryLeadRow({
   expanded: boolean;
   onToggle: () => void;
 }) {
+  const [status, setStatus] = useState<LeadStatus>((lead.status as LeadStatus) ?? "new");
+  const utils = trpc.useUtils();
+
+  const updateStatus = trpc.leads.updateStatus.useMutation({
+    onSuccess: (_, vars) => {
+      setStatus(vars.status);
+      utils.leads.list.invalidate();
+      toast.success(`Status updated to "${STATUS_CONFIG[vars.status].label}"`);
+    },
+    onError: (err) => toast.error(`Failed to update status: ${err.message}`),
+  });
+
+  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.new;
+  const isLinkedIn = lead.dataSource === "linkedin_apify";
+
   return (
     <Card className="bg-card border-border hover:border-border/60 transition-colors">
       <CardContent className="pt-3 pb-3">
@@ -243,10 +314,22 @@ function HistoryLeadRow({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-sm font-semibold text-foreground">{lead.companyName}</span>
+              {isLinkedIn && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full px-1.5 py-0.5 shrink-0">
+                  <Linkedin className="h-2.5 w-2.5" />
+                  LinkedIn
+                </span>
+              )}
               {lead.isEnriched && (
-                <span className="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20">
+                <span className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/20">
                   <Sparkles className="h-2.5 w-2.5" />
                   AI
+                </span>
+              )}
+              {lead.email && (
+                <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full px-1.5 py-0.5 shrink-0">
+                  <Mail className="h-2.5 w-2.5" />
+                  Email found
                 </span>
               )}
               <span className="text-xs px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">
@@ -272,7 +355,34 @@ function HistoryLeadRow({
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-1 shrink-0">
+
+          {/* Status selector + actions */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Inline status dropdown */}
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                updateStatus.mutate({ leadId: lead.id, status: v as LeadStatus });
+              }}
+            >
+              <SelectTrigger
+                className={cn(
+                  "h-6 text-[10px] px-2 py-0 rounded-full border font-medium w-auto gap-1",
+                  cfg.color, cfg.bg, cfg.border
+                )}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(STATUS_CONFIG) as LeadStatus[]).map((s) => (
+                  <SelectItem key={s} value={s} className="text-xs">
+                    <span className={STATUS_CONFIG[s].color}>{STATUS_CONFIG[s].label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {lead.website && (
               <a
                 href={lead.website}
@@ -306,6 +416,12 @@ function HistoryLeadRow({
             {lead.companySize && (
               <p className="text-xs text-muted-foreground">
                 <strong className="text-foreground">Company size:</strong> {lead.companySize}
+              </p>
+            )}
+            {lead.email && (
+              <p className="text-xs text-muted-foreground">
+                <strong className="text-foreground">Email:</strong>{" "}
+                <a href={`mailto:${lead.email}`} className="text-primary hover:underline">{lead.email}</a>
               </p>
             )}
             {lead.linkedinUrl && (

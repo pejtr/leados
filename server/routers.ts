@@ -12,6 +12,7 @@ import {
   getLeadSessionsByUser,
   insertLeads,
   updateLeadSession,
+  updateLeadStatus,
 } from "./db";
 import { runLeadPipeline, SUPPORTED_INDUSTRIES } from "./leadPipeline";
 
@@ -41,6 +42,7 @@ export const appRouter = router({
           seniorityLevel: z.string().default("Manager"),
           apifyToken: z.string().optional(),
           useApify: z.boolean().default(true),
+          enrichEmails: z.boolean().default(true),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -66,6 +68,7 @@ export const appRouter = router({
             seniorityLevel: input.seniorityLevel,
             apifyToken: input.apifyToken,
             useApify: input.useApify,
+            enrichEmails: input.enrichEmails,
           });
 
           // Persist leads
@@ -116,6 +119,7 @@ export const appRouter = router({
           search: z.string().optional(),
           industry: z.string().optional(),
           sessionId: z.number().int().optional(),
+          status: z.string().optional(),
           limit: z.number().int().min(1).max(100).default(50),
           offset: z.number().int().min(0).default(0),
         })
@@ -149,12 +153,13 @@ export const appRouter = router({
       return getLeadStats(ctx.user.id);
     }),
 
-    // ── Export (returns JSON-serialisable array) ──────────────
+    // ── Export JSON ───────────────────────────────────────────
     export: protectedProcedure
       .input(
         z.object({
           sessionId: z.number().int().optional(),
           industry: z.string().optional(),
+          status: z.string().optional(),
         })
       )
       .query(async ({ ctx, input }) => {
@@ -162,10 +167,64 @@ export const appRouter = router({
           userId: ctx.user.id,
           industry: input.industry,
           sessionId: input.sessionId,
+          status: input.status,
           limit: 1000,
           offset: 0,
         });
         return items;
+      }),
+
+    // ── Export CSV ────────────────────────────────────────────
+    exportCsv: protectedProcedure
+      .input(
+        z.object({
+          sessionId: z.number().int().optional(),
+          industry: z.string().optional(),
+          status: z.string().optional(),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const { items } = await getLeads({
+          userId: ctx.user.id,
+          industry: input.industry,
+          sessionId: input.sessionId,
+          status: input.status,
+          limit: 1000,
+          offset: 0,
+        });
+        const headers = [
+          "Company Name", "Email", "Website", "Industry", "Location",
+          "Company Size", "Seniority Level", "Contact Name", "LinkedIn URL",
+          "Status", "Data Source", "AI Enriched", "Icebreaker", "Created At",
+        ];
+        const escape = (v: string | null | undefined | boolean | Date) => {
+          if (v === null || v === undefined) return "";
+          const s = v instanceof Date ? v.toISOString() : String(v);
+          return s.includes(",") || s.includes('"') || s.includes("\n")
+            ? `"${s.replace(/"/g, '""')}"`
+            : s;
+        };
+        const rows = items.map((l) => [
+          escape(l.companyName), escape(l.email), escape(l.website),
+          escape(l.industry), escape(l.location), escape(l.companySize),
+          escape(l.seniorityLevel), escape(l.contactName), escape(l.linkedinUrl),
+          escape(l.status), escape(l.dataSource), escape(l.isEnriched),
+          escape(l.icebreaker), escape(l.createdAt),
+        ].join(","));
+        return [headers.join(","), ...rows].join("\n");
+      }),
+
+    // ── Update lead status ────────────────────────────────────
+    updateStatus: protectedProcedure
+      .input(
+        z.object({
+          leadId: z.number().int(),
+          status: z.enum(["new", "contacted", "replied", "qualified", "disqualified"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        await updateLeadStatus(input.leadId, ctx.user.id, input.status);
+        return { success: true };
       }),
   }),
 });

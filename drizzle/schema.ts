@@ -69,6 +69,9 @@ export const leads = mysqlTable("leads", {
   // Data source
   dataSource: mysqlEnum("dataSource", ["mock", "linkedin_apify"]).default("mock").notNull(),
 
+  // Pipeline status
+  status: mysqlEnum("status", ["new", "contacted", "replied", "qualified", "disqualified"]).default("new").notNull(),
+
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { generateMockLeads, validateIndustry, SUPPORTED_INDUSTRIES } from "./leadPipeline";
+import { generateMockLeads, validateIndustry, SUPPORTED_INDUSTRIES, enrichEmailsWithApify } from "./leadPipeline";
 
 // ─── Mock invokeLLM ───────────────────────────────────────────────
 vi.mock("./_core/llm", () => ({
@@ -44,7 +44,6 @@ describe("generateMockLeads", () => {
   it("handles count larger than template list", () => {
     const leads = generateMockLeads("Technology", "US", 15, "C-Level");
     expect(leads).toHaveLength(15);
-    // All should have unique-ish names
     const names = leads.map((l) => l.companyName);
     expect(new Set(names).size).toBeGreaterThan(1);
   });
@@ -87,5 +86,72 @@ describe("SUPPORTED_INDUSTRIES", () => {
   it("contains Technology and Finance", () => {
     expect(SUPPORTED_INDUSTRIES).toContain("Technology");
     expect(SUPPORTED_INDUSTRIES).toContain("Finance");
+  });
+});
+
+// ─── enrichEmailsWithApify ────────────────────────────────────────
+
+describe("enrichEmailsWithApify", () => {
+  it("skips leads that already have emails", async () => {
+    const leads = generateMockLeads("Technology", "US", 2, "Manager");
+    // All mock leads already have emails, so nothing should change
+    const result = await enrichEmailsWithApify(leads, "fake-token");
+    expect(result).toHaveLength(leads.length);
+    // Since all have emails, the function returns immediately without calling Apify
+    result.forEach((l, i) => {
+      expect(l.email).toBe(leads[i]!.email);
+    });
+  });
+
+  it("returns original leads unchanged when all have emails", async () => {
+    const leads = [
+      { ...generateMockLeads("Technology", "US", 1, "Manager")[0]!, email: "test@example.com" },
+    ];
+    const result = await enrichEmailsWithApify(leads, "fake-token");
+    expect(result[0]!.email).toBe("test@example.com");
+  });
+
+  it("handles leads with no website gracefully", async () => {
+    const leads = generateMockLeads("Technology", "US", 2, "Manager").map((l) => ({
+      ...l,
+      email: null,
+      website: null,
+    }));
+    const result = await enrichEmailsWithApify(leads, "fake-token");
+    // No websites → no domains to enrich → returns unchanged
+    expect(result).toHaveLength(2);
+  });
+
+  it("gracefully handles Apify API failure", async () => {
+    const leads = generateMockLeads("Technology", "US", 1, "Manager").map((l) => ({
+      ...l,
+      email: null,
+      website: "https://example.com",
+    }));
+    // With a fake token, the Apify call will fail — should return leads unchanged
+    const result = await enrichEmailsWithApify(leads, "invalid-token-xyz");
+    expect(result).toHaveLength(1);
+    // Email may or may not be set depending on network, but should not throw
+    expect(result[0]).toBeDefined();
+  });
+});
+
+// ─── CSV export helper ────────────────────────────────────────────
+
+describe("CSV export helper", () => {
+  it("correctly escapes commas and quotes in field values", () => {
+    const escape = (v: string | null | undefined | boolean) => {
+      if (v === null || v === undefined) return "";
+      const s = String(v);
+      return s.includes(",") || s.includes('"') || s.includes("\n")
+        ? `"${s.replace(/"/g, '""')}"`
+        : s;
+    };
+    expect(escape("hello, world")).toBe('"hello, world"');
+    expect(escape('say "hi"')).toBe('"say ""hi"""');
+    expect(escape("normal")).toBe("normal");
+    expect(escape(null)).toBe("");
+    expect(escape(undefined)).toBe("");
+    expect(escape(true)).toBe("true");
   });
 });

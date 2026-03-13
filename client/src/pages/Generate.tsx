@@ -72,6 +72,7 @@ export default function Generate() {
   const [seniorityLevel, setSeniorityLevel] = useState("Manager");
   const [apifyToken, setApifyToken] = useState("");
   const [useApify, setUseApify] = useState(true);
+  const [enrichEmails, setEnrichEmails] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [results, setResults] = useState<Lead[]>([]);
   const [sessionId, setSessionId] = useState<number | null>(null);
@@ -106,6 +107,7 @@ export default function Generate() {
       seniorityLevel,
       apifyToken: apifyToken || undefined,
       useApify,
+      enrichEmails,
     });
   };
 
@@ -121,6 +123,32 @@ export default function Generate() {
     toast.success("Leads exported as JSON");
   };
 
+  const handleExportCsv = () => {
+    if (!results.length) return;
+    const headers = ["Company Name", "Email", "Website", "Industry", "Location", "Company Size", "Seniority Level", "Contact Name", "LinkedIn URL", "Status", "Data Source", "AI Enriched", "Icebreaker"];
+    const escape = (v: string | null | undefined | boolean | Date) => {
+      if (v === null || v === undefined) return "";
+      const s = v instanceof Date ? v.toISOString() : String(v);
+      return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    const rows = results.map((l) => [
+      escape(l.companyName), escape(l.email), escape(l.website),
+      escape(l.industry), escape(l.location), escape(l.companySize),
+      escape(l.seniorityLevel), escape(l.contactName), escape(l.linkedinUrl),
+      "new", escape(l.dataSource), escape(l.isEnriched), escape(l.icebreaker),
+    ].join(","));
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `leads-${industry.toLowerCase()}-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Leads exported as CSV");
+  };
+
+  const emailsFound = results.filter((l) => l.email).length;
   const steps = useApify ? PIPELINE_STEPS_APIFY : PIPELINE_STEPS_MOCK;
   const linkedInLeads = results.filter((l) => l.dataSource === "linkedin_apify").length;
   const mockLeads = results.filter((l) => l.dataSource === "mock").length;
@@ -183,10 +211,28 @@ export default function Generate() {
                     </button>
                   </div>
                   {useApify && (
-                    <p className="text-[11px] text-emerald-400 flex items-center gap-1">
-                      <CheckCircle2 className="h-3 w-3" />
-                      Apify token configured — live LinkedIn scraping enabled
-                    </p>
+                    <div className="space-y-2">
+                      <p className="text-[11px] text-emerald-400 flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        Apify token configured — live LinkedIn scraping enabled
+                      </p>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <div
+                          role="checkbox"
+                          aria-checked={enrichEmails}
+                          onClick={() => setEnrichEmails(!enrichEmails)}
+                          className={cn(
+                            "h-4 w-4 rounded border flex items-center justify-center transition-colors cursor-pointer",
+                            enrichEmails ? "bg-primary border-primary" : "border-border bg-input"
+                          )}
+                        >
+                          {enrichEmails && <CheckCircle2 className="h-2.5 w-2.5 text-primary-foreground" />}
+                        </div>
+                        <span className="text-[11px] text-muted-foreground">
+                          Find contact emails via website scraping
+                        </span>
+                      </label>
+                    </div>
                   )}
                 </div>
 
@@ -345,13 +391,22 @@ export default function Generate() {
                     </span>
                   )}
                   <span className="text-xs text-muted-foreground">
-                    · {results.filter((l) => l.isEnriched).length} enriched with AI
+                     {results.filter((l) => l.isEnriched).length} enriched with AI
                   </span>
+                  {emailsFound > 0 && (
+                    <span className="text-xs text-muted-foreground">· {emailsFound} emails found</span>
+                  )}
                 </div>
-                <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5">
-                  <Download className="h-3.5 w-3.5" />
-                  Export JSON
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" onClick={handleExportCsv} className="gap-1.5">
+                    <Download className="h-3.5 w-3.5" />
+                    CSV
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleExport} className="gap-1.5">
+                    <Download className="h-3.5 w-3.5" />
+                    JSON
+                  </Button>
+                </div>
               </div>
             )}
 

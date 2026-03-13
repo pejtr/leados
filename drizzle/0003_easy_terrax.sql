@@ -1,0 +1,1 @@
+ALTER TABLE `leads` ADD `status` enum('new','contacted','replied','qualified','disqualified') DEFAULT 'new' NOT NULL;

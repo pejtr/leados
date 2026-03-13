@@ -94,6 +94,7 @@ export interface GetLeadsOptions {
   search?: string;
   industry?: string;
   sessionId?: number;
+  status?: string;
   limit?: number;
   offset?: number;
 }
@@ -105,6 +106,7 @@ export async function getLeads(opts: GetLeadsOptions): Promise<{ items: Lead[]; 
   const conditions = [eq(leads.userId, opts.userId)];
   if (opts.industry) conditions.push(eq(leads.industry, opts.industry));
   if (opts.sessionId) conditions.push(eq(leads.sessionId, opts.sessionId));
+  if (opts.status) conditions.push(eq(leads.status, opts.status as any));
   if (opts.search) {
     conditions.push(
       sql`(${leads.companyName} LIKE ${`%${opts.search}%`} OR ${leads.email} LIKE ${`%${opts.search}%`} OR ${leads.contactName} LIKE ${`%${opts.search}%`})`
@@ -127,6 +129,16 @@ export async function getLeadsBySession(sessionId: number): Promise<Lead[]> {
   const db = await getDb();
   if (!db) return [];
   return db.select().from(leads).where(eq(leads.sessionId, sessionId)).orderBy(leads.id);
+}
+
+export async function updateLeadStatus(
+  leadId: number,
+  userId: number,
+  status: "new" | "contacted" | "replied" | "qualified" | "disqualified"
+): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(leads).set({ status }).where(and(eq(leads.id, leadId), eq(leads.userId, userId)));
 }
 
 export async function deleteLeadsBySession(sessionId: number, userId: number): Promise<void> {
