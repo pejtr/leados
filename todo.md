@@ -126,6 +126,16 @@
 ## Language Consistency Fix
 - [x] Fix hardcoded English strings in Landing.tsx (Industry Presets section)
 - [x] Add missing i18n keys to cs.json, de.json, en.json
+- [x] Fix ALL remaining hardcoded English strings in Landing.tsx (hero, testimonials, CTA, footer, badges)
+- [x] Add 30+ new translation keys to en.json, cs.json, de.json
+
+## LeadPro.com Integration Analysis
+- [x] Research LeadPro.com features (CRM, Newsletters, Landing Pages, Task Tracker)
+- [ ] Consider: Email Sequence Builder for automated follow-ups
+- [ ] Consider: Task/Activity Tracker with reminders tied to pipeline
+- [ ] Consider: Lead → Customer Lifecycle management
+- [ ] Consider: Custom Mailing Lists and segmentation
+- [ ] Consider: Stripe Payment Integration for monetization
 
 ## Next Best Action Engine
 - [x] DB schema: nba_recommendations table
@@ -203,3 +213,82 @@
 ## A/B Test Mockup
 - [x] Create /landing-b route with alternative design variant
 - [x] Different hero layout, color accents, or CTA positioning for comparison
+
+## Onboarding Wizard (First Login)
+- [ ] DB: Add onboarding_completed flag to users table
+- [ ] Backend: onboarding.getStatus, onboarding.saveIcp, onboarding.saveIntegrations, onboarding.complete endpoints
+- [ ] Frontend: Multi-step wizard component (Welcome → ICP Definition → Integrations → Done)
+- [ ] Auto-show wizard on first login (onboarding_completed = false)
+- [ ] Skip option for users who want to set up later
+- [ ] Wire into DashboardLayout to redirect new users
+- [ ] Tests for onboarding endpoints
+
+## Lusha-Inspired Landing Page Improvements
+- [ ] Proof-first hero with testimonial card
+- [ ] Email-only CTA (Enter work email + Start for free)
+- [ ] Trust badges (No credit card required, G2 rating placeholder)
+- [ ] Trusted by logo bar under hero
+- [ ] Sticky mobile CTA bar
+- [ ] Specific ROI numbers in testimonials section
+
+## Branding Update to AI LeadGen
+- [ ] Update app title to AI LeadGen
+- [ ] Set new logo (V1 light for header, V3 icon for favicon)
+- [ ] Update Landing page branding
+- [ ] Update DashboardLayout branding
+
+## SEO Fixes for Landing Page (/)
+- [x] Fix page title to 30-60 characters using document.title
+- [x] Add meta description (50-160 characters)
+- [x] Add meta keywords tag
+
+## Email Sequence Builder (LeadPro-inspired)
+- [x] DB schema: email_sequences + email_sequence_steps + email_sequence_enrollments tables
+- [x] Backend: sequence CRUD, enroll lead, step scheduling logic
+- [x] Frontend: Sequences page with step builder (day 1/3/7 intervals)
+- [x] Nav item + route in App.tsx
+
+## Task/Activity Tracker (LeadPro-inspired)
+- [x] DB schema: tasks table (title, due_date, lead_id, status, reminder_at)
+- [x] Backend: tasks CRUD tRPC procedures
+- [x] Frontend: Tasks page with calendar view and lead-linked tasks
+- [x] Nav item + route in App.tsx
+
+## Capture Planning Workflow (GrowthLab-inspired)
+- [x] DB schema: capture_plans table with stages (Identify/Research/Outreach/Qualify/Propose/Close)
+- [x] Backend: capture plan CRUD + stage progression
+- [x] Frontend: Capture Planning page with visual stage workflow
+- [x] Nav item + route in App.tsx
+
+## Market Intelligence Reports (GrowthLab-inspired)
+- [x] Backend: AI generates market intelligence report per industry (trends, competitors, spend signals)
+- [x] Frontend: Market Intelligence page with report generation and display
+- [x] Nav item + route in App.tsx
+
+## Training Knowledge Base (GrowthLab-inspired)
+- [x] DB schema: knowledge_articles table (title, category, content, video_url)
+- [x] Backend: articles CRUD + seed with BD best practices content
+- [x] Frontend: Knowledge Base page with categories and article viewer
+- [x] Nav item + route in App.tsx
+
+## Competitive Landscape Mapping (GrowthLab-inspired)
+- [x] Backend: AI analyzes competitors for a given company/industry
+- [x] Frontend: Competitive Map page with visual positioning chart
+- [x] Nav item + route in App.tsx
+
+## Onboarding Wizard Frontend
+- [x] Multi-step wizard component (Welcome → ICP → Integrations → Done)
+- [x] Auto-show on first login (onboarding_completed = false)
+- [x] Wire into DashboardLayout redirect
+
+## Branding Update
+- [x] Update VITE_APP_TITLE to "AI LeadGen"
+- [x] Update DashboardLayout sidebar logo/name
+- [x] Update Landing page brand name
+
+## Stripe Payment Integration
+- [x] Add Stripe feature via webdev_add_feature
+- [x] Create subscription plans (Starter $49/Growth $99/Pro $249)
+- [x] Backend: checkout session, webhook handler, billing portal
+- [x] Frontend: Billing page with real Stripe checkout + plan management
+- [x] DB: stripeCustomerId, stripeSubscriptionId, subscriptionStatus, subscriptionPlan fields on users

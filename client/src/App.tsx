@@ -30,6 +30,13 @@ import IcpBuilder from "./pages/IcpBuilder";
 import TechStack from "./pages/TechStack";
 import AiAgentBuilder from "./pages/AiAgentBuilder";
 import LandingB from "./pages/LandingB";
+import Sequences from "./pages/Sequences";
+import Tasks from "./pages/Tasks";
+import CapturePlanning from "./pages/CapturePlanning";
+import MarketIntel from "./pages/MarketIntel";
+import KnowledgeBase from "./pages/KnowledgeBase";
+import CompetitiveMap from "./pages/CompetitiveMap";
+import Billing from "./pages/Billing";
 
 function Router() {
   return (
@@ -60,6 +67,13 @@ function Router() {
       <Route path="/icp" component={IcpBuilder} />
       <Route path="/tech-stack" component={TechStack} />
       <Route path="/ai-agents" component={AiAgentBuilder} />
+      <Route path="/sequences" component={Sequences} />
+      <Route path="/tasks" component={Tasks} />
+      <Route path="/capture" component={CapturePlanning} />
+      <Route path="/market-intel" component={MarketIntel} />
+      <Route path="/knowledge" component={KnowledgeBase} />
+      <Route path="/competitive" component={CompetitiveMap} />
+      <Route path="/billing" component={Billing} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

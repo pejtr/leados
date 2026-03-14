@@ -20,6 +20,11 @@ export const users = mysqlTable("users", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
+  onboardingCompleted: boolean("onboardingCompleted").default(false).notNull(),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 128 }),
+  stripeSubscriptionId: varchar("stripeSubscriptionId", { length: 128 }),
+  subscriptionStatus: varchar("subscriptionStatus", { length: 32 }).default("free"),
+  subscriptionPlan: varchar("subscriptionPlan", { length: 32 }).default("free"),
 });
 
 export type User = typeof users.$inferSelect;
@@ -581,3 +586,112 @@ export const aiAgentLogs = mysqlTable("ai_agent_logs", {
 
 export type AiAgentLog = typeof aiAgentLogs.$inferSelect;
 export type InsertAiAgentLog = typeof aiAgentLogs.$inferInsert;
+
+// ─── Email Sequences ─────────────────────────────────────────────
+export const emailSequences = mysqlTable("email_sequences", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  description: text("description"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export const emailSequenceSteps = mysqlTable("email_sequence_steps", {
+  id: int("id").autoincrement().primaryKey(),
+  sequenceId: int("sequenceId").notNull(),
+  stepNumber: int("stepNumber").notNull(),
+  delayDays: int("delayDays").default(0).notNull(),
+  subject: varchar("subject", { length: 512 }).notNull(),
+  body: text("body").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export const emailSequenceEnrollments = mysqlTable("email_sequence_enrollments", {
+  id: int("id").autoincrement().primaryKey(),
+  sequenceId: int("sequenceId").notNull(),
+  leadId: int("leadId").notNull(),
+  userId: int("userId").notNull(),
+  currentStep: int("currentStep").default(1).notNull(),
+  status: mysqlEnum("status", ["active", "paused", "completed", "unsubscribed"]).default("active").notNull(),
+  enrolledAt: timestamp("enrolledAt").defaultNow().notNull(),
+  nextSendAt: timestamp("nextSendAt"),
+  completedAt: timestamp("completedAt"),
+});
+
+export type EmailSequence = typeof emailSequences.$inferSelect;
+export type EmailSequenceStep = typeof emailSequenceSteps.$inferSelect;
+export type EmailSequenceEnrollment = typeof emailSequenceEnrollments.$inferSelect;
+
+// ─── Tasks / Activity Tracker ────────────────────────────────────
+export const tasks = mysqlTable("tasks", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  leadId: int("leadId"),
+  title: varchar("title", { length: 512 }).notNull(),
+  description: text("description"),
+  type: mysqlEnum("type", ["call", "email", "meeting", "follow_up", "other"]).default("other").notNull(),
+  status: mysqlEnum("status", ["pending", "done", "cancelled"]).default("pending").notNull(),
+  dueAt: timestamp("dueAt"),
+  reminderAt: timestamp("reminderAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Task = typeof tasks.$inferSelect;
+export type InsertTask = typeof tasks.$inferInsert;
+
+// ─── Capture Plans ───────────────────────────────────────────────
+export const capturePlans = mysqlTable("capture_plans", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  leadId: int("leadId"),
+  title: varchar("title", { length: 512 }).notNull(),
+  companyName: varchar("companyName", { length: 256 }),
+  stage: mysqlEnum("stage", ["identify", "research", "outreach", "qualify", "propose", "close"]).default("identify").notNull(),
+  notes: text("notes"),
+  estimatedValue: decimal("estimatedValue", { precision: 12, scale: 2 }),
+  probability: int("probability").default(10),
+  expectedCloseAt: timestamp("expectedCloseAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type CapturePlan = typeof capturePlans.$inferSelect;
+export type InsertCapturePlan = typeof capturePlans.$inferInsert;
+
+// ─── Market Intelligence Reports ─────────────────────────────────
+export const marketIntelReports = mysqlTable("market_intel_reports", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  industry: varchar("industry", { length: 128 }).notNull(),
+  reportData: text("reportData").notNull(),
+  generatedAt: timestamp("generatedAt").defaultNow().notNull(),
+});
+
+export type MarketIntelReport = typeof marketIntelReports.$inferSelect;
+
+// ─── Knowledge Base Articles ──────────────────────────────────────
+export const knowledgeArticles = mysqlTable("knowledge_articles", {
+  id: int("id").autoincrement().primaryKey(),
+  category: varchar("category", { length: 128 }).notNull(),
+  title: varchar("title", { length: 512 }).notNull(),
+  content: text("content").notNull(),
+  readTime: int("readTime").default(5),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type KnowledgeArticle = typeof knowledgeArticles.$inferSelect;
+
+// ─── Competitive Landscape ────────────────────────────────────────
+export const competitiveMaps = mysqlTable("competitive_maps", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  companyName: varchar("companyName", { length: 256 }).notNull(),
+  industry: varchar("industry", { length: 128 }).notNull(),
+  mapData: text("mapData").notNull(),
+  generatedAt: timestamp("generatedAt").defaultNow().notNull(),
+});
+
+export type CompetitiveMap = typeof competitiveMaps.$inferSelect;

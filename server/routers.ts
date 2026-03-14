@@ -37,6 +37,27 @@ import {
   updateWebhookConfig,
   deleteWebhookConfig,
   getIntegrationLogs,
+  getEmailSequences,
+  createEmailSequence,
+  deleteEmailSequence,
+  getSequenceSteps,
+  upsertSequenceSteps,
+  enrollLeadInSequence,
+  getSequenceEnrollments,
+  getTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  getCapturePlans,
+  createCapturePlan,
+  updateCapturePlan,
+  deleteCapturePlan,
+  getMarketIntelReports,
+  saveMarketIntelReport,
+  getKnowledgeArticles,
+  seedKnowledgeArticles,
+  getCompetitiveMaps,
+  saveCompetitiveMap,
 } from "./db";
 import { dispatchWebhooks, testWebhook } from "./webhookDispatcher";
 import {
@@ -82,6 +103,9 @@ import {
   updateSocialSignal,
 } from "./db";
 import { invokeLLM } from "./_core/llm";
+import { getDb } from "./db";
+import { users } from "../drizzle/schema";
+import { eq } from "drizzle-orm";
 import {
   createTrackingPixel, getTrackingPixelsByUser, deleteTrackingPixel, updateTrackingPixel,
   getVisitorSessionsByPixel, getVisitorSessionsByUser, createVisitorSession,
@@ -97,6 +121,7 @@ import {
   createTechStackDetection, getTechStackByUser, getTechStackByDomain, updateTechStackDetection,
   createAiAgent, getAiAgentsByUser, updateAiAgent, deleteAiAgent, getAiAgentById,
   createAiAgentLog, getAiAgentLogsByAgent,
+  getOnboardingStatus, completeOnboarding,
 } from "./db";
 
 export const appRouter = router({
@@ -1415,6 +1440,336 @@ export const appRouter = router({
       .input(z.object({ leadId: z.number().int() }))
       .query(async ({ ctx, input }) => {
         return getLinkedinConnectionsByLead(input.leadId);
+      }),
+  }),
+
+  // ─── Onboarding ──────────────────────────────────────────────
+  onboarding: router({
+    status: protectedProcedure.query(async ({ ctx }) => {
+      const completed = await getOnboardingStatus(ctx.user.id);
+      return { completed };
+    }),
+    complete: protectedProcedure.mutation(async ({ ctx }) => {
+      await completeOnboarding(ctx.user.id);
+      return { success: true };
+    }),
+    // Save ICP during onboarding (reuses icpProfiles table)
+    saveIcp: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1),
+          industry: z.string().min(1),
+          companySize: z.string().optional(),
+          location: z.string().optional(),
+          seniorityLevel: z.string().optional(),
+          keywords: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        return createIcpProfile({
+          userId: ctx.user.id,
+          name: input.name,
+          industry: input.industry,
+          companySize: input.companySize ?? null,
+          location: input.location ?? null,
+          seniorityLevel: input.seniorityLevel ?? null,
+          keywords: input.keywords ?? null,
+          description: `Onboarding ICP: ${input.industry}`,
+        });
+      }),
+    // Save webhook during onboarding (reuses webhookConfigs table)
+    saveWebhook: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().min(1),
+          url: z.string().url(),
+          type: z.enum(["webhook", "clickup"]),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        return createWebhookConfig({
+          userId: ctx.user.id,
+          name: input.name,
+          url: input.url,
+          type: input.type,
+          isActive: true,
+        });
+      }),
+  }),
+
+  // ─── Email Sequences ────────────────────────────────────────────
+  sequences: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getEmailSequences(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({ name: z.string().min(1), description: z.string().optional() }))
+      .mutation(async ({ ctx, input }) => {
+        return createEmailSequence({ userId: ctx.user.id, name: input.name, description: input.description });
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteEmailSequence(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    getSteps: protectedProcedure
+      .input(z.object({ sequenceId: z.number() }))
+      .query(async ({ input }) => {
+        return getSequenceSteps(input.sequenceId);
+      }),
+    saveSteps: protectedProcedure
+      .input(z.object({
+        sequenceId: z.number(),
+        steps: z.array(z.object({
+          stepNumber: z.number(),
+          delayDays: z.number(),
+          subject: z.string(),
+          body: z.string(),
+        })),
+      }))
+      .mutation(async ({ input }) => {
+        await upsertSequenceSteps(input.sequenceId, input.steps);
+        return { success: true };
+      }),
+    enroll: protectedProcedure
+      .input(z.object({ sequenceId: z.number(), leadId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await enrollLeadInSequence({ sequenceId: input.sequenceId, leadId: input.leadId, userId: ctx.user.id });
+        return { success: true };
+      }),
+    enrollments: protectedProcedure.query(async ({ ctx }) => {
+      return getSequenceEnrollments(ctx.user.id);
+    }),
+  }),
+
+  // ─── Tasks / Activity Tracker ───────────────────────────────────
+  tasks: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getTasks(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        description: z.string().optional(),
+        type: z.enum(["call", "email", "meeting", "follow_up", "other"]).default("other"),
+        leadId: z.number().optional(),
+        dueAt: z.date().optional(),
+        reminderAt: z.date().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return createTask({
+          userId: ctx.user.id,
+          title: input.title,
+          description: input.description ?? null,
+          type: input.type,
+          leadId: input.leadId ?? null,
+          dueAt: input.dueAt ?? null,
+          reminderAt: input.reminderAt ?? null,
+        });
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        type: z.enum(["call", "email", "meeting", "follow_up", "other"]).optional(),
+        status: z.enum(["pending", "done", "cancelled"]).optional(),
+        dueAt: z.date().optional(),
+        reminderAt: z.date().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateTask(id, ctx.user.id, data as any);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteTask(input.id, ctx.user.id);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Capture Plans ──────────────────────────────────────────────
+  capturePlans: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getCapturePlans(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        companyName: z.string().optional(),
+        leadId: z.number().optional(),
+        stage: z.enum(["identify", "research", "outreach", "qualify", "propose", "close"]).default("identify"),
+        notes: z.string().optional(),
+        estimatedValue: z.string().optional(),
+        probability: z.number().min(0).max(100).optional(),
+        expectedCloseAt: z.date().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return createCapturePlan({
+          userId: ctx.user.id,
+          title: input.title,
+          companyName: input.companyName ?? null,
+          leadId: input.leadId ?? null,
+          stage: input.stage,
+          notes: input.notes ?? null,
+          estimatedValue: input.estimatedValue ?? null,
+          probability: input.probability ?? 10,
+          expectedCloseAt: input.expectedCloseAt ?? null,
+        });
+      }),
+    update: protectedProcedure
+      .input(z.object({
+        id: z.number(),
+        title: z.string().optional(),
+        companyName: z.string().optional(),
+        stage: z.enum(["identify", "research", "outreach", "qualify", "propose", "close"]).optional(),
+        notes: z.string().optional(),
+        estimatedValue: z.string().optional(),
+        probability: z.number().optional(),
+        expectedCloseAt: z.date().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { id, ...data } = input;
+        await updateCapturePlan(id, ctx.user.id, data as any);
+        return { success: true };
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        await deleteCapturePlan(input.id, ctx.user.id);
+        return { success: true };
+      }),
+  }),
+
+  // ─── Market Intelligence ────────────────────────────────────────
+  marketIntel: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getMarketIntelReports(ctx.user.id);
+    }),
+    generate: protectedProcedure
+      .input(z.object({ industry: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const prompt = `You are a B2B market intelligence analyst. Generate a comprehensive market intelligence report for the ${input.industry} industry. Include:
+1. Market Overview (size, growth rate, key trends)
+2. Top 5 Competitors (name, strengths, weaknesses, market position)
+3. Buyer Personas (2-3 decision maker profiles with pain points)
+4. Sales Signals (what triggers a buying decision)
+5. Outreach Strategy (best channels, timing, messaging angle)
+6. Key Opportunities (3 specific opportunities to exploit)
+
+Format as structured JSON with keys: overview, competitors, buyerPersonas, salesSignals, outreachStrategy, opportunities`;
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are a B2B market intelligence expert. Always respond with valid JSON." },
+            { role: "user", content: prompt },
+          ],
+          response_format: { type: "json_object" },
+        });
+        const reportData = response.choices[0].message.content ?? "{}";
+        return saveMarketIntelReport(ctx.user.id, input.industry, reportData);
+      }),
+  }),
+
+  // ─── Knowledge Base ─────────────────────────────────────────────
+  knowledge: router({
+    list: protectedProcedure.query(async () => {
+      await seedKnowledgeArticles();
+      return getKnowledgeArticles();
+    }),
+  }),
+
+  // ─── Stripe Billing ────────────────────────────────────────────
+  billing: router({
+    getSubscription: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return null;
+      const rows = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      if (rows.length === 0) return null;
+      const u = rows[0] as any;
+      return {
+        status: u.subscriptionStatus ?? "free",
+        plan: u.subscriptionPlan ?? "free",
+        stripeCustomerId: u.stripeCustomerId ?? null,
+        stripeSubscriptionId: u.stripeSubscriptionId ?? null,
+      };
+    }),
+    createCheckout: protectedProcedure
+      .input(z.object({
+        plan: z.enum(["starter", "growth", "pro"]),
+        interval: z.enum(["monthly", "yearly"]),
+        origin: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const Stripe = (await import("stripe")).default;
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", { apiVersion: "2025-01-27.acacia" } as any);
+        const { STRIPE_PRODUCTS } = await import("./stripeProducts");
+        const product = STRIPE_PRODUCTS[input.plan];
+        const priceId = input.interval === "monthly" ? product.priceIdMonthly : product.priceIdYearly;
+        const session = await stripe.checkout.sessions.create({
+          mode: "subscription",
+          payment_method_types: ["card"],
+          customer_email: ctx.user.email ?? undefined,
+          allow_promotion_codes: true,
+          line_items: [{ price: priceId, quantity: 1 }],
+          success_url: `${input.origin}/billing?success=1`,
+          cancel_url: `${input.origin}/billing?canceled=1`,
+          client_reference_id: ctx.user.id.toString(),
+          metadata: {
+            user_id: ctx.user.id.toString(),
+            plan: input.plan,
+            customer_email: ctx.user.email ?? "",
+            customer_name: ctx.user.name ?? "",
+          },
+        });
+        return { url: session.url };
+      }),
+    createPortal: protectedProcedure
+      .input(z.object({ origin: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB unavailable");
+        const rows = await db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+        const u = rows[0] as any;
+        if (!u?.stripeCustomerId) throw new Error("No Stripe customer found. Please subscribe first.");
+        const Stripe = (await import("stripe")).default;
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", { apiVersion: "2025-01-27.acacia" } as any);
+        const session = await stripe.billingPortal.sessions.create({
+          customer: u.stripeCustomerId,
+          return_url: `${input.origin}/billing`,
+        });
+        return { url: session.url };
+      }),
+  }),
+
+  // ─── Competitive Landscape ──────────────────────────────────────
+  competitiveMap: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      return getCompetitiveMaps(ctx.user.id);
+    }),
+    generate: protectedProcedure
+      .input(z.object({ companyName: z.string().min(1), industry: z.string().min(1) }))
+      .mutation(async ({ ctx, input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const prompt = `Analyze the competitive landscape for a company called "${input.companyName}" in the ${input.industry} industry. Return a JSON object with:
+- competitors: array of objects with { name, strengths, weaknesses, marketShare (0-100), pricePosition ("budget"|"mid"|"premium"), targetSegment }
+- positioning: object with { xAxis: "Price", yAxis: "Features", ourPosition: { x: 0-100, y: 0-100 } }
+- differentiators: array of strings (our unique advantages)
+- threats: array of strings
+- opportunities: array of strings
+Include 4-6 real or realistic competitors.`;
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are a competitive intelligence expert. Always respond with valid JSON." },
+            { role: "user", content: prompt },
+          ],
+          response_format: { type: "json_object" },
+        });
+        const mapData = response.choices[0].message.content ?? "{}";
+        return saveCompetitiveMap(ctx.user.id, input.companyName, input.industry, mapData);
       }),
   }),
 });

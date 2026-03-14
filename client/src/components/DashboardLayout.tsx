@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Zap, History, BarChart3, Mail, Users, Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code, Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Zap, History, BarChart3, Mail, Users, Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code, Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen, CheckSquare, Crosshair, Globe, BookOpen, Map } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -53,6 +53,13 @@ const menuItems = [
   { icon: Users, label: "Team", path: "/team", group: "settings" },
   { icon: Building, label: "Agency Panel", path: "/agency", group: "settings" },
   { icon: Webhook, label: "Integrations", path: "/integrations", group: "settings" },
+  { icon: MailOpen, label: "Email Sequences", path: "/sequences", group: "outreach" },
+  { icon: CheckSquare, label: "Activity Tracker", path: "/tasks", group: "outreach" },
+  { icon: Crosshair, label: "Capture Planning", path: "/capture", group: "outreach" },
+  { icon: Globe, label: "Market Intel", path: "/market-intel", group: "outreach" },
+  { icon: BookOpen, label: "Knowledge Base", path: "/knowledge", group: "outreach" },
+  { icon: Map, label: "Competitive Map", path: "/competitive", group: "outreach" },
+  { icon: DollarSign, label: "Billing & Plans", path: "/billing", group: "settings" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -206,8 +213,8 @@ function DashboardLayoutContent({
 
           <SidebarContent className="gap-0 overflow-y-auto">
             <SidebarMenu className="px-2 py-1">
-              {(["core", "intelligence", "automation", "insights", "settings"] as const).map((group) => {
-                const groupLabels: Record<string, string> = { core: "", intelligence: "Intelligence", automation: "Automation", insights: "Insights", settings: "Settings" };
+              {(["core", "intelligence", "automation", "outreach", "insights", "settings"] as const).map((group) => {
+                const groupLabels: Record<string, string> = { core: "", intelligence: "Intelligence", automation: "Automation", outreach: "Outreach & BD", insights: "Insights", settings: "Settings" };
                 const groupItems = menuItems.filter(i => i.group === group);
                 if (groupItems.length === 0) return null;
                 return (
