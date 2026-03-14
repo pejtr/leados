@@ -525,6 +525,62 @@ export default function Landing() {
               </Reveal>
             ))}
           </div>
+
+          {/* ── Competitor Comparison Table ── */}
+          <Reveal>
+            <div className="mt-20">
+              <div className="text-center mb-10">
+                <h3 className="text-2xl font-black mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                  How LeadOS Compares
+                </h3>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>vs. HubSpot, Apollo.io &amp; Salesforce</p>
+              </div>
+              <div className="overflow-x-auto rounded-2xl" style={{ border: "1px solid rgba(139,92,246,0.2)" }}>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ background: "rgba(139,92,246,0.08)", borderBottom: "1px solid rgba(139,92,246,0.2)" }}>
+                      <th className="text-left px-5 py-4 font-semibold" style={{ color: "rgba(255,255,255,0.5)", width: "28%" }}>Feature</th>
+                      <th className="px-5 py-4 font-bold text-center" style={{ fontFamily: "'Space Grotesk', sans-serif", background: "rgba(139,92,246,0.12)" }}>
+                        <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>LeadOS</span>
+                      </th>
+                      <th className="px-5 py-4 font-semibold text-center" style={{ color: "rgba(255,255,255,0.45)" }}>HubSpot</th>
+                      <th className="px-5 py-4 font-semibold text-center" style={{ color: "rgba(255,255,255,0.45)" }}>Apollo.io</th>
+                      <th className="px-5 py-4 font-semibold text-center" style={{ color: "rgba(255,255,255,0.45)" }}>Salesforce</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      ["AI Lead Generation", true, false, true, false],
+                      ["CRM Pipeline", true, true, false, true],
+                      ["Email Sequences", true, true, true, true],
+                      ["AI Follow-up Bot", true, false, false, false],
+                      ["33 AI Expert Advisors", true, false, false, false],
+                      ["Predictive Lead Scoring", true, false, true, true],
+                      ["Call Intelligence", true, false, false, true],
+                      ["LinkedIn Scraping", true, false, true, false],
+                      ["Starting Price", "Free", "€45/mo", "€39/mo", "€75/mo"],
+                    ].map(([feature, leados, hubspot, apollo, salesforce], ri) => (
+                      <tr key={String(feature)} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)", background: ri % 2 === 0 ? "rgba(255,255,255,0.01)" : "transparent" }}>
+                        <td className="px-5 py-3.5 font-medium" style={{ color: "rgba(255,255,255,0.75)" }}>{feature}</td>
+                        {[leados, hubspot, apollo, salesforce].map((val, ci) => (
+                          <td key={ci} className="px-5 py-3.5 text-center" style={{ background: ci === 0 ? "rgba(139,92,246,0.05)" : "transparent" }}>
+                            {typeof val === "boolean" ? (
+                              val
+                                ? <span style={{ color: ci === 0 ? "#8b5cf6" : "#10b981", fontSize: 18 }}>✓</span>
+                                : <span style={{ color: "rgba(255,255,255,0.2)", fontSize: 18 }}>✗</span>
+                            ) : (
+                              <span className="text-xs font-semibold" style={{ color: ci === 0 ? "#a78bfa" : "rgba(255,255,255,0.5)" }}>{val}</span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-center text-xs mt-4" style={{ color: "rgba(255,255,255,0.25)" }}>Prices as of Q1 2026. Feature availability based on publicly available information.</p>
+            </div>
+          </Reveal>
         </div>
       </section>
 
