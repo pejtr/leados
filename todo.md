@@ -370,3 +370,52 @@
 - [x] Frontend: Floating AI chat widget (global, all dashboard pages) with action execution + confirmation
 - [x] Frontend: Setup Progress widget on dashboard
 - [ ] Frontend: AI Insights panel showing recent autonomous actions and performance trends
+
+## AI Insights Panel (Dashboard)
+- [x] Backend: aiChat.insights procedure (aggregates perf logs, memory, chat stats)
+- [x] Frontend: 3-column panel on dashboard (AI Agent Actions, AI Memory, AI Performance)
+- [x] Empty states for new users
+
+## Persona Favorites
+- [x] DB: user_persona_favorites table
+- [x] Backend: aiChat.toggleFavorite and aiChat.getFavorites procedures
+- [x] Frontend: Favorites tab in AIChatWidget
+- [x] Heart toggle button on each persona card
+
+## Chat History Page (/ai-advisor)
+- [x] Frontend: /ai-advisor page with full conversation history
+- [x] Search conversations by keyword
+- [x] Grouped by session (30-min gaps)
+- [x] Expandable conversation threads
+- [x] Stats row (total messages, questions, memories, cycles)
+- [x] Favorite personas sidebar
+- [x] AI Memory sidebar
+- [x] New Chat persona picker modal
+- [x] Added AI Advisor to sidebar nav
+
+## OLD_PLACEHOLDERrd)
+- [ ] Backend: aiChat.insights query returning recent performance logs, memory learnings, autonomous actions
+- [ ] Frontend: AI Insights section on Home.tsx dashboard with 3 sub-sections (Actions, Trends, Memory)
+- [ ] Auto-refresh every 60s
+
+## Persona Favorites
+- [ ] DB: user_persona_favorites table (userId, personaId)
+- [ ] Backend: aiChat.getFavorites, aiChat.toggleFavorite procedures
+- [ ] Frontend: Star/pin button on each persona card in chatbot widget
+- [ ] Frontend: "Favorites" tab as first tab in chatbot widget (shows pinned personas)
+- [ ] Persist favorites per user
+
+## Chat History Page (/ai-advisor)
+- [ ] Backend: aiChat.getHistory with pagination + search
+- [ ] Backend: aiChat.getSessionMessages (group messages by session/date)
+- [ ] Frontend: /ai-advisor page with conversation list, search bar, and message viewer
+- [ ] Frontend: "Resume" button to open chatbot widget with selected persona
+- [ ] Nav item in DashboardLayout sidebar
+- [ ] Route in App.tsx
+
+## Branding Rename: AI LeadGen → LeadGen AI
+- [x] Update all hardcoded "AI LeadGen" strings in Landing.tsx
+- [x] Update DashboardLayout sidebar logo/name
+- [x] Update page title in index.html
+- [x] Update meta tags in Landing.tsx
+- [x] Update server-side messages and i18n files

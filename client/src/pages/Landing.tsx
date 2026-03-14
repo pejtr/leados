@@ -24,7 +24,7 @@ export default function Landing() {
 
   // SEO: Set document title, meta description, and keywords
   useEffect(() => {
-    document.title = "AI LeadGen — B2B Lead Generation Platform";
+    document.title = "LeadGen AI — B2B Lead Generation Platform";
 
     let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
     if (!metaDesc) {
@@ -146,7 +146,7 @@ export default function Landing() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
               <Zap className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg tracking-tight">AI LeadGen</span>
+            <span className="font-bold text-lg tracking-tight">LeadGen AI</span>
           </div>
 
           <div className="hidden lg:flex items-center gap-8 text-sm text-white/60">
@@ -559,9 +559,9 @@ export default function Landing() {
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
               <Zap className="w-3 h-3 text-white" />
             </div>
-            <span className="font-bold text-sm">AI LeadGen</span>
+            <span className="font-bold text-sm">LeadGen AI</span>
           </div>
-          <p className="text-xs text-white/30 order-3 sm:order-2">&copy; 2026 AI LeadGen. {t("landing.footerRights")}</p>
+          <p className="text-xs text-white/30 order-3 sm:order-2">&copy; 2026 LeadGen AI. {t("landing.footerRights")}</p>
           <div className="flex items-center gap-3 sm:gap-4 order-2 sm:order-3 flex-wrap justify-center">
             <LanguageSwitcher variant="flags" />
             <div className="flex gap-4 sm:gap-6 text-xs text-white/30">

@@ -5,7 +5,7 @@ import { trpc } from "@/lib/trpc";
 import {
   BarChart3, Bell, CheckCircle2, Clock, Lightbulb, Loader2,
   Mail, Phone, Sparkles, Timer, TrendingUp, Users, Zap, Linkedin,
-  XCircle, ArrowRight, Shield, Brain, ChevronRight,
+  XCircle, ArrowRight, Shield, Brain, ChevronRight, Activity, BookOpen, Star,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -17,6 +17,7 @@ export default function Home() {
   const { data: alerts, isLoading: alertsLoading } = trpc.alertRules.list.useQuery();
   const { data: stlConfig, isLoading: stlLoading } = trpc.speedToLead.get.useQuery();
   const { data: setupProgress, isLoading: setupLoading } = trpc.aiChat.setupProgress.useQuery();
+  const { data: insights, isLoading: insightsLoading } = trpc.aiChat.insights.useQuery();
 
   const enrichmentRate =
     stats && stats.totalLeads > 0
@@ -457,6 +458,140 @@ export default function Home() {
                 </div>
                 <div className="text-xs text-primary font-medium shrink-0">→ Bottom right</div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* AI Insights Panel */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Autonomous Actions */}
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-violet-500/10">
+                  <Activity className="h-4 w-4 text-violet-400" />
+                </div>
+                <CardTitle className="text-base font-semibold">AI Agent Actions</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {insightsLoading ? (
+                <div className="flex items-center justify-center h-28">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : insights?.recentActions && insights.recentActions.length > 0 ? (
+                <div className="space-y-2">
+                  {insights.recentActions.map((action: any, i: number) => (
+                    <div key={i} className="flex items-start gap-2.5 p-2 rounded-lg bg-secondary/40">
+                      <div className="h-5 w-5 rounded-full bg-violet-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                        <Activity className="h-2.5 w-2.5 text-violet-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-foreground leading-relaxed line-clamp-2">{action.action}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">
+                          Score: {action.score}/100 · {action.cycleType}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
+                  <Activity className="h-8 w-8 text-muted-foreground/30" />
+                  <p className="text-xs text-muted-foreground">No autonomous actions yet.</p>
+                  <p className="text-[10px] text-muted-foreground/60">The AI agent runs every 6 hours.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Memory Learnings */}
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-amber-500/10">
+                  <BookOpen className="h-4 w-4 text-amber-400" />
+                </div>
+                <CardTitle className="text-base font-semibold">AI Memory</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {insightsLoading ? (
+                <div className="flex items-center justify-center h-28">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : insights?.learnings && insights.learnings.length > 0 ? (
+                <div className="space-y-2">
+                  {insights.learnings.map((item: any) => (
+                    <div key={item.id} className="flex items-start gap-2.5 p-2 rounded-lg bg-secondary/40">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 mt-0.5 ${
+                        item.type === 'preference' ? 'bg-blue-500/20 text-blue-400' :
+                        item.type === 'learning' ? 'bg-emerald-500/20 text-emerald-400' :
+                        item.type === 'insight' ? 'bg-amber-500/20 text-amber-400' :
+                        'bg-violet-500/20 text-violet-400'
+                      }`}>{item.type}</span>
+                      <p className="text-xs text-foreground line-clamp-2 leading-relaxed">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
+                  <BookOpen className="h-8 w-8 text-muted-foreground/30" />
+                  <p className="text-xs text-muted-foreground">No learnings yet.</p>
+                  <p className="text-[10px] text-muted-foreground/60">Chat with the AI Advisor to build memory.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Performance Stats */}
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-md bg-emerald-500/10">
+                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                </div>
+                <CardTitle className="text-base font-semibold">AI Performance</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {insightsLoading ? (
+                <div className="flex items-center justify-center h-28">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : insights ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3 rounded-lg bg-secondary/40 text-center">
+                      <p className="text-2xl font-bold text-foreground">{insights.stats.avgScore}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Avg Score</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-secondary/40 text-center">
+                      <p className="text-2xl font-bold text-foreground">{insights.stats.totalCycles}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">AI Cycles</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-secondary/40 text-center">
+                      <p className="text-2xl font-bold text-foreground">{insights.stats.userMessages}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Questions Asked</p>
+                    </div>
+                    <div className="p-3 rounded-lg bg-secondary/40 text-center">
+                      <p className="text-2xl font-bold text-foreground">{insights.learnings?.length ?? 0}</p>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">Memories</p>
+                    </div>
+                  </div>
+                  {insights.stats.lastActivity && (
+                    <p className="text-[10px] text-muted-foreground text-center">
+                      Last activity: {new Date(insights.stats.lastActivity).toLocaleDateString()}
+                    </p>
+                  )}
+                  <button
+                    onClick={() => setLocation("/ai-advisor")}
+                    className="w-full text-xs text-primary hover:underline text-center py-1"
+                  >
+                    View full chat history →
+                  </button>
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </div>

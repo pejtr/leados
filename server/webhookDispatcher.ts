@@ -160,7 +160,7 @@ async function sendToSlack(
         type: "header",
         text: {
           type: "plain_text",
-          text: `🎯 AI LeadGen: ${payload.event}`,
+          text: `🎯 LeadGen AI: ${payload.event}`,
         },
       },
       {

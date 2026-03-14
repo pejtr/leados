@@ -740,3 +740,12 @@ export const aiChatHistory = mysqlTable("ai_chat_history", {
 
 export type AiChatHistory = typeof aiChatHistory.$inferSelect;
 export type InsertAiChatHistory = typeof aiChatHistory.$inferInsert;
+// ─── User Persona Favorites ───────────────────────────────────────
+export const userPersonaFavorites = mysqlTable("user_persona_favorites", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  personaId: varchar("personaId", { length: 100 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type UserPersonaFavorite = typeof userPersonaFavorites.$inferSelect;
+export type InsertUserPersonaFavorite = typeof userPersonaFavorites.$inferInsert;

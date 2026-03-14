@@ -8,12 +8,13 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import {
   MessageCircle, X, Minimize2, Maximize2, Send, Loader2,
-  Sparkles, User, ChevronLeft, RefreshCw, Trash2, Brain,
+  Sparkles, User, ChevronLeft, Trash2, Brain, Heart, History,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
+import { useLocation } from "wouter";
 
-type PersonaCategory = "Sales & Business" | "Wealth & Finance" | "Leadership";
+type PersonaCategory = "Sales & Business" | "Wealth & Finance" | "Leadership" | "Favorites";
 
 interface Persona {
   id: string;
@@ -23,7 +24,7 @@ interface Persona {
   emoji: string;
   color: string;
   tags: string[];
-  category: PersonaCategory;
+  category: "Sales & Business" | "Wealth & Finance" | "Leadership";
 }
 
 interface ChatMessage {
@@ -41,16 +42,19 @@ const SUGGESTED_PROMPTS = [
 const CATEGORY_LABELS: Record<PersonaCategory, string> = {
   "Sales & Business": "Sales",
   "Wealth & Finance": "Finance",
-  "Leadership": "Leadership",
+  "Leadership": "Lead",
+  "Favorites": "★",
 };
 
 const CATEGORY_EMOJIS: Record<PersonaCategory, string> = {
   "Sales & Business": "💼",
   "Wealth & Finance": "💰",
   "Leadership": "🎯",
+  "Favorites": "❤️",
 };
 
 export default function AIChatWidget() {
+  const [, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
   const [view, setView] = useState<"personas" | "chat">("personas");
@@ -66,12 +70,20 @@ export default function AIChatWidget() {
     staleTime: Infinity,
   });
 
+  const { data: favoriteIds = [], refetch: refetchFavorites } = trpc.aiChat.getFavorites.useQuery(undefined, {
+    staleTime: 30_000,
+  });
+
   const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
   const clearHistoryMutation = trpc.aiChat.clear.useMutation();
+  const toggleFavoriteMutation = trpc.aiChat.toggleFavorite.useMutation();
 
-  const categorizedPersonas = personas
-    ? personas.filter((p) => p.category === activeCategory)
-    : [];
+  const favoriteSet = new Set(favoriteIds);
+
+  const categorizedPersonas =
+    activeCategory === "Favorites"
+      ? (personas ?? []).filter((p) => favoriteSet.has(p.id))
+      : (personas ?? []).filter((p) => p.category === activeCategory);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -85,6 +97,20 @@ export default function AIChatWidget() {
     setMessages([]);
     setView("chat");
   }, []);
+
+  const handleToggleFavorite = useCallback(
+    async (e: React.MouseEvent, personaId: string) => {
+      e.stopPropagation();
+      try {
+        const result = await toggleFavoriteMutation.mutateAsync({ personaId });
+        await refetchFavorites();
+        toast.success(result.favorited ? "Added to favorites" : "Removed from favorites");
+      } catch {
+        toast.error("Failed to update favorites");
+      }
+    },
+    [toggleFavoriteMutation, refetchFavorites]
+  );
 
   const handleSendMessage = useCallback(async () => {
     if (!input.trim() || isLoading) return;
@@ -103,7 +129,7 @@ export default function AIChatWidget() {
         })),
       });
       setMessages((prev) => [...prev, { role: "assistant", content: result.content }]);
-    } catch (err) {
+    } catch {
       toast.error("Failed to get response. Please try again.");
       setMessages((prev) => prev.slice(0, -1));
     } finally {
@@ -130,13 +156,10 @@ export default function AIChatWidget() {
     }
   }, [clearHistoryMutation]);
 
-  const handleSuggestedPrompt = useCallback(
-    (prompt: string) => {
-      setInput(prompt);
-      setTimeout(() => textareaRef.current?.focus(), 50);
-    },
-    []
-  );
+  const handleSuggestedPrompt = useCallback((prompt: string) => {
+    setInput(prompt);
+    setTimeout(() => textareaRef.current?.focus(), 50);
+  }, []);
 
   // Widget dimensions
   const widgetWidth = isMaximized ? "w-[600px]" : "w-[380px]";
@@ -206,6 +229,16 @@ export default function AIChatWidget() {
               <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
           )}
+          {view === "personas" && (
+            <button
+              onClick={() => { setIsOpen(false); setLocation("/ai-advisor"); }}
+              className="p-1.5 rounded-md hover:bg-accent transition-colors"
+              aria-label="Chat history"
+              title="View chat history"
+            >
+              <History className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          )}
           <button
             onClick={() => setIsMaximized((v) => !v)}
             className="p-1.5 rounded-md hover:bg-accent transition-colors"
@@ -237,10 +270,10 @@ export default function AIChatWidget() {
               onValueChange={(v) => setActiveCategory(v as PersonaCategory)}
             >
               <TabsList className="w-full h-8">
-                {(["Sales & Business", "Wealth & Finance", "Leadership"] as PersonaCategory[]).map((cat) => (
-                  <TabsTrigger key={cat} value={cat} className="flex-1 text-xs gap-1 h-6">
+                {(["Sales & Business", "Wealth & Finance", "Leadership", "Favorites"] as PersonaCategory[]).map((cat) => (
+                  <TabsTrigger key={cat} value={cat} className="flex-1 text-[10px] gap-0.5 h-6 px-1">
                     <span>{CATEGORY_EMOJIS[cat]}</span>
-                    <span>{CATEGORY_LABELS[cat]}</span>
+                    <span className="hidden sm:inline">{CATEGORY_LABELS[cat]}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -254,40 +287,66 @@ export default function AIChatWidget() {
                 <div className="flex items-center justify-center h-40">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
                 </div>
+              ) : categorizedPersonas.length === 0 && activeCategory === "Favorites" ? (
+                <div className="flex flex-col items-center justify-center h-40 gap-3 text-center">
+                  <Heart className="h-10 w-10 text-muted-foreground/20" />
+                  <p className="text-xs text-muted-foreground">No favorites yet.</p>
+                  <p className="text-[10px] text-muted-foreground/60">
+                    Click the ♡ on any expert to pin them here.
+                  </p>
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">
-                  {categorizedPersonas.map((persona) => (
-                    <button
-                      key={persona.id}
-                      onClick={() => handleSelectPersona(persona as Persona)}
-                      className="flex flex-col items-start gap-1.5 p-3 rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-primary/30 transition-all text-left group"
-                    >
-                      <div className="flex items-center gap-2 w-full">
-                        <span className="text-2xl">{persona.emoji}</span>
-                        <div className="min-w-0 flex-1">
-                          <p className="text-xs font-semibold text-foreground truncate leading-tight">
-                            {persona.name}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground truncate leading-tight">
-                            {persona.title}
-                          </p>
+                  {categorizedPersonas.map((persona) => {
+                    const isFav = favoriteSet.has(persona.id);
+                    return (
+                      <button
+                        key={persona.id}
+                        onClick={() => handleSelectPersona(persona as Persona)}
+                        className="relative flex flex-col items-start gap-1.5 p-3 rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-primary/30 transition-all text-left group"
+                      >
+                        {/* Favorite toggle */}
+                        <button
+                          onClick={(e) => handleToggleFavorite(e, persona.id)}
+                          className={cn(
+                            "absolute top-2 right-2 p-0.5 rounded-full transition-colors z-10",
+                            isFav
+                              ? "text-rose-400 hover:text-rose-300"
+                              : "text-muted-foreground/30 hover:text-rose-400 opacity-0 group-hover:opacity-100"
+                          )}
+                          aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
+                          title={isFav ? "Remove from favorites" : "Add to favorites"}
+                        >
+                          <Heart className={cn("h-3 w-3", isFav && "fill-current")} />
+                        </button>
+
+                        <div className="flex items-center gap-2 w-full pr-4">
+                          <span className="text-2xl">{persona.emoji}</span>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-semibold text-foreground truncate leading-tight">
+                              {persona.name}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground truncate leading-tight">
+                              {persona.title}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
-                        {persona.specialty}
-                      </p>
-                      <div className="flex flex-wrap gap-1 mt-0.5">
-                        {persona.tags.slice(0, 2).map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary/80 font-medium"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </button>
-                  ))}
+                        <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
+                          {persona.specialty}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mt-0.5">
+                          {persona.tags.slice(0, 2).map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary/80 font-medium"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -296,7 +355,7 @@ export default function AIChatWidget() {
           {/* Footer hint */}
           <div className="px-3 py-2 border-t border-border shrink-0">
             <p className="text-[10px] text-muted-foreground text-center">
-              Select an expert advisor to start a conversation
+              Select an expert · ♡ to pin favorites · <button onClick={() => { setIsOpen(false); setLocation("/ai-advisor"); }} className="text-primary hover:underline">View history</button>
             </p>
           </div>
         </div>

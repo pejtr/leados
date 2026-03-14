@@ -1820,7 +1820,7 @@ Be concise: max 3-4 sentences unless asked for more. Use numbers from stats abov
         const persona = getPersonaById(input.personaId ?? DEFAULT_PERSONA_ID);
         const systemPrompt = persona
           ? persona.systemPrompt(platformContext)
-          : `You are an autonomous AI sales assistant for AI LeadGen.${platformContext}`;
+          : `You are an autonomous AI sales assistant for LeadGen AI.${platformContext}`;
 
         // Build messages array
         const messages: any[] = [
@@ -1886,12 +1886,103 @@ Be concise: max 3-4 sentences unless asked for more. Use numbers from stats abov
 
       const completed = steps.filter((s) => s.done).length;
       const percentage = Math.round((completed / steps.length) * 100);
-
       return { steps, completed, total: steps.length, percentage };
     }),
+    // AI Insights: aggregated performance logs + memory learnings
+    insights: protectedProcedure.query(async ({ ctx }) => {
+      const userId = ctx.user.id;
+      const [perfLogs, memory, chatHistory] = await Promise.all([
+        getAiPerformanceLogs(userId, 5),
+        getAiMemory(userId),
+        getChatHistory(userId, 100),
+      ]);
+      const recentActions = perfLogs.flatMap((log: any) => {
+        try {
+          const actions = JSON.parse(log.actionsPerformed || '[]');
+          return actions.slice(0, 3).map((a: any) => ({
+            action: typeof a === 'string' ? a : (a.action || a.description || JSON.stringify(a)),
+            score: Number(log.score) || 0,
+            cycleType: log.cycleType,
+            timestamp: log.createdAt,
+          }));
+        } catch { return []; }
+      }).slice(0, 8);
+      const learnings = memory.slice(0, 8).map((m: any) => ({
+        id: m.id,
+        type: m.memoryType,
+        key: m.key,
+        value: m.value,
+        confidence: Number(m.confidence) || 0.5,
+        usageCount: m.usageCount || 0,
+        createdAt: m.createdAt,
+      }));
+      const scoreTrend = perfLogs.map((log: any) => ({
+        score: Number(log.score) || 0,
+        cycleType: log.cycleType,
+        timestamp: log.createdAt,
+      }));
+      const totalMessages = chatHistory.length;
+      const userMessages = chatHistory.filter((m: any) => m.role === 'user').length;
+      const lastActivity = chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].createdAt : null;
+      return {
+        recentActions,
+        learnings,
+        scoreTrend,
+        stats: {
+          totalMessages,
+          userMessages,
+          lastActivity,
+          totalCycles: perfLogs.length,
+          avgScore: perfLogs.length > 0
+            ? Math.round(perfLogs.reduce((s: number, l: any) => s + Number(l.score || 0), 0) / perfLogs.length)
+            : 0,
+        },
+      };
+    }),
+    // Search chat history
+    searchHistory: protectedProcedure
+      .input(z.object({
+        query: z.string().optional(),
+        limit: z.number().int().min(1).max(200).default(100),
+      }))
+      .query(async ({ ctx, input }) => {
+        const history = await getChatHistory(ctx.user.id, input.limit);
+        if (!input.query) return history;
+        const q = input.query.toLowerCase();
+        return history.filter((m: any) => m.content.toLowerCase().includes(q));
+      }),
+    // Toggle persona favorite
+    toggleFavorite: protectedProcedure
+      .input(z.object({ personaId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) return { favorited: false };
+        const { userPersonaFavorites } = await import('../drizzle/schema');
+        const existing = await db.select()
+          .from(userPersonaFavorites)
+          .where(and(eq(userPersonaFavorites.userId, ctx.user.id), eq(userPersonaFavorites.personaId, input.personaId)))
+          .limit(1);
+        if (existing.length > 0) {
+          await db.delete(userPersonaFavorites)
+            .where(and(eq(userPersonaFavorites.userId, ctx.user.id), eq(userPersonaFavorites.personaId, input.personaId)));
+          return { favorited: false };
+        } else {
+          await db.insert(userPersonaFavorites).values({ userId: ctx.user.id, personaId: input.personaId });
+          return { favorited: true };
+        }
+      }),
+    // Get user's favorite persona IDs
+    getFavorites: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [] as string[];
+      const { userPersonaFavorites } = await import('../drizzle/schema');
+      const rows = await db.select()
+        .from(userPersonaFavorites)
+        .where(eq(userPersonaFavorites.userId, ctx.user.id));
+      return rows.map((r: any) => r.personaId as string);
+    }),
   }),
-
-  // ─── Competitive Landscape ──────────────────────────────────────
+  // ─── Competitive Landscapepe ──────────────────────────────────────
   competitiveMap: router({
     list: protectedProcedure.query(async ({ ctx }) => {
       return getCompetitiveMaps(ctx.user.id);

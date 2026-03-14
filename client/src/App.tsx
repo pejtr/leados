@@ -37,6 +37,7 @@ import MarketIntel from "./pages/MarketIntel";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import CompetitiveMap from "./pages/CompetitiveMap";
 import Billing from "./pages/Billing";
+import AiAdvisor from "./pages/AiAdvisor";
 
 function Router() {
   return (
@@ -74,6 +75,7 @@ function Router() {
       <Route path="/knowledge" component={KnowledgeBase} />
       <Route path="/competitive" component={CompetitiveMap} />
       <Route path="/billing" component={Billing} />
+      <Route path="/ai-advisor" component={AiAdvisor} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

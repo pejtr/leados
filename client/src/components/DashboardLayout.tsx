@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Zap, History, BarChart3, Mail, Users, Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code, Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen, CheckSquare, Crosshair, Globe, BookOpen, Map } from "lucide-react";
+import { LayoutDashboard, LogOut, PanelLeft, Zap, History, BarChart3, Mail, Users, Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code, Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen, CheckSquare, Crosshair, Globe, BookOpen, Map, Brain } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -33,6 +33,7 @@ import { trpc } from "@/lib/trpc";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", group: "core" },
+  { icon: Brain, label: "AI Advisor", path: "/ai-advisor", group: "core" },
   { icon: Zap, label: "Generate Leads", path: "/generate", group: "core" },
   { icon: History, label: "Lead History", path: "/history", group: "core" },
   { icon: Kanban, label: "Pipeline Board", path: "/kanban", group: "core" },

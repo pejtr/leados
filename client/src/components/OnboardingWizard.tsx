@@ -240,7 +240,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 Welcome{userName ? `, ${userName.split(" ")[0]}` : ""}! 👋
               </h2>
               <p className="text-zinc-400 text-sm mb-6 max-w-md mx-auto">
-                Let's get you set up in under 2 minutes. AI LeadGen will help you generate qualified B2B leads, enrich them with AI, and automate your outreach.
+                Let's get you set up in under 2 minutes. LeadGen AI will help you generate qualified B2B leads, enrich them with AI, and automate your outreach.
               </p>
 
               {/* Feature highlights */}
@@ -278,7 +278,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
               <div className="mb-5">
                 <h2 className="text-xl font-bold text-white mb-1">Define Your Ideal Customer</h2>
                 <p className="text-zinc-400 text-sm">
-                  This helps AI LeadGen generate leads that match your exact target profile.
+                  This helps LeadGen AI generate leads that match your exact target profile.
                 </p>
               </div>
 
@@ -469,7 +469,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
 
               <h2 className="text-2xl font-bold text-white mb-2">You're all set! 🎉</h2>
               <p className="text-zinc-400 text-sm mb-6 max-w-md mx-auto">
-                Your ICP is saved and AI LeadGen is ready to generate your first batch of qualified leads. Let's go!
+                Your ICP is saved and LeadGen AI is ready to generate your first batch of qualified leads. Let's go!
               </p>
 
               {/* Summary badges */}
