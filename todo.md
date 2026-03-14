@@ -311,3 +311,26 @@
 - [x] Store Price IDs as environment secrets
 - [x] Update stripeProducts.ts with real Price IDs
 - [x] Test checkout flow end-to-end with test card
+
+## Email Sequence Cron Job
+- [ ] Server-side scheduler checks enrollments every hour for due steps
+- [ ] Sends follow-up emails via built-in email helper
+- [ ] Marks steps as sent and advances enrollment to next step
+- [ ] Handles completion (all steps sent) and error states
+
+## Onboarding Wizard Frontend (Complete)
+- [ ] Multi-step modal: Welcome → ICP Definition → Integrations → Done
+- [ ] Step 1: Welcome with feature highlights and avatar
+- [ ] Step 2: ICP form (industry, company size, seniority, location)
+- [ ] Step 3: Integrations (webhook URL, Zapier, optional)
+- [ ] Step 4: Done with confetti animation and quick-start actions
+- [ ] Auto-show when onboardingCompleted = false
+- [ ] Wire into DashboardLayout
+
+## Stripe Checkout Flow on Billing Page
+- [ ] Billing page shows current plan status from user subscription
+- [ ] Subscribe buttons call trpc.billing.createCheckout with correct Price ID
+- [ ] Opens Stripe checkout in new tab
+- [ ] Success/cancel redirect back to /billing
+- [ ] Manage Subscription button calls billing portal for existing subscribers
+- [ ] Show active plan badge on current plan card

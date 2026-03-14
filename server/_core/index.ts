@@ -64,6 +64,8 @@ async function startServer() {
     console.log(`Server running on http://localhost:${port}/`);
     // Start autopilot scheduler
     import("../autopilotScheduler").then(m => m.startAutopilotScheduler()).catch(console.error);
+    // Start email sequence scheduler (checks every 60 minutes for due enrollment steps)
+    import("../sequenceScheduler").then(m => m.startSequenceScheduler()).catch(console.error);
   });
 }
 
