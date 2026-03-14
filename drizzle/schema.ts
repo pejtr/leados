@@ -695,3 +695,48 @@ export const competitiveMaps = mysqlTable("competitive_maps", {
 });
 
 export type CompetitiveMap = typeof competitiveMaps.$inferSelect;
+
+// ─── AI Agent Memory ──────────────────────────────────────────────
+export const aiAgentMemory = mysqlTable("ai_agent_memory", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  memoryType: mysqlEnum("memoryType", ["learning", "optimization", "preference", "insight"]).notNull(),
+  key: varchar("key", { length: 256 }).notNull(),
+  value: text("value").notNull(),
+  confidence: decimal("confidence", { precision: 4, scale: 2 }).default("0.50"),
+  usageCount: int("usageCount").default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AiAgentMemory = typeof aiAgentMemory.$inferSelect;
+export type InsertAiAgentMemory = typeof aiAgentMemory.$inferInsert;
+
+// ─── AI Performance Log ───────────────────────────────────────────
+export const aiPerformanceLog = mysqlTable("ai_performance_log", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  cycleType: mysqlEnum("cycleType", ["scheduled", "manual", "triggered"]).default("scheduled").notNull(),
+  metricsSnapshot: text("metricsSnapshot").notNull(), // JSON: leads, conversion, pipeline stats
+  actionsPerformed: text("actionsPerformed").notNull(), // JSON: array of actions taken
+  improvements: text("improvements").notNull(), // JSON: what was improved
+  score: decimal("score", { precision: 5, scale: 2 }).default("0.00"), // performance score 0-100
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AiPerformanceLog = typeof aiPerformanceLog.$inferSelect;
+export type InsertAiPerformanceLog = typeof aiPerformanceLog.$inferInsert;
+
+// ─── AI Chat History ──────────────────────────────────────────────
+export const aiChatHistory = mysqlTable("ai_chat_history", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  role: mysqlEnum("role", ["user", "assistant"]).notNull(),
+  content: text("content").notNull(),
+  toolsUsed: text("toolsUsed"), // JSON: array of tool names used
+  actionsExecuted: text("actionsExecuted"), // JSON: array of actions executed
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AiChatHistory = typeof aiChatHistory.$inferSelect;
+export type InsertAiChatHistory = typeof aiChatHistory.$inferInsert;

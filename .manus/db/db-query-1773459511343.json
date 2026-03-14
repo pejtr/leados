@@ -1,0 +1,13 @@
+{
+  "query": "SHOW TABLES LIKE 'speed%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute SHOW TABLES LIKE 'speed%';",
+  "rows": [
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (speed%)": "speed_to_lead_configs"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (speed%)\nspeed_to_lead_configs\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

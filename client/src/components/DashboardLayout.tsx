@@ -28,6 +28,7 @@ import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 import OnboardingWizard from "./OnboardingWizard";
+import AIChatWidget from "./AIChatWidget";
 import { trpc } from "@/lib/trpc";
 
 const menuItems = [
@@ -328,6 +329,8 @@ function DashboardLayoutContent({
         )}
         <main className="flex-1 p-4">{children}</main>
       </SidebarInset>
+      {/* Floating AI Chat Widget */}
+      {user && <AIChatWidget />}
     </>
   );
 }

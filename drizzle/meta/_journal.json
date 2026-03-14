@@ -57,6 +57,13 @@
       "when": 1773449424073,
       "tag": "0007_loud_northstar",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1773458262988,
+      "tag": "0008_lonely_vindicator",
+      "breakpoints": true
     }
   ]
 }

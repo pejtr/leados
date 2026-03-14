@@ -1,0 +1,25 @@
+{
+  "query": "SHOW TABLES LIKE 'ai_%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute SHOW TABLES LIKE 'ai_%';",
+  "rows": [
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (ai_%)": "ai_agent_logs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (ai_%)": "ai_agent_memory"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (ai_%)": "ai_agents"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (ai_%)": "ai_chat_history"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (ai_%)": "ai_performance_log"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (ai_%)\nai_agent_logs\nai_agent_memory\nai_agents\nai_chat_history\nai_performance_log\n",
+  "stderr": "",
+  "execution_time_ms": 71
+}

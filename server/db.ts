@@ -1195,3 +1195,72 @@ export async function saveCompetitiveMap(userId: number, companyName: string, in
   const [map] = await db!.select().from(competitiveMaps).where(eq(competitiveMaps.id, (row as any).insertId));
   return map;
 }
+
+// ─── AI Agent Memory ──────────────────────────────────────────────
+import { aiAgentMemory, aiChatHistory, aiPerformanceLog } from "../drizzle/schema";
+import type { InsertAiAgentMemory, InsertAiPerformanceLog, InsertAiChatHistory } from "../drizzle/schema";
+
+export async function getAiMemory(userId: number, memoryType?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions: any[] = [eq(aiAgentMemory.userId, userId)];
+  if (memoryType) conditions.push(eq(aiAgentMemory.memoryType, memoryType as any));
+  return db.select().from(aiAgentMemory).where(and(...conditions)).orderBy(desc(aiAgentMemory.updatedAt)).limit(50);
+}
+
+export async function upsertAiMemory(
+  userId: number,
+  key: string,
+  value: string,
+  memoryType: "learning" | "optimization" | "preference" | "insight",
+  confidence = 0.7
+) {
+  const db = await getDb();
+  if (!db) return null;
+  const existing = await db.select().from(aiAgentMemory)
+    .where(and(eq(aiAgentMemory.userId, userId), eq(aiAgentMemory.key, key))).limit(1);
+  if (existing.length > 0) {
+    await db.update(aiAgentMemory)
+      .set({ value, confidence: confidence.toFixed(2), usageCount: (existing[0].usageCount ?? 0) + 1 })
+      .where(eq(aiAgentMemory.id, existing[0].id));
+    return existing[0].id;
+  }
+  const [result] = await db.insert(aiAgentMemory).values({ userId, key, value, memoryType, confidence: confidence.toFixed(2) });
+  return (result as any).insertId as number;
+}
+
+export async function logAiPerformance(data: InsertAiPerformanceLog) {
+  const db = await getDb();
+  if (!db) return null;
+  const [result] = await db.insert(aiPerformanceLog).values(data);
+  return (result as any).insertId as number;
+}
+
+export async function getAiPerformanceLogs(userId: number, limit = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(aiPerformanceLog)
+    .where(eq(aiPerformanceLog.userId, userId))
+    .orderBy(desc(aiPerformanceLog.createdAt)).limit(limit);
+}
+
+export async function saveChatMessage(data: InsertAiChatHistory) {
+  const db = await getDb();
+  if (!db) return null;
+  const [result] = await db.insert(aiChatHistory).values(data);
+  return (result as any).insertId as number;
+}
+
+export async function getChatHistory(userId: number, limit = 30) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(aiChatHistory)
+    .where(eq(aiChatHistory.userId, userId))
+    .orderBy(aiChatHistory.createdAt).limit(limit);
+}
+
+export async function clearChatHistory(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(aiChatHistory).where(eq(aiChatHistory.userId, userId));
+}

@@ -103,7 +103,7 @@ import {
   updateSocialSignal,
 } from "./db";
 import { invokeLLM } from "./_core/llm";
-import { getDb } from "./db";
+import { getDb, getAiMemory, upsertAiMemory, logAiPerformance, getAiPerformanceLogs, saveChatMessage, getChatHistory, clearChatHistory } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import {
@@ -1743,6 +1743,152 @@ Format as structured JSON with keys: overview, competitors, buyerPersonas, sales
         });
         return { url: session.url };
       }),
+  }),
+
+  // ─── AI Assistant Chat ─────────────────────────────────────────
+  aiChat: router({
+    // Get all available personas
+    getPersonas: publicProcedure.query(async () => {
+      const { AI_PERSONAS } = await import("./aiPersonas");
+      return AI_PERSONAS.map(({ id, name, title, specialty, emoji, color, tags, category }) => ({
+        id, name, title, specialty, emoji, color, tags, category,
+      }));
+    }),
+    // Get chat history
+    history: protectedProcedure.query(async ({ ctx }) => {
+      return getChatHistory(ctx.user.id, 50);
+    }),
+
+    // Clear chat history
+    clear: protectedProcedure.mutation(async ({ ctx }) => {
+      await clearChatHistory(ctx.user.id);
+      return { success: true };
+    }),
+
+    // Get AI performance logs
+    performanceLogs: protectedProcedure.query(async ({ ctx }) => {
+      return getAiPerformanceLogs(ctx.user.id, 10);
+    }),
+
+    // Get AI memory/learnings
+    memory: protectedProcedure.query(async ({ ctx }) => {
+      return getAiMemory(ctx.user.id);
+    }),
+
+    // Main chat endpoint with full tool-calling
+    sendMessage: protectedProcedure
+      .input(z.object({
+        message: z.string().min(1).max(4000),
+        personaId: z.string().optional(),
+        conversationHistory: z.array(z.object({
+          role: z.enum(["user", "assistant"]),
+          content: z.string(),
+        })).default([]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const userId = ctx.user.id;
+
+        // Gather full platform context
+        const [stats, memory, recentLogs] = await Promise.all([
+          getLeadStats(userId),
+          getAiMemory(userId),
+          getAiPerformanceLogs(userId, 3),
+        ]);
+
+        const memoryContext = memory.length > 0
+          ? `\nLearned preferences & insights:\n${memory.slice(0, 10).map((m: any) => `- [${m.memoryType}] ${m.key}: ${m.value}`).join("\n")}`
+          : "";
+
+        const perfContext = recentLogs.length > 0
+          ? `\nRecent AI performance cycles: ${recentLogs.length} cycles run, latest score: ${recentLogs[0]?.score ?? "N/A"}/100`
+          : "";
+
+         // Build platform context string
+        const platformContext = `
+Current user: ${ctx.user.name} (${ctx.user.email}) | Plan: ${(ctx.user as any).subscriptionPlan ?? "free"}
+Live platform stats:
+- Total leads: ${stats.totalLeads} | Enriched: ${stats.enrichedLeads} | Sessions: ${stats.totalSessions}
+- Pipeline: ${stats.statusBreakdown.map((s: any) => `${s.status}(${s.count})`).join(", ") || "empty"}
+- Top industries: ${stats.industryBreakdown.slice(0, 3).map((i: any) => `${i.industry}(${i.count})`).join(", ") || "none"}
+- Revenue: $${stats.roiStats.totalRevenue.toFixed(0)} from ${stats.roiStats.closedDeals} closed deals | Close rate: ${stats.roiStats.closeRate.toFixed(1)}%
+- Quality: ${stats.qualityBreakdown.good} good / ${stats.qualityBreakdown.bad} bad / ${stats.qualityBreakdown.unrated} unrated${memoryContext}${perfContext}
+Your capabilities: ANALYZE pipeline health, ADVISE on strategy, NAVIGATE the app, OPTIMIZE sequences/ICP, REPORT performance, LEARN preferences.
+Be concise: max 3-4 sentences unless asked for more. Use numbers from stats above. Proactively call out problems.`;
+
+        // Resolve persona system prompt
+        const { getPersonaById, DEFAULT_PERSONA_ID } = await import("./aiPersonas");
+        const persona = getPersonaById(input.personaId ?? DEFAULT_PERSONA_ID);
+        const systemPrompt = persona
+          ? persona.systemPrompt(platformContext)
+          : `You are an autonomous AI sales assistant for AI LeadGen.${platformContext}`;
+
+        // Build messages array
+        const messages: any[] = [
+          { role: "system", content: systemPrompt },
+          ...input.conversationHistory.slice(-10), // last 10 messages for context
+          { role: "user", content: input.message },
+        ];
+
+        const response = await invokeLLM({ messages });
+        const assistantContent = response.choices[0].message.content ?? "I couldn't generate a response. Please try again.";
+
+        // Save both messages to history
+        await Promise.all([
+          saveChatMessage({ userId, role: "user", content: input.message }),
+          saveChatMessage({ userId, role: "assistant", content: assistantContent }),
+        ]);
+
+        // Extract and store learnings from the conversation
+        const lowerMsg = input.message.toLowerCase();
+        if (lowerMsg.includes("prefer") || lowerMsg.includes("always") || lowerMsg.includes("never")) {
+          await upsertAiMemory(userId, `user_preference_${Date.now()}`, input.message, "preference", 0.8);
+        }
+
+        return {
+          content: assistantContent,
+          role: "assistant" as const,
+          stats: {
+            totalLeads: stats.totalLeads,
+            closedDeals: stats.roiStats.closedDeals,
+            revenue: stats.roiStats.totalRevenue,
+          },
+        };
+      }),
+
+    // Onboarding progress
+    setupProgress: protectedProcedure.query(async ({ ctx }) => {
+      const userId = ctx.user.id;
+      const user = ctx.user as any;
+      const stats = await getLeadStats(userId);
+
+      const steps = [
+        { id: "profile", label: "Complete your profile", done: !!(user.name && user.email), link: "/settings" },
+        { id: "icp", label: "Define your ICP", done: false, link: "/icp-builder" },
+        { id: "first_leads", label: "Generate your first leads", done: stats.totalLeads > 0, link: "/generate" },
+        { id: "sequence", label: "Create an email sequence", done: false, link: "/sequences" },
+        { id: "integration", label: "Set up an integration", done: false, link: "/integrations" },
+        { id: "deal", label: "Close your first deal", done: stats.roiStats.closedDeals > 0, link: "/pipeline" },
+      ];
+
+      // Check ICP
+      const db = await getDb();
+      if (db) {
+        const { icpProfiles, emailSequences, webhookConfigs } = await import("../drizzle/schema");
+        const [icpResult, seqResult, webhookResult] = await Promise.all([
+          db.select({ count: eq(icpProfiles.userId, userId) }).from(icpProfiles).where(eq(icpProfiles.userId, userId)).limit(1),
+          db.select({ count: eq(emailSequences.userId, userId) }).from(emailSequences).where(eq(emailSequences.userId, userId)).limit(1),
+          db.select({ count: eq(webhookConfigs.userId, userId) }).from(webhookConfigs).where(eq(webhookConfigs.userId, userId)).limit(1),
+        ]);
+        if (icpResult.length > 0) steps[1].done = true;
+        if (seqResult.length > 0) steps[3].done = true;
+        if (webhookResult.length > 0) steps[4].done = true;
+      }
+
+      const completed = steps.filter((s) => s.done).length;
+      const percentage = Math.round((completed / steps.length) * 100);
+
+      return { steps, completed, total: steps.length, percentage };
+    }),
   }),
 
   // ─── Competitive Landscape ──────────────────────────────────────

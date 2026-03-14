@@ -1,0 +1,133 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "agency_clients"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_agent_logs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_agent_memory"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_agents"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_chat_history"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_performance_log"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "alert_rules"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "autopilot_configs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "autopilot_runs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "campaign_rules"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "capture_plans"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "competitive_maps"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_sequence_enrollments"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_sequence_steps"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_sequences"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_templates"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_verifications"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "icp_profiles"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "integration_logs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "knowledge_articles"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "lead_sessions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "leads"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "linkedin_connections"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "market_intel_reports"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "match_profiles"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "nba_recommendations"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "sdr_activities"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "sdr_campaigns"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "smart_lists"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "social_monitors"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "social_signals"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "speed_to_lead_configs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "tasks"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "team_members"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "tech_stack_detections"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "tracking_pixels"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "users"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "visitor_page_views"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "visitor_sessions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "webhook_configs"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_KYtwaRBAJcsE9tGSZfVrb7\n__drizzle_migrations\nagency_clients\nai_agent_logs\nai_agent_memory\nai_agents\nai_chat_history\nai_performance_log\nalert_rules\nautopilot_configs\nautopilot_runs\ncampaign_rules\ncapture_plans\ncompetitive_maps\nemail_sequence_enrollments\nemail_sequence_steps\nemail_sequences\nemail_templates\nemail_verifications\nicp_profiles\nintegration_logs\nknowledge_articles\nlead_sessions\nleads\nlinkedin_connections\nmarket_intel_reports\nmatch_profiles\nnba_recommendations\nsdr_activities\nsdr_campaigns\nsmart_lists\nsocial_monitors\nsocial_signals\nspeed_to_lead_configs\ntasks\nteam_members\ntech_stack_detections\ntracking_pixels\nusers\nvisitor_page_views\nvisitor_sessions\nwebhook_configs\n",
+  "stderr": "",
+  "execution_time_ms": 54
+}

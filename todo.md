@@ -334,3 +334,39 @@
 - [ ] Success/cancel redirect back to /billing
 - [ ] Manage Subscription button calls billing portal for existing subscribers
 - [ ] Show active plan badge on current plan card
+
+## AI Assistant Chatbot
+- [x] Backend: tRPC chat.sendMessage procedure with LLM + user context injection (leads, pipeline, sequences stats)
+- [x] Backend: Streaming SSE support via chat.streamMessage
+- [x] Frontend: Floating chat button (bottom-right, all dashboard pages)
+- [x] Frontend: Slide-in chat panel with message history, markdown rendering, typing indicator
+- [x] Frontend: Quick action prompts (Find leads, Analyze pipeline, Write icebreaker, Summarize today)
+- [x] Wire into DashboardLayout
+
+## Setup Progress Widget
+- [x] Backend: onboarding.getProgress procedure returning % complete + which steps done
+- [x] Frontend: Dashboard widget with progress bar, step checklist, quick links to ICP/Sequences/Integrations
+- [x] Auto-hide when 100% complete
+
+## AI Assistant Chatbot (Full Platform Access)
+- [x] Backend: aiChat.sendMessage with LLM tool-calling (read stats, list leads, update ICP, create sequence, configure integrations)
+- [x] Backend: Tool definitions for all major platform actions
+- [x] Frontend: Floating chat button (bottom-right, all dashboard pages)
+- [x] Frontend: Slide-in panel with AIChatBox, quick prompts, action confirmation toasts
+- [x] Wire into DashboardLayout globally
+
+## AI Sales Personas for Chatbot
+- [x] Define 33 persona system prompts (11 Sales, 11 Finance, 11 Leadership)
+- [x] Backend: persona param in aiChat.sendMessage
+- [x] Frontend: persona selector in chatbot widget with category tabs
+- [x] Setup Progress widget on Home.tsx
+- [x] Floating chatbot widget in DashboardLayout
+
+## Self-Improving AI Agent
+- [x] DB: ai_agent_memory table (stores learnings, optimizations, performance snapshots)
+- [x] DB: ai_performance_log table (tracks actions taken, outcomes, improvement cycles)
+- [x] Backend: aiChat.sendMessage with full LLM tool-calling (20+ tools: read/write leads, ICP, sequences, stats, alerts, campaigns)
+- [x] Backend: Autonomous performance monitor scheduler (every 6h: analyze metrics, detect issues, auto-optimize, log learnings)
+- [x] Frontend: Floating AI chat widget (global, all dashboard pages) with action execution + confirmation
+- [x] Frontend: Setup Progress widget on dashboard
+- [ ] Frontend: AI Insights panel showing recent autonomous actions and performance trends

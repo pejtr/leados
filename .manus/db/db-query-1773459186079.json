@@ -1,0 +1,25 @@
+{
+  "query": "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'ai%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'ai%';",
+  "rows": [
+    {
+      "table_name": "ai_agent_logs"
+    },
+    {
+      "table_name": "ai_chat_history"
+    },
+    {
+      "table_name": "ai_performance_log"
+    },
+    {
+      "table_name": "ai_agents"
+    },
+    {
+      "table_name": "ai_agent_memory"
+    }
+  ],
+  "messages": [],
+  "stdout": "table_name\nai_agent_logs\nai_chat_history\nai_performance_log\nai_agents\nai_agent_memory\n",
+  "stderr": "",
+  "execution_time_ms": 53
+}
