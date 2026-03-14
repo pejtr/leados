@@ -27,6 +27,8 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import OnboardingWizard from "./OnboardingWizard";
+import { trpc } from "@/lib/trpc";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", group: "core" },
@@ -144,6 +146,16 @@ function DashboardLayoutContent({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { data: onboardingData } = trpc.onboarding.status.useQuery(undefined, {
+    enabled: !!user,
+    staleTime: Infinity,
+  });
+  useEffect(() => {
+    if (onboardingData && onboardingData.completed === false) {
+      setShowOnboarding(true);
+    }
+  }, [onboardingData]);
 
   useEffect(() => {
     if (isCollapsed) {
@@ -292,6 +304,12 @@ function DashboardLayoutContent({
         />
       </div>
 
+      {showOnboarding && (
+        <OnboardingWizard
+          userName={user?.name ?? undefined}
+          onComplete={() => setShowOnboarding(false)}
+        />
+      )}
       <SidebarInset>
         {isMobile && (
           <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">

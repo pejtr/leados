@@ -292,3 +292,15 @@
 - [x] Backend: checkout session, webhook handler, billing portal
 - [x] Frontend: Billing page with real Stripe checkout + plan management
 - [x] DB: stripeCustomerId, stripeSubscriptionId, subscriptionStatus, subscriptionPlan fields on users
+
+## Onboarding Wizard (Complete Implementation)
+- [x] Build OnboardingWizard component (4 steps: Welcome, ICP, Integrations, Done)
+- [x] Step 1: Welcome — animated intro, key features highlight, user name display
+- [x] Step 2: ICP Definition — industry, location, company size, seniority selectors
+- [x] Step 3: Integrations — optional webhook/ClickUp setup, skip option
+- [x] Step 4: Done — confetti animation, quick action buttons (Generate Leads, View Dashboard)
+- [x] Progress bar and step indicators
+- [x] Auto-show on first login via DashboardLayout (onboardingCompleted = false)
+- [x] Skip button on all steps except Done
+- [x] Wire trpc.onboarding.saveIcp and trpc.onboarding.complete mutations
+- [x] Add /onboarding route in App.tsx
