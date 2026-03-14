@@ -8,7 +8,7 @@ import { trpc } from "@/lib/trpc";
 import { cn } from "@/lib/utils";
 import {
   Brain, Search, Trash2, Loader2, MessageCircle, User, Sparkles,
-  Clock, BarChart3, BookOpen, Activity, Heart, ChevronRight,
+  Clock, BarChart3, BookOpen, Activity, Heart, ChevronRight, ThumbsUp, Star,
 } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Streamdown } from "streamdown";
@@ -44,6 +44,10 @@ export default function AiAdvisor() {
   });
 
   const { data: favoriteIds = [], refetch: refetchFavorites } = trpc.aiChat.getFavorites.useQuery(undefined, {
+    staleTime: 30_000,
+  });
+
+  const { data: personaRatings = [] } = trpc.aiChat.getPersonaRatings.useQuery(undefined, {
     staleTime: 30_000,
   });
 
@@ -365,6 +369,41 @@ export default function AiAdvisor() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Top Rated Experts */}
+            {personaRatings.length > 0 && (
+              <Card className="bg-card border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-md bg-emerald-500/10">
+                      <Star className="h-4 w-4 text-emerald-400" />
+                    </div>
+                    <CardTitle className="text-base font-semibold">Top Rated Experts</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {personaRatings.slice(0, 5).map((rating) => {
+                      const persona = (personas ?? []).find((p) => p.id === rating.personaId);
+                      if (!persona) return null;
+                      return (
+                        <div key={rating.personaId} className="flex items-center gap-2.5 p-2 rounded-lg bg-secondary/40">
+                          <span className="text-xl shrink-0">{persona.emoji}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-foreground truncate">{persona.name}</p>
+                            <p className="text-[10px] text-muted-foreground truncate">{persona.title}</p>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <ThumbsUp className="h-3 w-3 text-emerald-400" />
+                            <span className="text-[10px] font-semibold text-emerald-400">{rating.upCount}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* AI Memory Learnings */}
             <Card className="bg-card border-border">

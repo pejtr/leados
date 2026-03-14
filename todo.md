@@ -419,3 +419,25 @@
 - [x] Update page title in index.html
 - [x] Update meta tags in Landing.tsx
 - [x] Update server-side messages and i18n files
+
+## Voice Input in Chat Widget
+- [x] Frontend: Microphone button in chat textarea using Web Speech API
+- [x] Show recording indicator (animated pulse) while listening
+- [x] Auto-fill textarea with transcribed text on speech end
+- [x] Handle browser permission errors gracefully
+- [x] Disable mic button when browser doesn't support Web Speech API
+
+## Persona Performance Scoring
+- [x] DB: persona_ratings table (userId, personaId, sessionId, rating, feedback, createdAt)
+- [x] Backend: aiChat.ratePersona procedure
+- [x] Backend: aiChat.getPersonaRatings procedure (aggregated scores per persona)
+- [x] Frontend: Thumbs up/down rating UI after each AI response in chat widget
+- [x] Frontend: "Top Rated Experts" section on /ai-advisor page
+
+## Proactive AI Morning Briefings
+- [x] DB: morning_briefings table
+- [x] Backend: morningBriefing.generate, getLatest, dismiss procedures
+- [x] Frontend: Pinned briefing card on dashboard (top leads, pipeline alerts, next actions)
+- [x] Dismiss + regenerate buttons
+- [x] Empty state with Generate Briefing CTA
+- [ ] Frontend: Briefing visible in /ai-advisor history

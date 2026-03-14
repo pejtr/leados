@@ -1981,6 +1981,42 @@ Be concise: max 3-4 sentences unless asked for more. Use numbers from stats abov
         .where(eq(userPersonaFavorites.userId, ctx.user.id));
       return rows.map((r: any) => r.personaId as string);
     }),
+
+    ratePersona: protectedProcedure
+      .input(z.object({ personaId: z.string(), rating: z.enum(["up", "down"]), sessionId: z.string() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        const { personaRatings } = await import('../drizzle/schema');
+        await db.insert(personaRatings).values({
+          userId: ctx.user.id,
+          personaId: input.personaId,
+          sessionId: input.sessionId,
+          rating: input.rating,
+        });
+        return { success: true };
+      }),
+
+    getPersonaRatings: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [] as { personaId: string; upCount: number; downCount: number; score: number }[];
+      const { personaRatings } = await import('../drizzle/schema');
+      const rows = await db.select()
+        .from(personaRatings)
+        .where(eq(personaRatings.userId, ctx.user.id));
+      const map: Record<string, { up: number; down: number }> = {};
+      for (const row of rows as any[]) {
+        if (!map[row.personaId]) map[row.personaId] = { up: 0, down: 0 };
+        if (row.rating === 'up') map[row.personaId].up++;
+        else map[row.personaId].down++;
+      }
+      return Object.entries(map).map(([personaId, counts]) => ({
+        personaId,
+        upCount: counts.up,
+        downCount: counts.down,
+        score: counts.up - counts.down,
+      })).sort((a, b) => b.score - a.score);
+    }),
   }),
   // ─── Competitive Landscapepe ──────────────────────────────────────
   competitiveMap: router({
@@ -2007,6 +2043,80 @@ Include 4-6 real or realistic competitors.`;
         });
         const mapData = response.choices[0].message.content ?? "{}";
         return saveCompetitiveMap(ctx.user.id, input.companyName, input.industry, mapData);
+      }),
+  }),
+  // Morning Briefings
+  morningBriefing: router({
+    generate: protectedProcedure.mutation(async ({ ctx }) => {
+      const { invokeLLM } = await import("./_core/llm");
+      const db = await getDb();
+      if (!db) throw new Error("DB unavailable");
+      const { morningBriefings } = await import("../drizzle/schema");
+      // Get context data
+      const stats = await getLeadStats(ctx.user.id);
+      const recentLeads = await getLeads({ userId: ctx.user.id, limit: 10, offset: 0, status: "new" });
+      const topLeadsText = recentLeads.items.slice(0, 5).map((l: any) => `${l.companyName} (${l.industry})`).join(", ");
+      const prompt = `You are an AI sales advisor generating a morning briefing for a sales professional.
+Context:
+- Total leads: ${stats.total}, New: ${stats.byStatus?.new ?? 0}, Contacted: ${stats.byStatus?.contacted ?? 0}, Qualified: ${stats.byStatus?.qualified ?? 0}
+- Recent new leads: ${topLeadsText || "none yet"}
+- Today: ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+
+Generate a concise, actionable morning briefing in JSON format with:
+- summary: 2-3 sentence overview of the day's priorities
+- topLeads: array of 3 lead names/companies to focus on today with reason
+- pipelineAlerts: array of 2-3 pipeline risks or opportunities
+- nextActions: array of 3-5 specific actions to take today
+Keep it practical, direct, and motivating.`;
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a sales performance AI. Always respond with valid JSON." },
+          { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_object" },
+      });
+      const parsed = JSON.parse(response.choices[0].message.content ?? "{}");
+      const [inserted] = await db.insert(morningBriefings).values({
+        userId: ctx.user.id,
+        content: parsed.summary ?? "Good morning! Here is your daily briefing.",
+        topLeads: JSON.stringify(parsed.topLeads ?? []),
+        pipelineAlerts: JSON.stringify(parsed.pipelineAlerts ?? []),
+        nextActions: JSON.stringify(parsed.nextActions ?? []),
+        dismissed: false,
+      });
+      const rows = await db.select().from(morningBriefings)
+        .where(eq(morningBriefings.userId, ctx.user.id))
+        .orderBy(morningBriefings.generatedAt);
+      return rows[rows.length - 1];
+    }),
+
+    getLatest: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return null;
+      const { morningBriefings } = await import("../drizzle/schema");
+      const rows = await db.select().from(morningBriefings)
+        .where(eq(morningBriefings.userId, ctx.user.id))
+        .orderBy(morningBriefings.generatedAt);
+      if (rows.length === 0) return null;
+      const latest = rows[rows.length - 1] as any;
+      return {
+        ...latest,
+        topLeads: JSON.parse(latest.topLeads ?? "[]"),
+        pipelineAlerts: JSON.parse(latest.pipelineAlerts ?? "[]"),
+        nextActions: JSON.parse(latest.nextActions ?? "[]"),
+      };
+    }),
+
+    dismiss: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        const { morningBriefings } = await import("../drizzle/schema");
+        await db.update(morningBriefings)
+          .set({ dismissed: true })
+          .where(eq(morningBriefings.id, input.id));
+        return { success: true };
       }),
   }),
 });

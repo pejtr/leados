@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `persona_ratings` (\n  `id` int AUTO_INCREMENT PRIMARY KEY,\n  `userId` int NOT NULL,\n  `personaId` varchar(100) NOT NULL,\n  `sessionId` varchar(100) NOT NULL,\n  `rating` enum('up','down') NOT NULL,\n  `createdAt` timestamp NOT NULL DEFAULT NOW()\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute CREATE TABLE IF NOT EXISTS `persona_ratings` (\n  `id` int AUTO_INCREMENT PRIMARY KEY,\n  `userId` int NOT NULL,\n  `personaId` varchar(100) NOT NULL,\n  `sessionId` varchar(100) NOT NULL,\n  `rating` enum('up','down') NOT NULL,\n  `createdAt` timestamp NOT NULL DEFAULT NOW()\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 170
+}

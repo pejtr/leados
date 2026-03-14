@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import {
   MessageCircle, X, Minimize2, Maximize2, Send, Loader2,
   Sparkles, User, ChevronLeft, Trash2, Brain, Heart, History,
+  Mic, MicOff, ThumbsUp, ThumbsDown,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
@@ -65,6 +66,10 @@ export default function AIChatWidget() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [speechSupported] = useState(() => typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window));
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const [ratings, setRatings] = useState<Record<number, "up" | "down">>({}); // index → rating
 
   const { data: personas, isLoading: personasLoading } = trpc.aiChat.getPersonas.useQuery(undefined, {
     staleTime: Infinity,
@@ -77,6 +82,7 @@ export default function AIChatWidget() {
   const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
   const clearHistoryMutation = trpc.aiChat.clear.useMutation();
   const toggleFavoriteMutation = trpc.aiChat.toggleFavorite.useMutation();
+  const ratePersonaMutation = trpc.aiChat.ratePersona.useMutation();
 
   const favoriteSet = new Set(favoriteIds);
 
@@ -149,12 +155,59 @@ export default function AIChatWidget() {
 
   const handleClearChat = useCallback(async () => {
     setMessages([]);
+    setRatings({});
     try {
       await clearHistoryMutation.mutateAsync();
     } catch {
       // silent
     }
   }, [clearHistoryMutation]);
+
+  const handleRate = useCallback(async (msgIndex: number, rating: "up" | "down") => {
+    setRatings((prev) => ({ ...prev, [msgIndex]: rating }));
+    if (selectedPersona) {
+      try {
+        await ratePersonaMutation.mutateAsync({ personaId: selectedPersona.id, rating, sessionId: `session-${Date.now()}` });
+        toast.success(rating === "up" ? "Thanks for the feedback! 👍" : "Got it, we'll improve 👎");
+      } catch {
+        // silent
+      }
+    }
+  }, [selectedPersona, ratePersonaMutation]);
+
+  const handleToggleVoice = useCallback(() => {
+    if (!speechSupported) {
+      toast.error("Voice input is not supported in this browser.");
+      return;
+    }
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+    const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognitionClass();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const transcript = event.results[0][0].transcript;
+      setInput((prev) => prev ? prev + " " + transcript : transcript);
+      setTimeout(() => textareaRef.current?.focus(), 50);
+    };
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      if (event.error === "not-allowed") {
+        toast.error("Microphone access denied. Please allow microphone access.");
+      } else if (event.error !== "aborted") {
+        toast.error("Voice input error: " + event.error);
+      }
+      setIsRecording(false);
+    };
+    recognition.onend = () => setIsRecording(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsRecording(true);
+  }, [speechSupported, isRecording]);
 
   const handleSuggestedPrompt = useCallback((prompt: string) => {
     setInput(prompt);
@@ -407,20 +460,51 @@ export default function AIChatWidget() {
                     <span className="text-xs">{selectedPersona?.emoji ?? "🤖"}</span>
                   </div>
                 )}
-                <div
-                  className={cn(
-                    "max-w-[85%] rounded-xl px-3 py-2 text-sm",
-                    msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-tr-sm"
-                      : "bg-muted text-foreground rounded-tl-sm"
-                  )}
-                >
-                  {msg.role === "assistant" ? (
-                    <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-relaxed">
-                      <Streamdown>{msg.content}</Streamdown>
+                <div className="flex flex-col gap-1 max-w-[85%]">
+                  <div
+                    className={cn(
+                      "rounded-xl px-3 py-2 text-sm",
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-tr-sm"
+                        : "bg-muted text-foreground rounded-tl-sm"
+                    )}
+                  >
+                    {msg.role === "assistant" ? (
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-xs leading-relaxed">
+                        <Streamdown>{msg.content}</Streamdown>
+                      </div>
+                    ) : (
+                      <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                    )}
+                  </div>
+                  {/* Rating buttons for assistant messages */}
+                  {msg.role === "assistant" && i === messages.length - 1 && !isLoading && (
+                    <div className="flex items-center gap-1 pl-1">
+                      <button
+                        onClick={() => handleRate(i, "up")}
+                        className={cn(
+                          "p-1 rounded-md transition-colors",
+                          ratings[i] === "up"
+                            ? "text-emerald-400 bg-emerald-500/10"
+                            : "text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10"
+                        )}
+                        title="Helpful"
+                      >
+                        <ThumbsUp className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => handleRate(i, "down")}
+                        className={cn(
+                          "p-1 rounded-md transition-colors",
+                          ratings[i] === "down"
+                            ? "text-rose-400 bg-rose-500/10"
+                            : "text-muted-foreground/40 hover:text-rose-400 hover:bg-rose-500/10"
+                        )}
+                        title="Not helpful"
+                      >
+                        <ThumbsDown className="h-3 w-3" />
+                      </button>
                     </div>
-                  ) : (
-                    <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                   )}
                 </div>
                 {msg.role === "user" && (
@@ -449,12 +533,32 @@ export default function AIChatWidget() {
           {/* Input */}
           <div className="p-3 border-t border-border shrink-0">
             <div className="flex gap-2 items-end">
+              {/* Mic button */}
+              {speechSupported && (
+                <button
+                  onClick={handleToggleVoice}
+                  disabled={isLoading}
+                  className={cn(
+                    "h-[38px] w-[38px] rounded-md flex items-center justify-center shrink-0 transition-colors border",
+                    isRecording
+                      ? "bg-rose-500/10 border-rose-500/40 text-rose-400 animate-pulse"
+                      : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                  )}
+                  title={isRecording ? "Stop recording" : "Voice input"}
+                >
+                  {isRecording ? (
+                    <MicOff className="h-3.5 w-3.5" />
+                  ) : (
+                    <Mic className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
               <Textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={`Ask ${selectedPersona?.name ?? "AI"}...`}
+                placeholder={isRecording ? "Listening..." : `Ask ${selectedPersona?.name ?? "AI"}...`}
                 className="flex-1 min-h-[38px] max-h-24 resize-none text-xs"
                 rows={1}
                 disabled={isLoading}
@@ -473,7 +577,7 @@ export default function AIChatWidget() {
               </Button>
             </div>
             <p className="text-[9px] text-muted-foreground mt-1.5 text-center">
-              Press Enter to send · Shift+Enter for new line
+              {isRecording ? "🔴 Recording... click mic to stop" : "Press Enter to send · Shift+Enter for new line"}
             </p>
           </div>
         </div>

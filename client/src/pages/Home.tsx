@@ -6,7 +6,10 @@ import {
   BarChart3, Bell, CheckCircle2, Clock, Lightbulb, Loader2,
   Mail, Phone, Sparkles, Timer, TrendingUp, Users, Zap, Linkedin,
   XCircle, ArrowRight, Shield, Brain, ChevronRight, Activity, BookOpen, Star,
+  Sun, X, RefreshCw, Target, AlertTriangle, ListChecks,
 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 import { useLocation } from "wouter";
 
 export default function Home() {
@@ -18,6 +21,15 @@ export default function Home() {
   const { data: stlConfig, isLoading: stlLoading } = trpc.speedToLead.get.useQuery();
   const { data: setupProgress, isLoading: setupLoading } = trpc.aiChat.setupProgress.useQuery();
   const { data: insights, isLoading: insightsLoading } = trpc.aiChat.insights.useQuery();
+  const { data: briefing, refetch: refetchBriefing, isLoading: briefingLoading } = trpc.morningBriefing.getLatest.useQuery();
+  const generateBriefingMutation = trpc.morningBriefing.generate.useMutation({
+    onSuccess: () => { refetchBriefing(); toast.success("Morning briefing generated!"); },
+    onError: () => toast.error("Failed to generate briefing"),
+  });
+  const dismissBriefingMutation = trpc.morningBriefing.dismiss.useMutation({
+    onSuccess: () => refetchBriefing(),
+  });
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   const enrichmentRate =
     stats && stats.totalLeads > 0
@@ -42,6 +54,129 @@ export default function Home() {
             Generate Leads
           </Button>
         </div>
+
+        {/* Morning Briefing Card */}
+        {!briefingLoading && (
+          <div>
+            {(!briefing || briefing.dismissed) ? (
+              <div className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-border bg-card/50">
+                <div className="p-2 rounded-lg bg-amber-500/10">
+                  <Sun className="h-4 w-4 text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Morning Briefing</p>
+                  <p className="text-xs text-muted-foreground">{today} — Get your AI-powered daily action plan</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => generateBriefingMutation.mutate()}
+                  disabled={generateBriefingMutation.isPending}
+                  className="gap-2 shrink-0"
+                >
+                  {generateBriefingMutation.isPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  )}
+                  Generate Briefing
+                </Button>
+              </div>
+            ) : (
+              <Card className="bg-gradient-to-br from-amber-500/5 via-card to-card border-amber-500/20">
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-amber-500/10">
+                        <Sun className="h-5 w-5 text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">Morning Briefing</h3>
+                        <p className="text-xs text-muted-foreground">{today}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => generateBriefingMutation.mutate()}
+                        disabled={generateBriefingMutation.isPending}
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                        title="Regenerate"
+                      >
+                        {generateBriefingMutation.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => dismissBriefingMutation.mutate({ id: briefing.id })}
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                        title="Dismiss"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-foreground mb-4 leading-relaxed">{briefing.content}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {briefing.topLeads && briefing.topLeads.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <Target className="h-3.5 w-3.5 text-blue-400" />
+                          <span className="text-xs font-semibold text-blue-400">Top Leads Today</span>
+                        </div>
+                        <ul className="space-y-1">
+                          {briefing.topLeads.map((lead: string, i: number) => (
+                            <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
+                              <span className="text-blue-400 shrink-0 mt-0.5">•</span>
+                              {lead}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {briefing.pipelineAlerts && briefing.pipelineAlerts.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
+                          <span className="text-xs font-semibold text-amber-400">Pipeline Alerts</span>
+                        </div>
+                        <ul className="space-y-1">
+                          {briefing.pipelineAlerts.map((alert: string, i: number) => (
+                            <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
+                              <span className="text-amber-400 shrink-0 mt-0.5">•</span>
+                              {alert}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {briefing.nextActions && briefing.nextActions.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-1.5 mb-2">
+                          <ListChecks className="h-3.5 w-3.5 text-emerald-400" />
+                          <span className="text-xs font-semibold text-emerald-400">Next Actions</span>
+                        </div>
+                        <ul className="space-y-1">
+                          {briefing.nextActions.map((action: string, i: number) => (
+                            <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
+                              <span className="text-emerald-400 shrink-0 mt-0.5">{i + 1}.</span>
+                              {action}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
