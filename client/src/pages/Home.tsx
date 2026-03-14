@@ -197,7 +197,7 @@ export default function Home() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setLocation("/ai-advisor")}
+                onClick={() => setLocation("/chat-agent")}
                 className="border-violet-500/40 text-violet-300 hover:bg-violet-500/10 gap-2"
               >
                 <Brain className="h-4 w-4" />
@@ -481,7 +481,7 @@ export default function Home() {
             </div>
             {/* Chat Agent Banner */}
             <div
-              onClick={() => setLocation("/ai-advisor")}
+              onClick={() => setLocation("/chat-agent")}
               className="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-gradient-to-r from-violet-500/10 to-blue-500/5 border border-violet-500/20 cursor-pointer hover:border-violet-500/40 transition-all group"
             >
               <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center shrink-0">
@@ -596,7 +596,7 @@ export default function Home() {
                   </p>
                 )}
                 <button
-                  onClick={() => setLocation("/ai-advisor")}
+                  onClick={() => setLocation("/chat-agent")}
                   className="w-full text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center justify-center gap-1 pt-1"
                 >
                   {t('dashboard.viewFullChatHistory')} <ArrowRight className="h-3 w-3" />

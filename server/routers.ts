@@ -2613,5 +2613,53 @@ Return JSON: {
         return { id };
       }),
   }),
+
+  // ─── Multi-Project API Hub ──────────────────────────────────────
+  projects: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const { listProjects } = await import("./projectsDb");
+      return listProjects(ctx.user.id);
+    }),
+    create: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(128),
+        description: z.string().optional(),
+        url: z.string().optional(),
+        category: z.enum(["ecommerce", "saas", "content", "affiliate", "other"]).default("ecommerce"),
+        currency: z.string().default("CZK"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { createProject } = await import("./projectsDb");
+        return createProject({ userId: ctx.user.id, ...input });
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteProject } = await import("./projectsDb");
+        await deleteProject(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    regenerateKey: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const { regenerateApiKey } = await import("./projectsDb");
+        const newKey = await regenerateApiKey(input.id, ctx.user.id);
+        return { apiKey: newKey };
+      }),
+    getStats: protectedProcedure
+      .input(z.object({ id: z.number().int(), days: z.number().int().default(30) }))
+      .query(async ({ ctx, input }) => {
+        const { getProjectById, getProjectStats } = await import("./projectsDb");
+        const project = await getProjectById(input.id, ctx.user.id);
+        if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+        return getProjectStats(input.id, input.days);
+      }),
+    getAllStats: protectedProcedure
+      .input(z.object({ days: z.number().int().default(30) }))
+      .query(async ({ ctx, input }) => {
+        const { getAllProjectsStats } = await import("./projectsDb");
+        return getAllProjectsStats(ctx.user.id, input.days);
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

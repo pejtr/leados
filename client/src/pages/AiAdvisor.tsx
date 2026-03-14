@@ -10,7 +10,7 @@ import {
   Brain, Search, Trash2, Loader2, MessageCircle, User, Sparkles,
   Clock, BarChart3, BookOpen, Activity, Heart, ChevronRight, ThumbsUp, Star,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
 
@@ -27,6 +27,22 @@ interface Persona {
 
 export default function AiAdvisor() {
   const [searchQuery, setSearchQuery] = useState("");
+
+  // SEO: set page title and meta description for /chat-agent
+  useEffect(() => {
+    document.title = "Chat Agent — 33 AI Expert Personas | LeadOS";
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      (metaDesc as HTMLMetaElement).name = "description";
+      document.head.appendChild(metaDesc);
+    }
+    (metaDesc as HTMLMetaElement).content =
+      "Chat Agent by LeadOS — 33 AI expert personas including Alex Hormozi, Warren Buffett, Sun Tzu and more. Get sales strategies, growth advice, and B2B lead generation insights powered by AI.";
+    return () => {
+      document.title = "LeadOS — AI Lead Generation Platform";
+    };
+  }, []);
   const [selectedPersonaForResume, setSelectedPersonaForResume] = useState<Persona | null>(null);
   const [showPersonaPicker, setShowPersonaPicker] = useState(false);
 

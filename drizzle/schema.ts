@@ -983,3 +983,34 @@ export const propertyTransactions = mysqlTable("property_transactions", {
 });
 export type PropertyTransaction = typeof propertyTransactions.$inferSelect;
 export type InsertPropertyTransaction = typeof propertyTransactions.$inferInsert;
+
+// ─── Connected Projects (Multi-Project API Hub) ──────────────────
+export const connectedProjects = mysqlTable("connected_projects", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 128 }).notNull(),
+  description: text("description"),
+  url: varchar("url", { length: 512 }),
+  category: varchar("category", { length: 64 }).default("ecommerce"), // ecommerce, saas, content, affiliate, other
+  apiKey: varchar("apiKey", { length: 64 }).notNull().unique(),
+  isActive: boolean("isActive").default(true).notNull(),
+  currency: varchar("currency", { length: 8 }).default("CZK").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type ConnectedProject = typeof connectedProjects.$inferSelect;
+export type InsertConnectedProject = typeof connectedProjects.$inferInsert;
+
+// ─── Project Events (inbound analytics data) ─────────────────────
+export const projectEvents = mysqlTable("project_events", {
+  id: int("id").autoincrement().primaryKey(),
+  projectId: int("projectId").notNull(),
+  eventType: varchar("eventType", { length: 64 }).notNull(), // sale, pageview, signup, refund, adspend, custom
+  value: decimal("value", { precision: 14, scale: 2 }).default("0"),
+  currency: varchar("currency", { length: 8 }).default("CZK").notNull(),
+  metadata: text("metadata"), // JSON string for extra fields (orderId, productName, source, etc.)
+  occurredAt: timestamp("occurredAt").defaultNow().notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ProjectEvent = typeof projectEvents.$inferSelect;
+export type InsertProjectEvent = typeof projectEvents.$inferInsert;

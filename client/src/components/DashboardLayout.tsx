@@ -27,7 +27,7 @@ import {
   Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code,
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
-  TrendingUp, Trophy,
+  TrendingUp, Trophy, Link2,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -40,7 +40,7 @@ import { trpc } from "@/lib/trpc";
 
 const menuItemDefs = [
   { icon: LayoutDashboard, labelKey: "sidebar.dashboard", path: "/dashboard", group: "core" },
-  { icon: Brain, labelKey: "sidebar.aiAdvisor", path: "/ai-advisor", group: "core" },
+  { icon: Brain, labelKey: "sidebar.aiAdvisor", path: "/chat-agent", group: "core" },
   { icon: Zap, labelKey: "sidebar.generateLeads", path: "/generate", group: "core" },
   { icon: History, labelKey: "sidebar.leadHistory", path: "/history", group: "core" },
   { icon: Kanban, labelKey: "sidebar.pipelineBoard", path: "/kanban", group: "core" },
@@ -66,6 +66,7 @@ const menuItemDefs = [
   { icon: Map, labelKey: "sidebar.competitiveMap", path: "/competitive", group: "outreach" },
   { icon: TrendingUp, labelKey: "sidebar.dealPipeline", path: "/deal-pipeline", group: "insights" },
   { icon: Trophy, labelKey: "sidebar.salesDashboard", path: "/sales-dashboard", group: "insights" },
+  { icon: Link2, labelKey: "sidebar.projectsHub", path: "/projects", group: "insights" },
   { icon: Ear, labelKey: "sidebar.socialListening", path: "/social", group: "insights" },
   { icon: Target, labelKey: "sidebar.b2bMatching", path: "/matching", group: "insights" },
   { icon: BarChart3, labelKey: "sidebar.statistics", path: "/stats", group: "insights" },

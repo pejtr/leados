@@ -284,7 +284,7 @@ export default function AIChatWidget() {
           )}
           {view === "personas" && (
             <button
-              onClick={() => { setIsOpen(false); setLocation("/ai-advisor"); }}
+              onClick={() => { setIsOpen(false); setLocation("/chat-agent"); }}
               className="p-1.5 rounded-md hover:bg-accent transition-colors"
               aria-label="Chat history"
               title="View chat history"
@@ -408,7 +408,7 @@ export default function AIChatWidget() {
           {/* Footer hint */}
           <div className="px-3 py-2 border-t border-border shrink-0">
             <p className="text-[10px] text-muted-foreground text-center">
-              Select an expert · ♡ to pin favorites · <button onClick={() => { setIsOpen(false); setLocation("/ai-advisor"); }} className="text-primary hover:underline">View history</button>
+              Select an expert · ♡ to pin favorites · <button onClick={() => { setIsOpen(false); setLocation("/chat-agent"); }} className="text-primary hover:underline">View history</button>
             </p>
           </div>
         </div>

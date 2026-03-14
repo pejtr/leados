@@ -529,3 +529,28 @@
 - [x] Update i18n keys in cs.json (sidebar.aiAdvisor, home.aiAdvisor, aiAdvisor33, aiAdvisorPersonas)
 - [x] Update AiAdvisor.tsx page title and header to "Chat Agent"
 - [x] Update AIChatWidget.tsx floating button and header to "Chat Agent"
+
+## Chat Agent SEO Improvements
+- [ ] Change URL slug /ai-advisor → /chat-agent in App.tsx
+- [ ] Update DashboardLayout nav path to /chat-agent
+- [ ] Update all internal links (AIChatWidget, Home.tsx) to /chat-agent
+- [ ] Add meta title/description to AiAdvisor.tsx page for Google indexing
+- [ ] Create Chat Agent feature section on Landing page with 33 personas showcase
+
+## Landing Page i18n Fix
+- [ ] Translate HOW_IT_WORKS section (Define Your ICP, AI Generates Leads, Personalized Outreach, Close More Deals)
+- [ ] Translate Chat Agent section (all hardcoded English strings)
+- [ ] Translate Meeting Scheduler feature card (hardcoded English in FEATURES array)
+- [ ] Audit all other hardcoded English strings in Landing.tsx
+- [ ] Add all missing keys to cs.json, en.json, de.json
+
+## Multi-Project Analytics Hub (API Command Center)
+- [x] DB schema: connected_projects + project_events tables (migration applied)
+- [x] Public data ingestion endpoint (POST /api/ingest/:apiKey) — accepts sale, pageview, signup, refund, adspend, custom
+- [x] Health check endpoint (GET /api/ingest/:apiKey/ping)
+- [x] tRPC procedures: projects.create, list, delete, regenerateKey, getStats, getAllStats
+- [x] Projects Dashboard page (/projects) — unified analytics across all connected projects
+- [x] Aggregate KPI cards (total revenue, profit, ROAS, sales count)
+- [x] Per-project metrics cards (sales, revenue, ROAS, CVR, profit)
+- [x] SDK snippet generator in UI (copy-paste JS code with fetch examples)
+- [x] Sidebar nav item: "Projekty / Command Center" with link icon

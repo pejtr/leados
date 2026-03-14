@@ -6,6 +6,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStripeWebhook } from "../stripeWebhook";
 import { registerCallsUploadRoute } from "../callsUploadRoute";
+import { registerIngestRoute } from "../ingestRoute";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -41,6 +42,8 @@ async function startServer() {
   registerOAuthRoutes(app);
   // Calls upload route
   registerCallsUploadRoute(app);
+  // Public project analytics ingest endpoint
+  registerIngestRoute(app);
   // tRPC API
   app.use(
     "/api/trpc",
