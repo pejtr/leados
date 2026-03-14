@@ -523,3 +523,9 @@
 - [x] Quota progress bar per user
 - [x] CRM tRPC router (deals, activities, quotas, commissions)
 - [x] Sidebar nav items: Deal Pipeline + Sales Dashboard
+
+## Rename Chatbot to "Chat Agent" (SEO)
+- [x] Update DashboardLayout sidebar nav item label (via i18n key sidebar.aiAdvisor)
+- [x] Update i18n keys in cs.json (sidebar.aiAdvisor, home.aiAdvisor, aiAdvisor33, aiAdvisorPersonas)
+- [x] Update AiAdvisor.tsx page title and header to "Chat Agent"
+- [x] Update AIChatWidget.tsx floating button and header to "Chat Agent"

@@ -129,10 +129,10 @@ export default function AiAdvisor() {
               <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Brain className="h-5 w-5 text-primary" />
               </div>
-              <h1 className="text-2xl font-bold text-foreground">AI Advisor</h1>
+              <h1 className="text-2xl font-bold text-foreground">Chat Agent</h1>
             </div>
             <p className="text-sm text-muted-foreground">
-              Full conversation history, AI memory, and performance insights
+              Full conversation history, AI memory, and performance insights — powered by 33 expert personas
             </p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -425,7 +425,7 @@ export default function AiAdvisor() {
                     <BookOpen className="h-8 w-8 text-muted-foreground/20 mx-auto mb-2" />
                     <p className="text-xs text-muted-foreground">No memories yet.</p>
                     <p className="text-[10px] text-muted-foreground/60 mt-1">
-                      Chat with the AI Advisor to build memory.
+                      Chat with the Chat Agent to build memory.
                     </p>
                   </div>
                 ) : (

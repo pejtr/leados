@@ -479,7 +479,7 @@ export default function Home() {
               <QuickAction icon={<Lightbulb className="h-5 w-5" />} title={t('dashboard.aiRecommendations')} description={t('dashboard.aiRecommendationsDesc')} onClick={() => setLocation("/next-actions")} />
               <QuickAction icon={<BarChart3 className="h-5 w-5" />} title={t('dashboard.viewStatistics')} description={t('dashboard.viewStatisticsDesc')} onClick={() => setLocation("/stats")} />
             </div>
-            {/* AI Advisor Banner */}
+            {/* Chat Agent Banner */}
             <div
               onClick={() => setLocation("/ai-advisor")}
               className="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-gradient-to-r from-violet-500/10 to-blue-500/5 border border-violet-500/20 cursor-pointer hover:border-violet-500/40 transition-all group"

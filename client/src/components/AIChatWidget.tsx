@@ -226,7 +226,7 @@ export default function AIChatWidget() {
         aria-label="Open AI Assistant"
       >
         <Sparkles className="h-5 w-5" />
-        <span className="text-sm font-semibold hidden sm:block">AI Advisor</span>
+        <span className="text-sm font-semibold hidden sm:block">Chat Agent</span>
       </button>
     );
   }
@@ -264,7 +264,7 @@ export default function AIChatWidget() {
               <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Brain className="h-4 w-4 text-primary" />
               </div>
-              <span className="text-sm font-semibold text-foreground">AI Advisor</span>
+              <span className="text-sm font-semibold text-foreground">Chat Agent</span>
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
                 {personas?.length ?? 0} experts
               </Badge>
