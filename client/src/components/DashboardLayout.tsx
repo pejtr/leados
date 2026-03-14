@@ -26,7 +26,7 @@ import {
   LayoutDashboard, LogOut, PanelLeft, Zap, History, BarChart3, Mail, Users,
   Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code,
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
-  CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight,
+  CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
@@ -63,6 +63,8 @@ const menuItems = [
   { icon: Building, label: "Agency Panel", path: "/agency", group: "settings" },
   { icon: Webhook, label: "Integrations", path: "/integrations", group: "settings" },
   { icon: MailOpen, label: "Email Sequences", path: "/sequences", group: "outreach" },
+  { icon: Calendar, label: "Meeting Scheduler", path: "/meetings", group: "outreach" },
+  { icon: Phone, label: "Call Intelligence", path: "/calls", group: "outreach" },
   { icon: CheckSquare, label: "Activity Tracker", path: "/tasks", group: "outreach" },
   { icon: Crosshair, label: "Capture Planning", path: "/capture", group: "outreach" },
   { icon: Globe, label: "Market Intel", path: "/market-intel", group: "outreach" },
@@ -109,19 +111,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Zap className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              LeadGen <span className="gradient-text-violet">AI</span>
+              Lead<span className="gradient-text-violet">OS</span>
             </span>
           </div>
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold tracking-tight section-header-premium">Sign in to continue</h1>
-            <p className="text-sm text-muted-foreground">Access the most powerful B2B lead generation platform.</p>
+            <p className="text-sm text-muted-foreground">LeadGen CRM Automation — the most powerful B2B lead platform.</p>
           </div>
           <Button
             onClick={() => { window.location.href = getLoginUrl(); }}
             size="lg"
             className="w-full btn-premium h-12 text-base"
           >
-            Sign in to LeadGen AI
+            Sign in to LeadOS
           </Button>
         </div>
       </div>
@@ -227,7 +229,7 @@ function DashboardLayoutContent({
                   </div>
                   <span className="font-bold tracking-tight truncate text-foreground text-sm"
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                    LeadGen <span className="gradient-text-violet">AI</span>
+                    Lead<span className="gradient-text-violet">OS</span>
                   </span>
                 </div>
               )}

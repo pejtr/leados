@@ -78,7 +78,7 @@ export default function Billing() {
   const canceled = params.get("canceled");
 
   if (success) {
-    toast.success("Subscription activated! Welcome to LeadGen AI.");
+    toast.success("Subscription activated! Welcome to LeadGen CRM Automation.");
     refetch();
     navigate("/billing", { replace: true });
   }

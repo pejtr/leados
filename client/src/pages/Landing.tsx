@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { getLoginUrl } from "@/const";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -10,10 +9,61 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useTranslation } from "react-i18next";
 import {
   Zap, Shield, TrendingUp, Users, Mail, BarChart3, CheckCircle2,
-  ArrowRight, Star, Building2, Target, Download, Sparkles, Globe,
-  ChevronRight, Phone, MessageSquare, UserCheck, Lightbulb, Ear, Bot,
-  Menu, X, CreditCard, Award, Lock, Clock, Rocket,
+  ArrowRight, Star, Target, Sparkles, Globe,
+  ChevronRight, MessageSquare, UserCheck, Lightbulb, Ear, Bot,
+  Menu, X, Rocket, Brain, Calendar, Phone, Award,
 } from "lucide-react";
+
+// ── Animated Counter ──────────────────────────────────────────────────────────
+function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isInView) return;
+    let start = 0;
+    const duration = 2000;
+    const step = (timestamp: number) => {
+      if (!start) start = timestamp;
+      const progress = Math.min((timestamp - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * value));
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }, [isInView, value]);
+
+  return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
+}
+
+// ── Floating Particle ─────────────────────────────────────────────────────────
+function Particle({ delay, x, y, size }: { delay: number; x: number; y: number; size: number }) {
+  return (
+    <motion.div
+      className="absolute rounded-full bg-violet-400/20 pointer-events-none"
+      style={{ left: `${x}%`, top: `${y}%`, width: size, height: size }}
+      animate={{ y: [0, -30, 0], opacity: [0.2, 0.6, 0.2], scale: [1, 1.2, 1] }}
+      transition={{ duration: 4 + delay, repeat: Infinity, delay, ease: "easeInOut" }}
+    />
+  );
+}
+
+// ── Section Reveal ────────────────────────────────────────────────────────────
+function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { once: true, margin: "-80px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 40 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export default function Landing() {
   const { user, loading } = useAuth();
@@ -21,661 +71,530 @@ export default function Landing() {
   const { t } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [scrolled, setScrolled] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroY = useTransform(scrollYProgress, [0, 1], [0, 120]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
-  // SEO: Set document title, meta description, and keywords
   useEffect(() => {
-    document.title = "LeadGen AI — B2B Lead Generation Platform";
-
-    let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-    if (!metaDesc) {
-      metaDesc = document.createElement("meta");
-      metaDesc.name = "description";
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.content = "AI-powered B2B lead generation platform. Find verified contacts, enrich data, and automate outreach with AI icebreakers. GDPR compliant. Start free.";
-
-    let metaKeywords = document.querySelector('meta[name="keywords"]') as HTMLMetaElement;
-    if (!metaKeywords) {
-      metaKeywords = document.createElement("meta");
-      metaKeywords.name = "keywords";
-      document.head.appendChild(metaKeywords);
-    }
-    metaKeywords.content = "B2B lead generation, AI leads, sales automation, email enrichment, LinkedIn scraping, lead scoring, CRM integration, outreach automation, GDPR compliant, AI icebreaker";
+    document.title = "LeadGen CRM Automation — B2B Lead Generation Platform";
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   const handleCTA = () => {
-    if (user) {
-      navigate("/dashboard");
-    } else {
-      window.location.href = getLoginUrl();
-    }
+    if (user) navigate("/dashboard");
+    else window.location.href = getLoginUrl();
   };
 
-  const handleEmailCTA = () => {
-    // Store email for pre-fill, then redirect to signup
-    if (email) {
-      sessionStorage.setItem("signup_email", email);
-    }
-    handleCTA();
-  };
+  const particles = Array.from({ length: 18 }, (_, i) => ({
+    id: i, delay: i * 0.4,
+    x: Math.random() * 100, y: Math.random() * 100,
+    size: 4 + Math.random() * 8,
+  }));
 
   const FEATURES = [
-    { icon: Zap, title: t("landing.feature1Title"), description: t("landing.feature1Desc"), color: "text-yellow-400", bg: "bg-yellow-400/10" },
-    { icon: Target, title: t("landing.feature2Title"), description: t("landing.feature2Desc"), color: "text-blue-400", bg: "bg-blue-400/10" },
-    { icon: Shield, title: t("landing.feature3Title"), description: t("landing.feature3Desc"), color: "text-green-400", bg: "bg-green-400/10" },
-    { icon: TrendingUp, title: t("landing.feature4Title"), description: t("landing.feature4Desc"), color: "text-purple-400", bg: "bg-purple-400/10" },
-    { icon: Mail, title: t("landing.feature5Title"), description: t("landing.feature5Desc"), color: "text-pink-400", bg: "bg-pink-400/10" },
-    { icon: Users, title: t("landing.feature6Title"), description: t("landing.feature6Desc"), color: "text-orange-400", bg: "bg-orange-400/10" },
-    { icon: Target, title: t("landing.feature7Title"), description: t("landing.feature7Desc"), color: "text-cyan-400", bg: "bg-cyan-400/10" },
-    { icon: UserCheck, title: t("landing.feature8Title"), description: t("landing.feature8Desc"), color: "text-rose-400", bg: "bg-rose-400/10" },
-    { icon: Lightbulb, title: t("landing.feature9Title"), description: t("landing.feature9Desc"), color: "text-amber-400", bg: "bg-amber-400/10" },
-    { icon: Ear, title: t("landing.feature10Title"), description: t("landing.feature10Desc"), color: "text-teal-400", bg: "bg-teal-400/10" },
-    { icon: Bot, title: t("landing.feature11Title"), description: t("landing.feature11Desc"), color: "text-indigo-400", bg: "bg-indigo-400/10" },
+    { icon: Zap, title: t("landing.feature1Title"), description: t("landing.feature1Desc"), color: "#f59e0b", glow: "rgba(245,158,11,0.15)" },
+    { icon: Target, title: t("landing.feature2Title"), description: t("landing.feature2Desc"), color: "#3b82f6", glow: "rgba(59,130,246,0.15)" },
+    { icon: Shield, title: t("landing.feature3Title"), description: t("landing.feature3Desc"), color: "#10b981", glow: "rgba(16,185,129,0.15)" },
+    { icon: TrendingUp, title: t("landing.feature4Title"), description: t("landing.feature4Desc"), color: "#8b5cf6", glow: "rgba(139,92,246,0.15)" },
+    { icon: Mail, title: t("landing.feature5Title"), description: t("landing.feature5Desc"), color: "#ec4899", glow: "rgba(236,72,153,0.15)" },
+    { icon: Users, title: t("landing.feature6Title"), description: t("landing.feature6Desc"), color: "#f97316", glow: "rgba(249,115,22,0.15)" },
+    { icon: Brain, title: t("landing.feature7Title"), description: t("landing.feature7Desc"), color: "#06b6d4", glow: "rgba(6,182,212,0.15)" },
+    { icon: UserCheck, title: t("landing.feature8Title"), description: t("landing.feature8Desc"), color: "#f43f5e", glow: "rgba(244,63,94,0.15)" },
+    { icon: Lightbulb, title: t("landing.feature9Title"), description: t("landing.feature9Desc"), color: "#fbbf24", glow: "rgba(251,191,36,0.15)" },
+    { icon: Ear, title: t("landing.feature10Title"), description: t("landing.feature10Desc"), color: "#14b8a6", glow: "rgba(20,184,166,0.15)" },
+    { icon: Bot, title: t("landing.feature11Title"), description: t("landing.feature11Desc"), color: "#6366f1", glow: "rgba(99,102,241,0.15)" },
+    { icon: Calendar, title: "Meeting Scheduler", description: "AI follow-up bot that books meetings automatically — no manual chasing.", color: "#a78bfa", glow: "rgba(167,139,250,0.15)" },
   ];
 
   const TESTIMONIALS = [
-    {
-      name: t("landing.testimonial1Name"),
-      role: t("landing.testimonial1Role"),
-      text: t("landing.testimonial1Text"),
-      rating: 5,
-      metric: t("landing.testimonialMetric1"),
-      metricLabel: t("landing.testimonialMetricLabel1"),
-    },
-    {
-      name: t("landing.testimonial2Name"),
-      role: t("landing.testimonial2Role"),
-      text: t("landing.testimonial2Text"),
-      rating: 5,
-      metric: t("landing.testimonialMetric2"),
-      metricLabel: t("landing.testimonialMetricLabel2"),
-    },
-    {
-      name: t("landing.testimonial3Name"),
-      role: t("landing.testimonial3Role"),
-      text: t("landing.testimonial3Text"),
-      rating: 5,
-      metric: t("landing.testimonialMetric3"),
-      metricLabel: t("landing.testimonialMetricLabel3"),
-    },
+    { name: t("landing.testimonial1Name"), role: t("landing.testimonial1Role"), text: t("landing.testimonial1Text"), rating: 5, metric: t("landing.testimonialMetric1"), metricLabel: t("landing.testimonialMetricLabel1") },
+    { name: t("landing.testimonial2Name"), role: t("landing.testimonial2Role"), text: t("landing.testimonial2Text"), rating: 5, metric: t("landing.testimonialMetric2"), metricLabel: t("landing.testimonialMetricLabel2") },
+    { name: t("landing.testimonial3Name"), role: t("landing.testimonial3Role"), text: t("landing.testimonial3Text"), rating: 5, metric: t("landing.testimonialMetric3"), metricLabel: t("landing.testimonialMetricLabel3") },
   ];
 
   const PRICING = [
-    {
-      name: t("landing.plan1Name"),
-      price: t("landing.plan1Price"),
-      period: ["Free", "Zdarma", "Kostenlos"].includes(t("landing.plan1Price")) ? "" : t("landing.pricingMonthly"),
-      description: t("landing.plan1Desc"),
-      features: [t("landing.plan1Feature1"), t("landing.plan1Feature2"), t("landing.plan1Feature3"), t("landing.plan1Feature4")],
-      cta: t("landing.plan1Cta"),
-      highlighted: false,
-    },
-    {
-      name: t("landing.plan2Name"),
-      price: t("landing.plan2Price"),
-      period: t("landing.pricingMonthly"),
-      description: t("landing.plan2Desc"),
-      features: [t("landing.plan2Feature1"), t("landing.plan2Feature2"), t("landing.plan2Feature3"), t("landing.plan2Feature4"), t("landing.plan2Feature5"), t("landing.plan2Feature6"), t("landing.plan2Feature7")],
-      cta: t("landing.plan2Cta"),
-      highlighted: true,
-    },
-    {
-      name: t("landing.plan3Name"),
-      price: t("landing.plan3Price"),
-      period: t("landing.pricingMonthly"),
-      description: t("landing.plan3Desc"),
-      features: [t("landing.plan3Feature1"), t("landing.plan3Feature2"), t("landing.plan3Feature3"), t("landing.plan3Feature4"), t("landing.plan3Feature5"), t("landing.plan3Feature6")],
-      cta: t("landing.plan3Cta"),
-      highlighted: false,
-    },
+    { name: t("landing.plan1Name"), price: t("landing.plan1Price"), period: "", description: t("landing.plan1Desc"), features: [t("landing.plan1Feature1"), t("landing.plan1Feature2"), t("landing.plan1Feature3"), t("landing.plan1Feature4")], cta: t("landing.plan1Cta"), highlighted: false },
+    { name: t("landing.plan2Name"), price: t("landing.plan2Price"), period: t("landing.pricingMonthly"), description: t("landing.plan2Desc"), features: [t("landing.plan2Feature1"), t("landing.plan2Feature2"), t("landing.plan2Feature3"), t("landing.plan2Feature4"), t("landing.plan2Feature5"), t("landing.plan2Feature6"), t("landing.plan2Feature7")], cta: t("landing.plan2Cta"), highlighted: true },
+    { name: t("landing.plan3Name"), price: t("landing.plan3Price"), period: t("landing.pricingMonthly"), description: t("landing.plan3Desc"), features: [t("landing.plan3Feature1"), t("landing.plan3Feature2"), t("landing.plan3Feature3"), t("landing.plan3Feature4"), t("landing.plan3Feature5"), t("landing.plan3Feature6")], cta: t("landing.plan3Cta"), highlighted: false },
   ];
 
-  const STATS = [
-    { value: "32,000+", label: t("landing.statsLeads") },
-    { value: "94%", label: t("landing.statsEnrichment") },
-    { value: "12+", label: t("landing.statsIndustries") },
-    { value: "<5min", label: t("landing.statsTime") },
+  const HOW_IT_WORKS = [
+    { step: "01", icon: Target, title: "Define Your ICP", desc: "Tell the AI your ideal customer profile — industry, company size, seniority, tech stack.", color: "#8b5cf6" },
+    { step: "02", icon: Zap, title: "AI Generates Leads", desc: "Our AI scrapes, enriches, and verifies 50–500 leads in under 5 minutes.", color: "#06b6d4" },
+    { step: "03", icon: Mail, title: "Personalized Outreach", desc: "AI writes unique icebreakers for each lead and launches multi-channel sequences.", color: "#10b981" },
+    { step: "04", icon: TrendingUp, title: "Close More Deals", desc: "Track pipeline, score leads, and let the AI advisor coach you to close faster.", color: "#f59e0b" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f] text-white">
-      {/* ── Nav — Minimal Lusha-style ── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl">
+    <div className="min-h-screen text-white overflow-x-hidden" style={{ background: "#050510" }}>
+
+      {/* ── Floating Nav ─────────────────────────────────────────────────────── */}
+      <motion.nav
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+        style={{
+          background: scrolled ? "rgba(5,5,16,0.85)" : "transparent",
+          backdropFilter: scrolled ? "blur(20px)" : "none",
+          borderBottom: scrolled ? "1px solid rgba(139,92,246,0.15)" : "1px solid transparent",
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
               <Zap className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg tracking-tight">LeadGen AI</span>
+            <span className="font-bold text-lg tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              Lead<span style={{ background: "linear-gradient(90deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>OS</span>
+            </span>
           </div>
 
-          <div className="hidden lg:flex items-center gap-8 text-sm text-white/60">
+          <div className="hidden lg:flex items-center gap-8 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
             <a href="#features" className="hover:text-white transition-colors">{t("nav.features")}</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">{t("nav.howItWorks")}</a>
             <a href="#pricing" className="hover:text-white transition-colors">{t("nav.pricing")}</a>
           </div>
 
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-3">
             <LanguageSwitcher variant="flags" />
             {user ? (
-              <Button onClick={() => navigate("/dashboard")} size="sm" className="bg-violet-600 hover:bg-violet-700">
+              <Button onClick={() => navigate("/dashboard")} size="sm" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none" }}>
                 {t("nav.goToDashboard")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             ) : (
-              <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-xs sm:text-sm whitespace-nowrap" onClick={handleCTA}>
-                {t("landing.ctaPrimary")}
+              <Button size="sm" onClick={handleCTA} style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none" }}>
+                {t("landing.ctaPrimary")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
               </Button>
             )}
           </div>
 
           <div className="flex md:hidden items-center gap-2">
             <LanguageSwitcher variant="flags" className="scale-90" />
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.05)" }}>
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/5 bg-[#0a0a0f]/95 backdrop-blur-xl">
-            <div className="px-4 py-4 space-y-3">
-              <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/60 hover:text-white py-2">{t("nav.features")}</a>
-              <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/60 hover:text-white py-2">{t("nav.howItWorks")}</a>
-              <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block text-sm text-white/60 hover:text-white py-2">{t("nav.pricing")}</a>
-              <div className="pt-3 border-t border-white/5">
-                <Button size="sm" className="bg-violet-600 hover:bg-violet-700 w-full" onClick={() => { handleCTA(); setMobileMenuOpen(false); }}>
-                  {t("landing.ctaPrimary")}
-                </Button>
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+              className="md:hidden border-t" style={{ borderColor: "rgba(139,92,246,0.15)", background: "rgba(5,5,16,0.95)", backdropFilter: "blur(20px)" }}
+            >
+              <div className="px-4 py-4 space-y-3">
+                {["features", "how-it-works", "pricing"].map(id => (
+                  <a key={id} href={`#${id}`} onClick={() => setMobileMenuOpen(false)} className="block text-sm py-2" style={{ color: "rgba(255,255,255,0.6)" }}>
+                    {id === "features" ? t("nav.features") : id === "how-it-works" ? t("nav.howItWorks") : t("nav.pricing")}
+                  </a>
+                ))}
+                <div className="pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                  <Button size="sm" className="w-full" onClick={() => { handleCTA(); setMobileMenuOpen(false); }} style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none" }}>
+                    {t("landing.ctaPrimary")}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
-      </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.nav>
 
-      {/* ── Hero — Proof-First with Email CTA ── */}
-      <section className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 relative overflow-hidden">
+      {/* ── Hero ─────────────────────────────────────────────────────────────── */}
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16" style={{ background: "#050510" }}>
+        {/* Queen of Leads hero image — right side */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] sm:w-[800px] h-[300px] sm:h-[400px] bg-violet-600/20 rounded-full blur-[120px]" />
+          <div className="absolute right-0 top-0 bottom-0 w-full md:w-[55%]" style={{
+            backgroundImage: "url('https://d2xsxph8kpxj0f.cloudfront.net/310419663032296198/KYtwaRBAJcsE9tGSZfVrb7/queen-of-leads-hero-dpYdMDaUjtRRh3bRvzqxtN.webp')",
+            backgroundSize: "cover",
+            backgroundPosition: "center top",
+            maskImage: "linear-gradient(to left, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%)",
+            WebkitMaskImage: "linear-gradient(to left, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%)",
+            opacity: 0.75,
+          }} />
+          {/* Dark overlay to keep text readable */}
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, rgba(5,5,16,1) 0%, rgba(5,5,16,0.85) 40%, rgba(5,5,16,0.2) 70%, transparent 100%)" }} />
         </div>
-        <div className="max-w-5xl mx-auto relative">
-          {/* Social proof badge */}
-          <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-white/[0.05] border border-white/[0.08]">
-              <div className="flex -space-x-2">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 border-2 border-[#0a0a0f] flex items-center justify-center text-[10px] font-bold">
-                    {["M", "J", "K", "P"][i]}
-                  </div>
-                ))}
-              </div>
-              <div className="flex items-center gap-1">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <span className="text-xs text-white/60">{t("landing.trustedByTeams")}</span>
-            </div>
-          </div>
+        {/* Animated gradient orbs */}
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div
+            className="absolute rounded-full"
+            style={{ width: 700, height: 700, top: "10%", left: "50%", x: "-50%", background: "radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)", filter: "blur(40px)" }}
+            animate={{ scale: [1, 1.15, 1], opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute rounded-full"
+            style={{ width: 500, height: 500, top: "30%", left: "10%", background: "radial-gradient(circle, rgba(6,182,212,0.12) 0%, transparent 70%)", filter: "blur(60px)" }}
+            animate={{ scale: [1, 1.2, 1], x: [0, 40, 0], opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          />
+          <motion.div
+            className="absolute rounded-full"
+            style={{ width: 400, height: 400, top: "20%", right: "10%", background: "radial-gradient(circle, rgba(236,72,153,0.1) 0%, transparent 70%)", filter: "blur(60px)" }}
+            animate={{ scale: [1, 1.3, 1], x: [0, -30, 0], opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 4 }}
+          />
+          {/* Grid overlay */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: "linear-gradient(rgba(139,92,246,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.04) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }} />
+          {/* Particles */}
+          {particles.map(p => <Particle key={p.id} {...p} />)}
+        </div>
 
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight mb-4 sm:mb-6 leading-[1.1] sm:leading-[1.05] text-center">
-            <span className="bg-gradient-to-r from-violet-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent">
-              {t("landing.heroTitle")}
-            </span>
-          </h1>
-          <p className="text-base sm:text-xl text-white/60 max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed px-2 text-center">
-            {t("landing.heroSubtitle")}
-          </p>
+        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 md:pl-16 text-left md:max-w-[55%] md:ml-0">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            <Badge className="mb-6 text-xs font-medium px-4 py-1.5 border" style={{ background: "rgba(139,92,246,0.1)", borderColor: "rgba(139,92,246,0.3)", color: "#a78bfa" }}>
+              <Sparkles className="w-3 h-3 mr-1.5" />
+              AI-Powered B2B Lead Generation
+            </Badge>
+          </motion.div>
 
-          {/* Email-first CTA (Lusha-style) */}
-          <div className="max-w-lg mx-auto mb-4">
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:bg-white/[0.06] sm:border sm:border-white/[0.1] sm:rounded-xl sm:p-1.5">
-              <Input
-                type="email"
-                placeholder={t("landing.emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-white/[0.06] sm:bg-transparent border-white/10 sm:border-0 text-white placeholder:text-white/30 h-11 sm:h-10 rounded-lg sm:rounded-lg focus-visible:ring-violet-500/50 px-4"
-                onKeyDown={(e) => e.key === "Enter" && handleEmailCTA()}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
+            className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.05] mb-6"
+            style={{ fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            Lead<span style={{ background: "linear-gradient(135deg, #8b5cf6 0%, #06b6d4 50%, #10b981 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>OS</span><br />
+            <span style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.65em", fontWeight: 600 }}>LeadGen CRM Automation</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
+            className="text-lg sm:text-xl max-w-xl mb-10 leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.55)" }}
+          >
+            {t("landing.heroSubtitle") || "LeadOS — LeadGen CRM Automation finds, enriches, and personalizes outreach to your ideal B2B customers — fully automated, GDPR compliant, and ready in minutes."}
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-3 justify-start items-start mb-12"
+          >
+            <div className="flex w-full sm:w-auto">
+              <input
+                type="email" placeholder="your@company.com" value={email} onChange={e => setEmail(e.target.value)}
+                className="flex-1 sm:w-72 h-12 px-4 rounded-l-xl text-sm outline-none"
+                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(139,92,246,0.3)", borderRight: "none", color: "white" }}
               />
-              <Button
-                className="bg-violet-600 hover:bg-violet-700 h-11 sm:h-10 px-6 font-semibold whitespace-nowrap rounded-lg"
-                onClick={handleEmailCTA}
-              >
-                {t("landing.startForFree")} <ArrowRight className="w-4 h-4 ml-1.5" />
+              <Button onClick={handleCTA} className="h-12 px-6 rounded-l-none rounded-r-xl font-semibold whitespace-nowrap" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none" }}>
+                {t("landing.ctaPrimary") || "Start Free"} <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Trust badges */}
-          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-white/40">
-            <div className="flex items-center gap-1.5">
-              <CreditCard className="w-3.5 h-3.5" />
-              <span>{t("landing.noCreditCard")}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5" />
-              <span>{t("landing.setupTime")}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5" />
-              <span>{t("landing.gdprCompliant")}</span>
-            </div>
-          </div>
-
-          {/* Inline testimonial card (Lusha proof-first) */}
-          <div className="mt-10 sm:mt-14 max-w-2xl mx-auto">
-            <div className="p-4 sm:p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] flex flex-col sm:flex-row gap-4 items-start">
-              <div className="flex-shrink-0">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-sm font-bold text-white">
-                  MK
-                </div>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-1 mb-2">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
-                <p className="text-sm text-white/70 leading-relaxed mb-2">
-                  "{t("landing.heroTestimonialText")}"
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-white">{t("landing.heroTestimonialName")}</span>
-                  <span className="text-xs text-white/40">{t("landing.heroTestimonialRole")}</span>
-                </div>
-              </div>
-              <div className="flex-shrink-0 text-center sm:text-right">
-                <div className="text-2xl font-black text-emerald-400">{t("landing.heroTestimonialMetric")}</div>
-                <div className="text-[10px] text-white/40 uppercase tracking-wider">{t("landing.heroTestimonialMetricLabel")}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Trusted By Logo Bar ── */}
-      <section className="py-8 sm:py-10 px-4 sm:px-6 border-y border-white/5 bg-white/[0.01]">
-        <div className="max-w-5xl mx-auto">
-          <p className="text-center text-xs text-white/25 uppercase tracking-[0.2em] mb-6">{t("landing.trustedByCompanies")}</p>
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 opacity-40 hover:opacity-60 transition-opacity">
-            {["TechCorp", "SalesForce CZ", "DataDriven", "GrowthLab", "B2B Masters", "LeadPro"].map((company) => (
-              <div key={company} className="text-sm sm:text-base font-bold text-white/60 tracking-wider">
-                {company}
+          {/* Social proof row */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }}
+            className="flex flex-wrap justify-start items-center gap-6 text-sm"
+            style={{ color: "rgba(255,255,255,0.4)" }}
+          >
+            {[
+              { icon: CheckCircle2, text: "No credit card required", color: "#10b981" },
+              { icon: Shield, text: "GDPR Compliant", color: "#3b82f6" },
+              { icon: Rocket, text: "Setup in 2 minutes", color: "#8b5cf6" },
+            ].map(({ icon: Icon, text, color }) => (
+              <div key={text} className="flex items-center gap-1.5">
+                <Icon className="w-3.5 h-3.5" style={{ color }} />
+                <span>{text}</span>
               </div>
             ))}
+          </motion.div>
+        </motion.div>
+
+        {/* Scroll indicator */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 -translate-x-1/2"
+          animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }}
+        >
+          <div className="w-6 h-10 rounded-full border flex items-start justify-center pt-2" style={{ borderColor: "rgba(139,92,246,0.3)" }}>
+            <motion.div className="w-1.5 h-2.5 rounded-full" style={{ background: "#8b5cf6" }} animate={{ y: [0, 12, 0] }} transition={{ duration: 2, repeat: Infinity }} />
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* ── Stats Bar with ROI numbers ── */}
-      <section className="py-10 sm:py-14 px-4 sm:px-6 bg-gradient-to-r from-violet-600/10 via-blue-600/10 to-cyan-600/10">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-          {STATS.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-3xl sm:text-4xl font-black text-white mb-1">{s.value}</div>
-              <div className="text-xs sm:text-sm text-white/50">{s.label}</div>
-            </div>
+      {/* ── Animated Stats Bar ───────────────────────────────────────────────── */}
+      <section className="py-16 px-4 relative" style={{ borderTop: "1px solid rgba(139,92,246,0.1)", borderBottom: "1px solid rgba(139,92,246,0.1)" }}>
+        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(139,92,246,0.04), rgba(6,182,212,0.04), rgba(139,92,246,0.04))" }} />
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 relative">
+          {[
+            { value: 32000, suffix: "+", label: t("landing.statsLeads") || "Leads Generated" },
+            { value: 94, suffix: "%", label: t("landing.statsEnrichment") || "Enrichment Rate" },
+            { value: 12, suffix: "+", label: t("landing.statsIndustries") || "Industries" },
+            { value: 5, suffix: "min", label: t("landing.statsTime") || "Avg. Setup Time" },
+          ].map(({ value, suffix, label }, i) => (
+            <Reveal key={label} delay={i * 0.1}>
+              <div className="text-center">
+                <div className="text-4xl sm:text-5xl font-black mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif", background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+                  <AnimatedCounter value={value} suffix={suffix} />
+                </div>
+                <div className="text-sm" style={{ color: "rgba(255,255,255,0.45)" }}>{label}</div>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>
 
-      {/* ── Features ── */}
-      <section id="features" className="py-16 sm:py-24 px-4 sm:px-6">
+      {/* ── How It Works ─────────────────────────────────────────────────────── */}
+      <section id="how-it-works" className="py-24 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
-            <Badge className="mb-3 sm:mb-4 bg-blue-500/20 text-blue-300 border-blue-500/30">{t("nav.features")}</Badge>
-            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.featuresTitle")}</h2>
-            <p className="text-white/50 text-sm sm:text-lg max-w-2xl mx-auto">{t("landing.featuresSubtitle")}</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {FEATURES.map((f) => (
-              <Card key={f.title} className="bg-white/[0.03] border-white/[0.06] hover:border-white/10 transition-all hover:bg-white/[0.05] group">
-                <CardContent className="p-4 sm:p-6">
-                  <div className={`w-9 sm:w-10 h-9 sm:h-10 rounded-xl ${f.bg} flex items-center justify-center mb-3 sm:mb-4`}>
-                    <f.icon className={`w-4 sm:w-5 h-4 sm:h-5 ${f.color}`} />
+          <Reveal>
+            <div className="text-center mb-16">
+              <Badge className="mb-4 text-xs px-3 py-1 border" style={{ background: "rgba(6,182,212,0.1)", borderColor: "rgba(6,182,212,0.3)", color: "#06b6d4" }}>
+                {t("nav.howItWorks") || "How It Works"}
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                From Zero to Pipeline in <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>4 Steps</span>
+              </h2>
+              <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.5)" }}>
+                No complex setup. No data science degree required. Just results.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {HOW_IT_WORKS.map(({ step, icon: Icon, title, desc, color }, i) => (
+              <Reveal key={step} delay={i * 0.12}>
+                <motion.div
+                  whileHover={{ y: -6, scale: 1.02 }}
+                  className="relative p-6 rounded-2xl h-full"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+                >
+                  <div className="text-6xl font-black mb-4 leading-none" style={{ color: "rgba(255,255,255,0.04)", fontFamily: "'Space Grotesk', sans-serif" }}>{step}</div>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: `${color}20`, border: `1px solid ${color}40` }}>
+                    <Icon className="w-5 h-5" style={{ color }} />
                   </div>
-                  <h3 className="font-bold text-white mb-1.5 sm:mb-2 text-sm sm:text-base">{f.title}</h3>
-                  <p className="text-xs sm:text-sm text-white/50 leading-relaxed">{f.description}</p>
-                </CardContent>
-              </Card>
+                  <h3 className="font-bold text-base mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>{desc}</p>
+                  {i < HOW_IT_WORKS.length - 1 && (
+                    <div className="hidden lg:block absolute top-1/2 -right-3 z-10">
+                      <ChevronRight className="w-5 h-5" style={{ color: "rgba(139,92,246,0.4)" }} />
+                    </div>
+                  )}
+                </motion.div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── How It Works — Quantum Process Diagram ── */}
-      <section id="how-it-works" className="py-16 sm:py-24 px-4 sm:px-6 bg-[#060610] border-y border-white/5 relative overflow-hidden">
+      {/* ── Features Grid ────────────────────────────────────────────────────── */}
+      <section id="features" className="py-24 px-4 sm:px-6 relative">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-violet-600/5 rounded-full blur-[150px]" />
-          <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-cyan-600/5 rounded-full blur-[150px]" />
-          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full" style={{ background: "radial-gradient(ellipse, rgba(139,92,246,0.06) 0%, transparent 70%)", filter: "blur(40px)" }} />
         </div>
-
         <div className="max-w-6xl mx-auto relative">
-          <div className="text-center mb-12 sm:mb-20">
-            <Badge className="mb-3 sm:mb-4 bg-cyan-500/20 text-cyan-300 border-cyan-500/30 font-mono text-[10px] sm:text-xs tracking-widest">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-cyan-400 mr-2 animate-pulse" />
-              {t("landing.quantumPipeline")}
-            </Badge>
-            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.howTitle")}</h2>
-            <p className="text-white/40 text-sm sm:text-base max-w-xl mx-auto font-light">{t("landing.quantumSubtitle")}</p>
-          </div>
-
-          {/* Desktop: Horizontal Pipeline */}
-          <div className="hidden lg:block">
-            <div className="absolute top-[calc(50%+20px)] left-[10%] right-[10%] h-px">
-              <div className="h-full bg-gradient-to-r from-violet-500/0 via-violet-500/40 to-cyan-500/0" />
-              <div className="absolute inset-0 h-full bg-gradient-to-r from-violet-500/0 via-white/20 to-cyan-500/0 animate-pulse" />
+          <Reveal>
+            <div className="text-center mb-16">
+              <Badge className="mb-4 text-xs px-3 py-1 border" style={{ background: "rgba(139,92,246,0.1)", borderColor: "rgba(139,92,246,0.3)", color: "#a78bfa" }}>
+                {t("nav.features") || "Features"}
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Everything You Need to <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Dominate</span> Your Market
+              </h2>
             </div>
-            <div className="grid grid-cols-4 gap-6 relative">
-              <ProcessNode step="01" title={t("landing.step1Title")} description={t("landing.step1Desc")} icon={<Target className="w-5 h-5" />} color="violet" metrics={["LinkedIn API", "Web Scraping", "Intent Data"]} delay={0} />
-              <ProcessNode step="02" title={t("landing.step2Title")} description={t("landing.step2Desc")} icon={<Sparkles className="w-5 h-5" />} color="blue" metrics={["GPT-4 Analysis", "Email Verify", "Score: 0\u2192100"]} delay={1} />
-              <ProcessNode step="03" title={t("landing.step3Title")} description={t("landing.step3Desc")} icon={<Zap className="w-5 h-5" />} color="cyan" metrics={["Auto-Sequence", "A/B Testing", "Multi-Channel"]} delay={2} />
-              <ProcessNode step="04" title={t("landing.step4Title")} description={t("landing.step4Desc")} icon={<TrendingUp className="w-5 h-5" />} color="emerald" metrics={["CRM Sync", "ROI Track", "Auto-Report"]} delay={3} />
-            </div>
-          </div>
+          </Reveal>
 
-          {/* Mobile: Vertical Pipeline */}
-          <div className="lg:hidden space-y-4 relative">
-            <div className="absolute left-6 top-8 bottom-8 w-px bg-gradient-to-b from-violet-500/40 via-cyan-500/30 to-emerald-500/40" />
-            <MobileProcessNode step="01" title={t("landing.step1Title")} description={t("landing.step1Desc")} icon={<Target className="w-4 h-4" />} color="violet" metrics={["LinkedIn API", "Web Scraping", "Intent Data"]} />
-            <MobileProcessNode step="02" title={t("landing.step2Title")} description={t("landing.step2Desc")} icon={<Sparkles className="w-4 h-4" />} color="blue" metrics={["GPT-4 Analysis", "Email Verify", "Score: 0\u2192100"]} />
-            <MobileProcessNode step="03" title={t("landing.step3Title")} description={t("landing.step3Desc")} icon={<Zap className="w-4 h-4" />} color="cyan" metrics={["Auto-Sequence", "A/B Testing", "Multi-Channel"]} />
-            <MobileProcessNode step="04" title={t("landing.step4Title")} description={t("landing.step4Desc")} icon={<TrendingUp className="w-4 h-4" />} color="emerald" metrics={["CRM Sync", "ROI Track", "Auto-Report"]} />
-          </div>
-
-          <div className="mt-12 sm:mt-16 flex items-center justify-center gap-4 sm:gap-8 text-[10px] sm:text-xs font-mono text-white/25 tracking-wider">
-            <span>LATENCY: &lt;200ms</span>
-            <span className="hidden sm:inline">|</span>
-            <span>THROUGHPUT: 10K leads/hr</span>
-            <span className="hidden sm:inline">|</span>
-            <span>UPTIME: 99.97%</span>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Segment Presets ── */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
-            <Badge className="mb-3 sm:mb-4 bg-orange-500/20 text-orange-300 border-orange-500/30">{t("landing.industryPresetsBadge")}</Badge>
-            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.industryPresetsTitle")}</h2>
-            <p className="text-white/50 text-sm sm:text-lg">{t("landing.industryPresetsSubtitle")}</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-            {[
-              { icon: Shield, label: t("landing.industryInsurance"), color: "from-blue-500/20 to-blue-600/10 border-blue-500/20" },
-              { icon: Building2, label: t("landing.industryRealEstate"), color: "from-green-500/20 to-green-600/10 border-green-500/20" },
-              { icon: Users, label: t("landing.industryMLM"), color: "from-purple-500/20 to-purple-600/10 border-purple-500/20" },
-              { icon: Globe, label: t("landing.industryB2B"), color: "from-orange-500/20 to-orange-600/10 border-orange-500/20" },
-            ].map((seg) => (
-              <div
-                key={seg.label}
-                className={`p-3 sm:p-5 rounded-xl bg-gradient-to-br ${seg.color} border flex flex-col items-center gap-2 sm:gap-3 text-center cursor-pointer hover:scale-105 transition-transform`}
-                onClick={handleCTA}
-              >
-                <seg.icon className="w-5 sm:w-7 h-5 sm:h-7 text-white/70" />
-                <span className="text-xs sm:text-sm font-semibold text-white/80">{seg.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials with ROI metrics ── */}
-      <section id="testimonials" className="py-16 sm:py-24 px-4 sm:px-6 bg-white/[0.02] border-y border-white/5">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
-            <Badge className="mb-3 sm:mb-4 bg-yellow-500/20 text-yellow-300 border-yellow-500/30">
-              <Award className="w-3 h-3 mr-1" /> {t("landing.resultsTitle")}
-            </Badge>
-            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.testimonialsTitle")}</h2>
-            <p className="text-white/50 text-sm sm:text-lg">{t("landing.resultsSubtitle")}</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-            {TESTIMONIALS.map((testimonial) => (
-              <Card key={testimonial.name} className="bg-white/[0.03] border-white/[0.06] hover:border-white/10 transition-all">
-                <CardContent className="p-4 sm:p-6">
-                  {/* ROI metric badge */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex gap-0.5">
-                      {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <Star key={i} className="w-3.5 sm:w-4 h-3.5 sm:h-4 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-black text-emerald-400">{testimonial.metric}</div>
-                      <div className="text-[9px] text-white/30 uppercase tracking-wider">{testimonial.metricLabel}</div>
-                    </div>
-                  </div>
-                  <p className="text-xs sm:text-sm text-white/70 leading-relaxed mb-3 sm:mb-4">"{testimonial.text}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-blue-400 flex items-center justify-center text-xs font-bold">
-                      {testimonial.name.split(" ").map(n => n[0]).join("")}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {FEATURES.map(({ icon: Icon, title, description, color, glow }, i) => (
+              <Reveal key={title} delay={i * 0.05}>
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  className="p-5 rounded-2xl h-full group cursor-default"
+                  style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110" style={{ background: glow, border: `1px solid ${color}30` }}>
+                      <Icon className="w-5 h-5" style={{ color }} />
                     </div>
                     <div>
-                      <div className="font-semibold text-xs sm:text-sm text-white">{testimonial.name}</div>
-                      <div className="text-[10px] sm:text-xs text-white/40">{testimonial.role}</div>
+                      <h3 className="font-semibold text-sm mb-1.5" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
+                      <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>{description}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </motion.div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Pricing ── */}
-      <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-10 sm:mb-16">
-            <Badge className="mb-3 sm:mb-4 bg-violet-500/20 text-violet-300 border-violet-500/30">{t("nav.pricing")}</Badge>
-            <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.pricingTitle")}</h2>
-            <p className="text-white/50 text-sm sm:text-lg">{t("landing.pricingSubtitle")}</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-            {PRICING.map((plan) => (
-              <Card
-                key={plan.name}
-                className={`relative ${plan.highlighted
-                  ? "bg-gradient-to-b from-violet-600/20 to-violet-900/10 border-violet-500/40 shadow-xl shadow-violet-500/10"
-                  : "bg-white/[0.03] border-white/[0.06]"
-                }`}
-              >
-                {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-violet-600 text-white border-0 px-3 text-xs">{t("common.mostPopular")}</Badge>
+      {/* ── Testimonials ─────────────────────────────────────────────────────── */}
+      <section className="py-24 px-4 sm:px-6" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+        <div className="max-w-6xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-16">
+              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                {t("landing.testimonialsTitle") || "Trusted by"} <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Sales Leaders</span>
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {TESTIMONIALS.map(({ name, role, text, rating, metric, metricLabel }, i) => (
+              <Reveal key={name} delay={i * 0.12}>
+                <motion.div
+                  whileHover={{ y: -6 }}
+                  className="p-6 rounded-2xl h-full flex flex-col"
+                  style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
+                >
+                  <div className="flex gap-1 mb-4">
+                    {Array.from({ length: rating }).map((_, j) => (
+                      <Star key={j} className="w-4 h-4 fill-current" style={{ color: "#f59e0b" }} />
+                    ))}
                   </div>
-                )}
-                <CardContent className="p-4 sm:p-6">
-                  <div className="mb-4 sm:mb-6">
-                    <h3 className="font-bold text-base sm:text-lg text-white mb-1">{plan.name}</h3>
-                    <p className="text-xs sm:text-sm text-white/50 mb-3 sm:mb-4">{plan.description}</p>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl sm:text-4xl font-black text-white">{plan.price}</span>
-                      <span className="text-white/40 text-xs sm:text-sm">{plan.period}</span>
+                  <p className="text-sm leading-relaxed flex-1 mb-6" style={{ color: "rgba(255,255,255,0.65)" }}>"{text}"</p>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{name}</div>
+                      <div className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.4)" }}>{role}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{metric}</div>
+                      <div className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{metricLabel}</div>
                     </div>
                   </div>
-                  <ul className="space-y-2 sm:space-y-2.5 mb-4 sm:mb-6">
-                    {plan.features.map((f) => (
-                      <li key={f} className="flex items-center gap-2 text-xs sm:text-sm text-white/70">
-                        <CheckCircle2 className="w-3.5 sm:w-4 h-3.5 sm:h-4 text-green-400 flex-shrink-0" />
-                        {f}
+                </motion.div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Pricing ──────────────────────────────────────────────────────────── */}
+      <section id="pricing" className="py-24 px-4 sm:px-6 relative">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px]" style={{ background: "radial-gradient(ellipse, rgba(6,182,212,0.08) 0%, transparent 70%)", filter: "blur(40px)" }} />
+        </div>
+        <div className="max-w-5xl mx-auto relative">
+          <Reveal>
+            <div className="text-center mb-16">
+              <Badge className="mb-4 text-xs px-3 py-1 border" style={{ background: "rgba(16,185,129,0.1)", borderColor: "rgba(16,185,129,0.3)", color: "#10b981" }}>
+                {t("nav.pricing") || "Pricing"}
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                {t("landing.pricingTitle") || "Simple, Transparent Pricing"}
+              </h2>
+              <p className="text-lg" style={{ color: "rgba(255,255,255,0.5)" }}>
+                {t("landing.pricingSubtitle") || "Start free. Scale as you grow."}
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+            {PRICING.map(({ name, price, period, description, features, cta, highlighted }, i) => (
+              <Reveal key={name} delay={i * 0.1}>
+                <motion.div
+                  whileHover={{ y: -6 }}
+                  className="p-6 rounded-2xl relative"
+                  style={{
+                    background: highlighted ? "linear-gradient(135deg, rgba(139,92,246,0.15), rgba(6,182,212,0.1))" : "rgba(255,255,255,0.03)",
+                    border: highlighted ? "1px solid rgba(139,92,246,0.4)" : "1px solid rgba(255,255,255,0.07)",
+                  }}
+                >
+                  {highlighted && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <Badge className="text-xs px-3 py-0.5" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none", color: "white" }}>
+                        Most Popular
+                      </Badge>
+                    </div>
+                  )}
+                  <div className="mb-6">
+                    <h3 className="font-bold text-base mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{name}</h3>
+                    <div className="flex items-end gap-1 mb-2">
+                      <span className="text-4xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", background: highlighted ? "linear-gradient(135deg, #8b5cf6, #06b6d4)" : "none", WebkitBackgroundClip: highlighted ? "text" : "unset", WebkitTextFillColor: highlighted ? "transparent" : "white" }}>{price}</span>
+                      {period && <span className="text-sm mb-1.5" style={{ color: "rgba(255,255,255,0.4)" }}>/{period}</span>}
+                    </div>
+                    <p className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>{description}</p>
+                  </div>
+                  <ul className="space-y-2.5 mb-6">
+                    {features.map(f => (
+                      <li key={f} className="flex items-start gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: highlighted ? "#8b5cf6" : "#10b981" }} />
+                        <span style={{ color: "rgba(255,255,255,0.7)" }}>{f}</span>
                       </li>
                     ))}
                   </ul>
-                  <Button
-                    className={`w-full text-sm ${plan.highlighted ? "bg-violet-600 hover:bg-violet-700" : "bg-white/10 hover:bg-white/15 text-white"}`}
-                    onClick={handleCTA}
-                  >
-                    {plan.cta}
+                  <Button onClick={handleCTA} className="w-full h-10 font-semibold" style={highlighted ? { background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none" } : { background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "white" }}>
+                    {cta} <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                   </Button>
-                </CardContent>
-              </Card>
+                </motion.div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Final CTA ── */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 border-t border-white/5 relative overflow-hidden">
+      {/* ── Final CTA ────────────────────────────────────────────────────────── */}
+      <section className="py-32 px-4 sm:px-6 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/15 rounded-full blur-[120px]" />
+          <motion.div
+            className="absolute inset-0"
+            style={{ background: "radial-gradient(ellipse at center, rgba(139,92,246,0.15) 0%, transparent 60%)" }}
+            animate={{ scale: [1, 1.1, 1], opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 8, repeat: Infinity }}
+          />
+          <div className="absolute inset-0" style={{
+            backgroundImage: "linear-gradient(rgba(139,92,246,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.05) 1px, transparent 1px)",
+            backgroundSize: "40px 40px",
+          }} />
         </div>
         <div className="max-w-3xl mx-auto text-center relative">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs mb-6">
-            <Rocket className="w-3.5 h-3.5" />
-            {t("landing.joinTeams")}
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-black mb-3 sm:mb-4">{t("landing.ctaTitle")}</h2>
-          <p className="text-white/50 text-sm sm:text-lg mb-6 sm:mb-8">{t("landing.ctaSubtitle")}</p>
-          <div className="max-w-md mx-auto mb-4">
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-0 sm:bg-white/[0.06] sm:border sm:border-white/[0.1] sm:rounded-xl sm:p-1.5">
-              <Input
-                type="email"
-                placeholder={t("landing.emailPlaceholder")}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-1 bg-white/[0.06] sm:bg-transparent border-white/10 sm:border-0 text-white placeholder:text-white/30 h-11 sm:h-10 rounded-lg focus-visible:ring-violet-500/50 px-4"
-                onKeyDown={(e) => e.key === "Enter" && handleEmailCTA()}
-              />
-              <Button className="bg-violet-600 hover:bg-violet-700 h-11 sm:h-10 px-6 font-semibold whitespace-nowrap rounded-lg" onClick={handleEmailCTA}>
-                {t("landing.startFree")} <ArrowRight className="w-4 h-4 ml-1.5" />
+          <Reveal>
+            <motion.div
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6"
+              style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}
+              animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.05, 1] }}
+              transition={{ duration: 4, repeat: Infinity }}
+            >
+              <Rocket className="w-8 h-8 text-white" />
+            </motion.div>
+            <h2 className="text-4xl sm:text-5xl font-black mb-6 leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+              Ready to <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4, #10b981)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>10x Your Pipeline?</span>
+            </h2>
+            <p className="text-lg mb-10 max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.55)" }}>
+              Join thousands of sales teams who generate qualified B2B leads in minutes, not weeks.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button onClick={handleCTA} size="lg" className="h-14 px-10 text-base font-bold" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none", boxShadow: "0 0 40px rgba(139,92,246,0.4)" }}>
+                {t("landing.ctaPrimary") || "Start Free Today"} <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+              <Button onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })} variant="outline" size="lg" className="h-14 px-8 text-base" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)", color: "white" }}>
+                See All Features <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-white/30">
-            <span className="flex items-center gap-1"><CreditCard className="w-3 h-3" /> {t("landing.noCreditCard")}</span>
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {t("landing.setupTime")}</span>
-            <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> {t("landing.cancelAnytime")}</span>
-          </div>
+            <p className="mt-6 text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>
+              No credit card required · GDPR compliant · Cancel anytime
+            </p>
+          </Reveal>
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="py-8 sm:py-10 px-4 sm:px-6 border-t border-white/5 bg-white/[0.01]">
-        <div className="max-w-6xl mx-auto flex flex-col gap-4 sm:gap-0 sm:flex-row items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center">
-              <Zap className="w-3 h-3 text-white" />
+      {/* ── Footer ───────────────────────────────────────────────────────────── */}
+      <footer className="py-12 px-4 sm:px-6" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
+              <Zap className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-bold text-sm">LeadGen AI</span>
+            <span className="font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>LeadGen CRM Automation</span>
           </div>
-          <p className="text-xs text-white/30 order-3 sm:order-2">&copy; 2026 LeadGen AI. {t("landing.footerRights")}</p>
-          <div className="flex items-center gap-3 sm:gap-4 order-2 sm:order-3 flex-wrap justify-center">
-            <LanguageSwitcher variant="flags" />
-            <div className="flex gap-4 sm:gap-6 text-xs text-white/30">
-              <a href="#" className="hover:text-white/60 transition-colors">{t("landing.privacyPolicy")}</a>
-              <a href="#" className="hover:text-white/60 transition-colors">{t("landing.termsOfService")}</a>
-            </div>
+          <div className="flex items-center gap-6 text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
+            <a href="#features" className="hover:text-white transition-colors">{t("nav.features")}</a>
+            <a href="#pricing" className="hover:text-white transition-colors">{t("nav.pricing")}</a>
+            <span>© 2025 LeadGen CRM Automation</span>
+          </div>
+          <div className="flex items-center gap-3 text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
+            <Shield className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
+            <span>GDPR Compliant</span>
+            <Globe className="w-3.5 h-3.5 ml-2" style={{ color: "#3b82f6" }} />
+            <span>SOC 2 Ready</span>
           </div>
         </div>
       </footer>
-
-      {/* ── Sticky Mobile CTA ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-[#0a0a0f]/95 backdrop-blur-xl border-t border-white/10 p-3">
-        <Button className="w-full bg-violet-600 hover:bg-violet-700 h-11 font-semibold" onClick={handleCTA}>
-          {t("landing.stickyMobileCTA")} <ArrowRight className="w-4 h-4 ml-1.5" />
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-
-// ─── Quantum Process Diagram Components ─────────────────────
-
-function ProcessNode({
-  step, title, description, icon, color, metrics, delay,
-}: {
-  step: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  color: "violet" | "blue" | "cyan" | "emerald";
-  metrics: string[];
-  delay: number;
-}) {
-  const colorMap = {
-    violet: { glow: "shadow-violet-500/20", border: "border-violet-500/30", bg: "bg-violet-500/10", text: "text-violet-400", dot: "bg-violet-400", ring: "ring-violet-500/20", metricBg: "bg-violet-500/10", metricText: "text-violet-300" },
-    blue: { glow: "shadow-blue-500/20", border: "border-blue-500/30", bg: "bg-blue-500/10", text: "text-blue-400", dot: "bg-blue-400", ring: "ring-blue-500/20", metricBg: "bg-blue-500/10", metricText: "text-blue-300" },
-    cyan: { glow: "shadow-cyan-500/20", border: "border-cyan-500/30", bg: "bg-cyan-500/10", text: "text-cyan-400", dot: "bg-cyan-400", ring: "ring-cyan-500/20", metricBg: "bg-cyan-500/10", metricText: "text-cyan-300" },
-    emerald: { glow: "shadow-emerald-500/20", border: "border-emerald-500/30", bg: "bg-emerald-500/10", text: "text-emerald-400", dot: "bg-emerald-400", ring: "ring-emerald-500/20", metricBg: "bg-emerald-500/10", metricText: "text-emerald-300" },
-  };
-  const c = colorMap[color];
-
-  return (
-    <div className="relative group" style={{ animationDelay: `${delay * 200}ms` }}>
-      <div className="flex justify-center mb-5">
-        <div className={`relative w-14 h-14 rounded-2xl ${c.bg} ${c.border} border flex items-center justify-center shadow-lg ${c.glow} ring-1 ${c.ring}`}>
-          <div className={c.text}>{icon}</div>
-          <div className={`absolute inset-0 rounded-2xl ${c.border} border animate-ping opacity-20`} />
-        </div>
-      </div>
-      <div className="text-center mb-3">
-        <span className={`font-mono text-[10px] tracking-[0.3em] ${c.text} opacity-60`}>STEP {step}</span>
-      </div>
-      <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] hover:border-white/10 transition-all group-hover:bg-white/[0.04]">
-        <h3 className="font-bold text-white text-sm mb-2 text-center">{title}</h3>
-        <p className="text-xs text-white/40 leading-relaxed text-center mb-4">{description}</p>
-        <div className="space-y-1.5">
-          {metrics.map((m) => (
-            <div key={m} className="flex items-center gap-2">
-              <div className={`w-1 h-1 rounded-full ${c.dot}`} />
-              <span className={`text-[10px] font-mono ${c.metricText} opacity-70`}>{m}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="flex justify-center mt-3">
-        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full ${c.metricBg}`}>
-          <div className={`w-1 h-1 rounded-full ${c.dot} animate-pulse`} />
-          <span className={`text-[9px] font-mono ${c.metricText} opacity-50`}>ACTIVE</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function MobileProcessNode({
-  step, title, description, icon, color, metrics,
-}: {
-  step: string;
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  color: "violet" | "blue" | "cyan" | "emerald";
-  metrics: string[];
-}) {
-  const colorMap = {
-    violet: { bg: "bg-violet-500/10", border: "border-violet-500/30", text: "text-violet-400", dot: "bg-violet-400", metricText: "text-violet-300" },
-    blue: { bg: "bg-blue-500/10", border: "border-blue-500/30", text: "text-blue-400", dot: "bg-blue-400", metricText: "text-blue-300" },
-    cyan: { bg: "bg-cyan-500/10", border: "border-cyan-500/30", text: "text-cyan-400", dot: "bg-cyan-400", metricText: "text-cyan-300" },
-    emerald: { bg: "bg-emerald-500/10", border: "border-emerald-500/30", text: "text-emerald-400", dot: "bg-emerald-400", metricText: "text-emerald-300" },
-  };
-  const c = colorMap[color];
-
-  return (
-    <div className="flex gap-4 relative pl-2">
-      <div className="flex-shrink-0 relative z-10">
-        <div className={`w-10 h-10 rounded-xl ${c.bg} ${c.border} border flex items-center justify-center`}>
-          <div className={c.text}>{icon}</div>
-        </div>
-      </div>
-      <div className="flex-1 pb-2">
-        <div className="flex items-center gap-2 mb-1">
-          <span className={`font-mono text-[9px] tracking-[0.2em] ${c.text} opacity-60`}>STEP {step}</span>
-        </div>
-        <h3 className="font-bold text-white text-sm mb-1">{title}</h3>
-        <p className="text-xs text-white/40 leading-relaxed mb-2">{description}</p>
-        <div className="flex flex-wrap gap-1.5">
-          {metrics.map((m) => (
-            <span key={m} className={`text-[9px] font-mono px-1.5 py-0.5 rounded ${c.bg} ${c.metricText} opacity-70`}>
-              {m}
-            </span>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

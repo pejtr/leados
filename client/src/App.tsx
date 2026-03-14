@@ -38,6 +38,8 @@ import KnowledgeBase from "./pages/KnowledgeBase";
 import CompetitiveMap from "./pages/CompetitiveMap";
 import Billing from "./pages/Billing";
 import AiAdvisor from "./pages/AiAdvisor";
+import MeetingScheduler from "./pages/MeetingScheduler";
+import CallIntelligence from "./pages/CallIntelligence";
 
 function Router() {
   return (
@@ -76,6 +78,8 @@ function Router() {
       <Route path="/competitive" component={CompetitiveMap} />
       <Route path="/billing" component={Billing} />
       <Route path="/ai-advisor" component={AiAdvisor} />
+      <Route path="/meetings" component={MeetingScheduler} />
+      <Route path="/calls" component={CallIntelligence} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

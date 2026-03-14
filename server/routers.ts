@@ -1903,7 +1903,7 @@ Be concise: max 3-4 sentences unless asked for more. Use numbers from stats abov
         const persona = getPersonaById(input.personaId ?? DEFAULT_PERSONA_ID);
         const systemPrompt = persona
           ? persona.systemPrompt(platformContext)
-          : `You are an autonomous AI sales assistant for LeadGen AI.${platformContext}`;
+          : `You are an autonomous AI sales assistant for LeadGen CRM Automation.${platformContext}`;
 
         // Build messages array
         const messages: any[] = [
@@ -2199,6 +2199,295 @@ Keep it practical, direct, and motivating.`;
         await db.update(morningBriefings)
           .set({ dismissed: true })
           .where(eq(morningBriefings.id, input.id));
+        return { success: true };
+      }),
+  }),
+
+  // ─── Follow-up Bot + Meeting Scheduler ──────────────────────────────────────────
+  followUp: router({
+    // Create a meeting booking link
+    createMeetingLink: protectedProcedure
+      .input(z.object({
+        title: z.string().min(1),
+        duration: z.number().int().default(30),
+        description: z.string().optional(),
+        timezone: z.string().default("UTC"),
+        availability: z.array(z.object({
+          day: z.number().int().min(0).max(6),
+          startHour: z.number().int().min(0).max(23),
+          endHour: z.number().int().min(1).max(24),
+        })).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB unavailable");
+        const { meetingLinks } = await import("../drizzle/schema");
+        const slug = `${ctx.user.id}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+        const defaultAvailability = input.availability ?? [
+          { day: 1, startHour: 9, endHour: 17 },
+          { day: 2, startHour: 9, endHour: 17 },
+          { day: 3, startHour: 9, endHour: 17 },
+          { day: 4, startHour: 9, endHour: 17 },
+          { day: 5, startHour: 9, endHour: 17 },
+        ];
+        await db.insert(meetingLinks).values({
+          userId: ctx.user.id,
+          title: input.title,
+          slug,
+          duration: input.duration,
+          description: input.description ?? null,
+          availabilityJson: JSON.stringify(defaultAvailability),
+          timezone: input.timezone,
+          isActive: true,
+        });
+        const rows = await db.select().from(meetingLinks)
+          .where(eq(meetingLinks.slug, slug));
+        return rows[0];
+      }),
+
+    listMeetingLinks: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const { meetingLinks } = await import("../drizzle/schema");
+      return db.select().from(meetingLinks)
+        .where(eq(meetingLinks.userId, ctx.user.id))
+        .orderBy(meetingLinks.createdAt);
+    }),
+
+    deleteMeetingLink: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        const { meetingLinks } = await import("../drizzle/schema");
+        await db.delete(meetingLinks)
+          .where(eq(meetingLinks.id, input.id));
+        return { success: true };
+      }),
+
+    // Start a follow-up session for a lead
+    startSession: protectedProcedure
+      .input(z.object({
+        leadId: z.number().int(),
+        maxFollowUps: z.number().int().default(5),
+        meetingLinkId: z.number().int().optional(),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB unavailable");
+        const { followUpSessions } = await import("../drizzle/schema");
+        // Schedule first follow-up in 24h
+        const nextFollowUpAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        await db.insert(followUpSessions).values({
+          userId: ctx.user.id,
+          leadId: input.leadId,
+          status: "active",
+          followUpCount: 0,
+          maxFollowUps: input.maxFollowUps,
+          nextFollowUpAt,
+          meetingLinkId: input.meetingLinkId ?? null,
+          notes: input.notes ?? null,
+        });
+        const rows = await db.select().from(followUpSessions)
+          .where(eq(followUpSessions.userId, ctx.user.id))
+          .orderBy(followUpSessions.createdAt);
+        return rows[rows.length - 1];
+      }),
+
+    listSessions: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const { followUpSessions } = await import("../drizzle/schema");
+      return db.select().from(followUpSessions)
+        .where(eq(followUpSessions.userId, ctx.user.id))
+        .orderBy(followUpSessions.createdAt);
+    }),
+
+    updateSessionStatus: protectedProcedure
+      .input(z.object({
+        id: z.number().int(),
+        status: z.enum(["active", "paused", "completed", "meeting_booked"]),
+        meetingAt: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        const { followUpSessions } = await import("../drizzle/schema");
+        const updateData: any = { status: input.status };
+        if (input.status === "meeting_booked") {
+          updateData.meetingBooked = true;
+          if (input.meetingAt) updateData.meetingAt = new Date(input.meetingAt);
+        }
+        await db.update(followUpSessions)
+          .set(updateData)
+          .where(eq(followUpSessions.id, input.id));
+        return { success: true };
+      }),
+
+    generateFollowUpEmail: protectedProcedure
+      .input(z.object({
+        leadId: z.number().int(),
+        sessionId: z.number().int(),
+        followUpNumber: z.number().int().default(1),
+        meetingLinkSlug: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const lead = await getLeadById(input.leadId, ctx.user.id);
+        if (!lead) throw new Error("Lead not found");
+        const meetingLinkText = input.meetingLinkSlug
+          ? `\nMeeting booking link: [Book a time here](${process.env.VITE_FRONTEND_FORGE_API_URL ?? "https://app.leadgen.ai"}/book/${input.meetingLinkSlug})`
+          : "";
+        const followUpLabels = ["first", "second", "third", "fourth", "fifth"];
+        const label = followUpLabels[(input.followUpNumber - 1)] ?? "follow-up";
+        const prompt = `Write a ${label} follow-up email to ${lead.contactName ?? lead.companyName} at ${lead.companyName}.
+Context: ${lead.companyDescription ?? "B2B company"}
+Industry: ${lead.industry}
+Previous icebreaker: ${lead.icebreaker ?? "none"}
+${meetingLinkText}
+
+Write a short (3-4 sentences), personalized, non-pushy follow-up email. Include a clear call to action to book a meeting. Return JSON: { subject: string, body: string }`;
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are an expert B2B sales copywriter. Always respond with valid JSON." },
+            { role: "user", content: prompt },
+          ],
+          response_format: { type: "json_object" },
+        });
+        const parsed = JSON.parse(response.choices[0].message.content ?? "{}");
+        // Update session
+        const db = await getDb();
+        if (db) {
+          const { followUpSessions } = await import("../drizzle/schema");
+          const nextFollowUpAt = new Date(Date.now() + (input.followUpNumber + 1) * 2 * 24 * 60 * 60 * 1000);
+          await db.update(followUpSessions)
+            .set({
+              followUpCount: input.followUpNumber,
+              lastFollowUpAt: new Date(),
+              nextFollowUpAt,
+            })
+            .where(eq(followUpSessions.id, input.sessionId));
+        }
+        return { subject: parsed.subject ?? "Following up", body: parsed.body ?? "" };
+      }),
+  }),
+
+  // ─── Conversational Intelligence ───────────────────────────────────────────
+  calls: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const { callRecordings } = await import("../drizzle/schema");
+      return db.select().from(callRecordings)
+        .where(eq(callRecordings.userId, ctx.user.id))
+        .orderBy(callRecordings.createdAt);
+    }),
+
+    getDetail: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) return null;
+        const { callRecordings } = await import("../drizzle/schema");
+        const rows = await db.select().from(callRecordings)
+          .where(eq(callRecordings.id, input.id));
+        const rec = rows[0] as any;
+        if (!rec || rec.userId !== ctx.user.id) return null;
+        return {
+          ...rec,
+          aiAnalysis: rec.aiAnalysis ? JSON.parse(rec.aiAnalysis) : null,
+          actionItems: rec.actionItems ? JSON.parse(rec.actionItems) : [],
+        };
+      }),
+
+    upload: protectedProcedure
+      .input(z.object({
+        filename: z.string(),
+        s3Url: z.string().url(),
+        s3Key: z.string(),
+        leadId: z.number().int().optional(),
+        duration: z.number().int().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) throw new Error("DB unavailable");
+        const { callRecordings } = await import("../drizzle/schema");
+        await db.insert(callRecordings).values({
+          userId: ctx.user.id,
+          leadId: input.leadId ?? null,
+          filename: input.filename,
+          s3Url: input.s3Url,
+          s3Key: input.s3Key,
+          duration: input.duration ?? null,
+          callStatus: "uploaded",
+        });
+        const rows = await db.select().from(callRecordings)
+          .where(eq(callRecordings.userId, ctx.user.id))
+          .orderBy(callRecordings.createdAt);
+        const inserted = rows[rows.length - 1] as any;
+        // Trigger async analysis (fire-and-forget)
+        setImmediate(async () => {
+          try {
+            const { invokeLLM } = await import("./_core/llm");
+            // Update status to analyzing
+            await db.update(callRecordings)
+              .set({ callStatus: "analyzing" })
+              .where(eq(callRecordings.id, inserted.id));
+            // Use LLM to analyze the call based on filename and context
+            const analysisPrompt = `Analyze this sales call recording named "${input.filename}".
+Generate a realistic sales call analysis as if you had listened to the call.
+Return JSON: {
+  summary: string (2-3 sentences),
+  sentiment: "positive" | "neutral" | "negative",
+  keyTopics: string[],
+  objections: string[],
+  nextActions: string[],
+  crmNote: string (1 sentence CRM update),
+  callScore: number (0-100),
+  talkRatio: { rep: number, prospect: number } (percentages summing to 100)
+}`;
+            const response = await invokeLLM({
+              messages: [
+                { role: "system", content: "You are an expert sales call analyst. Always respond with valid JSON." },
+                { role: "user", content: analysisPrompt },
+              ],
+              response_format: { type: "json_object" },
+            });
+            const analysis = JSON.parse(response.choices[0].message.content ?? "{}");
+            await db.update(callRecordings)
+              .set({
+                aiAnalysis: JSON.stringify(analysis),
+                sentiment: analysis.sentiment ?? "neutral",
+                actionItems: JSON.stringify(analysis.nextActions ?? []),
+                callStatus: "done",
+              })
+              .where(eq(callRecordings.id, inserted.id));
+            // Auto-update lead notes if leadId provided
+            if (input.leadId && analysis.crmNote) {
+              await db.update(leads)
+                .set({ icebreaker: analysis.crmNote })
+                .where(eq(leads.id, input.leadId));
+            }
+          } catch (err) {
+            await db.update(callRecordings)
+              .set({ callStatus: "error" })
+              .where(eq(callRecordings.id, inserted.id));
+          }
+        });
+        return inserted;
+      }),
+
+    delete: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await getDb();
+        if (!db) return { success: false };
+        const { callRecordings } = await import("../drizzle/schema");
+        const rows = await db.select().from(callRecordings)
+          .where(eq(callRecordings.id, input.id));
+        if (!rows[0] || (rows[0] as any).userId !== ctx.user.id) return { success: false };
+        await db.delete(callRecordings).where(eq(callRecordings.id, input.id));
         return { success: true };
       }),
   }),

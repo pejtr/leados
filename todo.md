@@ -231,8 +231,8 @@
 - [ ] Sticky mobile CTA bar
 - [ ] Specific ROI numbers in testimonials section
 
-## Branding Update to AI LeadGen
-- [ ] Update app title to AI LeadGen
+## Branding Update to LeadGen CRM Automation
+- [ ] Update app title to LeadGen CRM Automation
 - [ ] Set new logo (V1 light for header, V3 icon for favicon)
 - [ ] Update Landing page branding
 - [ ] Update DashboardLayout branding
@@ -282,7 +282,7 @@
 - [x] Wire into DashboardLayout redirect
 
 ## Branding Update
-- [x] Update VITE_APP_TITLE to "AI LeadGen"
+- [x] Update VITE_APP_TITLE to "LeadGen CRM Automation"
 - [x] Update DashboardLayout sidebar logo/name
 - [x] Update Landing page brand name
 
@@ -413,8 +413,8 @@
 - [ ] Nav item in DashboardLayout sidebar
 - [ ] Route in App.tsx
 
-## Branding Rename: AI LeadGen → LeadGen AI
-- [x] Update all hardcoded "AI LeadGen" strings in Landing.tsx
+## Branding Rename: LeadGen CRM Automation → LeadGen CRM Automation
+- [x] Update all hardcoded "LeadGen CRM Automation" strings in Landing.tsx
 - [x] Update DashboardLayout sidebar logo/name
 - [x] Update page title in index.html
 - [x] Update meta tags in Landing.tsx
@@ -463,3 +463,40 @@
 - [x] index.html: Premium fonts (Space Grotesk + Inter)
 - [x] DashboardLayout: Gradient logo, glow nav items, premium animated sidebar
 - [x] Home.tsx: Animated stat counters, pipeline funnel infographic, activity pulse chart, glassmorphism cards, gradient hero header
+
+## Sprint 2: AI Follow-up Bot + Meeting Scheduling
+- [ ] DB: meeting_links table (userId, title, slug, duration, availabilityJson, createdAt)
+- [ ] DB: follow_up_sessions table (leadId, userId, status, nextFollowUpAt, meetingBooked, meetingAt)
+- [ ] Backend: followUp.createMeetingLink procedure (generate unique booking slug)
+- [ ] Backend: followUp.getAvailability / followUp.bookMeeting procedures
+- [ ] Backend: followUp.startSession / followUp.getActiveSessions procedures
+- [ ] Backend: Scheduler — every 30min check for due follow-ups, generate AI email with meeting link
+- [ ] Frontend: Meeting Scheduler page (/meetings) with availability config and booking link generator
+- [ ] Frontend: Follow-up Bot widget on dashboard (active sessions, next scheduled follow-up)
+- [ ] Frontend: Booking page (/book/:slug) — public page for leads to pick a time slot
+- [ ] Nav item + route in App.tsx
+
+## Animated Landing Page
+- [ ] Cinematic hero section with animated gradient mesh orbs (CSS + JS)
+- [ ] Scroll-triggered section reveals (Intersection Observer)
+- [ ] Animated particle/dot grid background
+- [ ] Premium feature showcase with staggered card animations
+- [ ] Animated counter stats section (matching dashboard style)
+- [ ] Smooth scroll navigation
+- [ ] Premium glassmorphism pricing cards with hover glow
+- [ ] Mobile-optimized animations (reduced motion)
+
+## Conversational Intelligence
+- [ ] DB: call_recordings table (userId, leadId, filename, s3Url, duration, transcription, aiAnalysis, sentiment, actionItems, createdAt)
+- [ ] Backend: calls.uploadRecording procedure (S3 upload + Whisper transcription)
+- [ ] Backend: calls.analyzeCall procedure (LLM analysis: sentiment, objections, next actions, CRM notes)
+- [ ] Backend: calls.list / calls.getDetail procedures
+- [ ] Backend: Auto-update lead notes/status from call analysis
+- [ ] Frontend: Call Intelligence page (/calls) with upload, transcript viewer, AI insights
+- [ ] Frontend: Call summary card on lead detail (expandable)
+- [ ] Nav item + route in App.tsx
+
+## Hero Image: Královna Leadů
+- [ ] Generate AI image: Queen of Leads on private jet, luxury, champagne, gold accents
+- [ ] Upload to CDN
+- [ ] Integrate as hero background on Landing page

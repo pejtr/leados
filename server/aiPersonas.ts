@@ -1,5 +1,5 @@
 /**
- * AI Sales Personas for the LeadGen AI chatbot assistant.
+ * AI Sales Personas for the LeadGen CRM Automation chatbot assistant.
  * Each persona is inspired by a top sales/business expert and provides
  * a unique communication style, methodology, and advice framework.
  */

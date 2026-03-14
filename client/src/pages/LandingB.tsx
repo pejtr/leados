@@ -34,7 +34,7 @@ export default function LandingB() {
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20">
               <Zap className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-lg tracking-tight">LeadGen AI</span>
+            <span className="font-bold text-lg tracking-tight">LeadGen CRM Automation</span>
           </div>
 
           <div className="hidden lg:flex items-center gap-8 text-sm text-white/50">
@@ -367,7 +367,7 @@ export default function LandingB() {
         </div>
         <div className="max-w-3xl mx-auto text-center relative">
           <h2 className="text-2xl sm:text-4xl font-black mb-4">Ready to 10x your pipeline?</h2>
-          <p className="text-white/40 text-sm sm:text-lg mb-8">Join 500+ B2B teams already using LeadGen AI to crush their quotas.</p>
+          <p className="text-white/40 text-sm sm:text-lg mb-8">Join 500+ B2B teams already using LeadGen CRM Automation to crush their quotas.</p>
           <Button
             size="lg"
             className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 px-10 h-12 text-base font-semibold shadow-xl shadow-amber-500/25"
@@ -385,9 +385,9 @@ export default function LandingB() {
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
               <Zap className="w-3 h-3 text-white" />
             </div>
-            <span className="font-bold text-sm">LeadGen AI</span>
+            <span className="font-bold text-sm">LeadGen CRM Automation</span>
           </div>
-          <p className="text-xs text-white/30">© 2026 LeadGen AI. All rights reserved.</p>
+          <p className="text-xs text-white/30">© 2026 LeadGen CRM Automation. All rights reserved.</p>
           <div className="flex items-center gap-4">
             <LanguageSwitcher variant="flags" />
             <div className="flex gap-6 text-xs text-white/30">
