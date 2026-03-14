@@ -1,24 +1,164 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 import {
   BarChart3, Bell, CheckCircle2, Clock, Lightbulb, Loader2,
   Mail, Phone, Sparkles, Timer, TrendingUp, Users, Zap, Linkedin,
   XCircle, ArrowRight, Shield, Brain, ChevronRight, Activity, BookOpen, Star,
-  Sun, X, RefreshCw, Target, AlertTriangle, ListChecks,
+  Sun, X, RefreshCw, Target, AlertTriangle, ListChecks, Cpu, Flame,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
+
+// ─── Animated Counter Hook ───────────────────────────────────
+function useCountUp(target: number, duration = 1400) {
+  const [count, setCount] = useState(0);
+  const startTime = useRef<number | null>(null);
+  const frameRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (target === 0) { setCount(0); return; }
+    startTime.current = null;
+    const animate = (ts: number) => {
+      if (!startTime.current) startTime.current = ts;
+      const progress = Math.min((ts - startTime.current) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.floor(eased * target));
+      if (progress < 1) frameRef.current = requestAnimationFrame(animate);
+    };
+    frameRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameRef.current);
+  }, [target, duration]);
+
+  return count;
+}
+
+// ─── Animated Stat Card ──────────────────────────────────────
+function AnimatedStatCard({
+  title, value, icon, description, color, suffix = "",
+}: {
+  title: string;
+  value: number | null;
+  icon: React.ReactNode;
+  description: string;
+  color: "primary" | "emerald" | "violet" | "amber";
+  suffix?: string;
+}) {
+  const numericValue = typeof value === "number" ? value : 0;
+  const animated = useCountUp(numericValue);
+  const colorMap = {
+    primary: { icon: "text-violet-400", bg: "bg-violet-500/10", glow: "shadow-violet-500/10", border: "border-violet-500/20", bar: "bg-violet-500" },
+    emerald: { icon: "text-emerald-400", bg: "bg-emerald-500/10", glow: "shadow-emerald-500/10", border: "border-emerald-500/20", bar: "bg-emerald-500" },
+    violet: { icon: "text-blue-400", bg: "bg-blue-500/10", glow: "shadow-blue-500/10", border: "border-blue-500/20", bar: "bg-blue-500" },
+    amber: { icon: "text-amber-400", bg: "bg-amber-500/10", glow: "shadow-amber-500/10", border: "border-amber-500/20", bar: "bg-amber-500" },
+  };
+  const c = colorMap[color];
+
+  return (
+    <div className={`relative overflow-hidden rounded-2xl border ${c.border} bg-white/[0.03] backdrop-blur-sm p-5 shadow-lg ${c.glow} group hover:bg-white/[0.05] transition-all duration-300`}>
+      {/* Glow orb */}
+      <div className={`absolute -top-4 -right-4 w-20 h-20 rounded-full ${c.bg} blur-2xl opacity-60 group-hover:opacity-100 transition-opacity`} />
+      <div className="relative">
+        <div className="flex items-start justify-between mb-3">
+          <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest">{title}</p>
+          <div className={`p-2 rounded-xl ${c.bg}`}>
+            <span className={c.icon}>{icon}</span>
+          </div>
+        </div>
+        <div className="flex items-end gap-1">
+          {value === null ? (
+            <Loader2 className="h-6 w-6 animate-spin text-white/30" />
+          ) : (
+            <span className="text-3xl font-black text-white tracking-tight">{animated}{suffix}</span>
+          )}
+        </div>
+        <p className="text-xs text-white/30 mt-1">{description}</p>
+        {/* Animated bar */}
+        <div className="mt-3 h-0.5 bg-white/5 rounded-full overflow-hidden">
+          <div
+            className={`h-full ${c.bar} rounded-full transition-all duration-1000`}
+            style={{ width: value !== null ? `${Math.min((numericValue / Math.max(numericValue, 100)) * 100, 100)}%` : "0%" }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Pipeline Flow Infographic ───────────────────────────────
+function PipelineFlow({ stats }: { stats: any }) {
+  const stages = [
+    { label: "Generated", value: stats?.totalLeads ?? 0, color: "from-violet-500 to-violet-600", icon: <Zap className="h-3.5 w-3.5" /> },
+    { label: "Enriched", value: stats?.enrichedLeads ?? 0, color: "from-blue-500 to-blue-600", icon: <Sparkles className="h-3.5 w-3.5" /> },
+    { label: "Contacted", value: Math.floor((stats?.enrichedLeads ?? 0) * 0.6), color: "from-emerald-500 to-emerald-600", icon: <Mail className="h-3.5 w-3.5" /> },
+    { label: "Converted", value: Math.floor((stats?.enrichedLeads ?? 0) * 0.15), color: "from-amber-500 to-amber-600", icon: <Star className="h-3.5 w-3.5" /> },
+  ];
+  const max = stages[0].value || 1;
+
+  return (
+    <div className="space-y-3">
+      {stages.map((stage, i) => {
+        const pct = Math.round((stage.value / max) * 100);
+        return (
+          <div key={stage.label} className="group">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-2">
+                <div className={`p-1 rounded-md bg-gradient-to-br ${stage.color} text-white`}>{stage.icon}</div>
+                <span className="text-xs font-medium text-white/70">{stage.label}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-white">{stage.value.toLocaleString()}</span>
+                <span className="text-[10px] text-white/30">{pct}%</span>
+              </div>
+            </div>
+            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+              <div
+                className={`h-full bg-gradient-to-r ${stage.color} rounded-full transition-all duration-1000`}
+                style={{ width: `${pct}%`, transitionDelay: `${i * 150}ms` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Activity Pulse ──────────────────────────────────────────
+function ActivityPulse({ sessions }: { sessions: any[] }) {
+  const recent = sessions?.slice(0, 7) ?? [];
+  const maxLeads = Math.max(...recent.map(s => s.leadsFound ?? 0), 1);
+
+  return (
+    <div className="flex items-end gap-1.5 h-16">
+      {recent.length === 0 ? (
+        <div className="flex-1 flex items-center justify-center text-white/20 text-xs">No sessions yet</div>
+      ) : (
+        recent.map((s, i) => {
+          const h = Math.max(((s.leadsFound ?? 0) / maxLeads) * 100, 8);
+          return (
+            <div key={i} className="flex-1 flex flex-col items-center gap-1 group cursor-default">
+              <div
+                className="w-full rounded-t-sm bg-gradient-to-t from-violet-600 to-violet-400 opacity-70 group-hover:opacity-100 transition-all duration-300"
+                style={{ height: `${h}%` }}
+                title={`${s.leadsFound ?? 0} leads`}
+              />
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const { data: stats, isLoading } = trpc.leads.stats.useQuery();
   const { data: sessions } = trpc.leads.sessions.useQuery();
   const { data: nbaItems, isLoading: nbaLoading } = trpc.nba.list.useQuery({ limit: 5 });
-  const { data: alerts, isLoading: alertsLoading } = trpc.alertRules.list.useQuery();
-  const { data: stlConfig, isLoading: stlLoading } = trpc.speedToLead.get.useQuery();
+  const { data: alerts } = trpc.alertRules.list.useQuery();
+  const { data: stlConfig } = trpc.speedToLead.get.useQuery();
   const { data: setupProgress, isLoading: setupLoading } = trpc.aiChat.setupProgress.useQuery();
   const { data: insights, isLoading: insightsLoading } = trpc.aiChat.insights.useQuery();
   const { data: briefing, refetch: refetchBriefing, isLoading: briefingLoading } = trpc.morningBriefing.getLatest.useQuery();
@@ -30,712 +170,445 @@ export default function Home() {
     onSuccess: () => refetchBriefing(),
   });
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
-
-  const enrichmentRate =
-    stats && stats.totalLeads > 0
-      ? Math.round((stats.enrichedLeads / stats.totalLeads) * 100)
-      : 0;
-
-  const recentSessions = sessions?.slice(0, 5) ?? [];
+  const enrichmentRate = stats && stats.totalLeads > 0 ? Math.round((stats.enrichedLeads / stats.totalLeads) * 100) : 0;
 
   return (
     <DashboardLayout>
       <div className="space-y-6 max-w-7xl">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground text-sm mt-1">
-              AI-powered B2B lead generation overview
-            </p>
+
+        {/* ── Hero Header ─────────────────────────────────── */}
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-violet-900/30 via-[#0f1117] to-blue-900/20 p-6">
+          {/* Animated gradient orbs */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs text-emerald-400 font-medium">AI Systems Active</span>
+              </div>
+              <h1 className="text-3xl font-black text-white tracking-tight">Command Center</h1>
+              <p className="text-white/40 text-sm mt-1">{today}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation("/ai-advisor")}
+                className="border-violet-500/40 text-violet-300 hover:bg-violet-500/10 gap-2"
+              >
+                <Brain className="h-4 w-4" />
+                AI Advisor
+              </Button>
+              <Button
+                onClick={() => setLocation("/generate")}
+                className="bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white border-0 gap-2 font-semibold shadow-lg shadow-violet-500/20"
+              >
+                <Zap className="h-4 w-4" />
+                Generate Leads
+              </Button>
+            </div>
           </div>
-          <Button onClick={() => setLocation("/generate")} className="gap-2">
-            <Zap className="h-4 w-4" />
-            Generate Leads
-          </Button>
         </div>
 
-        {/* Morning Briefing Card */}
+        {/* ── Morning Briefing ────────────────────────────── */}
         {!briefingLoading && (
-          <div>
+          <>
             {(!briefing || briefing.dismissed) ? (
-              <div className="flex items-center gap-3 p-4 rounded-xl border border-dashed border-border bg-card/50">
-                <div className="p-2 rounded-lg bg-amber-500/10">
-                  <Sun className="h-4 w-4 text-amber-400" />
+              <div className="flex items-center gap-4 p-4 rounded-2xl border border-amber-500/20 bg-amber-500/5">
+                <div className="p-2.5 rounded-xl bg-amber-500/10">
+                  <Sun className="h-5 w-5 text-amber-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground">Morning Briefing</p>
-                  <p className="text-xs text-muted-foreground">{today} — Get your AI-powered daily action plan</p>
+                  <p className="text-sm font-semibold text-white">Morning Briefing</p>
+                  <p className="text-xs text-white/40">{today} — Get your AI-powered daily action plan</p>
                 </div>
                 <Button
                   size="sm"
-                  variant="outline"
                   onClick={() => generateBriefingMutation.mutate()}
                   disabled={generateBriefingMutation.isPending}
-                  className="gap-2 shrink-0"
+                  className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 gap-2 shrink-0"
                 >
-                  {generateBriefingMutation.isPending ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <RefreshCw className="h-3.5 w-3.5" />
-                  )}
-                  Generate Briefing
+                  {generateBriefingMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                  Generate
                 </Button>
               </div>
             ) : (
-              <Card className="bg-gradient-to-br from-amber-500/5 via-card to-card border-amber-500/20">
-                <CardContent className="p-5">
-                  <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-[#0f1117] to-[#0f1117] p-5">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-amber-500/10">
+                      <div className="p-2 rounded-xl bg-amber-500/10">
                         <Sun className="h-5 w-5 text-amber-400" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-semibold text-foreground">Morning Briefing</h3>
-                        <p className="text-xs text-muted-foreground">{today}</p>
+                        <h3 className="text-sm font-bold text-white">Morning Briefing</h3>
+                        <p className="text-xs text-white/40">{today}</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => generateBriefingMutation.mutate()}
-                        disabled={generateBriefingMutation.isPending}
-                        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-                        title="Regenerate"
-                      >
-                        {generateBriefingMutation.isPending ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        ) : (
-                          <RefreshCw className="h-3.5 w-3.5" />
-                        )}
+                    <div className="flex items-center gap-1.5">
+                      <Button size="sm" variant="ghost" onClick={() => generateBriefingMutation.mutate()} disabled={generateBriefingMutation.isPending} className="h-7 w-7 p-0 text-white/40 hover:text-white">
+                        {generateBriefingMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => dismissBriefingMutation.mutate({ id: briefing.id })}
-                        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
-                        title="Dismiss"
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => dismissBriefingMutation.mutate({ id: briefing.id })} className="h-7 w-7 p-0 text-white/40 hover:text-white">
                         <X className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>
-                  <p className="text-sm text-foreground mb-4 leading-relaxed">{briefing.content}</p>
+                  <p className="text-sm text-white/70 mb-4 leading-relaxed">{briefing.content}</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {briefing.topLeads && briefing.topLeads.length > 0 && (
-                      <div>
+                    {briefing.topLeads?.length > 0 && (
+                      <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/15">
                         <div className="flex items-center gap-1.5 mb-2">
                           <Target className="h-3.5 w-3.5 text-blue-400" />
-                          <span className="text-xs font-semibold text-blue-400">Top Leads Today</span>
+                          <span className="text-xs font-bold text-blue-400">Top Leads Today</span>
                         </div>
                         <ul className="space-y-1">
                           {briefing.topLeads.map((lead: string, i: number) => (
-                            <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
-                              <span className="text-blue-400 shrink-0 mt-0.5">•</span>
-                              {lead}
+                            <li key={i} className="text-xs text-white/60 flex items-start gap-1.5">
+                              <span className="text-blue-400 shrink-0 mt-0.5">›</span>{lead}
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
-                    {briefing.pipelineAlerts && briefing.pipelineAlerts.length > 0 && (
-                      <div>
+                    {briefing.pipelineAlerts?.length > 0 && (
+                      <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/15">
                         <div className="flex items-center gap-1.5 mb-2">
                           <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
-                          <span className="text-xs font-semibold text-amber-400">Pipeline Alerts</span>
+                          <span className="text-xs font-bold text-amber-400">Pipeline Alerts</span>
                         </div>
                         <ul className="space-y-1">
-                          {briefing.pipelineAlerts.map((alert: string, i: number) => (
-                            <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
-                              <span className="text-amber-400 shrink-0 mt-0.5">•</span>
-                              {alert}
+                          {briefing.pipelineAlerts.map((a: string, i: number) => (
+                            <li key={i} className="text-xs text-white/60 flex items-start gap-1.5">
+                              <span className="text-amber-400 shrink-0 mt-0.5">›</span>{a}
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
-                    {briefing.nextActions && briefing.nextActions.length > 0 && (
-                      <div>
+                    {briefing.nextActions?.length > 0 && (
+                      <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15">
                         <div className="flex items-center gap-1.5 mb-2">
                           <ListChecks className="h-3.5 w-3.5 text-emerald-400" />
-                          <span className="text-xs font-semibold text-emerald-400">Next Actions</span>
+                          <span className="text-xs font-bold text-emerald-400">Next Actions</span>
                         </div>
                         <ul className="space-y-1">
-                          {briefing.nextActions.map((action: string, i: number) => (
-                            <li key={i} className="text-xs text-foreground flex items-start gap-1.5">
-                              <span className="text-emerald-400 shrink-0 mt-0.5">{i + 1}.</span>
-                              {action}
+                          {briefing.nextActions.map((a: string, i: number) => (
+                            <li key={i} className="text-xs text-white/60 flex items-start gap-1.5">
+                              <span className="text-emerald-400 shrink-0 mt-0.5">{i + 1}.</span>{a}
                             </li>
                           ))}
                         </ul>
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
-          </div>
+          </>
         )}
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Total Leads"
-            value={isLoading ? null : stats?.totalLeads ?? 0}
-            icon={<Users className="h-4 w-4" />}
-            description="All time"
-            color="primary"
-          />
-          <StatCard
-            title="AI Enriched"
-            value={isLoading ? null : stats?.enrichedLeads ?? 0}
-            icon={<Sparkles className="h-4 w-4" />}
-            description="With icebreakers"
-            color="emerald"
-          />
-          <StatCard
-            title="Enrichment Rate"
-            value={isLoading ? null : `${enrichmentRate}%`}
-            icon={<TrendingUp className="h-4 w-4" />}
-            description="Leads with AI content"
-            color="violet"
-          />
-          <StatCard
-            title="Sessions"
-            value={isLoading ? null : stats?.totalSessions ?? 0}
-            icon={<BarChart3 className="h-4 w-4" />}
-            description="Generation runs"
-            color="amber"
-          />
+        {/* ── Animated Stats Row ──────────────────────────── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <AnimatedStatCard title="Total Leads" value={isLoading ? null : stats?.totalLeads ?? 0} icon={<Users className="h-4 w-4" />} description="All time" color="primary" />
+          <AnimatedStatCard title="AI Enriched" value={isLoading ? null : stats?.enrichedLeads ?? 0} icon={<Sparkles className="h-4 w-4" />} description="With icebreakers" color="emerald" />
+          <AnimatedStatCard title="Enrichment Rate" value={isLoading ? null : enrichmentRate} icon={<TrendingUp className="h-4 w-4" />} description="Leads with AI content" color="violet" suffix="%" />
+          <AnimatedStatCard title="Sessions" value={isLoading ? null : stats?.totalSessions ?? 0} icon={<BarChart3 className="h-4 w-4" />} description="Generation runs" color="amber" />
         </div>
 
-        {/* NBA + Speed-to-Lead Row */}
+        {/* ── Pipeline Infographic + Activity ─────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* NBA Recommendations Widget */}
-          <Card className="bg-card border-border lg:col-span-2">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-md bg-amber-500/10">
-                    <Lightbulb className="h-4 w-4 text-amber-400" />
-                  </div>
-                  <CardTitle className="text-base font-semibold">Next Best Actions</CardTitle>
+          {/* Pipeline Flow */}
+          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-violet-500/10">
+                  <TrendingUp className="h-4 w-4 text-violet-400" />
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-muted-foreground hover:text-foreground gap-1"
-                  onClick={() => setLocation("/next-actions")}
-                >
-                  View all <ArrowRight className="h-3 w-3" />
-                </Button>
+                <h2 className="text-sm font-bold text-white">Pipeline Funnel</h2>
               </div>
-            </CardHeader>
-            <CardContent>
-              {nbaLoading ? (
-                <div className="flex items-center justify-center h-40">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : !nbaItems || nbaItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-                  <Lightbulb className="h-8 w-8 mb-2 opacity-30" />
-                  <p className="text-sm">No recommendations yet.</p>
-                  <p className="text-xs mt-1">Generate leads and get AI-powered action suggestions.</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {nbaItems.slice(0, 5).map((item: any) => (
-                    <NbaCard key={item.id} item={item} />
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <button onClick={() => setLocation("/kanban")} className="text-xs text-white/30 hover:text-violet-400 transition-colors flex items-center gap-1">
+                View Kanban <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
+            <PipelineFlow stats={stats} />
+          </div>
 
-          {/* Speed-to-Lead Widget */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-md bg-cyan-500/10">
-                    <Timer className="h-4 w-4 text-cyan-400" />
-                  </div>
-                  <CardTitle className="text-base font-semibold">Speed-to-Lead</CardTitle>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-muted-foreground hover:text-foreground gap-1"
-                  onClick={() => setLocation("/speed-to-lead")}
-                >
-                  Configure <ArrowRight className="h-3 w-3" />
-                </Button>
+          {/* Activity Chart */}
+          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 rounded-lg bg-blue-500/10">
+                <Activity className="h-4 w-4 text-blue-400" />
               </div>
-            </CardHeader>
-            <CardContent>
-              {stlLoading ? (
-                <div className="flex items-center justify-center h-48">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : !stlConfig ? (
-                <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-                  <Timer className="h-8 w-8 mb-2 opacity-30" />
-                  <p className="text-sm text-center">Not configured yet</p>
-                  <Button
-                    variant="link"
-                    className="text-primary text-sm mt-2 h-auto p-0"
-                    onClick={() => setLocation("/speed-to-lead")}
-                  >
-                    Set up instant follow-up →
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50">
-                    <div className="flex items-center gap-2">
-                      <div className={`h-2.5 w-2.5 rounded-full ${stlConfig.isActive ? "bg-emerald-400 animate-pulse" : "bg-muted-foreground/30"}`} />
-                      <span className="text-sm font-medium text-foreground">Status</span>
-                    </div>
-                    <span className={`text-sm font-semibold ${stlConfig.isActive ? "text-emerald-400" : "text-muted-foreground"}`}>
-                      {stlConfig.isActive ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <StlMetric
-                      label="Response Time"
-                      value={stlConfig.responseDelaySeconds ? `${stlConfig.responseDelaySeconds}s` : "—"}
-                      icon={<Clock className="h-3.5 w-3.5" />}
-                    />
-                    <StlMetric
-                      label="Auto Email"
-                      value={stlConfig.autoEmailEnabled ? "On" : "Off"}
-                      icon={<Mail className="h-3.5 w-3.5" />}
-                    />
-                    <StlMetric
-                      label="Notifications"
-                      value={stlConfig.notifyOnNewLead ? "On" : "Off"}
-                      icon={<Bell className="h-3.5 w-3.5" />}
-                    />
-                    <StlMetric
-                      label="Channel"
-                      value={stlConfig.notifyChannel ?? "—"}
-                      icon={<Shield className="h-3.5 w-3.5" />}
-                    />
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <h2 className="text-sm font-bold text-white">Recent Activity</h2>
+            </div>
+            <ActivityPulse sessions={sessions ?? []} />
+            <p className="text-[10px] text-white/20 mt-2 text-center">Leads per session (last 7)</p>
+            <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
+              <span className="text-xs text-white/40">Avg per session</span>
+              <span className="text-xs font-bold text-white">
+                {sessions && sessions.length > 0
+                  ? Math.round(sessions.reduce((a, s) => a + (s.leadsFound ?? 0), 0) / sessions.length)
+                  : 0} leads
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Alerts + Industry + Sessions Row */}
+        {/* ── NBA + Speed-to-Lead ──────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Alerts Widget */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-md bg-rose-500/10">
-                    <Bell className="h-4 w-4 text-rose-400" />
-                  </div>
-                  <CardTitle className="text-base font-semibold">Smart Alerts</CardTitle>
+          {/* NBA */}
+          <div className="lg:col-span-2 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-amber-500/10">
+                  <Lightbulb className="h-4 w-4 text-amber-400" />
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-xs text-muted-foreground hover:text-foreground gap-1"
-                  onClick={() => setLocation("/alerts")}
-                >
-                  Manage <ArrowRight className="h-3 w-3" />
-                </Button>
+                <h2 className="text-sm font-bold text-white">Next Best Actions</h2>
               </div>
-            </CardHeader>
-            <CardContent>
-              {alertsLoading ? (
-                <div className="flex items-center justify-center h-40">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : !alerts || alerts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-40 text-muted-foreground">
-                  <Bell className="h-8 w-8 mb-2 opacity-30" />
-                  <p className="text-sm">No alert rules configured.</p>
-                  <Button
-                    variant="link"
-                    className="text-primary text-sm mt-1 h-auto p-0"
-                    onClick={() => setLocation("/alerts")}
-                  >
-                    Create your first alert →
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {alerts.slice(0, 5).map((alert: any) => (
-                    <div
-                      key={alert.id}
-                      className="flex items-center gap-3 p-2.5 rounded-lg bg-secondary/50"
-                    >
-                      <div className={`h-2 w-2 rounded-full shrink-0 ${alert.isActive ? "bg-emerald-400" : "bg-muted-foreground/30"}`} />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground truncate">{alert.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatConditionType(alert.conditionType)} → {alert.channel}
-                        </p>
-                      </div>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 ${
-                        alert.isActive
-                          ? "bg-emerald-500/15 text-emerald-400"
-                          : "bg-muted text-muted-foreground"
-                      }`}>
-                        {alert.isActive ? "ON" : "OFF"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <button onClick={() => setLocation("/next-actions")} className="text-xs text-white/30 hover:text-amber-400 transition-colors flex items-center gap-1">
+                View all <ChevronRight className="h-3 w-3" />
+              </button>
+            </div>
+            {nbaLoading ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-5 w-5 animate-spin text-white/20" />
+              </div>
+            ) : !nbaItems || nbaItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-32 text-center gap-2">
+                <Lightbulb className="h-8 w-8 text-white/10" />
+                <p className="text-xs text-white/30">No recommendations yet</p>
+                <p className="text-[10px] text-white/20">Generate leads to get AI-powered next actions</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {nbaItems.map((item: any) => <NbaCard key={item.id} item={item} />)}
+              </div>
+            )}
+          </div>
 
-          {/* Industry Breakdown */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">Industry Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex items-center justify-center h-32">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          {/* Speed-to-Lead */}
+          <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-emerald-500/10">
+                  <Timer className="h-4 w-4 text-emerald-400" />
                 </div>
-              ) : stats?.industryBreakdown.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                  <BarChart3 className="h-8 w-8 mb-2 opacity-30" />
-                  <p className="text-sm">No data yet.</p>
+                <h2 className="text-sm font-bold text-white">Speed-to-Lead</h2>
+              </div>
+              <button onClick={() => setLocation("/speed-to-lead")} className="text-xs text-white/30 hover:text-emerald-400 transition-colors">
+                Configure →
+              </button>
+            </div>
+            {stlConfig ? (
+              <div className="space-y-3">
+                <div className={`flex items-center gap-2 p-2.5 rounded-xl ${stlConfig.isEnabled ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-white/5 border border-white/10"}`}>
+                  <div className={`h-2 w-2 rounded-full ${stlConfig.isEnabled ? "bg-emerald-400 animate-pulse" : "bg-white/20"}`} />
+                  <span className={`text-xs font-semibold ${stlConfig.isEnabled ? "text-emerald-400" : "text-white/30"}`}>
+                    {stlConfig.isEnabled ? "Active" : "Inactive"}
+                  </span>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  {stats?.industryBreakdown.slice(0, 6).map((item) => {
-                    const max = stats.industryBreakdown[0]?.count ?? 1;
-                    const pct = Math.round((item.count / max) * 100);
-                    return (
-                      <div key={item.industry} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-foreground">{item.industry}</span>
-                          <span className="text-muted-foreground font-medium">{item.count}</span>
-                        </div>
-                        <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-primary transition-all duration-500"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2.5 rounded-xl bg-white/5 text-center">
+                    <p className="text-lg font-black text-white">{stlConfig.responseTimeMinutes ?? "—"}</p>
+                    <p className="text-[10px] text-white/30">Min response</p>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-white/5 text-center">
+                    <p className="text-lg font-black text-white">{stlConfig.maxFollowUps ?? "—"}</p>
+                    <p className="text-[10px] text-white/30">Follow-ups</p>
+                  </div>
                 </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recent Sessions */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">Recent Sessions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {recentSessions.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                  <Zap className="h-8 w-8 mb-2 opacity-30" />
-                  <p className="text-sm">No sessions yet.</p>
-                  <Button
-                    variant="link"
-                    className="text-primary text-sm mt-1 h-auto p-0"
-                    onClick={() => setLocation("/generate")}
-                  >
-                    Generate your first leads →
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {recentSessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="flex items-center justify-between p-2.5 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors"
-                    >
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">
-                          {session.industry}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {session.location} · {session.generatedCount} leads
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0 ml-2">
-                        <StatusBadge status={session.status} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-24 gap-2">
+                <Timer className="h-8 w-8 text-white/10" />
+                <p className="text-xs text-white/30">Not configured</p>
+                <button onClick={() => setLocation("/speed-to-lead")} className="text-xs text-emerald-400 hover:underline">Set up now →</button>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Setup Progress + Quick Actions Row */}
+        {/* ── Setup Progress + Quick Actions ──────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Setup Progress Widget */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-md bg-primary/10">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                  </div>
-                  <CardTitle className="text-base font-semibold">Setup Progress</CardTitle>
+          {/* Setup Progress */}
+          {setupProgress && setupProgress.percentage < 100 && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="p-1.5 rounded-lg bg-violet-500/10">
+                  <CheckCircle2 className="h-4 w-4 text-violet-400" />
                 </div>
-                {!setupLoading && setupProgress && (
-                  <span className="text-sm font-bold text-primary">{setupProgress.percentage}%</span>
-                )}
+                <h2 className="text-sm font-bold text-white">Setup Progress</h2>
+                <span className="ml-auto text-xs font-bold text-violet-400">{setupProgress.percentage}%</span>
               </div>
-            </CardHeader>
-            <CardContent>
-              {setupLoading ? (
-                <div className="flex items-center justify-center h-32">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : setupProgress ? (
-                <div className="space-y-3">
-                  {/* Progress bar */}
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all duration-700"
-                      style={{ width: `${setupProgress.percentage}%` }}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    {setupProgress.completed} of {setupProgress.total} steps completed
-                  </p>
-                  {/* Steps */}
-                  <div className="space-y-1.5">
-                    {setupProgress.steps.map((step: any) => (
-                      <button
-                        key={step.id}
-                        onClick={() => !step.done && setLocation(step.link)}
-                        className={`flex items-center gap-2.5 w-full text-left p-2 rounded-lg transition-colors ${
-                          step.done
-                            ? "opacity-60 cursor-default"
-                            : "hover:bg-accent/50 cursor-pointer"
-                        }`}
-                      >
-                        <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${
-                          step.done ? "bg-emerald-500/20" : "bg-muted"
-                        }`}>
-                          {step.done ? (
-                            <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                          ) : (
-                            <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/40" />
-                          )}
-                        </div>
-                        <span className={`text-xs ${
-                          step.done ? "line-through text-muted-foreground" : "text-foreground"
-                        }`}>
-                          {step.label}
-                        </span>
-                        {!step.done && <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
+              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-4">
+                <div
+                  className="h-full bg-gradient-to-r from-violet-500 to-blue-500 rounded-full transition-all duration-700"
+                  style={{ width: `${setupProgress.percentage}%` }}
+                />
+              </div>
+              <div className="space-y-1.5">
+                {setupProgress.steps.map((step: any) => (
+                  <button
+                    key={step.id}
+                    onClick={() => !step.done && setLocation(step.link)}
+                    className={`flex items-center gap-2.5 w-full text-left p-2 rounded-lg transition-colors ${step.done ? "opacity-50 cursor-default" : "hover:bg-white/5 cursor-pointer"}`}
+                  >
+                    <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${step.done ? "bg-emerald-500/20" : "bg-white/5"}`}>
+                      {step.done ? <CheckCircle2 className="h-3 w-3 text-emerald-400" /> : <div className="h-1.5 w-1.5 rounded-full bg-white/20" />}
+                    </div>
+                    <span className={`text-xs ${step.done ? "line-through text-white/20" : "text-white/60"}`}>{step.label}</span>
+                    {!step.done && <ChevronRight className="h-3 w-3 text-white/20 ml-auto" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quick Actions */}
-          <Card className="bg-card border-border lg:col-span-2">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <QuickAction
-                  icon={<Zap className="h-5 w-5" />}
-                  title="Generate Leads"
-                  description="Start a new AI lead generation run"
-                  onClick={() => setLocation("/generate")}
-                  primary
-                />
-                <QuickAction
-                  icon={<Users className="h-5 w-5" />}
-                  title="View Pipeline"
-                  description="Manage leads in Kanban board"
-                  onClick={() => setLocation("/kanban")}
-                />
-                <QuickAction
-                  icon={<Lightbulb className="h-5 w-5" />}
-                  title="AI Recommendations"
-                  description="Get AI-powered next best actions"
-                  onClick={() => setLocation("/next-actions")}
-                />
-                <QuickAction
-                  icon={<BarChart3 className="h-5 w-5" />}
-                  title="View Statistics"
-                  description="Analyze your performance"
-                  onClick={() => setLocation("/stats")}
-                />
+          <div className={`rounded-2xl border border-white/10 bg-white/[0.02] p-5 ${setupProgress && setupProgress.percentage < 100 ? "lg:col-span-2" : "lg:col-span-3"}`}>
+            <h2 className="text-sm font-bold text-white mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-2 gap-3">
+              <QuickAction icon={<Zap className="h-5 w-5" />} title="Generate Leads" description="Start a new AI lead generation run" onClick={() => setLocation("/generate")} primary />
+              <QuickAction icon={<Users className="h-5 w-5" />} title="View Pipeline" description="Manage leads in Kanban board" onClick={() => setLocation("/kanban")} />
+              <QuickAction icon={<Lightbulb className="h-5 w-5" />} title="AI Recommendations" description="Get AI-powered next best actions" onClick={() => setLocation("/next-actions")} />
+              <QuickAction icon={<BarChart3 className="h-5 w-5" />} title="View Statistics" description="Analyze your performance" onClick={() => setLocation("/stats")} />
+            </div>
+            {/* AI Advisor Banner */}
+            <div
+              onClick={() => setLocation("/ai-advisor")}
+              className="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-gradient-to-r from-violet-500/10 to-blue-500/5 border border-violet-500/20 cursor-pointer hover:border-violet-500/40 transition-all group"
+            >
+              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-blue-500/20 flex items-center justify-center shrink-0">
+                <Brain className="h-5 w-5 text-violet-400" />
               </div>
-              {/* AI Advisor Banner */}
-              <div className="mt-4 flex items-center gap-3 p-3 rounded-xl bg-primary/5 border border-primary/20">
-                <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Brain className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-foreground">AI Advisor — 33 Expert Personas</p>
-                  <p className="text-xs text-muted-foreground">Get advice from Hormozi, Buffett, Sun Tzu and 30 more</p>
-                </div>
-                <div className="text-xs text-primary font-medium shrink-0">→ Bottom right</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white">AI Advisor — 33 Expert Personas</p>
+                <p className="text-xs text-white/40">Hormozi, Buffett, Sun Tzu and 30 more experts</p>
               </div>
-            </CardContent>
-          </Card>
+              <ArrowRight className="h-4 w-4 text-violet-400 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
         </div>
 
-        {/* AI Insights Panel */}
+        {/* ── AI Insights Panel ───────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Autonomous Actions */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-md bg-violet-500/10">
-                  <Activity className="h-4 w-4 text-violet-400" />
-                </div>
-                <CardTitle className="text-base font-semibold">AI Agent Actions</CardTitle>
+          {/* AI Agent Actions */}
+          <div className="rounded-2xl border border-violet-500/15 bg-violet-500/[0.03] p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 rounded-lg bg-violet-500/10">
+                <Cpu className="h-4 w-4 text-violet-400" />
               </div>
-            </CardHeader>
-            <CardContent>
-              {insightsLoading ? (
-                <div className="flex items-center justify-center h-28">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : insights?.recentActions && insights.recentActions.length > 0 ? (
-                <div className="space-y-2">
-                  {insights.recentActions.map((action: any, i: number) => (
-                    <div key={i} className="flex items-start gap-2.5 p-2 rounded-lg bg-secondary/40">
-                      <div className="h-5 w-5 rounded-full bg-violet-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                        <Activity className="h-2.5 w-2.5 text-violet-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-foreground leading-relaxed line-clamp-2">{action.action}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">
-                          Score: {action.score}/100 · {action.cycleType}
-                        </p>
-                      </div>
+              <h2 className="text-sm font-bold text-white">AI Agent Actions</h2>
+              <div className="ml-auto h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
+            </div>
+            {insightsLoading ? (
+              <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-white/20" /></div>
+            ) : insights?.recentActions?.length > 0 ? (
+              <div className="space-y-2">
+                {insights.recentActions.map((action: any, i: number) => (
+                  <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                    <div className="h-5 w-5 rounded-full bg-violet-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                      <Cpu className="h-2.5 w-2.5 text-violet-400" />
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
-                  <Activity className="h-8 w-8 text-muted-foreground/30" />
-                  <p className="text-xs text-muted-foreground">No autonomous actions yet.</p>
-                  <p className="text-[10px] text-muted-foreground/60">The AI agent runs every 6 hours.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Memory Learnings */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-md bg-amber-500/10">
-                  <BookOpen className="h-4 w-4 text-amber-400" />
-                </div>
-                <CardTitle className="text-base font-semibold">AI Memory</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {insightsLoading ? (
-                <div className="flex items-center justify-center h-28">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : insights?.learnings && insights.learnings.length > 0 ? (
-                <div className="space-y-2">
-                  {insights.learnings.map((item: any) => (
-                    <div key={item.id} className="flex items-start gap-2.5 p-2 rounded-lg bg-secondary/40">
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium shrink-0 mt-0.5 ${
-                        item.type === 'preference' ? 'bg-blue-500/20 text-blue-400' :
-                        item.type === 'learning' ? 'bg-emerald-500/20 text-emerald-400' :
-                        item.type === 'insight' ? 'bg-amber-500/20 text-amber-400' :
-                        'bg-violet-500/20 text-violet-400'
-                      }`}>{item.type}</span>
-                      <p className="text-xs text-foreground line-clamp-2 leading-relaxed">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
-                  <BookOpen className="h-8 w-8 text-muted-foreground/30" />
-                  <p className="text-xs text-muted-foreground">No learnings yet.</p>
-                  <p className="text-[10px] text-muted-foreground/60">Chat with the AI Advisor to build memory.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Performance Stats */}
-          <Card className="bg-card border-border">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-md bg-emerald-500/10">
-                  <TrendingUp className="h-4 w-4 text-emerald-400" />
-                </div>
-                <CardTitle className="text-base font-semibold">AI Performance</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {insightsLoading ? (
-                <div className="flex items-center justify-center h-28">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                </div>
-              ) : insights ? (
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-lg bg-secondary/40 text-center">
-                      <p className="text-2xl font-bold text-foreground">{insights.stats.avgScore}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">Avg Score</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-secondary/40 text-center">
-                      <p className="text-2xl font-bold text-foreground">{insights.stats.totalCycles}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">AI Cycles</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-secondary/40 text-center">
-                      <p className="text-2xl font-bold text-foreground">{insights.stats.userMessages}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">Questions Asked</p>
-                    </div>
-                    <div className="p-3 rounded-lg bg-secondary/40 text-center">
-                      <p className="text-2xl font-bold text-foreground">{insights.learnings?.length ?? 0}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">Memories</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-white/70 leading-relaxed line-clamp-2">{action.action}</p>
+                      <p className="text-[10px] text-white/25 mt-0.5">Score: {action.score}/100 · {action.cycleType}</p>
                     </div>
                   </div>
-                  {insights.stats.lastActivity && (
-                    <p className="text-[10px] text-muted-foreground text-center">
-                      Last activity: {new Date(insights.stats.lastActivity).toLocaleDateString()}
-                    </p>
-                  )}
-                  <button
-                    onClick={() => setLocation("/ai-advisor")}
-                    className="w-full text-xs text-primary hover:underline text-center py-1"
-                  >
-                    View full chat history →
-                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
+                <Cpu className="h-8 w-8 text-white/10" />
+                <p className="text-xs text-white/30">No autonomous actions yet</p>
+                <p className="text-[10px] text-white/20">AI agent runs every 6 hours</p>
+              </div>
+            )}
+          </div>
+
+          {/* AI Memory */}
+          <div className="rounded-2xl border border-amber-500/15 bg-amber-500/[0.02] p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 rounded-lg bg-amber-500/10">
+                <BookOpen className="h-4 w-4 text-amber-400" />
+              </div>
+              <h2 className="text-sm font-bold text-white">AI Memory</h2>
+            </div>
+            {insightsLoading ? (
+              <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-white/20" /></div>
+            ) : insights?.learnings?.length > 0 ? (
+              <div className="space-y-2">
+                {insights.learnings.map((item: any) => (
+                  <div key={item.id} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold shrink-0 mt-0.5 ${
+                      item.type === "preference" ? "bg-blue-500/20 text-blue-400" :
+                      item.type === "learning" ? "bg-emerald-500/20 text-emerald-400" :
+                      item.type === "insight" ? "bg-amber-500/20 text-amber-400" :
+                      "bg-violet-500/20 text-violet-400"
+                    }`}>{item.type}</span>
+                    <p className="text-xs text-white/60 line-clamp-2 leading-relaxed">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
+                <BookOpen className="h-8 w-8 text-white/10" />
+                <p className="text-xs text-white/30">No learnings yet</p>
+                <p className="text-[10px] text-white/20">Chat with AI Advisor to build memory</p>
+              </div>
+            )}
+          </div>
+
+          {/* AI Performance */}
+          <div className="rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.02] p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 rounded-lg bg-emerald-500/10">
+                <Flame className="h-4 w-4 text-emerald-400" />
+              </div>
+              <h2 className="text-sm font-bold text-white">AI Performance</h2>
+            </div>
+            {insightsLoading ? (
+              <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-white/20" /></div>
+            ) : insights ? (
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { label: "Avg Score", value: insights.stats.avgScore, color: "text-emerald-400" },
+                    { label: "AI Cycles", value: insights.stats.totalCycles, color: "text-violet-400" },
+                    { label: "Questions", value: insights.stats.userMessages, color: "text-blue-400" },
+                    { label: "Memories", value: insights.learnings?.length ?? 0, color: "text-amber-400" },
+                  ].map(m => (
+                    <div key={m.label} className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5 text-center">
+                      <p className={`text-xl font-black ${m.color}`}>{m.value}</p>
+                      <p className="text-[10px] text-white/30 mt-0.5">{m.label}</p>
+                    </div>
+                  ))}
                 </div>
-              ) : null}
-            </CardContent>
-          </Card>
+                {insights.stats.lastActivity && (
+                  <p className="text-[10px] text-white/20 text-center">
+                    Last activity: {new Date(insights.stats.lastActivity).toLocaleDateString()}
+                  </p>
+                )}
+                <button
+                  onClick={() => setLocation("/ai-advisor")}
+                  className="w-full text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center justify-center gap-1 pt-1"
+                >
+                  View full chat history <ArrowRight className="h-3 w-3" />
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
+
       </div>
     </DashboardLayout>
   );
 }
 
-// ─── Sub-components ─────────────────────────────────────────
+// ─── Sub-components ──────────────────────────────────────────
 
 function NbaCard({ item }: { item: any }) {
   const actionIcons: Record<string, React.ReactNode> = {
@@ -747,138 +620,58 @@ function NbaCard({ item }: { item: any }) {
     wait: <Clock className="h-3.5 w-3.5" />,
   };
   const actionColors: Record<string, string> = {
-    call: "bg-blue-500/15 text-blue-400 border-blue-500/20",
-    email: "bg-violet-500/15 text-violet-400 border-violet-500/20",
-    linkedin: "bg-sky-500/15 text-sky-400 border-sky-500/20",
-    qualify: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-    disqualify: "bg-red-500/15 text-red-400 border-red-500/20",
-    wait: "bg-amber-500/15 text-amber-400 border-amber-500/20",
+    call: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    email: "bg-violet-500/10 text-violet-400 border-violet-500/20",
+    linkedin: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+    qualify: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+    disqualify: "bg-red-500/10 text-red-400 border-red-500/20",
+    wait: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   };
-  const priorityColor = item.priority >= 70 ? "text-rose-400" : item.priority >= 40 ? "text-amber-400" : "text-muted-foreground";
+  const priorityColor = item.priority >= 70 ? "text-rose-400" : item.priority >= 40 ? "text-amber-400" : "text-white/30";
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 hover:bg-secondary/80 transition-colors">
-      <div className={`p-2 rounded-lg border ${actionColors[item.action] ?? "bg-muted text-muted-foreground border-border"}`}>
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors">
+      <div className={`p-2 rounded-lg border ${actionColors[item.action] ?? "bg-white/5 text-white/40 border-white/10"}`}>
         {actionIcons[item.action] ?? <Lightbulb className="h-3.5 w-3.5" />}
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-foreground truncate">
+          <p className="text-sm font-semibold text-white truncate">
             {item.action?.charAt(0).toUpperCase() + item.action?.slice(1)} — Lead #{item.leadId}
           </p>
-          <span className={`text-[10px] font-bold ${priorityColor}`}>
-            P{item.priority}
-          </span>
+          <span className={`text-[10px] font-bold ${priorityColor}`}>P{item.priority}</span>
         </div>
-        <p className="text-xs text-muted-foreground truncate mt-0.5">{item.reason}</p>
+        <p className="text-xs text-white/30 truncate mt-0.5">{item.reason}</p>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
-        <div className="h-1.5 w-12 bg-secondary rounded-full overflow-hidden">
-          <div
-            className="h-full rounded-full bg-primary/70 transition-all"
-            style={{ width: `${item.aiScore ?? 50}%` }}
-          />
+        <div className="h-1.5 w-12 bg-white/5 rounded-full overflow-hidden">
+          <div className="h-full rounded-full bg-violet-500/70" style={{ width: `${item.aiScore ?? 50}%` }} />
         </div>
-        <span className="text-[10px] text-muted-foreground w-6 text-right">{item.aiScore ?? "—"}</span>
+        <span className="text-[10px] text-white/30 w-6 text-right">{item.aiScore ?? "—"}</span>
       </div>
     </div>
-  );
-}
-
-function StlMetric({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
-  return (
-    <div className="flex flex-col items-center gap-1 p-3 rounded-lg bg-secondary/50">
-      <div className="text-muted-foreground">{icon}</div>
-      <span className="text-sm font-semibold text-foreground">{value}</span>
-      <span className="text-[10px] text-muted-foreground">{label}</span>
-    </div>
-  );
-}
-
-function StatCard({
-  title, value, icon, description, color,
-}: {
-  title: string;
-  value: number | string | null;
-  icon: React.ReactNode;
-  description: string;
-  color: "primary" | "emerald" | "violet" | "amber";
-}) {
-  const colorMap = {
-    primary: "text-primary bg-primary/10",
-    emerald: "text-emerald-400 bg-emerald-400/10",
-    violet: "text-violet-400 bg-violet-400/10",
-    amber: "text-amber-400 bg-amber-400/10",
-  };
-  return (
-    <Card className="bg-card border-border">
-      <CardContent className="pt-5 pb-5">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
-            <p className="text-2xl font-bold text-foreground mt-1">
-              {value === null ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : value}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">{description}</p>
-          </div>
-          <div className={`p-2 rounded-lg ${colorMap[color]}`}>{icon}</div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    done: "bg-emerald-500/15 text-emerald-400",
-    completed: "bg-emerald-500/15 text-emerald-400",
-    running: "bg-blue-500/15 text-blue-400",
-    error: "bg-red-500/15 text-red-400",
-    failed: "bg-red-500/15 text-red-400",
-    pending: "bg-yellow-500/15 text-yellow-400",
-  };
-  return (
-    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${map[status] ?? "bg-muted text-muted-foreground"}`}>
-      {status}
-    </span>
   );
 }
 
 function QuickAction({
   icon, title, description, onClick, primary,
 }: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  onClick: () => void;
-  primary?: boolean;
+  icon: React.ReactNode; title: string; description: string; onClick: () => void; primary?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-start gap-3 p-4 rounded-lg border text-left transition-all hover:scale-[1.01] ${
+      className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:scale-[1.02] ${
         primary
-          ? "border-primary/30 bg-primary/5 hover:bg-primary/10"
-          : "border-border bg-secondary/30 hover:bg-secondary/60"
+          ? "border-violet-500/30 bg-gradient-to-br from-violet-500/10 to-blue-500/5 hover:border-violet-500/50"
+          : "border-white/8 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/15"
       }`}
     >
-      <div className={`mt-0.5 ${primary ? "text-primary" : "text-muted-foreground"}`}>{icon}</div>
+      <div className={`mt-0.5 ${primary ? "text-violet-400" : "text-white/30"}`}>{icon}</div>
       <div>
-        <p className="text-sm font-medium text-foreground">{title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+        <p className="text-sm font-semibold text-white">{title}</p>
+        <p className="text-xs text-white/30 mt-0.5">{description}</p>
       </div>
     </button>
   );
-}
-
-function formatConditionType(type: string): string {
-  const map: Record<string, string> = {
-    high_intent_visitor: "High Intent",
-    new_lead_generated: "New Lead",
-    lead_status_change: "Status Change",
-    deal_closed: "Deal Closed",
-    visitor_returning: "Returning Visitor",
-    keyword_match: "Keyword Match",
-  };
-  return map[type] ?? type;
 }

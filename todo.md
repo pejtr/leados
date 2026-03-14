@@ -441,3 +441,25 @@
 - [x] Dismiss + regenerate buttons
 - [x] Empty state with Generate Briefing CTA
 - [ ] Frontend: Briefing visible in /ai-advisor history
+
+## Visual Redesign — Premium AI Product Aesthetic
+- [ ] New design system: deep space dark bg (#050508), electric violet/cyan accent palette, Inter + Geist fonts
+- [ ] Global CSS: glassmorphism cards, animated gradient mesh background, glow effects, micro-animations
+- [ ] DashboardLayout: premium sidebar with gradient logo, animated active states, glow nav indicators
+- [ ] Home/Dashboard: gradient stat cards, animated counters, premium section headers
+- [ ] Landing page: cinematic hero with animated gradient orbs, premium typography, social proof bar
+- [ ] All pages: consistent glassmorphism cards, hover glow effects, smooth transitions
+
+## Sprint 1: Predictive Lead Scoring + LinkedIn Outreach
+- [x] DB: predictive_scores table
+- [x] Backend: leads.getPredictiveScores and leads.computePredictiveScore procedures
+- [x] Frontend: Score badges on leads in History.tsx (color coded: green/yellow/red)
+- [x] DB: sequence_steps stepType + linkedinNote fields
+- [x] Backend: sequences.generateLinkedInMessage procedure
+- [x] Frontend: Sequences.tsx redesigned with LinkedIn/Call step types, AI generate button
+
+## Visual Redesign — Premium Billionaire Tier
+- [x] index.css: Deep space dark, electric violet/cyan, glassmorphism, animated gradient system
+- [x] index.html: Premium fonts (Space Grotesk + Inter)
+- [x] DashboardLayout: Gradient logo, glow nav items, premium animated sidebar
+- [x] Home.tsx: Animated stat counters, pipeline funnel infographic, activity pulse chart, glassmorphism cards, gradient hero header

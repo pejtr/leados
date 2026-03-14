@@ -59,6 +59,12 @@ export default function History() {
 
   const { data: industries } = trpc.leads.industries.useQuery();
   const utils = trpc.useUtils();
+  const { data: predictiveScores } = trpc.leads.getPredictiveScores.useQuery();
+  const computeScores = trpc.leads.computePredictiveScores.useMutation({
+    onSuccess: (r) => { toast.success(`✨ Scored ${r.scored} leads with AI`); utils.leads.getPredictiveScores.invalidate(); },
+    onError: (e) => toast.error(e.message),
+  });
+  const scoreMap = Object.fromEntries((predictiveScores ?? []).map((s) => [s.leadId, s]));
 
   const { data, isLoading } = trpc.leads.list.useQuery({
     search: search || undefined,
@@ -203,6 +209,16 @@ export default function History() {
               <Sheet className="h-3.5 w-3.5" />
               Sheets
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => computeScores.mutate()}
+              disabled={computeScores.isPending}
+              className="gap-1.5 border-orange-500/40 text-orange-400 hover:bg-orange-500/10"
+            >
+              {computeScores.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+              Score Leads
+            </Button>
           </div>
         </div>
 
@@ -343,6 +359,7 @@ export default function History() {
                     <HistoryLeadRow
                       key={lead.id}
                       lead={lead}
+                      score={scoreMap[lead.id]}
                       expanded={expandedId === lead.id}
                       onToggle={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
                       selected={selectedIds.has(lead.id)}
@@ -396,12 +413,14 @@ export default function History() {
 
 function HistoryLeadRow({
   lead,
+  score,
   expanded,
   onToggle,
   selected,
   onSelect,
 }: {
   lead: any;
+  score?: any;
   expanded: boolean;
   onToggle: () => void;
   selected?: boolean;
@@ -461,6 +480,17 @@ function HistoryLeadRow({
                 <span className="inline-flex items-center gap-1 text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full px-1.5 py-0.5 shrink-0">
                   <Mail className="h-2.5 w-2.5" />
                   Email found
+                </span>
+              )}
+              {score && (
+                <span className={cn(
+                  "inline-flex items-center gap-1 text-[10px] rounded-full px-1.5 py-0.5 shrink-0 font-semibold border",
+                  score.scoreLabel === 'hot' && "bg-orange-500/15 text-orange-400 border-orange-500/30",
+                  score.scoreLabel === 'warm' && "bg-amber-500/15 text-amber-400 border-amber-500/30",
+                  score.scoreLabel === 'cold' && "bg-slate-500/15 text-slate-400 border-slate-500/30",
+                )}>
+                  {score.scoreLabel === 'hot' ? '🔥' : score.scoreLabel === 'warm' ? '⚡' : '❄️'}
+                  {Math.round(Number(score.score))}
                 </span>
               )}
               <span className="text-xs px-1.5 py-0.5 rounded-full bg-secondary text-muted-foreground">

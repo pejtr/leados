@@ -410,6 +410,49 @@ export const appRouter = router({
         await assignLead(input.leadId, ctx.user.id, input.assignedTo);
         return { success: true };
       }),
+    // ── Predictive Scoring ────────────────────────────────────
+    getPredictiveScores: protectedProcedure.query(async ({ ctx }) => {
+      const { predictiveScores } = await import('../drizzle/schema');
+      const scores = await db.select().from(predictiveScores).where(eq(predictiveScores.userId, ctx.user.id));
+      return scores;
+    }),
+    computePredictiveScores: protectedProcedure.mutation(async ({ ctx }) => {
+      const { predictiveScores } = await import('../drizzle/schema');
+      const userLeads = await db.select().from(leads).where(eq(leads.userId, ctx.user.id));
+      if (userLeads.length === 0) return { scored: 0 };
+      const statusWeights: Record<string, number> = { new: 30, contacted: 50, replied: 70, qualified: 90, disqualified: 5 };
+      let scored = 0;
+      for (const lead of userLeads) {
+        const baseScore = statusWeights[lead.status] ?? 30;
+        const enrichBonus = lead.isEnriched ? 10 : 0;
+        const linkedinBonus = lead.linkedinUrl ? 8 : 0;
+        const qualityBonus = lead.qualityRating === 'good' ? 12 : lead.qualityRating === 'bad' ? -15 : 0;
+        const emailBonus = lead.email ? 5 : 0;
+        const rawScore = Math.min(100, Math.max(0, baseScore + enrichBonus + linkedinBonus + qualityBonus + emailBonus));
+        const scoreLabel = rawScore >= 70 ? 'hot' as const : rawScore >= 40 ? 'warm' as const : 'cold' as const;
+        const factors = JSON.stringify([
+          { factor: 'Pipeline Status', weight: baseScore },
+          { factor: 'Email Available', weight: emailBonus },
+          { factor: 'LinkedIn Profile', weight: linkedinBonus },
+          { factor: 'Enriched', weight: enrichBonus },
+          { factor: 'Quality Rating', weight: qualityBonus },
+        ]);
+        const existing = await db.select({ id: predictiveScores.id })
+          .from(predictiveScores).where(eq(predictiveScores.leadId, lead.id)).limit(1);
+        if (existing.length > 0) {
+          await db.update(predictiveScores)
+            .set({ score: rawScore.toFixed(2), scoreLabel, factors, calculatedAt: new Date() })
+            .where(eq(predictiveScores.id, existing[0].id));
+        } else {
+          await db.insert(predictiveScores).values({
+            userId: ctx.user.id, leadId: lead.id,
+            score: rawScore.toFixed(2) as any, scoreLabel, factors,
+          });
+        }
+        scored++;
+      }
+      return { scored };
+    }),
   }),
 
   // ── Email Templates ───────────────────────────────────────────
@@ -1541,6 +1584,46 @@ export const appRouter = router({
     enrollments: protectedProcedure.query(async ({ ctx }) => {
       return getSequenceEnrollments(ctx.user.id);
     }),
+    addLinkedInStep: protectedProcedure
+      .input(z.object({
+        sequenceId: z.number(),
+        stepNumber: z.number(),
+        delayDays: z.number().default(1),
+        stepType: z.enum(['linkedin_connect', 'linkedin_message']),
+        leadContext: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { emailSequenceSteps } = await import('../drizzle/schema');
+        const prompt = input.stepType === 'linkedin_connect'
+          ? `Write a LinkedIn connection request note (max 300 chars) for B2B sales outreach. Context: ${input.leadContext || 'SaaS/tech company decision maker'}. Be direct, mention value, no fluff.`
+          : `Write a LinkedIn follow-up message (2-3 sentences) for B2B sales. Context: ${input.leadContext || 'following up after connection'}. Be conversational and value-focused.`;
+        const llmResp = await invokeLLM({ messages: [{ role: 'user', content: prompt }] });
+        const generatedNote = llmResp.choices?.[0]?.message?.content || '';
+        await db.insert(emailSequenceSteps).values({
+          sequenceId: input.sequenceId,
+          stepNumber: input.stepNumber,
+          delayDays: input.delayDays,
+          subject: input.stepType === 'linkedin_connect' ? 'LinkedIn Connection Request' : 'LinkedIn Message',
+          body: generatedNote,
+          stepType: input.stepType,
+          linkedinNote: generatedNote,
+        });
+        return { success: true, generatedNote };
+      }),
+    generateLinkedInMessage: protectedProcedure
+      .input(z.object({
+        leadContext: z.string(),
+        messageType: z.enum(['connect', 'message', 'follow_up']),
+      }))
+      .mutation(async ({ input }) => {
+        const typePrompts: Record<string, string> = {
+          connect: `Write a LinkedIn connection request note (max 300 chars). Context: ${input.leadContext}. Be personal, mention specific value, no generic phrases.`,
+          message: `Write a LinkedIn outreach message (3-4 sentences). Context: ${input.leadContext}. Lead with value, ask one clear question.`,
+          follow_up: `Write a LinkedIn follow-up message (2-3 sentences). Context: ${input.leadContext}. Reference previous interaction, add new value.`,
+        };
+        const llmResp = await invokeLLM({ messages: [{ role: 'user', content: typePrompts[input.messageType] }] });
+        return { message: llmResp.choices?.[0]?.message?.content || '' };
+      }),
   }),
 
   // ─── Tasks / Activity Tracker ───────────────────────────────────

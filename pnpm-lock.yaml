@@ -190,6 +190,9 @@ importers:
       react:
         specifier: ^19.2.1
         version: 19.2.1
+      react-countup:
+        specifier: ^6.5.3
+        version: 6.5.3(react@19.2.1)
       react-day-picker:
         specifier: ^9.11.1
         version: 9.11.1(react@19.2.1)
@@ -2656,6 +2659,9 @@ packages:
   cose-base@2.2.0:
     resolution: {integrity: sha512-AzlgcsCbUMymkADOJtQm3wO9S3ltPfYOFD5033keQn9NJzIbtnZj+UdBJe7DYml/8TdbtHJW3j58SOnKhWY/5g==}
 
+  countup.js@2.10.0:
+    resolution: {integrity: sha512-QQpZx7oYxsR+OeITlZe46fY/OQjV11oBqjY8wgIXzLU2jIz8GzOrbMhqKLysGY8bWI3T1ZNrYkwGzKb4JNgyzg==}
+
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -3971,6 +3977,11 @@ packages:
   raw-body@2.5.2:
     resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
     engines: {node: '>= 0.8'}
+
+  react-countup@6.5.3:
+    resolution: {integrity: sha512-udnqVQitxC7QWADSPDOxVWULkLvKUWrDapn5i53HE4DPRVgs+Y5rr4bo25qEl8jSh+0l2cToJgGMx+clxPM3+w==}
+    peerDependencies:
+      react: '>= 16.3.0'
 
   react-day-picker@9.11.1:
     resolution: {integrity: sha512-l3ub6o8NlchqIjPKrRFUCkTUEq6KwemQlfv3XZzzwpUeGwmDJ+0u0Upmt38hJyd7D/vn2dQoOoLV/qAp0o3uUw==}
@@ -7300,6 +7311,8 @@ snapshots:
     dependencies:
       layout-base: 2.0.1
 
+  countup.js@2.10.0: {}
+
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -8893,6 +8906,11 @@ snapshots:
       http-errors: 2.0.0
       iconv-lite: 0.4.24
       unpipe: 1.0.0
+
+  react-countup@6.5.3(react@19.2.1):
+    dependencies:
+      countup.js: 2.10.0
+      react: 19.2.1
 
   react-day-picker@9.11.1(react@19.2.1):
     dependencies:

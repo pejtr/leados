@@ -1,0 +1,9 @@
+{
+  "query": "\nCREATE TABLE IF NOT EXISTS `predictive_scores` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `userId` int NOT NULL,\n  `leadId` int NOT NULL,\n  `score` decimal(5,2) NOT NULL COMMENT '0.00 - 100.00',\n  `scoreLabel` enum('hot','warm','cold') NOT NULL,\n  `factors` text,\n  `modelVersion` varchar(32) DEFAULT 'v1',\n  `calculatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  KEY `idx_predictive_userId` (`userId`),\n  KEY `idx_predictive_leadId` (`leadId`)\n);\n\nALTER TABLE `email_sequence_steps`\n  ADD COLUMN IF NOT EXISTS `stepType` enum('email','linkedin_connect','linkedin_message','call') NOT NULL DEFAULT 'email',\n  ADD COLUMN IF NOT EXISTS `linkedinNote` text;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute \nCREATE TABLE IF NOT EXISTS `predictive_scores` (\n  `id` int NOT NULL AUTO_INCREMENT,\n  `userId` int NOT NULL,\n  `leadId` int NOT NULL,\n  `score` decimal(5,2) NOT NULL COMMENT '0.00 - 100.00',\n  `scoreLabel` enum('hot','warm','cold') NOT NULL,\n  `factors` text,\n  `modelVersion` varchar(32) DEFAULT 'v1',\n  `calculatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,\n  PRIMARY KEY (`id`),\n  KEY `idx_predictive_userId` (`userId`),\n  KEY `idx_predictive_leadId` (`leadId`)\n);\n\nALTER TABLE `email_sequence_steps`\n  ADD COLUMN IF NOT EXISTS `stepType` enum('email','linkedin_connect','linkedin_message','call') NOT NULL DEFAULT 'email',\n  ADD COLUMN IF NOT EXISTS `linkedinNote` text;\n",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 375
+}
