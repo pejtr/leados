@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO connected_projects (userId, name, url, description, apiKey, isActive, createdAt, updatedAt)\nSELECT \n  id,\n  'Deep Sleep Reset',\n  'https://manus.im/share/yxgmoNlujfMdAOHjyPW6F9',\n  'DTC sleep improvement product — $5 front-end offer with quiz funnel, Instagram DM automation, and affiliate program. Tracking sales, pageviews, and ad spend via LeadOS API.',\n  'dsr_96c230588e470b67d0c1215f369de3072980bc27cd951f38',\n  1,\n  NOW(),\n  NOW()\nFROM users ORDER BY id ASC LIMIT 1\nON DUPLICATE KEY UPDATE updatedAt = NOW();",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute INSERT INTO connected_projects (userId, name, url, description, apiKey, isActive, createdAt, updatedAt)\nSELECT \n  id,\n  'Deep Sleep Reset',\n  'https://manus.im/share/yxgmoNlujfMdAOHjyPW6F9',\n  'DTC sleep improvement product — $5 front-end offer with quiz funnel, Instagram DM automation, and affiliate program. Tracking sales, pageviews, and ad spend via LeadOS API.',\n  'dsr_96c230588e470b67d0c1215f369de3072980bc27cd951f38',\n  1,\n  NOW(),\n  NOW()\nFROM users ORDER BY id ASC LIMIT 1\nON DUPLICATE KEY UPDATE updatedAt = NOW();",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 65
+}

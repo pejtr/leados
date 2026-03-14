@@ -554,3 +554,8 @@
 - [x] Per-project metrics cards (sales, revenue, ROAS, CVR, profit)
 - [x] SDK snippet generator in UI (copy-paste JS code with fetch examples)
 - [x] Sidebar nav item: "Projekty / Command Center" with link icon
+
+## HOW_IT_WORKS i18n + Deal Activity Log + Deep Sleep Reset Project
+- [x] Translate HOW_IT_WORKS section on landing page (4 steps) to Czech/German
+- [x] Add Deal Activity Log timeline to Deal Pipeline (backend + frontend)
+- [x] Pre-seed Deep Sleep Reset as first connected project with API key: dsr_96c230588e470b67d0c1215f369de3072980bc27cd951f38

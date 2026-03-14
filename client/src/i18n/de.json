@@ -145,7 +145,18 @@
     "quantumSubtitle": "Mehrstufige KI-Orchestrierung mit Echtzeit-Datenfusion",
     "industryPresetsBadge": "Branchen-Presets",
     "privacyPolicy": "Datenschutzrichtlinie",
-    "termsOfService": "Nutzungsbedingungen"
+    "termsOfService": "Nutzungsbedingungen",
+    "howSectionTitle": "Von Null zur Pipeline in",
+    "howSectionTitleHighlight": "4 Schritten",
+    "howSectionSubtitle": "Kein komplexes Setup. Kein Data-Science-Abschluss erforderlich. Nur Ergebnisse.",
+    "howStep1Title": "Definieren Sie Ihr ICP",
+    "howStep1Desc": "Teilen Sie der KI Ihr ideales Kundenprofil mit — Branche, Unternehmensgröße, Seniorität, Tech-Stack.",
+    "howStep2Title": "KI generiert Leads",
+    "howStep2Desc": "Unsere KI scrapt, reichert an und verifiziert 50–500 Leads in unter 5 Minuten.",
+    "howStep3Title": "Personalisierte Ansprache",
+    "howStep3Desc": "KI schreibt einzigartige Icebreaker für jeden Lead und startet Multi-Channel-Sequenzen.",
+    "howStep4Title": "Mehr Deals abschließen",
+    "howStep4Desc": "Verfolgen Sie die Pipeline, bewerten Sie Leads und lassen Sie den Chat-Agenten Sie zum schnelleren Abschluss coachen."
   },
   "dashboard": {
     "title": "Dashboard",

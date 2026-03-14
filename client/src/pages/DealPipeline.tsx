@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trophy, X, TrendingUp, DollarSign, Target, Activity } from "lucide-react";
+import { Plus, Trophy, X, TrendingUp, DollarSign, Target, Activity, Phone, Mail, Users, FileText, CheckSquare, Monitor, Clock, ChevronDown, ChevronUp, Send } from "lucide-react";
 
 const STAGES = [
   { key: "new", label: "Nový", color: "bg-slate-500", light: "bg-slate-50 border-slate-200" },
@@ -22,6 +22,16 @@ const STAGES = [
 ] as const;
 
 type Stage = typeof STAGES[number]["key"];
+type ActivityType = "call" | "email" | "meeting" | "note" | "task" | "demo";
+
+const ACTIVITY_TYPES: { key: ActivityType; label: string; icon: React.ElementType; color: string }[] = [
+  { key: "call", label: "Hovor", icon: Phone, color: "text-green-400" },
+  { key: "email", label: "E-mail", icon: Mail, color: "text-blue-400" },
+  { key: "meeting", label: "Schůzka", icon: Users, color: "text-violet-400" },
+  { key: "note", label: "Poznámka", icon: FileText, color: "text-slate-400" },
+  { key: "task", label: "Úkol", icon: CheckSquare, color: "text-amber-400" },
+  { key: "demo", label: "Demo", icon: Monitor, color: "text-cyan-400" },
+];
 
 interface DealFormData {
   title: string;
@@ -45,6 +55,150 @@ const EMPTY_FORM: DealFormData = {
   nextAction: "",
 };
 
+// Activity Log component for the edit modal
+function ActivityLog({ dealId }: { dealId: number }) {
+  const utils = trpc.useUtils();
+  const { data: activities = [], isLoading } = trpc.crm.getDealActivities.useQuery({ dealId });
+  const [showLog, setShowLog] = useState(true);
+  const [activityType, setActivityType] = useState<ActivityType>("note");
+  const [activityContent, setActivityContent] = useState("");
+  const [activityOutcome, setActivityOutcome] = useState("");
+  const [activityDuration, setActivityDuration] = useState("");
+
+  const addActivity = trpc.crm.addActivity.useMutation({
+    onSuccess: () => {
+      utils.crm.getDealActivities.invalidate({ dealId });
+      setActivityContent("");
+      setActivityOutcome("");
+      setActivityDuration("");
+      toast.success("Aktivita přidána");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleAdd = () => {
+    if (!activityContent.trim()) return;
+    addActivity.mutate({
+      dealId,
+      type: activityType,
+      content: activityContent,
+      outcome: activityOutcome || undefined,
+      duration: activityDuration ? parseInt(activityDuration) : undefined,
+    });
+  };
+
+  const getActivityMeta = (type: ActivityType) => ACTIVITY_TYPES.find((a) => a.key === type) ?? ACTIVITY_TYPES[3];
+
+  return (
+    <div className="border-t border-slate-700 pt-4 mt-2">
+      <button
+        onClick={() => setShowLog(!showLog)}
+        className="flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white w-full mb-3"
+      >
+        <Activity className="w-4 h-4 text-violet-400" />
+        Časová osa aktivit
+        <Badge variant="secondary" className="bg-slate-800 text-slate-400 text-xs ml-1">{activities.length}</Badge>
+        {showLog ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
+      </button>
+
+      {showLog && (
+        <div className="space-y-3">
+          {/* Add activity form */}
+          <div className="bg-slate-800/60 rounded-lg p-3 space-y-2">
+            <div className="flex gap-2 flex-wrap">
+              {ACTIVITY_TYPES.map((at) => {
+                const Icon = at.icon;
+                return (
+                  <button
+                    key={at.key}
+                    onClick={() => setActivityType(at.key)}
+                    className={`flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-colors ${activityType === at.key ? "bg-violet-600 text-white" : "bg-slate-700 text-slate-400 hover:text-white"}`}
+                  >
+                    <Icon className={`w-3 h-3 ${activityType === at.key ? "text-white" : at.color}`} />
+                    {at.label}
+                  </button>
+                );
+              })}
+            </div>
+            <Textarea
+              value={activityContent}
+              onChange={(e) => setActivityContent(e.target.value)}
+              placeholder={`Popis aktivity (${ACTIVITY_TYPES.find(a => a.key === activityType)?.label ?? "Poznámka"})...`}
+              className="bg-slate-700 border-slate-600 text-white text-sm resize-none"
+              rows={2}
+            />
+            <div className="flex gap-2">
+              {(activityType === "call" || activityType === "meeting" || activityType === "demo") && (
+                <Input
+                  value={activityDuration}
+                  onChange={(e) => setActivityDuration(e.target.value)}
+                  placeholder="Délka (min)"
+                  type="number"
+                  className="bg-slate-700 border-slate-600 text-white text-sm w-28"
+                />
+              )}
+              <Input
+                value={activityOutcome}
+                onChange={(e) => setActivityOutcome(e.target.value)}
+                placeholder="Výsledek / outcome..."
+                className="bg-slate-700 border-slate-600 text-white text-sm flex-1"
+              />
+              <Button
+                onClick={handleAdd}
+                disabled={addActivity.isPending || !activityContent.trim()}
+                size="sm"
+                className="bg-violet-600 hover:bg-violet-700 text-white gap-1"
+              >
+                <Send className="w-3 h-3" />
+                Přidat
+              </Button>
+            </div>
+          </div>
+
+          {/* Timeline */}
+          {isLoading ? (
+            <div className="text-xs text-slate-500 text-center py-2">Načítám...</div>
+          ) : activities.length === 0 ? (
+            <div className="text-xs text-slate-500 text-center py-3">Zatím žádné aktivity. Přidejte první!</div>
+          ) : (
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+              {[...activities].reverse().map((act: any) => {
+                const meta = getActivityMeta(act.type);
+                const Icon = meta.icon;
+                return (
+                  <div key={act.id} className="flex gap-2.5">
+                    <div className="flex flex-col items-center">
+                      <div className={`w-7 h-7 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0`}>
+                        <Icon className={`w-3.5 h-3.5 ${meta.color}`} />
+                      </div>
+                      <div className="w-px flex-1 bg-slate-700/50 mt-1" />
+                    </div>
+                    <div className="pb-3 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className={`text-xs font-semibold ${meta.color}`}>{meta.label}</span>
+                        {act.duration && (
+                          <span className="text-xs text-slate-500 flex items-center gap-0.5">
+                            <Clock className="w-2.5 h-2.5" />{act.duration} min
+                          </span>
+                        )}
+                        <span className="text-xs text-slate-600 ml-auto">
+                          {new Date(act.createdAt).toLocaleDateString("cs-CZ", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      </div>
+                      {act.content && <p className="text-xs text-slate-300 leading-relaxed">{act.content}</p>}
+                      {act.outcome && <p className="text-xs text-emerald-400 mt-0.5">→ {act.outcome}</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function DealPipeline() {
   const { t } = useTranslation();
   const utils = trpc.useUtils();
@@ -64,9 +218,9 @@ export default function DealPipeline() {
       utils.crm.getDealStats.invalidate();
       setCreateOpen(false);
       setForm(EMPTY_FORM);
-      toast({ title: "Deal vytvořen!" });
+      toast.success("Deal vytvořen!");
     },
-    onError: (e) => toast({ title: "Chyba", description: e.message, variant: "destructive" }),
+    onError: (e) => toast.error(e.message),
   });
 
   const updateMutation = trpc.crm.updateDeal.useMutation({
@@ -74,16 +228,16 @@ export default function DealPipeline() {
       utils.crm.listDeals.invalidate();
       utils.crm.getDealStats.invalidate();
       setEditDeal(null);
-      toast({ title: "Deal aktualizován!" });
+      toast.success("Deal aktualizován!");
     },
-    onError: (e) => toast({ title: "Chyba", description: e.message, variant: "destructive" }),
+    onError: (e) => toast.error(e.message),
   });
 
   const deleteMutation = trpc.crm.deleteDeal.useMutation({
     onSuccess: () => {
       utils.crm.listDeals.invalidate();
       utils.crm.getDealStats.invalidate();
-      toast({ title: "Deal smazán." });
+      toast.success("Deal smazán.");
     },
   });
 
@@ -264,116 +418,146 @@ export default function DealPipeline() {
         </div>
       )}
 
-      {/* Create / Edit Dialog */}
-      <Dialog open={createOpen || !!editDeal} onOpenChange={(open) => { if (!open) { setCreateOpen(false); setEditDeal(null); } }}>
+      {/* Create Dialog */}
+      <Dialog open={createOpen} onOpenChange={(open) => { if (!open) setCreateOpen(false); }}>
         <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-white">{editDeal ? "Upravit deal" : "Nový deal"}</DialogTitle>
+            <DialogTitle className="text-white">Nový deal</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <Label className="text-slate-300">Název dealu *</Label>
-              <Input
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="např. TechCorp — roční licence"
-                className="bg-slate-800 border-slate-700 text-white mt-1"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-slate-300">Hodnota</Label>
-                <Input
-                  value={form.value}
-                  onChange={(e) => setForm({ ...form, value: e.target.value })}
-                  placeholder="0"
-                  type="number"
-                  className="bg-slate-800 border-slate-700 text-white mt-1"
-                />
-              </div>
-              <div>
-                <Label className="text-slate-300">Měna</Label>
-                <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v })}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    {["CZK", "EUR", "USD", "GBP"].map((c) => (
-                      <SelectItem key={c} value={c} className="text-white">{c}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-slate-300">Fáze</Label>
-                <Select value={form.stage} onValueChange={(v) => setForm({ ...form, stage: v as Stage })}>
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-slate-800 border-slate-700">
-                    {STAGES.map((s) => (
-                      <SelectItem key={s.key} value={s.key} className="text-white">{s.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-slate-300">Pravděpodobnost (%)</Label>
-                <Input
-                  value={form.probability}
-                  onChange={(e) => setForm({ ...form, probability: parseInt(e.target.value) || 0 })}
-                  type="number"
-                  min={0}
-                  max={100}
-                  className="bg-slate-800 border-slate-700 text-white mt-1"
-                />
-              </div>
-            </div>
-            <div>
-              <Label className="text-slate-300">Datum uzavření</Label>
-              <Input
-                value={form.expectedCloseDate}
-                onChange={(e) => setForm({ ...form, expectedCloseDate: e.target.value })}
-                type="date"
-                className="bg-slate-800 border-slate-700 text-white mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-slate-300">Další krok</Label>
-              <Input
-                value={form.nextAction}
-                onChange={(e) => setForm({ ...form, nextAction: e.target.value })}
-                placeholder="např. Demo call v pátek"
-                className="bg-slate-800 border-slate-700 text-white mt-1"
-              />
-            </div>
-            <div>
-              <Label className="text-slate-300">Poznámky</Label>
-              <Textarea
-                value={form.notes}
-                onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                placeholder="Interní poznámky k dealu..."
-                className="bg-slate-800 border-slate-700 text-white mt-1 resize-none"
-                rows={3}
-              />
-            </div>
-          </div>
+          <DealFormFields form={form} setForm={setForm} />
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setCreateOpen(false); setEditDeal(null); }} className="border-slate-700 text-slate-300">
+            <Button variant="outline" onClick={() => setCreateOpen(false)} className="border-slate-700 text-slate-300">
               Zrušit
             </Button>
             <Button
-              onClick={editDeal ? handleUpdate : handleCreate}
-              disabled={createMutation.isPending || updateMutation.isPending || !form.title.trim()}
+              onClick={handleCreate}
+              disabled={createMutation.isPending || !form.title.trim()}
               className="bg-violet-600 hover:bg-violet-700 text-white"
             >
-              {editDeal ? "Uložit změny" : "Vytvořit deal"}
+              Vytvořit deal
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Dialog — includes Activity Log */}
+      <Dialog open={!!editDeal} onOpenChange={(open) => { if (!open) setEditDeal(null); }}>
+        <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-white">Upravit deal</DialogTitle>
+          </DialogHeader>
+          <DealFormFields form={form} setForm={setForm} />
+          {editDeal && <ActivityLog dealId={editDeal.id} />}
+          <DialogFooter className="gap-2 sticky bottom-0 bg-slate-900 pt-2">
+            <Button variant="outline" onClick={() => setEditDeal(null)} className="border-slate-700 text-slate-300">
+              Zrušit
+            </Button>
+            <Button
+              onClick={handleUpdate}
+              disabled={updateMutation.isPending || !form.title.trim()}
+              className="bg-violet-600 hover:bg-violet-700 text-white"
+            >
+              Uložit změny
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// Extracted form fields component to avoid duplication
+function DealFormFields({ form, setForm }: { form: DealFormData; setForm: (f: DealFormData) => void }) {
+  return (
+    <div className="space-y-4 py-2">
+      <div>
+        <Label className="text-slate-300">Název dealu *</Label>
+        <Input
+          value={form.title}
+          onChange={(e) => setForm({ ...form, title: e.target.value })}
+          placeholder="např. TechCorp — roční licence"
+          className="bg-slate-800 border-slate-700 text-white mt-1"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label className="text-slate-300">Hodnota</Label>
+          <Input
+            value={form.value}
+            onChange={(e) => setForm({ ...form, value: e.target.value })}
+            placeholder="0"
+            type="number"
+            className="bg-slate-800 border-slate-700 text-white mt-1"
+          />
+        </div>
+        <div>
+          <Label className="text-slate-300">Měna</Label>
+          <Select value={form.currency} onValueChange={(v) => setForm({ ...form, currency: v })}>
+            <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-slate-700">
+              {["CZK", "EUR", "USD", "GBP"].map((c) => (
+                <SelectItem key={c} value={c} className="text-white">{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label className="text-slate-300">Fáze</Label>
+          <Select value={form.stage} onValueChange={(v) => setForm({ ...form, stage: v as Stage })}>
+            <SelectTrigger className="bg-slate-800 border-slate-700 text-white mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-slate-800 border-slate-700">
+              {STAGES.map((s) => (
+                <SelectItem key={s.key} value={s.key} className="text-white">{s.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-slate-300">Pravděpodobnost (%)</Label>
+          <Input
+            value={form.probability}
+            onChange={(e) => setForm({ ...form, probability: parseInt(e.target.value) || 0 })}
+            type="number"
+            min={0}
+            max={100}
+            className="bg-slate-800 border-slate-700 text-white mt-1"
+          />
+        </div>
+      </div>
+      <div>
+        <Label className="text-slate-300">Datum uzavření</Label>
+        <Input
+          value={form.expectedCloseDate}
+          onChange={(e) => setForm({ ...form, expectedCloseDate: e.target.value })}
+          type="date"
+          className="bg-slate-800 border-slate-700 text-white mt-1"
+        />
+      </div>
+      <div>
+        <Label className="text-slate-300">Další krok</Label>
+        <Input
+          value={form.nextAction}
+          onChange={(e) => setForm({ ...form, nextAction: e.target.value })}
+          placeholder="např. Demo call v pátek"
+          className="bg-slate-800 border-slate-700 text-white mt-1"
+        />
+      </div>
+      <div>
+        <Label className="text-slate-300">Poznámky</Label>
+        <Textarea
+          value={form.notes}
+          onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          placeholder="Interní poznámky k dealu..."
+          className="bg-slate-800 border-slate-700 text-white mt-1 resize-none"
+          rows={3}
+        />
+      </div>
     </div>
   );
 }

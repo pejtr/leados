@@ -145,7 +145,18 @@
     "quantumSubtitle": "Multi-stage AI orchestration with real-time data fusion",
     "industryPresetsBadge": "Industry Presets",
     "privacyPolicy": "Privacy Policy",
-    "termsOfService": "Terms of Service"
+    "termsOfService": "Terms of Service",
+    "howSectionTitle": "From Zero to Pipeline in",
+    "howSectionTitleHighlight": "4 Steps",
+    "howSectionSubtitle": "No complex setup. No data science degree required. Just results.",
+    "howStep1Title": "Define Your ICP",
+    "howStep1Desc": "Tell the AI your ideal customer profile — industry, company size, seniority, tech stack.",
+    "howStep2Title": "AI Generates Leads",
+    "howStep2Desc": "Our AI scrapes, enriches, and verifies 50–500 leads in under 5 minutes.",
+    "howStep3Title": "Personalized Outreach",
+    "howStep3Desc": "AI writes unique icebreakers for each lead and launches multi-channel sequences.",
+    "howStep4Title": "Close More Deals",
+    "howStep4Desc": "Track pipeline, score leads, and let the Chat Agent coach you to close faster."
   },
   "dashboard": {
     "title": "Dashboard",

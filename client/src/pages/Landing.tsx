@@ -123,10 +123,10 @@ export default function Landing() {
   ];
 
   const HOW_IT_WORKS = [
-    { step: "01", icon: Target, title: "Define Your ICP", desc: "Tell the AI your ideal customer profile — industry, company size, seniority, tech stack.", color: "#8b5cf6" },
-    { step: "02", icon: Zap, title: "AI Generates Leads", desc: "Our AI scrapes, enriches, and verifies 50–500 leads in under 5 minutes.", color: "#06b6d4" },
-    { step: "03", icon: Mail, title: "Personalized Outreach", desc: "AI writes unique icebreakers for each lead and launches multi-channel sequences.", color: "#10b981" },
-    { step: "04", icon: TrendingUp, title: "Close More Deals", desc: "Track pipeline, score leads, and let the AI advisor coach you to close faster.", color: "#f59e0b" },
+    { step: "01", icon: Target, titleKey: "landing.howStep1Title", descKey: "landing.howStep1Desc", color: "#8b5cf6" },
+    { step: "02", icon: Zap, titleKey: "landing.howStep2Title", descKey: "landing.howStep2Desc", color: "#06b6d4" },
+    { step: "03", icon: Mail, titleKey: "landing.howStep3Title", descKey: "landing.howStep3Desc", color: "#10b981" },
+    { step: "04", icon: TrendingUp, titleKey: "landing.howStep4Title", descKey: "landing.howStep4Desc", color: "#f59e0b" },
   ];
 
   return (
@@ -347,16 +347,16 @@ export default function Landing() {
                 {t("nav.howItWorks") || "How It Works"}
               </Badge>
               <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                From Zero to Pipeline in <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>4 Steps</span>
+                {t("landing.howSectionTitle")} <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{t("landing.howSectionTitleHighlight")}</span>
               </h2>
               <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.5)" }}>
-                No complex setup. No data science degree required. Just results.
+                {t("landing.howSectionSubtitle")}
               </p>
             </div>
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {HOW_IT_WORKS.map(({ step, icon: Icon, title, desc, color }, i) => (
+            {HOW_IT_WORKS.map(({ step, icon: Icon, titleKey, descKey, color }, i) => (
               <Reveal key={step} delay={i * 0.12}>
                 <motion.div
                   whileHover={{ y: -6, scale: 1.02 }}
@@ -367,8 +367,8 @@ export default function Landing() {
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ background: `${color}20`, border: `1px solid ${color}40` }}>
                     <Icon className="w-5 h-5" style={{ color }} />
                   </div>
-                  <h3 className="font-bold text-base mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h3>
-                  <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>{desc}</p>
+                  <h3 className="font-bold text-base mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{t(titleKey)}</h3>
+                  <p className="text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>{t(descKey)}</p>
                   {i < HOW_IT_WORKS.length - 1 && (
                     <div className="hidden lg:block absolute top-1/2 -right-3 z-10">
                       <ChevronRight className="w-5 h-5" style={{ color: "rgba(139,92,246,0.4)" }} />
