@@ -304,3 +304,10 @@
 - [x] Skip button on all steps except Done
 - [x] Wire trpc.onboarding.saveIcp and trpc.onboarding.complete mutations
 - [x] Add /onboarding route in App.tsx
+
+## Stripe Real Price IDs Setup
+- [x] Create Stripe products via API (Starter, Growth, Pro)
+- [x] Create monthly + yearly prices for each product
+- [x] Store Price IDs as environment secrets
+- [x] Update stripeProducts.ts with real Price IDs
+- [x] Test checkout flow end-to-end with test card

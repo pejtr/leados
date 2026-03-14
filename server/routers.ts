@@ -553,7 +553,7 @@ export const appRouter = router({
     get: protectedProcedure
       .input(z.object({ id: z.number().int() }))
       .query(async ({ ctx, input }) => {
-        return getAutopilotConfigById(input.id, ctx.user.id);
+        const r = await getAutopilotConfigById(input.id, ctx.user.id); return r ?? null;
       }),
 
     create: protectedProcedure
@@ -642,7 +642,7 @@ export const appRouter = router({
     get: protectedProcedure
       .input(z.object({ id: z.number().int() }))
       .query(async ({ ctx, input }) => {
-        return getWebhookConfigById(input.id, ctx.user.id);
+        const r = await getWebhookConfigById(input.id, ctx.user.id); return r ?? null;
       }),
 
     // Create new webhook config
@@ -774,7 +774,7 @@ export const appRouter = router({
     get: protectedProcedure
       .input(z.object({ id: z.number().int() }))
       .query(async ({ ctx, input }) => {
-        return getMatchProfileById(input.id, ctx.user.id);
+        const r = await getMatchProfileById(input.id, ctx.user.id); return r ?? null;
       }),
 
     create: protectedProcedure
@@ -858,7 +858,7 @@ export const appRouter = router({
     get: protectedProcedure
       .input(z.object({ id: z.number().int() }))
       .query(async ({ ctx, input }) => {
-        return getSdrCampaignById(input.id, ctx.user.id);
+        const r = await getSdrCampaignById(input.id, ctx.user.id); return r ?? null;
       }),
 
     create: protectedProcedure
@@ -1018,7 +1018,7 @@ export const appRouter = router({
     getMonitor: protectedProcedure
       .input(z.object({ id: z.number().int() }))
       .query(async ({ ctx, input }) => {
-        return getSocialMonitorById(input.id, ctx.user.id);
+        const r = await getSocialMonitorById(input.id, ctx.user.id); return r ?? null;
       }),
 
     createMonitor: protectedProcedure
@@ -1276,7 +1276,7 @@ export const appRouter = router({
   // ─── Speed-to-Lead ─────────────────────────────────────────
   speedToLead: router({
     get: protectedProcedure.query(async ({ ctx }) => {
-      return getSpeedToLeadConfig(ctx.user.id);
+      const cfg = await getSpeedToLeadConfig(ctx.user.id); return cfg ?? null;
     }),
     upsert: protectedProcedure
       .input(z.object({
