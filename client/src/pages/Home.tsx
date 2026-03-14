@@ -8,6 +8,7 @@ import {
   Sun, X, RefreshCw, Target, AlertTriangle, ListChecks, Cpu, Flame,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
@@ -129,11 +130,12 @@ function PipelineFlow({ stats }: { stats: any }) {
 function ActivityPulse({ sessions }: { sessions: any[] }) {
   const recent = sessions?.slice(0, 7) ?? [];
   const maxLeads = Math.max(...recent.map(s => s.leadsFound ?? 0), 1);
+  const { t } = useTranslation();
 
   return (
     <div className="flex items-end gap-1.5 h-16">
       {recent.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-white/20 text-xs">No sessions yet</div>
+        <div className="flex-1 flex items-center justify-center text-white/20 text-xs">{t('dashboard.noSessionsYet')}</div>
       ) : (
         recent.map((s, i) => {
           const h = Math.max(((s.leadsFound ?? 0) / maxLeads) * 100, 8);
@@ -169,7 +171,8 @@ export default function Home() {
   const dismissBriefingMutation = trpc.morningBriefing.dismiss.useMutation({
     onSuccess: () => refetchBriefing(),
   });
-  const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+  const { t } = useTranslation();
+  const today = new Date().toLocaleDateString("cs-CZ", { weekday: "long", month: "long", day: "numeric" });
   const enrichmentRate = stats && stats.totalLeads > 0 ? Math.round((stats.enrichedLeads / stats.totalLeads) * 100) : 0;
 
   return (
@@ -185,9 +188,9 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-xs text-emerald-400 font-medium">AI Systems Active</span>
+                <span className="text-xs text-emerald-400 font-medium">{t('dashboard.aiSystemsActive')}</span>
               </div>
-              <h1 className="text-3xl font-black text-white tracking-tight">Command Center</h1>
+              <h1 className="text-3xl font-black text-white tracking-tight">{t('dashboard.commandCenter')}</h1>
               <p className="text-white/40 text-sm mt-1">{today}</p>
             </div>
             <div className="flex items-center gap-3">
@@ -198,14 +201,14 @@ export default function Home() {
                 className="border-violet-500/40 text-violet-300 hover:bg-violet-500/10 gap-2"
               >
                 <Brain className="h-4 w-4" />
-                AI Advisor
+                {t('sidebar.aiAdvisor')}
               </Button>
               <Button
                 onClick={() => setLocation("/generate")}
                 className="bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white border-0 gap-2 font-semibold shadow-lg shadow-violet-500/20"
               >
                 <Zap className="h-4 w-4" />
-                Generate Leads
+                {t('sidebar.generateLeads')}
               </Button>
             </div>
           </div>
@@ -220,8 +223,8 @@ export default function Home() {
                   <Sun className="h-5 w-5 text-amber-400" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-white">Morning Briefing</p>
-                  <p className="text-xs text-white/40">{today} — Get your AI-powered daily action plan</p>
+                  <p className="text-sm font-semibold text-white">{t('dashboard.morningBriefing')}</p>
+                  <p className="text-xs text-white/40">{today} — {t('dashboard.morningBriefingDesc')}</p>
                 </div>
                 <Button
                   size="sm"
@@ -230,7 +233,7 @@ export default function Home() {
                   className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 gap-2 shrink-0"
                 >
                   {generateBriefingMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                  Generate
+                  {t('dashboard.generate')}
                 </Button>
               </div>
             ) : (
@@ -243,7 +246,7 @@ export default function Home() {
                         <Sun className="h-5 w-5 text-amber-400" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-bold text-white">Morning Briefing</h3>
+                        <h3 className="text-sm font-bold text-white">{t('dashboard.morningBriefing')}</h3>
                         <p className="text-xs text-white/40">{today}</p>
                       </div>
                     </div>
@@ -262,7 +265,7 @@ export default function Home() {
                       <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/15">
                         <div className="flex items-center gap-1.5 mb-2">
                           <Target className="h-3.5 w-3.5 text-blue-400" />
-                          <span className="text-xs font-bold text-blue-400">Top Leads Today</span>
+                          <span className="text-xs font-bold text-blue-400">{t('dashboard.topLeadsToday')}</span>
                         </div>
                         <ul className="space-y-1">
                           {briefing.topLeads.map((lead: string, i: number) => (
@@ -277,7 +280,7 @@ export default function Home() {
                       <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/15">
                         <div className="flex items-center gap-1.5 mb-2">
                           <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
-                          <span className="text-xs font-bold text-amber-400">Pipeline Alerts</span>
+                          <span className="text-xs font-bold text-amber-400">{t('dashboard.pipelineAlerts')}</span>
                         </div>
                         <ul className="space-y-1">
                           {briefing.pipelineAlerts.map((a: string, i: number) => (
@@ -292,7 +295,7 @@ export default function Home() {
                       <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/15">
                         <div className="flex items-center gap-1.5 mb-2">
                           <ListChecks className="h-3.5 w-3.5 text-emerald-400" />
-                          <span className="text-xs font-bold text-emerald-400">Next Actions</span>
+                          <span className="text-xs font-bold text-emerald-400">{t('dashboard.nextActions')}</span>
                         </div>
                         <ul className="space-y-1">
                           {briefing.nextActions.map((a: string, i: number) => (
@@ -312,10 +315,10 @@ export default function Home() {
 
         {/* ── Animated Stats Row ──────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <AnimatedStatCard title="Total Leads" value={isLoading ? null : stats?.totalLeads ?? 0} icon={<Users className="h-4 w-4" />} description="All time" color="primary" />
-          <AnimatedStatCard title="AI Enriched" value={isLoading ? null : stats?.enrichedLeads ?? 0} icon={<Sparkles className="h-4 w-4" />} description="With icebreakers" color="emerald" />
-          <AnimatedStatCard title="Enrichment Rate" value={isLoading ? null : enrichmentRate} icon={<TrendingUp className="h-4 w-4" />} description="Leads with AI content" color="violet" suffix="%" />
-          <AnimatedStatCard title="Sessions" value={isLoading ? null : stats?.totalSessions ?? 0} icon={<BarChart3 className="h-4 w-4" />} description="Generation runs" color="amber" />
+          <AnimatedStatCard title={t('dashboard.totalLeads')} value={isLoading ? null : stats?.totalLeads ?? 0} icon={<Users className="h-4 w-4" />} description={t('dashboard.allTime')} color="primary" />
+          <AnimatedStatCard title={t('dashboard.aiEnriched')} value={isLoading ? null : stats?.enrichedLeads ?? 0} icon={<Sparkles className="h-4 w-4" />} description={t('dashboard.withIcebreakers')} color="emerald" />
+          <AnimatedStatCard title={t('dashboard.enrichmentRate')} value={isLoading ? null : enrichmentRate} icon={<TrendingUp className="h-4 w-4" />} description={t('dashboard.leadsWithAI')} color="violet" suffix="%" />
+          <AnimatedStatCard title={t('dashboard.sessions')} value={isLoading ? null : stats?.totalSessions ?? 0} icon={<BarChart3 className="h-4 w-4" />} description={t('dashboard.generationRuns')} color="amber" />
         </div>
 
         {/* ── Pipeline Infographic + Activity ─────────────── */}
@@ -327,10 +330,10 @@ export default function Home() {
                 <div className="p-1.5 rounded-lg bg-violet-500/10">
                   <TrendingUp className="h-4 w-4 text-violet-400" />
                 </div>
-                <h2 className="text-sm font-bold text-white">Pipeline Funnel</h2>
+                <h2 className="text-sm font-bold text-white">{t('dashboard.pipelineFunnel')}</h2>
               </div>
               <button onClick={() => setLocation("/kanban")} className="text-xs text-white/30 hover:text-violet-400 transition-colors flex items-center gap-1">
-                View Kanban <ChevronRight className="h-3 w-3" />
+                {t('dashboard.viewKanban')} <ChevronRight className="h-3 w-3" />
               </button>
             </div>
             <PipelineFlow stats={stats} />
@@ -342,12 +345,12 @@ export default function Home() {
               <div className="p-1.5 rounded-lg bg-blue-500/10">
                 <Activity className="h-4 w-4 text-blue-400" />
               </div>
-              <h2 className="text-sm font-bold text-white">Recent Activity</h2>
+                <h2 className="text-sm font-bold text-white">{t('dashboard.recentActivity')}</h2>
             </div>
             <ActivityPulse sessions={sessions ?? []} />
-            <p className="text-[10px] text-white/20 mt-2 text-center">Leads per session (last 7)</p>
+            <p className="text-[10px] text-white/20 mt-2 text-center">{t('dashboard.leadsPerSession')}</p>
             <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-              <span className="text-xs text-white/40">Avg per session</span>
+              <span className="text-xs text-white/40">{t('dashboard.avgPerSession')}</span>
               <span className="text-xs font-bold text-white">
                 {sessions && sessions.length > 0
                   ? Math.round(sessions.reduce((a, s) => a + (s.leadsFound ?? 0), 0) / sessions.length)
@@ -366,10 +369,10 @@ export default function Home() {
                 <div className="p-1.5 rounded-lg bg-amber-500/10">
                   <Lightbulb className="h-4 w-4 text-amber-400" />
                 </div>
-                <h2 className="text-sm font-bold text-white">Next Best Actions</h2>
+                <h2 className="text-sm font-bold text-white">{t('dashboard.nextBestActions')}</h2>
               </div>
               <button onClick={() => setLocation("/next-actions")} className="text-xs text-white/30 hover:text-amber-400 transition-colors flex items-center gap-1">
-                View all <ChevronRight className="h-3 w-3" />
+                {t('dashboard.viewAll')} <ChevronRight className="h-3 w-3" />
               </button>
             </div>
             {nbaLoading ? (
@@ -379,8 +382,8 @@ export default function Home() {
             ) : !nbaItems || nbaItems.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-32 text-center gap-2">
                 <Lightbulb className="h-8 w-8 text-white/10" />
-                <p className="text-xs text-white/30">No recommendations yet</p>
-                <p className="text-[10px] text-white/20">Generate leads to get AI-powered next actions</p>
+                <p className="text-xs text-white/30">{t('dashboard.noRecommendations')}</p>
+                <p className="text-[10px] text-white/20">{t('dashboard.generateLeadsForActions')}</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -396,10 +399,10 @@ export default function Home() {
                 <div className="p-1.5 rounded-lg bg-emerald-500/10">
                   <Timer className="h-4 w-4 text-emerald-400" />
                 </div>
-                <h2 className="text-sm font-bold text-white">Speed-to-Lead</h2>
+                <h2 className="text-sm font-bold text-white">{t('sidebar.speedToLead')}</h2>
               </div>
               <button onClick={() => setLocation("/speed-to-lead")} className="text-xs text-white/30 hover:text-emerald-400 transition-colors">
-                Configure →
+                {t('dashboard.configure')} →
               </button>
             </div>
             {stlConfig ? (
@@ -407,25 +410,25 @@ export default function Home() {
                 <div className={`flex items-center gap-2 p-2.5 rounded-xl ${stlConfig.isEnabled ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-white/5 border border-white/10"}`}>
                   <div className={`h-2 w-2 rounded-full ${stlConfig.isEnabled ? "bg-emerald-400 animate-pulse" : "bg-white/20"}`} />
                   <span className={`text-xs font-semibold ${stlConfig.isEnabled ? "text-emerald-400" : "text-white/30"}`}>
-                    {stlConfig.isEnabled ? "Active" : "Inactive"}
+                    {stlConfig.isEnabled ? t('dashboard.active') : t('dashboard.inactive')}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="p-2.5 rounded-xl bg-white/5 text-center">
                     <p className="text-lg font-black text-white">{stlConfig.responseTimeMinutes ?? "—"}</p>
-                    <p className="text-[10px] text-white/30">Min response</p>
+                    <p className="text-[10px] text-white/30">{t('dashboard.minResponse')}</p>
                   </div>
                   <div className="p-2.5 rounded-xl bg-white/5 text-center">
                     <p className="text-lg font-black text-white">{stlConfig.maxFollowUps ?? "—"}</p>
-                    <p className="text-[10px] text-white/30">Follow-ups</p>
+                    <p className="text-[10px] text-white/30">{t('dashboard.followUps')}</p>
                   </div>
                 </div>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center h-24 gap-2">
                 <Timer className="h-8 w-8 text-white/10" />
-                <p className="text-xs text-white/30">Not configured</p>
-                <button onClick={() => setLocation("/speed-to-lead")} className="text-xs text-emerald-400 hover:underline">Set up now →</button>
+                <p className="text-xs text-white/30">{t('dashboard.notConfigured')}</p>
+                <button onClick={() => setLocation("/speed-to-lead")} className="text-xs text-emerald-400 hover:underline">{t('dashboard.setUpNow')} →</button>
               </div>
             )}
           </div>
@@ -440,7 +443,7 @@ export default function Home() {
                 <div className="p-1.5 rounded-lg bg-violet-500/10">
                   <CheckCircle2 className="h-4 w-4 text-violet-400" />
                 </div>
-                <h2 className="text-sm font-bold text-white">Setup Progress</h2>
+                <h2 className="text-sm font-bold text-white">{t('dashboard.setupProgress')}</h2>
                 <span className="ml-auto text-xs font-bold text-violet-400">{setupProgress.percentage}%</span>
               </div>
               <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-4">
@@ -469,12 +472,12 @@ export default function Home() {
 
           {/* Quick Actions */}
           <div className={`rounded-2xl border border-white/10 bg-white/[0.02] p-5 ${setupProgress && setupProgress.percentage < 100 ? "lg:col-span-2" : "lg:col-span-3"}`}>
-            <h2 className="text-sm font-bold text-white mb-4">Quick Actions</h2>
+            <h2 className="text-sm font-bold text-white mb-4">{t('dashboard.quickActions')}</h2>
             <div className="grid grid-cols-2 gap-3">
-              <QuickAction icon={<Zap className="h-5 w-5" />} title="Generate Leads" description="Start a new AI lead generation run" onClick={() => setLocation("/generate")} primary />
-              <QuickAction icon={<Users className="h-5 w-5" />} title="View Pipeline" description="Manage leads in Kanban board" onClick={() => setLocation("/kanban")} />
-              <QuickAction icon={<Lightbulb className="h-5 w-5" />} title="AI Recommendations" description="Get AI-powered next best actions" onClick={() => setLocation("/next-actions")} />
-              <QuickAction icon={<BarChart3 className="h-5 w-5" />} title="View Statistics" description="Analyze your performance" onClick={() => setLocation("/stats")} />
+              <QuickAction icon={<Zap className="h-5 w-5" />} title={t('dashboard.generateLeads')} description={t('dashboard.generateLeadsDesc')} onClick={() => setLocation("/generate")} primary />
+              <QuickAction icon={<Users className="h-5 w-5" />} title={t('dashboard.viewPipeline')} description={t('dashboard.viewPipelineDesc')} onClick={() => setLocation("/kanban")} />
+              <QuickAction icon={<Lightbulb className="h-5 w-5" />} title={t('dashboard.aiRecommendations')} description={t('dashboard.aiRecommendationsDesc')} onClick={() => setLocation("/next-actions")} />
+              <QuickAction icon={<BarChart3 className="h-5 w-5" />} title={t('dashboard.viewStatistics')} description={t('dashboard.viewStatisticsDesc')} onClick={() => setLocation("/stats")} />
             </div>
             {/* AI Advisor Banner */}
             <div
@@ -485,8 +488,8 @@ export default function Home() {
                 <Brain className="h-5 w-5 text-violet-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-white">AI Advisor — 33 Expert Personas</p>
-                <p className="text-xs text-white/40">Hormozi, Buffett, Sun Tzu and 30 more experts</p>
+                <p className="text-sm font-bold text-white">{t('dashboard.aiAdvisorPersonas')}</p>
+                <p className="text-xs text-white/40">{t('dashboard.aiAdvisorPersonasDesc')}</p>
               </div>
               <ArrowRight className="h-4 w-4 text-violet-400 group-hover:translate-x-1 transition-transform" />
             </div>
@@ -501,7 +504,7 @@ export default function Home() {
               <div className="p-1.5 rounded-lg bg-violet-500/10">
                 <Cpu className="h-4 w-4 text-violet-400" />
               </div>
-              <h2 className="text-sm font-bold text-white">AI Agent Actions</h2>
+              <h2 className="text-sm font-bold text-white">{t('dashboard.aiAgentActions')}</h2>
               <div className="ml-auto h-1.5 w-1.5 rounded-full bg-violet-400 animate-pulse" />
             </div>
             {insightsLoading ? (
@@ -523,8 +526,8 @@ export default function Home() {
             ) : (
               <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
                 <Cpu className="h-8 w-8 text-white/10" />
-                <p className="text-xs text-white/30">No autonomous actions yet</p>
-                <p className="text-[10px] text-white/20">AI agent runs every 6 hours</p>
+                <p className="text-xs text-white/30">{t('dashboard.noAutonomousActions')}</p>
+                <p className="text-[10px] text-white/20">{t('dashboard.aiAgentRunsEvery')}</p>
               </div>
             )}
           </div>
@@ -535,7 +538,7 @@ export default function Home() {
               <div className="p-1.5 rounded-lg bg-amber-500/10">
                 <BookOpen className="h-4 w-4 text-amber-400" />
               </div>
-              <h2 className="text-sm font-bold text-white">AI Memory</h2>
+              <h2 className="text-sm font-bold text-white">{t('dashboard.aiMemory')}</h2>
             </div>
             {insightsLoading ? (
               <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-white/20" /></div>
@@ -556,8 +559,8 @@ export default function Home() {
             ) : (
               <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
                 <BookOpen className="h-8 w-8 text-white/10" />
-                <p className="text-xs text-white/30">No learnings yet</p>
-                <p className="text-[10px] text-white/20">Chat with AI Advisor to build memory</p>
+                <p className="text-xs text-white/30">{t('dashboard.noLearnings')}</p>
+                <p className="text-[10px] text-white/20">{t('dashboard.chatToBuildMemory')}</p>
               </div>
             )}
           </div>
@@ -568,7 +571,7 @@ export default function Home() {
               <div className="p-1.5 rounded-lg bg-emerald-500/10">
                 <Flame className="h-4 w-4 text-emerald-400" />
               </div>
-              <h2 className="text-sm font-bold text-white">AI Performance</h2>
+              <h2 className="text-sm font-bold text-white">{t('dashboard.aiPerformance')}</h2>
             </div>
             {insightsLoading ? (
               <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-white/20" /></div>
@@ -596,7 +599,7 @@ export default function Home() {
                   onClick={() => setLocation("/ai-advisor")}
                   className="w-full text-xs text-emerald-400 hover:text-emerald-300 transition-colors flex items-center justify-center gap-1 pt-1"
                 >
-                  View full chat history <ArrowRight className="h-3 w-3" />
+                  {t('dashboard.viewFullChatHistory')} <ArrowRight className="h-3 w-3" />
                 </button>
               </div>
             ) : null}

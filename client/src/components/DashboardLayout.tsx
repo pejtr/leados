@@ -29,6 +29,7 @@ import {
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
@@ -36,50 +37,50 @@ import OnboardingWizard from "./OnboardingWizard";
 import AIChatWidget from "./AIChatWidget";
 import { trpc } from "@/lib/trpc";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard", group: "core" },
-  { icon: Brain, label: "AI Advisor", path: "/ai-advisor", group: "core" },
-  { icon: Zap, label: "Generate Leads", path: "/generate", group: "core" },
-  { icon: History, label: "Lead History", path: "/history", group: "core" },
-  { icon: Kanban, label: "Pipeline Board", path: "/kanban", group: "core" },
-  { icon: Target, label: "ICP Builder", path: "/icp", group: "intelligence" },
-  { icon: Code, label: "Tracking Pixel", path: "/tracking", group: "intelligence" },
-  { icon: Cpu, label: "Tech Stack", path: "/tech-stack", group: "intelligence" },
-  { icon: ListFilter, label: "Smart Lists", path: "/smart-lists", group: "intelligence" },
-  { icon: ShieldCheck, label: "Email Verify", path: "/email-verify", group: "intelligence" },
-  { icon: UserCheck, label: "AI SDR Agent", path: "/sdr", group: "automation" },
-  { icon: Bot, label: "AI Agents", path: "/ai-agents", group: "automation" },
-  { icon: Bot, label: "Autopilot", path: "/autopilot", group: "automation" },
-  { icon: GitBranch, label: "Campaigns", path: "/campaigns", group: "automation" },
-  { icon: Timer, label: "Speed-to-Lead", path: "/speed-to-lead", group: "automation" },
-  { icon: Lightbulb, label: "Next Actions", path: "/next-actions", group: "automation" },
-  { icon: Bell, label: "Smart Alerts", path: "/alerts", group: "automation" },
-  { icon: Ear, label: "Social Listening", path: "/social", group: "insights" },
-  { icon: Target, label: "B2B Matching", path: "/matching", group: "insights" },
-  { icon: BarChart3, label: "Statistics", path: "/stats", group: "insights" },
-  { icon: DollarSign, label: "ROI Tracker", path: "/roi", group: "insights" },
-  { icon: Mail, label: "Email Templates", path: "/templates", group: "settings" },
-  { icon: Users, label: "Team", path: "/team", group: "settings" },
-  { icon: Building, label: "Agency Panel", path: "/agency", group: "settings" },
-  { icon: Webhook, label: "Integrations", path: "/integrations", group: "settings" },
-  { icon: MailOpen, label: "Email Sequences", path: "/sequences", group: "outreach" },
-  { icon: Calendar, label: "Meeting Scheduler", path: "/meetings", group: "outreach" },
-  { icon: Phone, label: "Call Intelligence", path: "/calls", group: "outreach" },
-  { icon: CheckSquare, label: "Activity Tracker", path: "/tasks", group: "outreach" },
-  { icon: Crosshair, label: "Capture Planning", path: "/capture", group: "outreach" },
-  { icon: Globe, label: "Market Intel", path: "/market-intel", group: "outreach" },
-  { icon: BookOpen, label: "Knowledge Base", path: "/knowledge", group: "outreach" },
-  { icon: Map, label: "Competitive Map", path: "/competitive", group: "outreach" },
-  { icon: DollarSign, label: "Billing & Plans", path: "/billing", group: "settings" },
+const menuItemDefs = [
+  { icon: LayoutDashboard, labelKey: "sidebar.dashboard", path: "/dashboard", group: "core" },
+  { icon: Brain, labelKey: "sidebar.aiAdvisor", path: "/ai-advisor", group: "core" },
+  { icon: Zap, labelKey: "sidebar.generateLeads", path: "/generate", group: "core" },
+  { icon: History, labelKey: "sidebar.leadHistory", path: "/history", group: "core" },
+  { icon: Kanban, labelKey: "sidebar.pipelineBoard", path: "/kanban", group: "core" },
+  { icon: Target, labelKey: "sidebar.icpBuilder", path: "/icp", group: "intelligence" },
+  { icon: Code, labelKey: "sidebar.trackingPixel", path: "/tracking", group: "intelligence" },
+  { icon: Cpu, labelKey: "sidebar.techStack", path: "/tech-stack", group: "intelligence" },
+  { icon: ListFilter, labelKey: "sidebar.smartLists", path: "/smart-lists", group: "intelligence" },
+  { icon: ShieldCheck, labelKey: "sidebar.emailVerify", path: "/email-verify", group: "intelligence" },
+  { icon: UserCheck, labelKey: "sidebar.aiSdrAgent", path: "/sdr", group: "automation" },
+  { icon: Bot, labelKey: "sidebar.aiAgents", path: "/ai-agents", group: "automation" },
+  { icon: Bot, labelKey: "sidebar.autopilot", path: "/autopilot", group: "automation" },
+  { icon: GitBranch, labelKey: "sidebar.campaigns", path: "/campaigns", group: "automation" },
+  { icon: Timer, labelKey: "sidebar.speedToLead", path: "/speed-to-lead", group: "automation" },
+  { icon: Lightbulb, labelKey: "sidebar.nextActions", path: "/next-actions", group: "automation" },
+  { icon: Bell, labelKey: "sidebar.smartAlerts", path: "/alerts", group: "automation" },
+  { icon: MailOpen, labelKey: "sidebar.emailSequences", path: "/sequences", group: "outreach" },
+  { icon: Calendar, labelKey: "sidebar.meetingScheduler", path: "/meetings", group: "outreach" },
+  { icon: Phone, labelKey: "sidebar.callIntelligence", path: "/calls", group: "outreach" },
+  { icon: CheckSquare, labelKey: "sidebar.activityTracker", path: "/tasks", group: "outreach" },
+  { icon: Crosshair, labelKey: "sidebar.capturePlanning", path: "/capture", group: "outreach" },
+  { icon: Globe, labelKey: "sidebar.marketIntel", path: "/market-intel", group: "outreach" },
+  { icon: BookOpen, labelKey: "sidebar.knowledgeBase", path: "/knowledge", group: "outreach" },
+  { icon: Map, labelKey: "sidebar.competitiveMap", path: "/competitive", group: "outreach" },
+  { icon: Ear, labelKey: "sidebar.socialListening", path: "/social", group: "insights" },
+  { icon: Target, labelKey: "sidebar.b2bMatching", path: "/matching", group: "insights" },
+  { icon: BarChart3, labelKey: "sidebar.statistics", path: "/stats", group: "insights" },
+  { icon: DollarSign, labelKey: "sidebar.roiTracker", path: "/roi", group: "insights" },
+  { icon: Mail, labelKey: "sidebar.emailTemplates", path: "/templates", group: "settings" },
+  { icon: Users, labelKey: "sidebar.team", path: "/team", group: "settings" },
+  { icon: Building, labelKey: "sidebar.agencyPanel", path: "/agency", group: "settings" },
+  { icon: Webhook, labelKey: "sidebar.integrations", path: "/integrations", group: "settings" },
+  { icon: DollarSign, labelKey: "sidebar.billingPlans", path: "/billing", group: "settings" },
 ];
 
-const groupConfig = {
-  core: { label: "", color: "violet" },
-  intelligence: { label: "Intelligence", color: "cyan" },
-  automation: { label: "Automation", color: "violet" },
-  outreach: { label: "Outreach & BD", color: "emerald" },
-  insights: { label: "Insights", color: "amber" },
-  settings: { label: "Settings", color: "muted" },
+const groupConfigBase = {
+  core: { labelKey: "", color: "violet" },
+  intelligence: { labelKey: "sidebar.groups.intelligence", color: "cyan" },
+  automation: { labelKey: "sidebar.groups.automation", color: "violet" },
+  outreach: { labelKey: "sidebar.groups.outreach", color: "emerald" },
+  insights: { labelKey: "sidebar.groups.insights", color: "amber" },
+  settings: { labelKey: "sidebar.groups.settings", color: "muted" },
 } as const;
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -93,6 +94,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
   });
   const { loading, user } = useAuth();
+  const { t } = useTranslation();
 
   useEffect(() => {
     localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
@@ -115,15 +117,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </span>
           </div>
           <div className="text-center space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight section-header-premium">Sign in to continue</h1>
-            <p className="text-sm text-muted-foreground">LeadGen CRM Automation — the most powerful B2B lead platform.</p>
+            <h1 className="text-2xl font-bold tracking-tight section-header-premium">{t('home.signInToContinue')}</h1>
+            <p className="text-sm text-muted-foreground">{t('home.signInDesc')}</p>
           </div>
           <Button
             onClick={() => { window.location.href = getLoginUrl(); }}
             size="lg"
             className="w-full btn-premium h-12 text-base"
           >
-            Sign in to LeadOS
+            {t('home.signInButton')}
           </Button>
         </div>
       </div>
@@ -152,6 +154,11 @@ function DashboardLayoutContent({
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
+  const { t } = useTranslation();
+  const menuItems = menuItemDefs.map(item => ({ ...item, label: t(item.labelKey) }));
+  const groupConfig = Object.fromEntries(
+    Object.entries(groupConfigBase).map(([k, v]) => [k, { ...v, label: v.labelKey ? t(v.labelKey) : "" }])
+  ) as Record<string, { label: string; color: string }>;
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
   const [showOnboarding, setShowOnboarding] = useState(false);

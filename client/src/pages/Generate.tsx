@@ -31,6 +31,7 @@ import {
   Sheet,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import SheetsExportModal from "@/components/SheetsExportModal";
 import { cn } from "@/lib/utils";
 
@@ -84,6 +85,7 @@ export default function Generate() {
   const [count, setCount] = useState(10);
   const [seniorityLevel, setSeniorityLevel] = useState("Manager");
   const [apifyToken, setApifyToken] = useState("");
+  const { t } = useTranslation();
   const [useApify, setUseApify] = useState(true);
   const [enrichEmails, setEnrichEmails] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -100,13 +102,13 @@ export default function Generate() {
       setResults(data.leads as Lead[]);
       setSessionId(data.sessionId);
       setCurrentStep(0);
-      toast.success(`Generated ${data.count} leads successfully!`);
+      toast.success(`Vygenerováno ${data.count} leadů úspěšně!`);
       utils.leads.stats.invalidate();
       utils.leads.sessions.invalidate();
     },
     onError: (err) => {
       setCurrentStep(0);
-      toast.error(`Generation failed: ${err.message}`);
+      toast.error(`Generování selhalo: ${err.message}`);
     },
   });
 
@@ -134,7 +136,7 @@ export default function Generate() {
     a.download = `leads-${industry.toLowerCase()}-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Leads exported as JSON");
+    toast.success(t('generate.exportedJson', 'Leady exportovány jako JSON'));
   };
 
   const handleExportCsv = () => {
@@ -159,7 +161,7 @@ export default function Generate() {
     a.download = `leads-${industry.toLowerCase()}-${Date.now()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Leads exported as CSV");
+    toast.success(t('generate.exportedCsv', 'Leady exportovány jako CSV'));
   };
 
   const emailsFound = results.filter((l) => l.email).length;
@@ -172,9 +174,9 @@ export default function Generate() {
       <div className="max-w-6xl space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Generate Leads</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t('generate.title')}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Configure your target criteria and let AI generate and enrich your leads.
+            {t('generate.subtitle')}
           </p>
         </div>
 
@@ -182,14 +184,14 @@ export default function Generate() {
           {/* Form */}
           <Card className="bg-card border-border">
             <CardHeader className="pb-4">
-              <CardTitle className="text-base">Configuration</CardTitle>
+              <CardTitle className="text-base">{t('generate.configuration', 'Konfigurace')}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
 
                 {/* Data Source Selector */}
                 <div className="space-y-2">
-                  <Label>Data Source</Label>
+                  <Label>{t('generate.dataSource')}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -204,7 +206,7 @@ export default function Generate() {
                       <Linkedin className="h-4 w-4" />
                       <span>LinkedIn</span>
                       <span className={cn("text-[10px]", useApify ? "text-primary/70" : "text-muted-foreground/60")}>
-                        via Apify · Live data
+                        via Apify · {t('generate.liveData', 'Živá data')}
                       </span>
                     </button>
                     <button
@@ -218,9 +220,9 @@ export default function Generate() {
                       )}
                     >
                       <Database className="h-4 w-4" />
-                      <span>Demo Data</span>
+                      <span>{t('generate.demoData', 'Demo data')}</span>
                       <span className={cn("text-[10px]", !useApify ? "text-primary/70" : "text-muted-foreground/60")}>
-                        Mock · No token needed
+                        Mock · {t('generate.noTokenNeeded', 'Bez tokenu')}
                       </span>
                     </button>
                   </div>
@@ -228,7 +230,7 @@ export default function Generate() {
                     <div className="space-y-2">
                       <p className="text-[11px] text-emerald-400 flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" />
-                        Apify token configured — live LinkedIn scraping enabled
+                        {t('generate.apifyConfigured', 'Apify token nastaven — živé scrapování LinkedIn aktivní')}
                       </p>
                       <label className="flex items-center gap-2 cursor-pointer">
                         <div
@@ -243,7 +245,7 @@ export default function Generate() {
                           {enrichEmails && <CheckCircle2 className="h-2.5 w-2.5 text-primary-foreground" />}
                         </div>
                         <span className="text-[11px] text-muted-foreground">
-                          Find contact emails via website scraping
+                          {t('generate.findEmails', 'Najít kontaktní e-maily přes scraping webu')}
                         </span>
                       </label>
                     </div>
@@ -252,7 +254,7 @@ export default function Generate() {
 
                 {/* Segment Presets */}
                 <div className="space-y-2">
-                  <Label>Quick Presets</Label>
+                  <Label>{t('generate.segmentPresets')}</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {SEGMENT_PRESETS.map((preset) => (
                       <button
@@ -273,7 +275,7 @@ export default function Generate() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="industry">Industry</Label>
+                  <Label htmlFor="industry">{t('generate.industry', 'Odvětví')}</Label>
                   <Select value={industry} onValueChange={setIndustry}>
                     <SelectTrigger id="industry" className="bg-input border-border">
                       <SelectValue />
@@ -287,18 +289,18 @@ export default function Generate() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">{t('generate.location', 'Lokalita')}</Label>
                   <Input
                     id="location"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. United States, Germany, London"
+                    placeholder="např. Česká republika, Německo, Praha"
                     className="bg-input border-border"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="count">Number of Leads (1–50)</Label>
+                  <Label htmlFor="count">{t('generate.count', 'Počet leadů (1–50)')}</Label>
                   <Input
                     id="count"
                     type="number"
@@ -311,7 +313,7 @@ export default function Generate() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="seniority">Seniority Level</Label>
+                  <Label htmlFor="seniority">{t('generate.seniorityLevel', 'Úroveň seniority')}</Label>
                   <Select value={seniorityLevel} onValueChange={setSeniorityLevel}>
                     <SelectTrigger id="seniority" className="bg-input border-border">
                       <SelectValue />
@@ -332,21 +334,21 @@ export default function Generate() {
                     className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showAdvanced ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                    Advanced options
+                    {t('generate.advancedOptions', 'Pokročilé možnosti')}
                   </button>
                   {showAdvanced && (
                     <div className="mt-3 space-y-1.5">
-                      <Label htmlFor="apify">Override Apify Token</Label>
+                      <Label htmlFor="apify">{t('generate.overrideApify', 'Vlastní Apify token')}</Label>
                       <Input
                         id="apify"
                         type="password"
                         value={apifyToken}
                         onChange={(e) => setApifyToken(e.target.value)}
-                        placeholder="apify_api_... (uses server token by default)"
+                        placeholder="apify_api_... (výchozí: serverový token)"
                         className="bg-input border-border"
                       />
                       <p className="text-xs text-muted-foreground">
-                        Leave blank to use the server-configured Apify token.
+                        {t('generate.apifyHint', 'Nechte prázdné pro použití serverového Apify tokenu.')}
                       </p>
                     </div>
                   )}

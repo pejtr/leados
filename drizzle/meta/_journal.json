@@ -64,6 +64,13 @@
       "when": 1773458262988,
       "tag": "0008_lonely_vindicator",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1773485306303,
+      "tag": "0009_lying_millenium_guard",
+      "breakpoints": true
     }
   ]
 }
