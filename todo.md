@@ -559,3 +559,12 @@
 - [x] Translate HOW_IT_WORKS section on landing page (4 steps) to Czech/German
 - [x] Add Deal Activity Log timeline to Deal Pipeline (backend + frontend)
 - [x] Pre-seed Deep Sleep Reset as first connected project with API key: dsr_96c230588e470b67d0c1215f369de3072980bc27cd951f38
+
+## AI Deal Scoring
+- [ ] DB: Add aiScore (0-100), aiScoreReasoning, aiScoredAt columns to deals table
+- [ ] Backend: tRPC crm.scoreDeal procedure — calls LLM with deal context (stage, value, activities, days in stage, company, contact)
+- [ ] Backend: crm.batchScoreDeals — score all unscored deals for current user
+- [ ] Frontend: AI score badge on deal cards in Pipeline Kanban (color-coded: green/yellow/red)
+- [ ] Frontend: AI Scoring panel in deal edit modal (score gauge, reasoning, re-score button)
+- [ ] Auto-trigger scoring on deal create/update
+- [ ] Vitest test for scoreDeal procedure

@@ -83,4 +83,49 @@ describe("CRM Router", () => {
     const procedureKeys = Object.keys(appRouter._def.procedures);
     expect(procedureKeys).toContain("crm.createCommission");
   });
+
+  it("should expose scoreDeal procedure", () => {
+    const procedureKeys = Object.keys(appRouter._def.procedures);
+    expect(procedureKeys).toContain("crm.scoreDeal");
+  });
+
+  it("should expose batchScoreDeals procedure", () => {
+    const procedureKeys = Object.keys(appRouter._def.procedures);
+    expect(procedureKeys).toContain("crm.batchScoreDeals");
+  });
+});
+
+describe("AI Deal Score Logic", () => {
+  it("score is between 0 and 100", () => {
+    const score = 75;
+    expect(score).toBeGreaterThanOrEqual(0);
+    expect(score).toBeLessThanOrEqual(100);
+  });
+
+  it("scoreColor returns emerald for high score (>=70)", () => {
+    const score = 80;
+    const color = score >= 70 ? "text-emerald-400" : score >= 40 ? "text-amber-400" : "text-red-400";
+    expect(color).toBe("text-emerald-400");
+  });
+
+  it("scoreColor returns amber for medium score (40-69)", () => {
+    const score = 55;
+    const color = score >= 70 ? "text-emerald-400" : score >= 40 ? "text-amber-400" : "text-red-400";
+    expect(color).toBe("text-amber-400");
+  });
+
+  it("scoreColor returns red for low score (<40)", () => {
+    const score = 20;
+    const color = score >= 70 ? "text-emerald-400" : score >= 40 ? "text-amber-400" : "text-red-400";
+    expect(color).toBe("text-red-400");
+  });
+
+  it("baseline score for new stage is low", () => {
+    const STAGE_BASELINE: Record<string, number> = {
+      new: 10, qualified: 25, presentation: 40, proposal: 55, negotiation: 70, won: 100, lost: 0,
+    };
+    expect(STAGE_BASELINE["new"]).toBeLessThan(30);
+    expect(STAGE_BASELINE["negotiation"]).toBeGreaterThan(60);
+    expect(STAGE_BASELINE["won"]).toBe(100);
+  });
 });

@@ -865,6 +865,8 @@ export const deals = mysqlTable("deals", {
   lostTo: varchar("lostTo", { length: 256 }),
   wonAt: timestamp("wonAt"),
   aiScore: int("aiScore").default(0),
+  aiScoreReasoning: text("aiScoreReasoning"),
+  aiScoredAt: timestamp("aiScoredAt"),
   nextAction: text("nextAction"),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),

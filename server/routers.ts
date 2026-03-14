@@ -2612,6 +2612,108 @@ Return JSON: {
         const id = await createCommission({ ...input, userId: ctx.user.id });
         return { id };
       }),
+
+    // ─── AI Deal Scoring ────────────────────────────────────────────
+    scoreDeal: protectedProcedure
+      .input(z.object({ dealId: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const { getDb } = await import("./db");
+        const { deals, dealActivities } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const db = getDb();
+
+        const [deal] = await db.select().from(deals)
+          .where(and(eq(deals.id, input.dealId), eq(deals.userId, ctx.user.id)));
+        if (!deal) throw new TRPCError({ code: "NOT_FOUND", message: "Deal not found" });
+
+        const activities = await db.select().from(dealActivities)
+          .where(eq(dealActivities.dealId, input.dealId));
+
+        const daysInStage = Math.floor((Date.now() - new Date(deal.updatedAt).getTime()) / (1000 * 60 * 60 * 24));
+        const daysOld = Math.floor((Date.now() - new Date(deal.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+        const activitySummary = activities.reduce((acc, a) => { acc[a.type] = (acc[a.type] || 0) + 1; return acc; }, {} as Record<string, number>);
+        const lastActivity = [...activities].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+        const daysSinceLastActivity = lastActivity ? Math.floor((Date.now() - new Date(lastActivity.createdAt).getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+        const prompt = `You are an expert B2B sales coach. Analyze this deal and return a JSON object with score (0-100 integer), reasoning (2-3 sentences), nextAction (string), riskFactors (array of up to 3 strings), positiveSignals (array of up to 3 strings).
+
+Deal: "${deal.title}" | Stage: ${deal.stage} | Value: ${deal.value} ${deal.currency}
+Days in stage: ${daysInStage} | Deal age: ${daysOld} days | Close date: ${deal.expectedCloseDate ? new Date(deal.expectedCloseDate).toLocaleDateString() : 'Not set'}
+Activities: ${JSON.stringify(activitySummary)} (total: ${activities.length}) | Days since last activity: ${daysSinceLastActivity !== null ? daysSinceLastActivity : 'None'}
+Last outcome: ${lastActivity?.outcome || 'N/A'} | Notes: ${deal.notes || 'None'}
+
+Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negotiation=75%. Adjust for activity cadence, deal age, and engagement.`;
+
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "You are a B2B sales AI. Return only valid JSON, no markdown." },
+            { role: "user", content: prompt },
+          ],
+          response_format: {
+            type: "json_schema",
+            json_schema: {
+              name: "deal_score",
+              strict: true,
+              schema: {
+                type: "object",
+                properties: {
+                  score: { type: "integer" },
+                  reasoning: { type: "string" },
+                  nextAction: { type: "string" },
+                  riskFactors: { type: "array", items: { type: "string" } },
+                  positiveSignals: { type: "array", items: { type: "string" } },
+                },
+                required: ["score", "reasoning", "nextAction", "riskFactors", "positiveSignals"],
+                additionalProperties: false,
+              },
+            },
+          },
+        });
+
+        const raw = response.choices[0].message.content;
+        const result = typeof raw === "string" ? JSON.parse(raw) : raw;
+        const score = Math.max(0, Math.min(100, result.score));
+        const fullReasoning = `${result.reasoning}\n\nNext action: ${result.nextAction}\n\nPositive signals: ${result.positiveSignals.join("; ")}\n\nRisk factors: ${result.riskFactors.join("; ")}`;
+
+        await db.update(deals).set({
+          aiScore: score,
+          aiScoreReasoning: fullReasoning,
+          aiScoredAt: new Date(),
+          probability: score,
+          nextAction: result.nextAction,
+        }).where(eq(deals.id, input.dealId));
+
+        return { score, reasoning: fullReasoning, nextAction: result.nextAction, riskFactors: result.riskFactors, positiveSignals: result.positiveSignals };
+      }),
+
+    batchScoreDeals: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        const { getDb } = await import("./db");
+        const { deals } = await import("../drizzle/schema");
+        const { eq, isNull, and, ne } = await import("drizzle-orm");
+        const db = getDb();
+
+        const unscoredDeals = await db.select({ id: deals.id, stage: deals.stage, createdAt: deals.createdAt })
+          .from(deals)
+          .where(and(eq(deals.userId, ctx.user.id), isNull(deals.aiScoredAt), ne(deals.stage, "won"), ne(deals.stage, "lost")));
+
+        const stageScores: Record<string, number> = { new: 10, qualified: 25, presentation: 40, proposal: 60, negotiation: 75 };
+        let scored = 0;
+        for (const d of unscoredDeals.slice(0, 20)) {
+          const baseScore = stageScores[d.stage] ?? 30;
+          const daysOld = Math.floor((Date.now() - new Date(d.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+          const agePenalty = Math.min(20, Math.floor(daysOld / 7) * 2);
+          const finalScore = Math.max(5, baseScore - agePenalty);
+          await db.update(deals).set({
+            aiScore: finalScore,
+            aiScoreReasoning: `Baseline score for ${d.stage} stage. Click "Re-score with AI" for detailed analysis.`,
+            aiScoredAt: new Date(),
+            probability: finalScore,
+          }).where(eq(deals.id, d.id));
+          scored++;
+        }
+        return { scored };
+      }),
   }),
 
   // ─── Multi-Project API Hub ──────────────────────────────────────

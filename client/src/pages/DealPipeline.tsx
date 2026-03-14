@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Trophy, X, TrendingUp, DollarSign, Target, Activity, Phone, Mail, Users, FileText, CheckSquare, Monitor, Clock, ChevronDown, ChevronUp, Send } from "lucide-react";
+import { Plus, Trophy, X, TrendingUp, DollarSign, Target, Activity, Phone, Mail, Users, FileText, CheckSquare, Monitor, Clock, ChevronDown, ChevronUp, Send, Sparkles, AlertTriangle, CheckCircle2, Zap, RefreshCw } from "lucide-react";
 
 const STAGES = [
   { key: "new", label: "Nový", color: "bg-slate-500", light: "bg-slate-50 border-slate-200" },
@@ -54,6 +54,169 @@ const EMPTY_FORM: DealFormData = {
   notes: "",
   nextAction: "",
 };
+
+// Score color helper
+function scoreColor(score: number) {
+  if (score >= 70) return "text-emerald-400";
+  if (score >= 40) return "text-amber-400";
+  return "text-red-400";
+}
+
+function scoreBg(score: number) {
+  if (score >= 70) return "bg-emerald-500/20 border-emerald-500/40";
+  if (score >= 40) return "bg-amber-500/20 border-amber-500/40";
+  return "bg-red-500/20 border-red-500/40";
+}
+
+// AI Score Panel in edit modal
+function AiScorePanel({ deal, onScored }: { deal: any; onScored: () => void }) {
+  const utils = trpc.useUtils();
+  const [scoreResult, setScoreResult] = useState<any>(null);
+  const [showPanel, setShowPanel] = useState(true);
+
+  const scoreMutation = trpc.crm.scoreDeal.useMutation({
+    onSuccess: (data) => {
+      setScoreResult(data);
+      utils.crm.listDeals.invalidate();
+      onScored();
+      toast.success(`AI Score: ${data.score}%`);
+    },
+    onError: (e) => toast.error("Chyba při AI scoringu: " + e.message),
+  });
+
+  const currentScore = scoreResult?.score ?? deal.aiScore ?? null;
+  const currentReasoning = scoreResult?.reasoning ?? deal.aiScoreReasoning ?? null;
+  const riskFactors = scoreResult?.riskFactors ?? null;
+  const positiveSignals = scoreResult?.positiveSignals ?? null;
+  const nextAction = scoreResult?.nextAction ?? deal.nextAction ?? null;
+  const scoredAt = deal.aiScoredAt ? new Date(deal.aiScoredAt) : null;
+
+  return (
+    <div className="border-t border-slate-700 pt-4 mt-2">
+      <button
+        onClick={() => setShowPanel(!showPanel)}
+        className="flex items-center gap-2 text-sm font-semibold text-slate-300 hover:text-white w-full mb-3"
+      >
+        <Sparkles className="w-4 h-4 text-violet-400" />
+        AI Deal Score
+        {currentScore !== null && currentScore > 0 && (
+          <span className={`text-sm font-bold ${scoreColor(currentScore)} ml-1`}>{currentScore}%</span>
+        )}
+        {showPanel ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
+      </button>
+
+      {showPanel && (
+        <div className="space-y-3">
+          {/* Score display */}
+          {currentScore !== null && currentScore > 0 ? (
+            <div className={`rounded-xl border p-4 ${scoreBg(currentScore)}`}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`text-3xl font-black ${scoreColor(currentScore)}`}>{currentScore}%</div>
+                  <div>
+                    <p className="text-xs text-slate-400">Pravděpodobnost uzavření</p>
+                    {scoredAt && (
+                      <p className="text-xs text-slate-600">
+                        Scored {scoredAt.toLocaleDateString("cs-CZ")}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                {/* Score gauge */}
+                <div className="w-16 h-16 relative">
+                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                    <circle cx="18" cy="18" r="15.9" fill="none" stroke="#1e293b" strokeWidth="3" />
+                    <circle
+                      cx="18" cy="18" r="15.9" fill="none"
+                      stroke={currentScore >= 70 ? "#10b981" : currentScore >= 40 ? "#f59e0b" : "#ef4444"}
+                      strokeWidth="3"
+                      strokeDasharray={`${currentScore} ${100 - currentScore}`}
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className={`text-xs font-bold ${scoreColor(currentScore)}`}>{currentScore}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${currentScore >= 70 ? "bg-emerald-500" : currentScore >= 40 ? "bg-amber-500" : "bg-red-500"}`}
+                  style={{ width: `${currentScore}%` }}
+                />
+              </div>
+
+              {/* Reasoning */}
+              {currentReasoning && (
+                <p className="text-xs text-slate-300 leading-relaxed mb-3 whitespace-pre-line">
+                  {currentReasoning.split("\n\nNext action:")[0]}
+                </p>
+              )}
+
+              {/* Signals grid */}
+              {(positiveSignals || riskFactors) && (
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  {positiveSignals && positiveSignals.length > 0 && (
+                    <div className="bg-emerald-900/20 rounded-lg p-2">
+                      <p className="text-xs font-semibold text-emerald-400 mb-1 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3" /> Silné stránky
+                      </p>
+                      {positiveSignals.map((s: string, i: number) => (
+                        <p key={i} className="text-xs text-slate-300 leading-relaxed">• {s}</p>
+                      ))}
+                    </div>
+                  )}
+                  {riskFactors && riskFactors.length > 0 && (
+                    <div className="bg-red-900/20 rounded-lg p-2">
+                      <p className="text-xs font-semibold text-red-400 mb-1 flex items-center gap-1">
+                        <AlertTriangle className="w-3 h-3" /> Rizika
+                      </p>
+                      {riskFactors.map((r: string, i: number) => (
+                        <p key={i} className="text-xs text-slate-300 leading-relaxed">• {r}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Next action from AI */}
+              {nextAction && (
+                <div className="mt-2 bg-violet-900/20 border border-violet-700/30 rounded-lg p-2 flex items-start gap-2">
+                  <Zap className="w-3 h-3 text-violet-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-violet-300 leading-relaxed">{nextAction}</p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-slate-800/60 rounded-xl border border-slate-700 p-4 text-center">
+              <Sparkles className="w-8 h-8 text-violet-400 mx-auto mb-2 opacity-50" />
+              <p className="text-sm text-slate-400 mb-1">Deal ještě nebyl ohodnocen AI</p>
+              <p className="text-xs text-slate-600">AI analyzuje fázi, hodnotu, aktivitu a doporučí next step</p>
+            </div>
+          )}
+
+          {/* Score button */}
+          <Button
+            onClick={() => scoreMutation.mutate({ dealId: deal.id })}
+            disabled={scoreMutation.isPending}
+            className="w-full bg-violet-600 hover:bg-violet-700 text-white gap-2"
+            size="sm"
+          >
+            {scoreMutation.isPending ? (
+              <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> AI analyzuje deal...</>
+            ) : currentScore !== null && currentScore > 0 ? (
+              <><RefreshCw className="w-3.5 h-3.5" /> Re-score s AI</>
+            ) : (
+              <><Sparkles className="w-3.5 h-3.5" /> Ohodnotit deal s AI</>
+            )}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Activity Log component for the edit modal
 function ActivityLog({ dealId }: { dealId: number }) {
@@ -203,7 +366,7 @@ export default function DealPipeline() {
   const { t } = useTranslation();
   const utils = trpc.useUtils();
 
-  const { data: deals = [], isLoading } = trpc.crm.listDeals.useQuery();
+  const { data: deals = [], isLoading, refetch: refetchDeals } = trpc.crm.listDeals.useQuery();
   const { data: stats } = trpc.crm.getDealStats.useQuery();
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -211,6 +374,14 @@ export default function DealPipeline() {
   const [form, setForm] = useState<DealFormData>(EMPTY_FORM);
   const [dragOver, setDragOver] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
+
+  const batchScore = trpc.crm.batchScoreDeals.useMutation({
+    onSuccess: (data) => {
+      utils.crm.listDeals.invalidate();
+      toast.success(`${data.scored} dealů ohodnoceno baseline AI score`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const createMutation = trpc.crm.createDeal.useMutation({
     onSuccess: () => {
@@ -244,9 +415,13 @@ export default function DealPipeline() {
   const handleCreate = () => {
     if (!form.title.trim()) return;
     createMutation.mutate({
-      ...form,
+      title: form.title,
+      stage: form.stage,
       value: form.value || "0",
+      currency: form.currency,
       probability: form.probability,
+      notes: form.notes,
+      nextAction: form.nextAction,
       expectedCloseDate: form.expectedCloseDate || undefined,
     });
   };
@@ -295,6 +470,7 @@ export default function DealPipeline() {
   const totalPipeline = stats?.pipelineValue ?? 0;
   const wonValue = stats?.wonValue ?? 0;
   const winRate = stats?.total ? Math.round(((stats?.won ?? 0) / stats.total) * 100) : 0;
+  const unscoredCount = deals.filter((d: any) => !d.aiScoredAt && d.stage !== "won" && d.stage !== "lost").length;
 
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-white p-6">
@@ -304,12 +480,29 @@ export default function DealPipeline() {
           <h1 className="text-2xl font-bold text-white">Deal Pipeline</h1>
           <p className="text-slate-400 text-sm mt-1">Správa obchodních příležitostí — přetahujte dealy mezi fázemi</p>
         </div>
-        <Button
-          onClick={() => { setForm(EMPTY_FORM); setCreateOpen(true); }}
-          className="bg-violet-600 hover:bg-violet-700 text-white gap-2"
-        >
-          <Plus className="w-4 h-4" /> Nový deal
-        </Button>
+        <div className="flex items-center gap-2">
+          {unscoredCount > 0 && (
+            <Button
+              onClick={() => batchScore.mutate()}
+              disabled={batchScore.isPending}
+              variant="outline"
+              size="sm"
+              className="border-violet-700 text-violet-300 hover:bg-violet-900/30 gap-1.5"
+            >
+              {batchScore.isPending ? (
+                <><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Scoring...</>
+              ) : (
+                <><Sparkles className="w-3.5 h-3.5" /> AI Score ({unscoredCount})</>
+              )}
+            </Button>
+          )}
+          <Button
+            onClick={() => { setForm(EMPTY_FORM); setCreateOpen(true); }}
+            className="bg-violet-600 hover:bg-violet-700 text-white gap-2"
+          >
+            <Plus className="w-4 h-4" /> Nový deal
+          </Button>
+        </div>
       </div>
 
       {/* Stats row */}
@@ -388,7 +581,22 @@ export default function DealPipeline() {
                           {fmtCurrency(deal.value, deal.currency)}
                         </p>
                       )}
-                      {deal.probability > 0 && (
+
+                      {/* AI Score badge */}
+                      {deal.aiScore > 0 && (
+                        <div className="flex items-center gap-1.5 mt-2">
+                          <Sparkles className="w-3 h-3 text-violet-400" />
+                          <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${deal.aiScore >= 70 ? "bg-emerald-500" : deal.aiScore >= 40 ? "bg-amber-500" : "bg-red-500"}`}
+                              style={{ width: `${deal.aiScore}%` }}
+                            />
+                          </div>
+                          <span className={`text-xs font-bold ${scoreColor(deal.aiScore)}`}>{deal.aiScore}%</span>
+                        </div>
+                      )}
+
+                      {deal.probability > 0 && !deal.aiScore && (
                         <div className="mt-2">
                           <div className="flex justify-between text-xs text-slate-400 mb-1">
                             <span>Pravděpodobnost</span>
@@ -440,13 +648,28 @@ export default function DealPipeline() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog — includes Activity Log */}
+      {/* Edit Dialog — includes AI Score Panel + Activity Log */}
       <Dialog open={!!editDeal} onOpenChange={(open) => { if (!open) setEditDeal(null); }}>
         <DialogContent className="bg-slate-900 border-slate-700 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-white">Upravit deal</DialogTitle>
+            <DialogTitle className="text-white flex items-center gap-2">
+              Upravit deal
+              {editDeal?.aiScore > 0 && (
+                <span className={`text-sm font-bold px-2 py-0.5 rounded-full border ${scoreBg(editDeal.aiScore)} ${scoreColor(editDeal.aiScore)}`}>
+                  AI {editDeal.aiScore}%
+                </span>
+              )}
+            </DialogTitle>
           </DialogHeader>
           <DealFormFields form={form} setForm={setForm} />
+          {editDeal && (
+            <AiScorePanel
+              deal={editDeal}
+              onScored={() => {
+                utils.crm.listDeals.invalidate();
+              }}
+            />
+          )}
           {editDeal && <ActivityLog dealId={editDeal.id} />}
           <DialogFooter className="gap-2 sticky bottom-0 bg-slate-900 pt-2">
             <Button variant="outline" onClick={() => setEditDeal(null)} className="border-slate-700 text-slate-300">
