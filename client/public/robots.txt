@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Disallow private app routes
+Disallow: /dashboard
+Disallow: /leads
+Disallow: /pipeline
+Disallow: /campaigns
+Disallow: /sequences
+Disallow: /calls
+Disallow: /ai-advisor
+Disallow: /analytics
+Disallow: /settings
+Disallow: /api/
+
+# Sitemap
+Sitemap: https://www.crmleadsystem.com/sitemap.xml
