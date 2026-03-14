@@ -17,15 +17,16 @@ import {
   useDraggable,
 } from "@dnd-kit/core";
 import { Loader2, Globe, Mail, Linkedin, ThumbsUp, ThumbsDown, Sparkles, Building2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type LeadStatus = "new" | "contacted" | "replied" | "qualified" | "disqualified";
 
-const COLUMNS: { id: LeadStatus; label: string; color: string; bg: string; border: string }[] = [
-  { id: "new", label: "New", color: "text-slate-300", bg: "bg-slate-500/10", border: "border-slate-500/20" },
-  { id: "contacted", label: "Contacted", color: "text-blue-300", bg: "bg-blue-500/10", border: "border-blue-500/20" },
-  { id: "replied", label: "Replied", color: "text-amber-300", bg: "bg-amber-500/10", border: "border-amber-500/20" },
-  { id: "qualified", label: "Qualified", color: "text-emerald-300", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
-  { id: "disqualified", label: "Disqualified", color: "text-red-300", bg: "bg-red-500/10", border: "border-red-500/20" },
+const COLUMN_DEFS: { id: LeadStatus; color: string; bg: string; border: string }[] = [
+  { id: "new", color: "text-slate-300", bg: "bg-slate-500/10", border: "border-slate-500/20" },
+  { id: "contacted", color: "text-blue-300", bg: "bg-blue-500/10", border: "border-blue-500/20" },
+  { id: "replied", color: "text-amber-300", bg: "bg-amber-500/10", border: "border-amber-500/20" },
+  { id: "qualified", color: "text-emerald-300", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
+  { id: "disqualified", color: "text-red-300", bg: "bg-red-500/10", border: "border-red-500/20" },
 ];
 
 type Lead = {
@@ -117,7 +118,7 @@ function KanbanColumn({
   leads,
   isOver,
 }: {
-  column: typeof COLUMNS[0];
+  column: typeof COLUMN_DEFS[0] & { label: string };
   leads: Lead[];
   isOver: boolean;
 }) {
@@ -145,7 +146,7 @@ function KanbanColumn({
         ))}
         {leads.length === 0 && (
           <div className="flex items-center justify-center h-20 text-xs text-muted-foreground/40 border border-dashed border-border/30 rounded-lg">
-            Drop here
+            {t("kanban.dropHere", "Přetáhněte sem")}
           </div>
         )}
       </div>
@@ -154,6 +155,7 @@ function KanbanColumn({
 }
 
 export default function Kanban() {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const { data, isLoading } = trpc.leads.list.useQuery({ limit: 200, offset: 0 });
   const updateStatus = trpc.leads.updateStatus.useMutation({
@@ -199,7 +201,7 @@ export default function Kanban() {
         toast.error("Failed to update status");
       },
     });
-    toast.success(`Moved to ${newStatus}`);
+    toast.success(t("kanban.movedTo", "Přesunuto do") + " " + t(`status.${newStatus}`, newStatus));
   }, [leads, updateStatus]);
 
   const activeLead = activeId ? leads.find((l) => l.id === activeId) : null;
@@ -213,15 +215,15 @@ export default function Kanban() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6 shrink-0">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Pipeline Board</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("kanban.title")}</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Drag leads between columns to update their pipeline status.
+              {t("kanban.subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">{leads.length} leads total</span>
+            <span className="text-sm text-muted-foreground">{leads.length} {t("common.leadsTotal")}</span>
             <Button variant="outline" size="sm" onClick={() => { setLocalLeads(null); utils.leads.list.invalidate(); }}>
-              Refresh
+              {t("kanban.refresh", "Obnovit")}
             </Button>
           </div>
         </div>
@@ -233,8 +235,8 @@ export default function Kanban() {
         ) : leads.length === 0 ? (
           <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground">
             <Building2 className="h-12 w-12 mb-3 opacity-20" />
-            <p className="text-lg font-medium">No leads yet</p>
-            <p className="text-sm mt-1">Generate leads first to use the pipeline board.</p>
+            <p className="text-lg font-medium">{t("kanban.noLeads")}</p>
+            <p className="text-sm mt-1">{t("kanban.noLeadsHint", "Nejprve vygenerujte leady pro použití pipeline boardu.")}</p>
           </div>
         ) : (
           <DndContext
@@ -244,7 +246,10 @@ export default function Kanban() {
             onDragEnd={handleDragEnd}
           >
             <div className="flex gap-4 overflow-x-auto pb-4 flex-1">
-              {COLUMNS.map((col) => (
+              {COLUMN_DEFS.map((col) => ({
+                ...col,
+                label: t(`status.${col.id}`, col.id),
+              })).map((col) => (
                 <KanbanColumn
                   key={col.id}
                   column={col}

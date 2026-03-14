@@ -40,6 +40,8 @@ import Billing from "./pages/Billing";
 import AiAdvisor from "./pages/AiAdvisor";
 import MeetingScheduler from "./pages/MeetingScheduler";
 import CallIntelligence from "./pages/CallIntelligence";
+import DealPipeline from "./pages/DealPipeline";
+import SalesDashboard from "./pages/SalesDashboard";
 
 function Router() {
   return (
@@ -80,6 +82,8 @@ function Router() {
       <Route path="/ai-advisor" component={AiAdvisor} />
       <Route path="/meetings" component={MeetingScheduler} />
       <Route path="/calls" component={CallIntelligence} />
+      <Route path="/deal-pipeline" component={DealPipeline} />
+      <Route path="/sales-dashboard" component={SalesDashboard} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

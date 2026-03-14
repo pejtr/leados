@@ -1,6 +1,7 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import {
   BarChart,
   Bar,
@@ -27,6 +28,7 @@ const CHART_COLORS = [
 ];
 
 export default function Stats() {
+  const { t, i18n } = useTranslation();
   const { data: stats, isLoading } = trpc.leads.stats.useQuery();
   const { data: sessions } = trpc.leads.sessions.useQuery();
 
@@ -38,16 +40,17 @@ export default function Stats() {
   const notEnriched = (stats?.totalLeads ?? 0) - (stats?.enrichedLeads ?? 0);
 
   const pieData = [
-    { name: "AI Enriched", value: stats?.enrichedLeads ?? 0 },
-    { name: "Not Enriched", value: notEnriched },
+    { name: t("stats.enriched"), value: stats?.enrichedLeads ?? 0 },
+    { name: t("stats.notEnriched", "Neobohaceno"), value: notEnriched },
   ];
 
   // Sessions over time (last 10)
+  const locale = i18n.language === "cs" ? "cs-CZ" : i18n.language === "de" ? "de-DE" : "en-US";
   const sessionData = (sessions ?? [])
     .slice(0, 10)
     .reverse()
     .map((s) => ({
-      date: new Date(s.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      date: new Date(s.createdAt).toLocaleDateString(locale, { month: "short", day: "numeric" }),
       leads: s.generatedCount,
       industry: s.industry,
     }));
@@ -57,9 +60,9 @@ export default function Stats() {
       <div className="max-w-6xl space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Statistics</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("stats.title")}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Analyze your lead generation performance and trends.
+            {t("stats.subtitle")}
           </p>
         </div>
 
@@ -73,25 +76,25 @@ export default function Stats() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <SummaryCard
                 icon={<Users className="h-4 w-4" />}
-                label="Total Leads"
+                label={t("stats.totalLeads")}
                 value={stats?.totalLeads ?? 0}
                 color="primary"
               />
               <SummaryCard
                 icon={<Sparkles className="h-4 w-4" />}
-                label="AI Enriched"
+                label={t("stats.enriched")}
                 value={stats?.enrichedLeads ?? 0}
                 color="violet"
               />
               <SummaryCard
                 icon={<TrendingUp className="h-4 w-4" />}
-                label="Enrichment Rate"
+                label={t("stats.enrichmentRate")}
                 value={`${enrichmentRate}%`}
                 color="emerald"
               />
               <SummaryCard
                 icon={<Zap className="h-4 w-4" />}
-                label="Sessions"
+                label={t("stats.industries")}
                 value={stats?.totalSessions ?? 0}
                 color="amber"
               />
@@ -103,12 +106,12 @@ export default function Stats() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <BarChart3 className="h-4 w-4 text-primary" />
-                    Leads by Industry
+                    {t("stats.leadsByIndustry")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {!stats?.industryBreakdown.length ? (
-                    <EmptyChart />
+                    <EmptyChart label={t("stats.noData")} />
                   ) : (
                     <ResponsiveContainer width="100%" height={280}>
                       <BarChart
@@ -148,12 +151,12 @@ export default function Stats() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <Sparkles className="h-4 w-4 text-violet-400" />
-                    Enrichment Breakdown
+                    {t("stats.industryBreakdown")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {stats?.totalLeads === 0 ? (
-                    <EmptyChart />
+                    <EmptyChart label={t("stats.noData")} />
                   ) : (
                     <ResponsiveContainer width="100%" height={280}>
                       <PieChart>
@@ -189,7 +192,7 @@ export default function Stats() {
                   {stats && stats.totalLeads > 0 && (
                     <div className="text-center -mt-4">
                       <p className="text-3xl font-bold text-foreground">{enrichmentRate}%</p>
-                      <p className="text-xs text-muted-foreground">enrichment rate</p>
+                      <p className="text-xs text-muted-foreground">{t("stats.enrichmentRate").toLowerCase()}</p>
                     </div>
                   )}
                 </CardContent>
@@ -202,7 +205,7 @@ export default function Stats() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-emerald-400" />
-                    Leads Generated Over Time (last 10 sessions)
+                    {t("stats.leadsOverTime", "Vygenerované leady v čase (posledních 10 sessions)")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -218,7 +221,7 @@ export default function Stats() {
                           color: "oklch(0.93 0.01 264)",
                           fontSize: "12px",
                         }}
-                        formatter={(val, _, props) => [val, props.payload?.industry ?? "Leads"]}
+                        formatter={(val, _, props) => [val, props.payload?.industry ?? t("stats.totalLeads")]}
                       />
                       <Bar dataKey="leads" fill="oklch(0.68 0.18 180)" radius={[4, 4, 0, 0]} />
                     </BarChart>
@@ -231,16 +234,16 @@ export default function Stats() {
             {(stats?.industryBreakdown.length ?? 0) > 0 && (
               <Card className="bg-card border-border">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-base font-semibold">Industry Details</CardTitle>
+                  <CardTitle className="text-base font-semibold">{t("stats.industryBreakdown")}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-border">
-                          <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Industry</th>
-                          <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Leads</th>
-                          <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Share</th>
+                          <th className="text-left py-2 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("stats.industryBreakdown")}</th>
+                          <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("stats.totalLeads")}</th>
+                          <th className="text-right py-2 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">{t("stats.share", "Podíl")}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -305,12 +308,11 @@ function SummaryCard({
   );
 }
 
-function EmptyChart() {
+function EmptyChart({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center justify-center h-[280px] text-muted-foreground">
       <BarChart3 className="h-10 w-10 mb-3 opacity-20" />
-      <p className="text-sm">No data yet</p>
-      <p className="text-xs mt-1">Generate leads to see statistics</p>
+      <p className="text-sm">{label}</p>
     </div>
   );
 }

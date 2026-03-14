@@ -27,6 +27,7 @@ import {
   Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code,
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
+  TrendingUp, Trophy,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -63,6 +64,8 @@ const menuItemDefs = [
   { icon: Globe, labelKey: "sidebar.marketIntel", path: "/market-intel", group: "outreach" },
   { icon: BookOpen, labelKey: "sidebar.knowledgeBase", path: "/knowledge", group: "outreach" },
   { icon: Map, labelKey: "sidebar.competitiveMap", path: "/competitive", group: "outreach" },
+  { icon: TrendingUp, labelKey: "sidebar.dealPipeline", path: "/deal-pipeline", group: "insights" },
+  { icon: Trophy, labelKey: "sidebar.salesDashboard", path: "/sales-dashboard", group: "insights" },
   { icon: Ear, labelKey: "sidebar.socialListening", path: "/social", group: "insights" },
   { icon: Target, labelKey: "sidebar.b2bMatching", path: "/matching", group: "insights" },
   { icon: BarChart3, labelKey: "sidebar.statistics", path: "/stats", group: "insights" },

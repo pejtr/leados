@@ -2491,5 +2491,127 @@ Return JSON: {
         return { success: true };
       }),
   }),
+
+  // ── CRM: Deals, Activities, Quotas, Commissions ────────────────────────────
+  crm: router({
+    listDeals: protectedProcedure.query(async ({ ctx }) => {
+      const { getDeals } = await import("./crmDb");
+      return getDeals(ctx.user.id);
+    }),
+    getDealStats: protectedProcedure.query(async ({ ctx }) => {
+      const { getDealStats } = await import("./crmDb");
+      return getDealStats(ctx.user.id);
+    }),
+    createDeal: protectedProcedure
+      .input(z.object({
+        title: z.string().min(1).max(256),
+        value: z.string().optional(),
+        currency: z.string().default("CZK"),
+        stage: z.enum(["new", "qualified", "presentation", "proposal", "negotiation", "won", "lost"]).default("new"),
+        probability: z.number().int().min(0).max(100).optional(),
+        expectedCloseDate: z.string().optional(),
+        notes: z.string().optional(),
+        leadId: z.number().int().optional(),
+        nextAction: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { createDeal } = await import("./crmDb");
+        const id = await createDeal({
+          userId: ctx.user.id,
+          title: input.title,
+          value: input.value ?? "0",
+          currency: input.currency,
+          stage: input.stage,
+          probability: input.probability ?? 0,
+          expectedCloseDate: input.expectedCloseDate ? new Date(input.expectedCloseDate) : undefined,
+          notes: input.notes,
+          leadId: input.leadId,
+          nextAction: input.nextAction,
+        });
+        return { id };
+      }),
+    updateDeal: protectedProcedure
+      .input(z.object({
+        id: z.number().int(),
+        title: z.string().min(1).max(256).optional(),
+        value: z.string().optional(),
+        currency: z.string().optional(),
+        stage: z.enum(["new", "qualified", "presentation", "proposal", "negotiation", "won", "lost"]).optional(),
+        probability: z.number().int().min(0).max(100).optional(),
+        expectedCloseDate: z.string().optional(),
+        notes: z.string().optional(),
+        nextAction: z.string().optional(),
+        lostReason: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { updateDeal } = await import("./crmDb");
+        const { id, ...data } = input;
+        const updateData: any = { ...data };
+        if (data.expectedCloseDate) updateData.expectedCloseDate = new Date(data.expectedCloseDate);
+        if (data.stage === "won") updateData.wonAt = new Date();
+        await updateDeal(id, ctx.user.id, updateData);
+        return { success: true };
+      }),
+    deleteDeal: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .mutation(async ({ ctx, input }) => {
+        const { deleteDeal } = await import("./crmDb");
+        await deleteDeal(input.id, ctx.user.id);
+        return { success: true };
+      }),
+    getDealActivities: protectedProcedure
+      .input(z.object({ dealId: z.number().int() }))
+      .query(async ({ input }) => {
+        const { getDealActivities } = await import("./crmDb");
+        return getDealActivities(input.dealId);
+      }),
+    addActivity: protectedProcedure
+      .input(z.object({
+        dealId: z.number().int(),
+        type: z.enum(["call", "email", "meeting", "note", "task", "demo"]),
+        content: z.string().optional(),
+        duration: z.number().int().optional(),
+        outcome: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { createDealActivity } = await import("./crmDb");
+        const id = await createDealActivity({ ...input, userId: ctx.user.id });
+        return { id };
+      }),
+    listQuotas: protectedProcedure.query(async ({ ctx }) => {
+      const { getQuotas } = await import("./crmDb");
+      return getQuotas(ctx.user.id);
+    }),
+    upsertQuota: protectedProcedure
+      .input(z.object({
+        period: z.string(),
+        periodType: z.enum(["monthly", "quarterly", "yearly"]).default("monthly"),
+        targetValue: z.string(),
+        achievedValue: z.string().optional(),
+        currency: z.string().default("CZK"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { upsertQuota } = await import("./crmDb");
+        await upsertQuota({ userId: ctx.user.id, ...input, achievedValue: input.achievedValue ?? "0" });
+        return { success: true };
+      }),
+    listCommissions: protectedProcedure.query(async ({ ctx }) => {
+      const { getCommissions } = await import("./crmDb");
+      return getCommissions(ctx.user.id);
+    }),
+    createCommission: protectedProcedure
+      .input(z.object({
+        dealId: z.number().int(),
+        rate: z.string(),
+        amount: z.string(),
+        currency: z.string().default("CZK"),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { createCommission } = await import("./crmDb");
+        const id = await createCommission({ ...input, userId: ctx.user.id });
+        return { id };
+      }),
+  }),
 });
 export type AppRouter = typeof appRouter;

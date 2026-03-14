@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function ROI() {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const { data, isLoading } = trpc.leads.list.useQuery({ limit: 200, offset: 0, status: "qualified" });
   const { data: allData } = trpc.leads.list.useQuery({ limit: 200, offset: 0 });
@@ -36,7 +38,7 @@ export default function ROI() {
   const closeDealMutation = trpc.leads.closeDeal.useMutation({
     onSuccess: () => {
       utils.leads.list.invalidate();
-      toast.success("Deal closed! 🎉");
+      toast.success(t("roi.dealClosed", "Obchod uzavřen! 🎉"));
       setDealModal(null);
       setDealValue("");
     },
@@ -44,13 +46,13 @@ export default function ROI() {
   });
 
   const rateQuality = trpc.leads.rateQuality.useMutation({
-    onSuccess: () => { utils.leads.list.invalidate(); toast.success("Quality rating saved"); },
+    onSuccess: () => { utils.leads.list.invalidate(); toast.success(t("roi.qualitySaved", "Hodnocení kvality uloženo")); },
     onError: (e) => toast.error(e.message),
   });
 
   const [dealModal, setDealModal] = useState<{ id: number; company: string } | null>(null);
   const [dealValue, setDealValue] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState("EUR");
 
   const allLeads = allData?.items ?? [];
   const qualifiedLeads = data?.items ?? [];
@@ -91,9 +93,9 @@ export default function ROI() {
       <div className="max-w-6xl space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground">ROI Tracker</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t("roi.title")}</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Track deal values, conversion rates, and revenue from your leads.
+            {t("roi.subtitle")}
           </p>
         </div>
 
@@ -103,11 +105,11 @@ export default function ROI() {
             <CardContent className="pt-5 pb-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Revenue</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("roi.closedRevenue")}</p>
                   <p className="text-2xl font-bold text-foreground mt-1">
-                    {totalRevenue.toLocaleString()} {closedLeads[0]?.currency ?? "USD"}
+                    {totalRevenue.toLocaleString()} {closedLeads[0]?.currency ?? "EUR"}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">{closedLeads.length} deals closed</p>
+                  <p className="text-xs text-muted-foreground mt-1">{closedLeads.length} {t("roi.dealsCount", "uzavřených obchodů")}</p>
                 </div>
                 <div className="p-2 rounded-lg text-emerald-400 bg-emerald-400/10">
                   <DollarSign className="h-4 w-4" />
@@ -119,9 +121,9 @@ export default function ROI() {
             <CardContent className="pt-5 pb-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Conversion Rate</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("roi.closeRate")}</p>
                   <p className="text-2xl font-bold text-foreground mt-1">{conversionRate}%</p>
-                  <p className="text-xs text-muted-foreground mt-1">leads → closed deals</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("roi.leadsToDeals", "leady → uzavřené obchody")}</p>
                 </div>
                 <div className="p-2 rounded-lg text-violet-400 bg-violet-400/10">
                   <TrendingUp className="h-4 w-4" />
@@ -133,11 +135,11 @@ export default function ROI() {
             <CardContent className="pt-5 pb-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Avg Deal Value</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("roi.avgDealValue")}</p>
                   <p className="text-2xl font-bold text-foreground mt-1">
                     {avgDealValue.toLocaleString()}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">per closed deal</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("roi.perDeal", "za uzavřený obchod")}</p>
                 </div>
                 <div className="p-2 rounded-lg text-amber-400 bg-amber-400/10">
                   <Target className="h-4 w-4" />
@@ -149,9 +151,9 @@ export default function ROI() {
             <CardContent className="pt-5 pb-5">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Qualified Leads</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("roi.totalPipeline")}</p>
                   <p className="text-2xl font-bold text-foreground mt-1">{qualifiedLeads.length}</p>
-                  <p className="text-xs text-muted-foreground mt-1">ready to close</p>
+                  <p className="text-xs text-muted-foreground mt-1">{t("roi.readyToClose", "připraveno k uzavření")}</p>
                 </div>
                 <div className="p-2 rounded-lg text-blue-400 bg-blue-400/10">
                   <CheckCircle2 className="h-4 w-4" />
@@ -165,14 +167,14 @@ export default function ROI() {
           {/* Revenue by Industry Chart */}
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">Revenue by Industry</CardTitle>
+              <CardTitle className="text-base font-semibold">{t("roi.revenueByIndustry", "Tržby podle odvětví")}</CardTitle>
             </CardHeader>
             <CardContent>
               {chartData.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
                   <DollarSign className="h-10 w-10 mb-3 opacity-20" />
-                  <p className="text-sm">No closed deals yet</p>
-                  <p className="text-xs mt-1">Close deals below to see revenue breakdown</p>
+                  <p className="text-sm">{t("roi.noClosedDeals", "Zatím žádné uzavřené obchody")}</p>
+                  <p className="text-xs mt-1">{t("roi.closeDealsHint", "Uzavřete obchody níže pro přehled tržeb")}</p>
                 </div>
               ) : (
                 <ResponsiveContainer width="100%" height={200}>
@@ -208,13 +210,13 @@ export default function ROI() {
           {/* Closed Deals List */}
           <Card className="bg-card border-border">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base font-semibold">Closed Deals</CardTitle>
+              <CardTitle className="text-base font-semibold">{t("roi.closedDeals", "Uzavřené obchody")}</CardTitle>
             </CardHeader>
             <CardContent>
               {closedLeads.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
                   <CheckCircle2 className="h-10 w-10 mb-3 opacity-20" />
-                  <p className="text-sm">No closed deals yet</p>
+                  <p className="text-sm">{t("roi.noClosedDeals", "Zatím žádné uzavřené obchody")}</p>
                 </div>
               ) : (
                 <div className="space-y-2 max-h-[200px] overflow-y-auto">
@@ -245,7 +247,7 @@ export default function ROI() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Target className="h-4 w-4 text-emerald-400" />
-              Qualified Leads — Ready to Close
+              {t("roi.qualifiedLeads", "Kvalifikované leady — připraveno k uzavření")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -256,54 +258,49 @@ export default function ROI() {
             ) : qualifiedLeads.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
                 <Building2 className="h-10 w-10 mb-3 opacity-20" />
-                <p className="text-sm">No qualified leads yet</p>
-                <p className="text-xs mt-1">Mark leads as "Qualified" in History or Pipeline to track them here.</p>
+                <p className="text-sm">{t("roi.noLeads")}</p>
               </div>
             ) : (
               <div className="space-y-2">
-                {qualifiedLeads.map((l) => (
+                {qualifiedLeads.map((lead) => (
                   <div
-                    key={l.id}
-                    className="flex items-center justify-between p-3 rounded-lg bg-secondary/40 hover:bg-secondary/60 transition-colors"
+                    key={lead.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border/50"
                   >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <p className="text-sm font-semibold text-foreground truncate">{l.companyName}</p>
-                        {l.dealClosed && (
-                          <Badge className="bg-emerald-500/15 text-emerald-400 border-0 text-xs">
-                            Closed {parseFloat(l.dealValue ?? "0").toLocaleString()} {l.currency}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-foreground truncate">{lead.companyName}</p>
+                          <Badge className={`text-xs ${STATUS_COLORS[lead.status] ?? "bg-zinc-500/15 text-zinc-300"}`}>
+                            {t(`status.${lead.status}`, lead.status)}
                           </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>{l.industry}</span>
-                        {l.location && <span>{l.location}</span>}
-                        {l.email && <span className="truncate max-w-[160px]">{l.email}</span>}
+                        </div>
+                        <p className="text-xs text-muted-foreground truncate">{lead.industry} · {lead.location}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 ml-3">
-                      {/* Quality rating */}
                       <button
-                        onClick={() => rateQuality.mutate({ leadId: l.id, rating: "good" })}
-                        className={`p-1.5 rounded transition-colors ${l.qualityRating === "good" ? "text-emerald-400 bg-emerald-400/10" : "text-muted-foreground hover:text-emerald-400"}`}
-                        title="Good lead"
+                        onClick={() => rateQuality.mutate({ leadId: lead.id, rating: "good" })}
+                        className={`p-1.5 rounded-lg transition-colors ${lead.qualityRating === "good" ? "bg-emerald-500/20 text-emerald-400" : "text-muted-foreground hover:text-emerald-400"}`}
                       >
                         <ThumbsUp className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => rateQuality.mutate({ leadId: l.id, rating: "bad" })}
-                        className={`p-1.5 rounded transition-colors ${l.qualityRating === "bad" ? "text-red-400 bg-red-400/10" : "text-muted-foreground hover:text-red-400"}`}
-                        title="Bad lead"
+                        onClick={() => rateQuality.mutate({ leadId: lead.id, rating: "bad" })}
+                        className={`p-1.5 rounded-lg transition-colors ${lead.qualityRating === "bad" ? "bg-red-500/20 text-red-400" : "text-muted-foreground hover:text-red-400"}`}
                       >
                         <ThumbsDown className="h-3.5 w-3.5" />
                       </button>
-                      {!l.dealClosed && (
+                      {lead.dealClosed ? (
+                        <Badge className="bg-emerald-500/20 text-emerald-400 text-xs">{t("roi.closed")}</Badge>
+                      ) : (
                         <Button
                           size="sm"
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white h-7 text-xs px-3"
-                          onClick={() => setDealModal({ id: l.id, company: l.companyName })}
+                          variant="outline"
+                          className="text-xs h-7 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                          onClick={() => setDealModal({ id: lead.id, company: lead.companyName })}
                         >
-                          Close Deal
+                          {t("roi.markClosed")}
                         </Button>
                       )}
                     </div>
@@ -316,50 +313,55 @@ export default function ROI() {
       </div>
 
       {/* Close Deal Modal */}
-      <Dialog open={!!dealModal} onOpenChange={(o) => { if (!o) { setDealModal(null); setDealValue(""); } }}>
-        <DialogContent className="bg-[#13131a] border-white/10 max-w-sm">
+      <Dialog open={!!dealModal} onOpenChange={() => setDealModal(null)}>
+        <DialogContent className="bg-card border-border max-w-sm">
           <DialogHeader>
-            <DialogTitle className="text-white">Close Deal — {dealModal?.company}</DialogTitle>
+            <DialogTitle className="text-foreground">{t("roi.closeDealTitle", "Uzavřít obchod")}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <div>
-              <Label className="text-white/70 text-sm mb-1.5 block">Deal Value</Label>
+            <p className="text-sm text-muted-foreground">{dealModal?.company}</p>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{t("roi.dealValue")}</Label>
               <Input
                 type="number"
+                placeholder="0"
                 value={dealValue}
                 onChange={(e) => setDealValue(e.target.value)}
-                placeholder="e.g. 5000"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                className="bg-secondary border-border text-foreground"
               />
             </div>
-            <div>
-              <Label className="text-white/70 text-sm mb-1.5 block">Currency</Label>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{t("roi.currency")}</Label>
               <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                <SelectTrigger className="bg-secondary border-border text-foreground">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1a2e] border-white/10">
+                <SelectContent className="bg-card border-border">
                   {CURRENCIES.map((c) => (
-                    <SelectItem key={c} value={c} className="text-white hover:bg-white/10">{c}</SelectItem>
+                    <SelectItem key={c} value={c} className="text-foreground">{c}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" className="text-white/60" onClick={() => { setDealModal(null); setDealValue(""); }}>
-              Cancel
+            <Button variant="outline" onClick={() => setDealModal(null)} className="border-border text-foreground">
+              {t("common.cancel")}
             </Button>
             <Button
-              className="bg-emerald-600 hover:bg-emerald-700"
-              disabled={!dealValue || closeDealMutation.isPending}
               onClick={() => {
-                if (dealModal && dealValue) {
-                  closeDealMutation.mutate({ leadId: dealModal.id, dealValue, currency });
+                if (dealModal) {
+                  closeDealMutation.mutate({
+                    id: dealModal.id,
+                    dealValue: dealValue || "0",
+                    currency,
+                  });
                 }
               }}
+              disabled={closeDealMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
             >
-              {closeDealMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Close"}
+              {closeDealMutation.isPending ? t("common.loading") : t("roi.save")}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -1,50 +1,51 @@
 export const STRIPE_PRODUCTS = {
   starter: {
-    name: "Starter",
-    description: "Perfect for solo founders and small sales teams",
-    priceMonthly: 4900, // $49/month in cents
-    priceYearly: 39000, // $390/year in cents
+    name: "LeadOS Starter",
+    description: "Ideální pro freelancery a malé obchodní týmy",
+    priceMonthly: 14900, // €149/month in cents
+    priceYearly: 119000, // €1190/year in cents (~€99/mo)
     features: [
-      "500 leads/month",
-      "AI icebreakers",
-      "Email verification",
-      "CSV export",
-      "1 user",
+      "1 000 leadů/měsíc",
+      "AI icebreakery",
+      "Ověřování e-mailů",
+      "Export CSV & Google Sheets",
+      "Kanban pipeline",
+      "1 uživatel",
     ],
     priceIdMonthly: process.env.STRIPE_PRICE_STARTER_MONTHLY ?? "price_starter_monthly",
     priceIdYearly: process.env.STRIPE_PRICE_STARTER_YEARLY ?? "price_starter_yearly",
   },
   growth: {
-    name: "Growth",
-    description: "For growing sales teams that need more power",
-    priceMonthly: 9900, // $99/month in cents
-    priceYearly: 79000, // $790/year in cents
+    name: "LeadOS Growth",
+    description: "Pro rostouci obchodní týmy, které potřebují více výkonu",
+    priceMonthly: 39900, // €399/month in cents
+    priceYearly: 319000, // €3190/year in cents (~€266/mo)
     features: [
-      "2,500 leads/month",
-      "AI SDR Agent",
-      "Email sequences",
-      "Capture planning",
-      "Market intelligence",
-      "5 users",
-      "CRM integrations",
+      "5 000 leadů/měsíc",
+      "AI SDR Agent (automatické oslovení)",
+      "E-mailové sekvence",
+      "LinkedIn scraping",
+      "Social listening",
+      "Tržní inteligence",
+      "5 uživatelů",
     ],
     priceIdMonthly: process.env.STRIPE_PRICE_GROWTH_MONTHLY ?? "price_growth_monthly",
     priceIdYearly: process.env.STRIPE_PRICE_GROWTH_YEARLY ?? "price_growth_yearly",
   },
   pro: {
-    name: "Pro",
-    description: "For agencies and enterprise sales teams",
-    priceMonthly: 24900, // $249/month in cents
-    priceYearly: 199000, // $1990/year in cents
+    name: "LeadOS Pro",
+    description: "Pro agentury a enterprise obchodní týmy",
+    priceMonthly: 79900, // €799/month in cents
+    priceYearly: 639000, // €6390/year in cents (~€532/mo)
     features: [
-      "Unlimited leads",
-      "All AI features",
+      "Neomezené leady",
+      "Všechny AI funkce",
       "Competitive intelligence",
-      "Knowledge base",
-      "Autopilot campaigns",
-      "Unlimited users",
+      "Znalostni báze (AI)",
+      "Autopilot kampaňe",
+      "Neomezení uživatelé",
       "Agency panel",
-      "Priority support",
+      "Prioritní podpora",
     ],
     priceIdMonthly: process.env.STRIPE_PRICE_PRO_MONTHLY ?? "price_pro_monthly",
     priceIdYearly: process.env.STRIPE_PRICE_PRO_YEARLY ?? "price_pro_yearly",

@@ -500,3 +500,26 @@
 - [ ] Generate AI image: Queen of Leads on private jet, luxury, champagne, gold accents
 - [ ] Upload to CDN
 - [ ] Integrate as hero background on Landing page
+
+## Czech Translation (Remaining Pages)
+- [x] Translate Kanban page to Czech
+- [x] Translate History page to Czech
+- [x] Translate ROI Tracker page to Czech
+- [x] Translate Statistics page to Czech
+- [x] Translate Billing page to Czech (new pricing + Enterprise column)
+- [ ] Translate Settings pages to Czech
+
+## Demo-First Pricing Redesign
+- [x] Update pricing to Starter €149/mo, Growth €399/mo, Pro €799/mo
+- [x] Add Enterprise tier (cena na dotaz / Contact Sales)
+- [x] Update stripeProducts.ts with new pricing
+- [x] Billing page redesigned with 4-column pricing (Starter/Growth/Pro/Enterprise)
+
+## Sales CRM Super Module UI
+- [x] Deal Pipeline Kanban board (stages: New/Qualified/Presentation/Proposal/Negotiation/Won/Lost)
+- [x] Sales Dashboard with revenue metrics, win rate, quota tracking
+- [x] Deal create/edit modal with all fields
+- [x] Commission tracker widget on Sales Dashboard
+- [x] Quota progress bar per user
+- [x] CRM tRPC router (deals, activities, quotas, commissions)
+- [x] Sidebar nav items: Deal Pipeline + Sales Dashboard

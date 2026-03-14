@@ -30,6 +30,7 @@ import {
   Users,
 } from "lucide-react";
 import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { ThumbsUp, ThumbsDown, CheckSquare, Square, Minus, Sheet } from "lucide-react";
 import SheetsExportModal from "@/components/SheetsExportModal";
@@ -38,15 +39,16 @@ const PAGE_SIZE = 20;
 
 type LeadStatus = "new" | "contacted" | "replied" | "qualified" | "disqualified";
 
-const STATUS_CONFIG: Record<LeadStatus, { label: string; color: string; bg: string; border: string }> = {
-  new:          { label: "New",          color: "text-sky-400",    bg: "bg-sky-500/10",    border: "border-sky-500/20" },
-  contacted:    { label: "Contacted",    color: "text-amber-400",  bg: "bg-amber-500/10",  border: "border-amber-500/20" },
-  replied:      { label: "Replied",      color: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20" },
-  qualified:    { label: "Qualified",    color: "text-emerald-400",bg: "bg-emerald-500/10",border: "border-emerald-500/20" },
-  disqualified: { label: "Disqualified", color: "text-rose-400",   bg: "bg-rose-500/10",   border: "border-rose-500/20" },
+const STATUS_COLORS: Record<LeadStatus, { color: string; bg: string; border: string }> = {
+  new:          { color: "text-sky-400",    bg: "bg-sky-500/10",    border: "border-sky-500/20" },
+  contacted:    { color: "text-amber-400",  bg: "bg-amber-500/10",  border: "border-amber-500/20" },
+  replied:      { color: "text-violet-400", bg: "bg-violet-500/10", border: "border-violet-500/20" },
+  qualified:    { color: "text-emerald-400",bg: "bg-emerald-500/10",border: "border-emerald-500/20" },
+  disqualified: { color: "text-rose-400",   bg: "bg-rose-500/10",   border: "border-rose-500/20" },
 };
 
 export default function History() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [industry, setIndustry] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -148,7 +150,7 @@ export default function History() {
 
   const bulkUpdateStatus = trpc.leads.bulkUpdateStatus.useMutation({
     onSuccess: (_, vars) => {
-      toast.success(`Updated ${vars.leadIds.length} leads to "${STATUS_CONFIG[vars.status as LeadStatus]?.label ?? vars.status}"`);
+      toast.success(`${t("history.updated", "Aktualizováno")} ${vars.leadIds.length} ${t("common.leadsTotal")}`);
       setSelectedIds(new Set());
       utils.leads.list.invalidate();
     },
@@ -186,9 +188,9 @@ export default function History() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Lead History</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t("history.title")}</h1>
             <p className="text-muted-foreground text-sm mt-1">
-              Browse, search, manage pipeline status, and export all generated leads.
+              {t("history.subtitle")}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -217,7 +219,7 @@ export default function History() {
               className="gap-1.5 border-orange-500/40 text-orange-400 hover:bg-orange-500/10"
             >
               {computeScores.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-              Score Leads
+              {t("history.scoreLeads", "Ohodnotit leady")}
             </Button>
           </div>
         </div>
@@ -227,7 +229,7 @@ export default function History() {
           <div className="relative flex-1 min-w-[200px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search company, email, contact..."
+              placeholder={t("history.search")}
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(0); }}
               className="pl-9 bg-input border-border"
@@ -238,7 +240,7 @@ export default function History() {
               <SelectValue placeholder="All industries" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All industries</SelectItem>
+              <SelectItem value="all">{t("history.filterIndustry")}</SelectItem>
               {(industries ?? []).map((ind) => (
                 <SelectItem key={ind} value={ind}>{ind}</SelectItem>
               ))}
@@ -249,9 +251,9 @@ export default function History() {
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              {(Object.keys(STATUS_CONFIG) as LeadStatus[]).map((s) => (
-                <SelectItem key={s} value={s}>{STATUS_CONFIG[s].label}</SelectItem>
+              <SelectItem value="all">{t("history.filterStatus")}</SelectItem>
+              {(Object.keys(STATUS_COLORS) as LeadStatus[]).map((s) => (
+                <SelectItem key={s} value={s}>{t(`status.${s}`, s)}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -262,11 +264,11 @@ export default function History() {
           {/* Sessions panel */}
           <Card className="bg-card border-border">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold">Generation Sessions</CardTitle>
+              <CardTitle className="text-sm font-semibold">{t("history.sessions")}</CardTitle>
             </CardHeader>
             <CardContent className="p-2">
               {!sessions?.length ? (
-                <p className="text-xs text-muted-foreground text-center py-4">No sessions yet</p>
+                <p className="text-xs text-muted-foreground text-center py-4">{t("history.noSessions", "Zatím žádné sessions")}</p>
               ) : (
                 <div className="space-y-1 max-h-[500px] overflow-y-auto">
                   {sessions.map((s) => (
@@ -280,7 +282,7 @@ export default function History() {
                       </div>
                       <button
                         onClick={() => {
-                          if (confirm("Delete this session and all its leads?")) {
+                          if (confirm(t("history.confirmDelete"))) {
                             deleteSession.mutate({ sessionId: s.id });
                           }
                         }}
@@ -305,8 +307,8 @@ export default function History() {
               <Card className="bg-card border-border border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                   <Search className="h-10 w-10 mb-3 opacity-20" />
-                  <p className="text-sm font-medium">No leads found</p>
-                  <p className="text-xs mt-1">Try adjusting your search or filters</p>
+                  <p className="text-sm font-medium">{t("history.noLeads")}</p>
+                  <p className="text-xs mt-1">{t("history.noLeadsHint")}</p>
                 </CardContent>
               </Card>
             ) : (
@@ -317,7 +319,7 @@ export default function History() {
                     <button onClick={toggleAll} className="p-1 rounded hover:bg-secondary transition-colors" title="Select all on page">
                       {allSelected ? <CheckSquare className="h-4 w-4 text-primary" /> : someSelected ? <Minus className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />}
                     </button>
-                    <span>{data.total} leads total</span>
+                    <span>{data.total} {t("common.leadsTotal")}</span>
                     {selectedIds.size > 0 && (
                       <span className="text-primary font-medium">· {selectedIds.size} selected</span>
                     )}
@@ -330,27 +332,27 @@ export default function History() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {(Object.keys(STATUS_CONFIG) as LeadStatus[]).map((s) => (
-                              <SelectItem key={s} value={s} className="text-xs">{STATUS_CONFIG[s].label}</SelectItem>
+                            {(Object.keys(STATUS_COLORS) as LeadStatus[]).map((s) => (
+                              <SelectItem key={s} value={s} className="text-xs">{t(`status.${s}`, s)}</SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                         <Button size="sm" variant="outline" className="h-6 text-[10px] px-2"
                           disabled={bulkUpdateStatus.isPending}
                           onClick={() => bulkUpdateStatus.mutate({ leadIds: Array.from(selectedIds), status: bulkStatus })}>
-                          Set Status
+                          {t("history.setStatus")}
                         </Button>
                         <Button size="sm" variant="outline" className="h-6 text-[10px] px-2" onClick={handleBulkExportCsv}>
-                          Export CSV
+                          {t("history.exportCsv")}
                         </Button>
                         <Button size="sm" variant="outline" className="h-6 text-[10px] px-2 text-destructive hover:text-destructive"
                           disabled={bulkDelete.isPending}
-                          onClick={() => { if (confirm(`Delete ${selectedIds.size} leads?`)) bulkDelete.mutate({ leadIds: Array.from(selectedIds) }); }}>
-                          Delete
+                          onClick={() => { if (confirm(`${t("history.bulkDelete")} ${selectedIds.size}?`)) bulkDelete.mutate({ leadIds: Array.from(selectedIds) }); }}>
+                          {t("history.bulkDelete")}
                         </Button>
                       </>
                     )}
-                    <span className="ml-2">Page {page + 1} of {Math.max(1, totalPages)}</span>
+                    <span className="ml-2">{t("common.page")} {page + 1} {t("common.of")} {Math.max(1, totalPages)}</span>
                   </div>
                 </div>
 
@@ -379,7 +381,7 @@ export default function History() {
                       className="gap-1"
                     >
                       <ChevronLeft className="h-3.5 w-3.5" />
-                      Prev
+                      {t("common.previous")}
                     </Button>
                     <span className="text-xs text-muted-foreground px-2">
                       {page + 1} / {totalPages}
@@ -391,7 +393,7 @@ export default function History() {
                       disabled={page >= totalPages - 1}
                       className="gap-1"
                     >
-                      Next
+                      {t("common.next")}
                       <ChevronRight className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -426,6 +428,7 @@ function HistoryLeadRow({
   selected?: boolean;
   onSelect?: () => void;
 }) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<LeadStatus>((lead.status as LeadStatus) ?? "new");
   const [quality, setQuality] = useState<string | null>(lead.qualityRating ?? null);
   const utils = trpc.useUtils();
@@ -433,7 +436,7 @@ function HistoryLeadRow({
   const rateQuality = trpc.leads.rateQuality.useMutation({
     onSuccess: (_, vars) => {
       setQuality(vars.rating);
-      toast.success(vars.rating === "good" ? "Marked as good lead" : "Marked as bad lead");
+      toast.success(vars.rating === "good" ? t("history.qualityGood") : t("history.qualityBad"));
     },
     onError: (e) => toast.error(e.message),
   });
@@ -442,12 +445,12 @@ function HistoryLeadRow({
     onSuccess: (_, vars) => {
       setStatus(vars.status);
       utils.leads.list.invalidate();
-      toast.success(`Status updated to "${STATUS_CONFIG[vars.status].label}"`);
+      toast.success(`${t("common.save", "Uloženo")} → ${t(`status.${vars.status}`, vars.status)}`);
     },
-    onError: (err) => toast.error(`Failed to update status: ${err.message}`),
+    onError: (err) => toast.error(err.message),
   });
 
-  const cfg = STATUS_CONFIG[status] ?? STATUS_CONFIG.new;
+  const cfg = STATUS_COLORS[status] ?? STATUS_COLORS.new;
   const isLinkedIn = lead.dataSource === "linkedin_apify";
 
   return (
@@ -536,9 +539,9 @@ function HistoryLeadRow({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {(Object.keys(STATUS_CONFIG) as LeadStatus[]).map((s) => (
+                {(Object.keys(STATUS_COLORS) as LeadStatus[]).map((s) => (
                   <SelectItem key={s} value={s} className="text-xs">
-                    <span className={STATUS_CONFIG[s].color}>{STATUS_CONFIG[s].label}</span>
+                    <span className={STATUS_COLORS[s].color}>{t(`status.${s}`, s)}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -576,19 +579,19 @@ function HistoryLeadRow({
           <div className="mt-3 pt-3 border-t border-border space-y-2">
             {lead.companySize && (
               <p className="text-xs text-muted-foreground">
-                <strong className="text-foreground">Company size:</strong> {lead.companySize}
+                <strong className="text-foreground">{t("history.employees", "Velikost firmy")}:</strong> {lead.companySize}
               </p>
             )}
             {lead.email && (
               <p className="text-xs text-muted-foreground">
-                <strong className="text-foreground">Email:</strong>{" "}
+                <strong className="text-foreground">{t("history.email", "E-mail")}:</strong>{" "}
                 <a href={`mailto:${lead.email}`} className="text-primary hover:underline">{lead.email}</a>
               </p>
             )}
             {lead.linkedinUrl && (
               <p className="text-xs">
                 <a href={lead.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                  LinkedIn Profile
+                  LinkedIn
                 </a>
               </p>
             )}
@@ -599,14 +602,14 @@ function HistoryLeadRow({
               <div className="pl-3 border-l-2 border-violet-500/30">
                 <p className="text-xs font-medium text-violet-400 mb-1">
                   <Sparkles className="inline h-3 w-3 mr-1" />
-                  AI Icebreaker
+                  {t("history.icebreaker", "AI Icebreaker")}
                 </p>
                 <p className="text-xs text-muted-foreground italic leading-relaxed">{lead.icebreaker}</p>
               </div>
             )}
             {/* Quality rating */}
             <div className="flex items-center gap-2 pt-1">
-              <span className="text-xs text-muted-foreground">Lead quality:</span>
+              <span className="text-xs text-muted-foreground">{t("history.leadQuality")}</span>
               <button
                 onClick={() => rateQuality.mutate({ leadId: lead.id, rating: "good" })}
                 className={cn(
@@ -616,7 +619,7 @@ function HistoryLeadRow({
                     : "border-border text-muted-foreground hover:text-emerald-400 hover:border-emerald-500/30"
                 )}
               >
-                <ThumbsUp className="h-3 w-3" /> Good
+                <ThumbsUp className="h-3 w-3" /> {t("history.qualityGood")}
               </button>
               <button
                 onClick={() => rateQuality.mutate({ leadId: lead.id, rating: "bad" })}
@@ -627,11 +630,11 @@ function HistoryLeadRow({
                     : "border-border text-muted-foreground hover:text-rose-400 hover:border-rose-500/30"
                 )}
               >
-                <ThumbsDown className="h-3 w-3" /> Bad
+                <ThumbsDown className="h-3 w-3" /> {t("history.qualityBad")}
               </button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Generated: {new Date(lead.createdAt).toLocaleString()}
+              {t("history.generated")} {new Date(lead.createdAt).toLocaleString()}
             </p>
           </div>
         )}
