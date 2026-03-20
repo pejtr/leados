@@ -12,7 +12,99 @@ import {
   ArrowRight, Star, Target, Sparkles, Globe,
   ChevronRight, MessageSquare, UserCheck, Lightbulb, Ear, Bot,
   Menu, X, Rocket, Brain, Calendar, Phone, Award,
+  Bell, Building2, Factory, ShoppingCart, Code2, Stethoscope,
+  TrendingDown, Activity, BadgeCheck, Flame, Play,
 } from "lucide-react";
+
+// ── Animated Lead Card Demo ──────────────────────────────────────────────────
+function AnimatedLeadCard() {
+  const leads = [
+    { name: "Jan Novák", title: "CEO", company: "TechCorp s.r.o.", score: 94, industry: "SaaS", signal: "Visited pricing page 3x" },
+    { name: "Petra Dvořák", title: "Head of Sales", company: "Logistika CZ", score: 87, industry: "Logistics", signal: "Downloaded case study" },
+    { name: "Martin Kříž", title: "CTO", company: "FinTech Praha", score: 91, industry: "FinTech", signal: "LinkedIn profile viewed" },
+    { name: "Eva Horáčková", title: "VP Marketing", company: "E-shop Pro", score: 78, industry: "E-commerce", signal: "Opened email sequence" },
+  ];
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIsVisible(false);
+      setTimeout(() => {
+        setCurrentIdx(prev => (prev + 1) % leads.length);
+        setIsVisible(true);
+      }, 400);
+    }, 3200);
+    return () => clearInterval(interval);
+  }, []);
+
+  const lead = leads[currentIdx];
+  const scoreColor = lead.score >= 90 ? "#10b981" : lead.score >= 75 ? "#f59e0b" : "#ef4444";
+
+  return (
+    <motion.div
+      animate={{ opacity: isVisible ? 1 : 0, y: isVisible ? 0 : 8 }}
+      transition={{ duration: 0.35 }}
+      className="rounded-2xl p-4"
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(139,92,246,0.25)", backdropFilter: "blur(12px)" }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <motion.div
+            animate={{ scale: [1, 1.2, 1] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="w-2 h-2 rounded-full"
+            style={{ background: "#10b981" }}
+          />
+          <span className="text-xs font-medium" style={{ color: "rgba(255,255,255,0.5)" }}>New Lead Detected</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: `${scoreColor}20`, color: scoreColor, border: `1px solid ${scoreColor}40` }}>
+            AI {lead.score}
+          </div>
+        </div>
+      </div>
+      {/* Lead info */}
+      <div className="flex items-center gap-3 mb-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", fontFamily: "'Space Grotesk', sans-serif" }}>
+          {lead.name.split(" ").map(n => n[0]).join("")}
+        </div>
+        <div>
+          <div className="font-semibold text-sm" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{lead.name}</div>
+          <div className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>{lead.title} @ {lead.company}</div>
+        </div>
+        <div className="ml-auto">
+          <div className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa", border: "1px solid rgba(139,92,246,0.2)" }}>{lead.industry}</div>
+        </div>
+      </div>
+      {/* AI Signal */}
+      <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl" style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.15)" }}>
+        <Activity className="w-3.5 h-3.5 flex-shrink-0" style={{ color: "#06b6d4" }} />
+        <span className="text-xs" style={{ color: "rgba(255,255,255,0.6)" }}>Signal: <span style={{ color: "#06b6d4" }}>{lead.signal}</span></span>
+      </div>
+      {/* AI Icebreaker */}
+      <div className="text-xs leading-relaxed mb-3" style={{ color: "rgba(255,255,255,0.5)" }}>
+        <span style={{ color: "#a78bfa" }}>✦ AI Icebreaker: </span>
+        "Hi {lead.name.split(" ")[0]}, I noticed {lead.company} is scaling fast in {lead.industry}. We helped similar companies 3x their pipeline — worth a quick call?"
+      </div>
+      {/* Score bar */}
+      <div className="flex items-center gap-2">
+        <span className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>Lead Score</span>
+        <div className="flex-1 h-1.5 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: `linear-gradient(90deg, ${scoreColor}, ${scoreColor}99)` }}
+            initial={{ width: 0 }}
+            animate={{ width: `${lead.score}%` }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          />
+        </div>
+        <span className="text-xs font-bold" style={{ color: scoreColor }}>{lead.score}%</span>
+      </div>
+    </motion.div>
+  );
+}
 
 // ── Animated Counter ──────────────────────────────────────────────────────────
 function AnimatedCounter({ value, suffix = "" }: { value: number; suffix?: string }) {
@@ -62,6 +154,104 @@ function Reveal({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
     >
       {children}
     </motion.div>
+  );
+}
+
+// ── Case Study Section with Industry Filters ────────────────────────────────
+const CASE_STUDIES = [
+  { industry: "SaaS", icon: Code2, color: "#8b5cf6", company: "TechScale s.r.o.", result: "47 qualified leads", period: "in 3 days", detail: "SaaS startup targeting Czech enterprise market. LeadOS identified decision-makers via LinkedIn signals and delivered personalized icebreakers with 28% reply rate.", metric1: "28%", metric1Label: "Reply rate", metric2: "47", metric2Label: "Leads / 3 days" },
+  { industry: "Logistics", icon: Factory, color: "#06b6d4", company: "LogiCzech a.s.", result: "+1,200 contacts", period: "in 6 months", detail: "B2B logistics provider targeting warehouse managers and procurement directors. LeadOS filtered by company size and tech stack to find ideal buyers.", metric1: "1,200+", metric1Label: "Contacts", metric2: "€340K", metric2Label: "Pipeline value" },
+  { industry: "E-commerce", icon: ShoppingCart, color: "#f59e0b", company: "ShopBoost CZ", result: "3× pipeline growth", period: "in 90 days", detail: "E-commerce agency scaling outbound. LeadOS automated prospecting for online store owners with >€500K revenue, cutting research time by 80%.", metric1: "3×", metric1Label: "Pipeline growth", metric2: "80%", metric2Label: "Less research time" },
+  { industry: "Manufacturing", icon: Building2, color: "#10b981", company: "Průmysl Pro s.r.o.", result: "90 warm leads", period: "in 8 months", detail: "Industrial equipment supplier targeting plant managers. LeadOS identified companies with recent expansion signals and delivered context-aware outreach.", metric1: "90", metric1Label: "Warm leads", metric2: "23%", metric2Label: "Meeting rate" },
+  { industry: "FinTech", icon: TrendingUp, color: "#ec4899", company: "PayFlow Praha", result: "€1.2M pipeline", period: "in 4 months", detail: "B2B payments startup targeting CFOs and finance directors. LeadOS scored leads by company revenue and tech stack compatibility.", metric1: "€1.2M", metric1Label: "Pipeline", metric2: "94", metric2Label: "Avg AI score" },
+  { industry: "Healthcare", icon: Stethoscope, color: "#a78bfa", company: "MedTech Solutions", result: "35 demo bookings", period: "in 6 weeks", detail: "Healthcare SaaS targeting hospital procurement managers. LeadOS navigated complex org structures to identify true decision-makers.", metric1: "35", metric1Label: "Demo bookings", metric2: "41%", metric2Label: "Demo-to-deal rate" },
+];
+
+function CaseStudySection({ onCTA }: { onCTA: () => void }) {
+  const [activeFilter, setActiveFilter] = useState("All");
+  const filters = ["All", ...CASE_STUDIES.map(c => c.industry)];
+  const filtered = activeFilter === "All" ? CASE_STUDIES : CASE_STUDIES.filter(c => c.industry === activeFilter);
+
+  return (
+    <div>
+      {/* Filter tabs */}
+      <div className="flex flex-wrap gap-2 justify-center mb-10">
+        {filters.map(f => (
+          <button
+            key={f}
+            onClick={() => setActiveFilter(f)}
+            className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
+            style={{
+              background: activeFilter === f ? "linear-gradient(135deg, #8b5cf6, #06b6d4)" : "rgba(255,255,255,0.05)",
+              border: activeFilter === f ? "none" : "1px solid rgba(255,255,255,0.1)",
+              color: activeFilter === f ? "white" : "rgba(255,255,255,0.55)",
+            }}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* Case study cards */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeFilter}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.35 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+        >
+          {filtered.map(({ industry, icon: Icon, color, company, result, period, detail, metric1, metric1Label, metric2, metric2Label }) => (
+            <motion.div
+              key={company}
+              whileHover={{ y: -5, scale: 1.01 }}
+              className="p-5 rounded-2xl flex flex-col"
+              style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${color}25` }}
+            >
+              {/* Top */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
+                    <Icon className="w-4 h-4" style={{ color }} />
+                  </div>
+                  <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.5)" }}>{industry}</span>
+                </div>
+                <div className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(16,185,129,0.12)", color: "#10b981", border: "1px solid rgba(16,185,129,0.2)" }}>Verified</div>
+              </div>
+              {/* Company */}
+              <div className="font-bold text-sm mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{company}</div>
+              {/* Result headline */}
+              <div className="mb-3">
+                <span className="text-2xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", background: `linear-gradient(135deg, ${color}, #06b6d4)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{result}</span>
+                <span className="text-sm ml-2" style={{ color: "rgba(255,255,255,0.4)" }}>{period}</span>
+              </div>
+              {/* Detail */}
+              <p className="text-xs leading-relaxed mb-4 flex-1" style={{ color: "rgba(255,255,255,0.45)" }}>{detail}</p>
+              {/* Metrics */}
+              <div className="grid grid-cols-2 gap-3 pt-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <div>
+                  <div className="text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", color }}>{metric1}</div>
+                  <div className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{metric1Label}</div>
+                </div>
+                <div>
+                  <div className="text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#06b6d4" }}>{metric2}</div>
+                  <div className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{metric2Label}</div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
+      </AnimatePresence>
+
+      {/* CTA below */}
+      <div className="text-center mt-10">
+        <p className="text-sm mb-4" style={{ color: "rgba(255,255,255,0.4)" }}>Want results like these for your business?</p>
+        <Button onClick={onCTA} style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none" }}>
+          Start Generating Leads <ArrowRight className="w-4 h-4 ml-1.5" />
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -154,6 +344,7 @@ export default function Landing() {
           <div className="hidden lg:flex items-center gap-8 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>
             <a href="#features" className="hover:text-white transition-colors">{t("nav.features")}</a>
             <a href="#how-it-works" className="hover:text-white transition-colors">{t("nav.howItWorks")}</a>
+            <a href="#case-studies" className="hover:text-white transition-colors">Results</a>
             <a href="#pricing" className="hover:text-white transition-colors">{t("nav.pricing")}</a>
           </div>
 
@@ -274,16 +465,13 @@ export default function Landing() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-3 justify-start items-start mb-12"
           >
-            <div className="flex w-full sm:w-auto">
-              <input
-                type="email" placeholder="your@company.com" value={email} onChange={e => setEmail(e.target.value)}
-                className="flex-1 sm:w-72 h-12 px-4 rounded-l-xl text-sm outline-none"
-                style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(139,92,246,0.3)", borderRight: "none", color: "white" }}
-              />
-              <Button onClick={handleCTA} className="h-12 px-6 rounded-l-none rounded-r-xl font-semibold whitespace-nowrap" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none" }}>
-                {t("landing.ctaPrimary") || "Start Free"} <ArrowRight className="w-4 h-4 ml-1.5" />
-              </Button>
-            </div>
+            <Button onClick={handleCTA} size="lg" className="h-13 px-8 text-base font-bold" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none", boxShadow: "0 0 30px rgba(139,92,246,0.35)", height: "52px" }}>
+              {t("landing.ctaPrimary") || "Start Generating Leads"} <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+            <Button onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })} variant="outline" size="lg" className="h-13 px-8 text-base" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.15)", color: "white", height: "52px" }}>
+              <Play className="w-4 h-4 mr-2" style={{ color: "#8b5cf6" }} />
+              {t("landing.ctaSecondary") || "How does it work?"}
+            </Button>
           </motion.div>
 
           {/* Social proof row */}
@@ -300,6 +488,48 @@ export default function Landing() {
               <div key={text} className="flex items-center gap-1.5">
                 <Icon className="w-3.5 h-3.5" style={{ color }} />
                 <span>{text}</span>
+              </div>
+            ))}
+          </motion.div>
+        </motion.div>
+
+        {/* Animated Lead Card — floating right side on desktop */}
+        <motion.div
+          initial={{ opacity: 0, x: 60 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.9, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="hidden xl:block absolute right-16 top-1/2 -translate-y-1/2 w-80 z-20"
+        >
+          {/* Notification pop */}
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.5, delay: 1.2 }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl mb-3"
+            style={{ background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.25)", backdropFilter: "blur(12px)" }}
+          >
+            <Bell className="w-4 h-4 flex-shrink-0" style={{ color: "#10b981" }} />
+            <div>
+              <div className="text-xs font-semibold" style={{ color: "#10b981" }}>New qualified lead!</div>
+              <div className="text-xs" style={{ color: "rgba(255,255,255,0.45)" }}>AI score 94 · SaaS · Prague</div>
+            </div>
+          </motion.div>
+          <AnimatedLeadCard />
+          {/* Stats below card */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1.5 }}
+            className="grid grid-cols-3 gap-2 mt-3"
+          >
+            {[
+              { label: "Leads today", value: "47", color: "#8b5cf6" },
+              { label: "Avg score", value: "87%", color: "#06b6d4" },
+              { label: "Replies", value: "23%", color: "#10b981" },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="text-center px-2 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="text-sm font-bold" style={{ color, fontFamily: "'Space Grotesk', sans-serif" }}>{value}</div>
+                <div className="text-xs" style={{ color: "rgba(255,255,255,0.35)" }}>{label}</div>
               </div>
             ))}
           </motion.div>
@@ -377,6 +607,166 @@ export default function Landing() {
                 </motion.div>
               </Reveal>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── Case Studies with Industry Filters ─────────────────────────────── */}
+      <section id="case-studies" className="py-24 px-4 sm:px-6" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+        <div className="max-w-6xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-12">
+              <Badge className="mb-4 text-xs px-3 py-1 border" style={{ background: "rgba(16,185,129,0.1)", borderColor: "rgba(16,185,129,0.3)", color: "#10b981" }}>
+                Real Results
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                Proven Results Across{" "}
+                <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Every Industry</span>
+              </h2>
+              <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Filter by your industry to see how LeadOS performs for businesses like yours.
+              </p>
+            </div>
+          </Reveal>
+
+          <CaseStudySection onCTA={handleCTA} />
+        </div>
+      </section>
+
+      {/* ── What is a LeadOS Lead? ────────────────────────────────────────────── */}
+      <section className="py-24 px-4 sm:px-6 relative" style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[400px] rounded-full" style={{ background: "radial-gradient(ellipse, rgba(139,92,246,0.07) 0%, transparent 70%)", filter: "blur(60px)" }} />
+        </div>
+        <div className="max-w-6xl mx-auto relative">
+          <Reveal>
+            <div className="text-center mb-16">
+              <Badge className="mb-4 text-xs px-3 py-1 border" style={{ background: "rgba(139,92,246,0.1)", borderColor: "rgba(139,92,246,0.3)", color: "#a78bfa" }}>
+                Lead Quality Standard
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                What Makes a{" "}
+                <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>LeadOS Lead?</span>
+              </h2>
+              <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.5)" }}>
+                Not all leads are equal. LeadOS only delivers leads that meet strict quality criteria — so your sales team spends time closing, not chasing.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left: criteria */}
+            <Reveal>
+              <div className="space-y-4">
+                {[
+                  { icon: BadgeCheck, color: "#10b981", title: "AI Score ≥ 70", desc: "Every lead is scored by our AI on 12 signals including intent, company fit, and decision-maker authority. Only high-probability leads pass." },
+                  { icon: Mail, color: "#06b6d4", title: "Verified Contact Data", desc: "Email, LinkedIn, phone — all verified before delivery. Zero bounced emails, zero wasted outreach." },
+                  { icon: Activity, color: "#8b5cf6", title: "Behavioral Signal Detected", desc: "Leads show real buying intent: visited pricing page, downloaded content, searched for your solution, or engaged with competitors." },
+                  { icon: MessageSquare, color: "#f59e0b", title: "Personalized AI Icebreaker", desc: "Each lead comes with a custom opening message written by AI — referencing their company, role, and recent activity. Ready to send in one click." },
+                  { icon: Target, color: "#ec4899", title: "ICP Match Confirmed", desc: "Filtered against your Ideal Customer Profile: industry, company size, geography, tech stack, and seniority level." },
+                ].map(({ icon: Icon, color, title, desc }, i) => (
+                  <Reveal key={title} delay={i * 0.08}>
+                    <div className="flex gap-4 p-4 rounded-2xl" style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
+                        <Icon className="w-5 h-5" style={{ color }} />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-sm mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{title}</div>
+                        <div className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.45)" }}>{desc}</div>
+                      </div>
+                    </div>
+                  </Reveal>
+                ))}
+              </div>
+            </Reveal>
+
+            {/* Right: live lead card example */}
+            <Reveal delay={0.2}>
+              <div className="relative">
+                {/* Glow */}
+                <div className="absolute inset-0 rounded-3xl" style={{ background: "radial-gradient(ellipse at center, rgba(139,92,246,0.15) 0%, transparent 70%)", filter: "blur(30px)" }} />
+                <div className="relative rounded-3xl p-6" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(139,92,246,0.2)" }}>
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ background: "#10b981" }} />
+                      <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.6)" }}>LeadOS Quality Report</span>
+                    </div>
+                    <div className="text-xs px-2.5 py-1 rounded-full font-bold" style={{ background: "rgba(16,185,129,0.15)", color: "#10b981", border: "1px solid rgba(16,185,129,0.3)" }}>
+                      ✓ Qualified
+                    </div>
+                  </div>
+
+                  {/* Lead profile */}
+                  <div className="flex items-center gap-4 mb-5 pb-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center font-bold text-lg" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", fontFamily: "'Space Grotesk', sans-serif" }}>JN</div>
+                    <div className="flex-1">
+                      <div className="font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Jan Novák</div>
+                      <div className="text-sm" style={{ color: "rgba(255,255,255,0.5)" }}>CEO @ TechCorp s.r.o.</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(139,92,246,0.15)", color: "#a78bfa" }}>SaaS</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(6,182,212,0.12)", color: "#06b6d4" }}>Prague</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(16,185,129,0.12)", color: "#10b981" }}>50-200 emp.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI Score gauge */}
+                  <div className="mb-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-semibold" style={{ color: "rgba(255,255,255,0.6)" }}>AI Lead Score</span>
+                      <span className="text-2xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", background: "linear-gradient(135deg, #10b981, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>94 / 100</span>
+                    </div>
+                    <div className="h-3 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ background: "linear-gradient(90deg, #8b5cf6, #06b6d4, #10b981)" }}
+                        initial={{ width: 0 }}
+                        whileInView={{ width: "94%" }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs mt-1" style={{ color: "rgba(255,255,255,0.25)" }}>
+                      <span>0</span><span>50</span><span>100</span>
+                    </div>
+                  </div>
+
+                  {/* Quality checks */}
+                  <div className="space-y-2 mb-5">
+                    {[
+                      { label: "Email verified", ok: true },
+                      { label: "ICP match: SaaS CEO, 50-200 emp.", ok: true },
+                      { label: "Signal: Visited pricing page 3×", ok: true },
+                      { label: "LinkedIn profile active", ok: true },
+                      { label: "Decision-maker authority", ok: true },
+                    ].map(({ label, ok }) => (
+                      <div key={label} className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: ok ? "#10b981" : "#ef4444" }} />
+                        <span className="text-xs" style={{ color: "rgba(255,255,255,0.55)" }}>{label}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Icebreaker */}
+                  <div className="p-4 rounded-xl" style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)" }}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-3.5 h-3.5" style={{ color: "#a78bfa" }} />
+                      <span className="text-xs font-semibold" style={{ color: "#a78bfa" }}>AI-Generated Icebreaker</span>
+                    </div>
+                    <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.6)" }}>
+                      "Hi Jan, I noticed TechCorp has been growing rapidly in the Czech SaaS market. We've helped 3 similar companies in Prague reduce their lead acquisition cost by 60% using AI outreach. Worth a 15-min call this week?"
+                    </p>
+                    <div className="flex items-center gap-2 mt-3">
+                      <Button size="sm" className="h-7 text-xs px-3" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", border: "none" }}>
+                        Copy & Send <ArrowRight className="w-3 h-3 ml-1" />
+                      </Button>
+                      <span className="text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>or edit in 1 click</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -629,19 +1019,28 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Footer ───────────────────────────────────────────────────────────── */}
-      <footer className="py-12 px-4 sm:px-6" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+       {/* ── Footer ────────────────────────────────────────────────────── */}
+      <footer className="pt-16 pb-10 px-4 sm:px-6" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(5,5,16,0.95)" }}>
+        {/* Footer tagline */}
+        <div className="max-w-6xl mx-auto text-center mb-12">
+          <h3 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+            Build trust.{" "}
+            <span style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Close deals.</span>
+          </h3>
+          <p className="text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>The AI-powered platform that turns cold prospects into warm conversations.</p>
+        </div>
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: "2rem" }}>
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg, #8b5cf6, #06b6d4)" }}>
               <Zap className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>LeadGen CRM Automation</span>
+            <span className="font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>LeadOS</span>
           </div>
           <div className="flex items-center gap-6 text-sm" style={{ color: "rgba(255,255,255,0.35)" }}>
             <a href="#features" className="hover:text-white transition-colors">{t("nav.features")}</a>
+            <a href="#case-studies" className="hover:text-white transition-colors">Results</a>
             <a href="#pricing" className="hover:text-white transition-colors">{t("nav.pricing")}</a>
-            <span>© 2025 LeadGen CRM Automation</span>
+            <span>© 2026 LeadOS — crmleadsystem.com</span>
           </div>
           <div className="flex items-center gap-3 text-xs" style={{ color: "rgba(255,255,255,0.25)" }}>
             <Shield className="w-3.5 h-3.5" style={{ color: "#10b981" }} />
