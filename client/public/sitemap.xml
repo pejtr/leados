@@ -4,17 +4,18 @@
 
   <!-- Homepage -->
   <url>
-    <loc>https://www.crmleadsystem.com/</loc>
-    <lastmod>2026-03-14</lastmod>
+    <loc>https://crmleadsystem.com/</loc>
+    <lastmod>2026-03-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="cs" href="https://www.crmleadsystem.cz/"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://www.crmleadsystem.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://crmleadsystem.com/"/>
+    <xhtml:link rel="alternate" hreflang="cs" href="https://crmleadsystem.cz/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://crmleadsystem.com/"/>
   </url>
 
   <!-- Login / Auth -->
   <url>
-    <loc>https://www.crmleadsystem.com/login</loc>
+    <loc>https://crmleadsystem.com/login</loc>
     <lastmod>2026-03-14</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>

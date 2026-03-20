@@ -14,4 +14,4 @@ Disallow: /settings
 Disallow: /api/
 
 # Sitemap
-Sitemap: https://www.crmleadsystem.com/sitemap.xml
+Sitemap: https://crmleadsystem.com/sitemap.xml
