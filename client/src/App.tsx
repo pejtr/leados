@@ -44,6 +44,7 @@ import DealPipeline from "./pages/DealPipeline";
 import SalesDashboard from "./pages/SalesDashboard";
 import ProjectsHub from "./pages/ProjectsHub";
 import AdCampaigns from "./pages/AdCampaigns";
+import PortfolioROAS from "./pages/PortfolioROAS";
 
 function Router() {
   return (
@@ -88,6 +89,7 @@ function Router() {
       <Route path="/sales-dashboard" component={SalesDashboard} />
       <Route path="/projects" component={ProjectsHub} />
       <Route path="/ad-campaigns" component={AdCampaigns} />
+      <Route path="/portfolio-roas" component={PortfolioROAS} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -72,6 +72,7 @@ const menuItemDefs = [
   { icon: BarChart3, labelKey: "sidebar.statistics", path: "/stats", group: "insights" },
   { icon: DollarSign, labelKey: "sidebar.roiTracker", path: "/roi", group: "insights" },
   { icon: Megaphone, labelKey: "sidebar.adCampaigns", path: "/ad-campaigns", group: "insights" },
+  { icon: Trophy, labelKey: "sidebar.portfolioROAS", path: "/portfolio-roas", group: "insights" },
   { icon: Mail, labelKey: "sidebar.emailTemplates", path: "/templates", group: "settings" },
   { icon: Users, labelKey: "sidebar.team", path: "/team", group: "settings" },
   { icon: Building, labelKey: "sidebar.agencyPanel", path: "/agency", group: "settings" },
