@@ -1,0 +1,1 @@
+ALTER TABLE `ad_campaigns` ADD `projectId` int;

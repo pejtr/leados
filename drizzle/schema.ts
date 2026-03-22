@@ -1022,6 +1022,7 @@ export type InsertProjectEvent = typeof projectEvents.$inferInsert;
 export const adCampaigns = mysqlTable("ad_campaigns", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull(),
+  projectId: int("projectId"),  // FK to connectedProjects.id (nullable)
   name: varchar("name", { length: 255 }).notNull(),
   platform: varchar("platform", { length: 50 }).notNull().default("meta"), // meta | google | linkedin | other
   externalCampaignId: varchar("externalCampaignId", { length: 255 }),

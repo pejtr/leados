@@ -92,6 +92,13 @@
       "when": 1774213621200,
       "tag": "0012_premium_shaman",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "5",
+      "when": 1774217025905,
+      "tag": "0013_slim_jackal",
+      "breakpoints": true
     }
   ]
 }

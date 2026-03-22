@@ -6,6 +6,7 @@ import {
   Plus, Link2, Trash2, RefreshCw, Copy, CheckCircle2, Globe,
   TrendingUp, TrendingDown, DollarSign, ShoppingCart, Eye, Users,
   ChevronDown, ChevronUp, Code2, ExternalLink, Zap, BarChart3,
+  Megaphone, Target, ArrowRight, Unlink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Link } from "wouter";
 
 // ─── Types ────────────────────────────────────────────────────────
 type Project = {
@@ -94,6 +96,164 @@ function StatCard({ label, value, sub, color = "text-foreground", icon: Icon }: 
       </div>
       <div className={`text-2xl font-black ${color}`}>{value}</div>
       {sub && <div className="text-xs text-muted-foreground mt-1">{sub}</div>}
+    </div>
+  );
+}
+
+// ─── Ad ROAS Widget ───────────────────────────────────────────────
+function AdRoasWidget({ projectId, currency }: { projectId: number; currency: string }) {
+  const { data: adSummary } = trpc.projects.getAdSummary.useQuery({ id: projectId });
+  const { data: allCampaigns = [] } = trpc.adCampaigns.list.useQuery();
+  const linkMutation = trpc.projects.linkCampaign.useMutation({
+    onSuccess: () => {
+      utils.projects.getAdSummary.invalidate({ id: projectId });
+      utils.adCampaigns.list.invalidate();
+      toast.success("Kampaň propojena s projektem");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const utils = trpc.useUtils();
+
+  const unlinkedCampaigns = allCampaigns.filter((c) => !c.projectId || c.projectId === projectId);
+  const linkedCampaigns = allCampaigns.filter((c) => c.projectId === projectId);
+
+  const [showLinkMenu, setShowLinkMenu] = useState(false);
+
+  if (!adSummary && linkedCampaigns.length === 0) {
+    return (
+      <div className="border-t border-border px-5 py-4">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+            <Megaphone className="w-3.5 h-3.5" /> Ad Campaigns — ROAS
+          </span>
+          <Button size="sm" variant="outline" className="h-6 text-xs gap-1 px-2" onClick={() => setShowLinkMenu(!showLinkMenu)}>
+            <Link2 className="w-3 h-3" /> Propojit
+          </Button>
+        </div>
+        {showLinkMenu && unlinkedCampaigns.length > 0 ? (
+          <div className="space-y-1 mt-2">
+            {unlinkedCampaigns.map((c) => (
+              <button key={c.id}
+                className="w-full text-left text-xs px-3 py-2 rounded-lg bg-muted/40 hover:bg-muted/70 flex items-center justify-between gap-2"
+                onClick={() => { linkMutation.mutate({ campaignId: c.id, projectId }); setShowLinkMenu(false); }}>
+                <span className="truncate font-medium">{c.name}</span>
+                <span className="text-muted-foreground flex-shrink-0">{c.platform}</span>
+              </button>
+            ))}
+          </div>
+        ) : showLinkMenu ? (
+          <p className="text-xs text-muted-foreground mt-2">
+            Nejdřív přidejte kampaně v <Link href="/ad-campaigns" className="text-primary underline">Ad Campaigns</Link>.
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            Žádné propojené kampaně.{" "}
+            <Link href="/ad-campaigns" className="text-primary underline">Přidat kampaň →</Link>
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  const roas = adSummary?.roas;
+  const pno = adSummary?.pno;
+
+  return (
+    <div className="border-t border-border px-5 py-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <Megaphone className="w-3.5 h-3.5" /> Ad Campaigns — ROAS
+        </span>
+        <div className="flex items-center gap-1">
+          <Button size="sm" variant="ghost" className="h-6 text-xs gap-1 px-2" onClick={() => setShowLinkMenu(!showLinkMenu)}>
+            <Link2 className="w-3 h-3" /> Přidat
+          </Button>
+          <Link href="/ad-campaigns">
+            <Button size="sm" variant="ghost" className="h-6 text-xs gap-1 px-2">
+              <ArrowRight className="w-3 h-3" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* ROAS / PNO summary */}
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        <div className="bg-muted/30 rounded-lg p-2.5 text-center">
+          <div className={`text-lg font-black ${roas !== null && roas !== undefined ? (roas >= 2 ? "text-green-500" : roas >= 1 ? "text-yellow-500" : "text-red-500") : "text-muted-foreground"}`}>
+            {roas !== null && roas !== undefined ? `${roas.toFixed(2)}×` : "—"}
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wide">ROAS</div>
+        </div>
+        <div className="bg-muted/30 rounded-lg p-2.5 text-center">
+          <div className={`text-lg font-black ${pno !== null && pno !== undefined ? (pno <= 30 ? "text-green-500" : pno <= 60 ? "text-yellow-500" : "text-red-500") : "text-muted-foreground"}`}>
+            {pno !== null && pno !== undefined ? `${pno.toFixed(1)}%` : "—"}
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wide">PNO</div>
+        </div>
+        <div className="bg-muted/30 rounded-lg p-2.5 text-center">
+          <div className="text-lg font-black text-foreground">
+            {adSummary ? adSummary.campaignCount : linkedCampaigns.length}
+          </div>
+          <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Kampaně</div>
+        </div>
+      </div>
+
+      {/* Ad spend vs revenue row */}
+      {adSummary && (
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>Ad Spend: <strong className="text-foreground">{adSummary.totalSpend.toLocaleString("cs-CZ", { maximumFractionDigits: 0 })} {currency}</strong></span>
+          <span>Revenue: <strong className="text-green-500">{adSummary.totalRevenue.toLocaleString("cs-CZ", { maximumFractionDigits: 0 })} {currency}</strong></span>
+        </div>
+      )}
+
+      {/* Campaign list */}
+      {linkedCampaigns.length > 0 && (
+        <div className="mt-3 space-y-1">
+          {linkedCampaigns.map((c) => {
+            const cSpend = parseFloat(c.adSpend as string) || 0;
+            const cRev = parseFloat(c.revenue as string) || 0;
+            const cRoas = cSpend > 0 ? cRev / cSpend : null;
+            return (
+              <div key={c.id} className="flex items-center justify-between text-xs px-2 py-1.5 rounded-lg bg-muted/20 hover:bg-muted/40">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${c.platform === "meta" ? "bg-blue-500" : c.platform === "google" ? "bg-yellow-500" : "bg-purple-500"}`} />
+                  <span className="truncate font-medium">{c.name}</span>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                  <span className={`font-bold ${cRoas !== null ? (cRoas >= 2 ? "text-green-500" : cRoas >= 1 ? "text-yellow-500" : "text-red-500") : "text-muted-foreground"}`}>
+                    {cRoas !== null ? `${cRoas.toFixed(1)}×` : "—"}
+                  </span>
+                  <button
+                    className="text-muted-foreground hover:text-destructive"
+                    title="Odpojit kampaň"
+                    onClick={() => linkMutation.mutate({ campaignId: c.id, projectId: null })}>
+                    <Unlink className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Link menu */}
+      {showLinkMenu && (
+        <div className="mt-2 space-y-1">
+          {unlinkedCampaigns.filter((c) => !c.projectId).map((c) => (
+            <button key={c.id}
+              className="w-full text-left text-xs px-3 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 flex items-center justify-between gap-2 border border-primary/20"
+              onClick={() => { linkMutation.mutate({ campaignId: c.id, projectId }); setShowLinkMenu(false); }}>
+              <span className="truncate font-medium">{c.name}</span>
+              <span className="text-muted-foreground flex-shrink-0">{c.platform}</span>
+            </button>
+          ))}
+          {unlinkedCampaigns.filter((c) => !c.projectId).length === 0 && (
+            <p className="text-xs text-muted-foreground px-1">
+              Všechny kampaně jsou propojeny. <Link href="/ad-campaigns" className="text-primary underline">Přidat novou →</Link>
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -193,7 +353,7 @@ function ProjectCard({ project, onDelete, onRegenKey }: {
             value={`${profit !== null ? (profit >= 0 ? "+" : "") + profit.toLocaleString("cs-CZ", { maximumFractionDigits: 0 }) : "—"} ${project.currency}`}
             color={profit !== null ? (profit >= 0 ? "text-green-500" : "text-red-500") : "text-muted-foreground"}
             icon={profit !== null && profit >= 0 ? TrendingUp : TrendingDown} />
-          <StatCard label="ROAS" value={roas !== null && roas !== undefined ? `${roas.toFixed(2)}×` : "—"}
+          <StatCard label="ROAS (events)" value={roas !== null && roas !== undefined ? `${roas.toFixed(2)}×` : "—"}
             color={roas !== null && roas !== undefined ? (roas >= 1 ? "text-green-500" : "text-red-500") : "text-muted-foreground"}
             icon={BarChart3} />
           <StatCard label="Pageviews" value={stats.pageviewCount.toLocaleString("cs-CZ")}
@@ -207,6 +367,9 @@ function ProjectCard({ project, onDelete, onRegenKey }: {
           <p>Žádná data ještě. Přidejte SDK snippet do vašeho projektu.</p>
         </div>
       )}
+
+      {/* Ad Campaigns ROAS Widget */}
+      <AdRoasWidget projectId={project.id} currency={project.currency} />
 
       {/* SDK Snippet */}
       {showSdk && (
@@ -290,12 +453,19 @@ export default function ProjectsHub() {
         <div>
           <h1 className="text-2xl font-black">Projekty — Command Center</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Napojte libovolný projekt přes API klíč a sledujte vše na jednom místě.
+            Napojte libovolný projekt přes API klíč a sledujte vše na jednom místě. Propojte Ad Campaigns pro ROAS/PNO přímo na kartě projektu.
           </p>
         </div>
-        <Button onClick={() => setShowCreate(true)} className="gap-2">
-          <Plus className="w-4 h-4" /> Přidat projekt
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/ad-campaigns">
+            <Button variant="outline" className="gap-2">
+              <Megaphone className="w-4 h-4" /> Ad Campaigns
+            </Button>
+          </Link>
+          <Button onClick={() => setShowCreate(true)} className="gap-2">
+            <Plus className="w-4 h-4" /> Přidat projekt
+          </Button>
+        </div>
       </div>
 
       {/* Aggregate KPIs */}
@@ -349,11 +519,12 @@ export default function ProjectsHub() {
         <h2 className="font-bold text-base mb-4 flex items-center gap-2">
           <Zap className="w-5 h-5 text-yellow-500" /> Jak to funguje
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
           {[
             { step: "1", title: "Přidejte projekt", desc: "Klikněte na 'Přidat projekt', zadejte název a URL vašeho webu. Dostanete unikátní API klíč." },
             { step: "2", title: "Vložte snippet", desc: "Zkopírujte JS snippet a vložte ho do vašeho webu. Volejte track() při každém prodeji, pageview nebo ad spend." },
-            { step: "3", title: "Sledujte výtěžnost", desc: "Tržby, zisk, ROAS a konverzní poměr všech projektů na jednom místě. Analyticky zvyšujte ziskovost." },
+            { step: "3", title: "Propojte kampaně", desc: "V Ad Campaigns přidejte Meta/Google kampaně s ad spend a revenue. Propojte je s projektem jedním klikem." },
+            { step: "4", title: "Sledujte ROAS", desc: "ROAS, PNO a zisk všech projektů na jednom místě. Analyticky zvyšujte ziskovost každé kampaně." },
           ].map((item) => (
             <div key={item.step} className="flex gap-3">
               <div className="w-7 h-7 rounded-full bg-primary/10 text-primary font-black text-sm flex items-center justify-center flex-shrink-0">

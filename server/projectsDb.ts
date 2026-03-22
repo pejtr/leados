@@ -1,6 +1,6 @@
 import { eq, and, desc, gte } from "drizzle-orm";
 import { getDb } from "./db";
-import { connectedProjects, projectEvents } from "../drizzle/schema";
+import { connectedProjects, projectEvents, adCampaigns } from "../drizzle/schema";
 import crypto from "crypto";
 
 // ─── API Key generation ───────────────────────────────────────────
@@ -189,4 +189,38 @@ export async function getAllProjectsStats(userId: number, days = 30) {
     }))
   );
   return stats;
+}
+
+// ─── Ad Campaigns linked to a project ────────────────────────────
+export async function getAdCampaignsByProject(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const campaigns = await db
+    .select()
+    .from(adCampaigns)
+    .where(eq(adCampaigns.projectId, projectId))
+    .orderBy(desc(adCampaigns.createdAt));
+
+  return campaigns.map((c) => {
+    const spend = parseFloat(c.adSpend as string) || 0;
+    const rev = parseFloat(c.revenue as string) || 0;
+    const roas = spend > 0 ? rev / spend : null;
+    const pno = rev > 0 ? (spend / rev) * 100 : null;
+    const cpa = c.conversions > 0 ? spend / c.conversions : null;
+    return { ...c, roas, pno, cpa };
+  });
+}
+
+export async function getProjectAdSummary(projectId: number) {
+  const campaigns = await getAdCampaignsByProject(projectId);
+  let totalSpend = 0, totalRevenue = 0, totalConversions = 0;
+  for (const c of campaigns) {
+    totalSpend += parseFloat(c.adSpend as string) || 0;
+    totalRevenue += parseFloat(c.revenue as string) || 0;
+    totalConversions += c.conversions;
+  }
+  const roas = totalSpend > 0 ? totalRevenue / totalSpend : null;
+  const pno = totalRevenue > 0 ? (totalSpend / totalRevenue) * 100 : null;
+  const cpa = totalConversions > 0 ? totalSpend / totalConversions : null;
+  return { totalSpend, totalRevenue, totalConversions, roas, pno, cpa, campaignCount: campaigns.length, campaigns };
 }

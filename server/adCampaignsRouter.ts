@@ -8,6 +8,7 @@ import { TRPCError } from "@trpc/server";
 const campaignInput = z.object({
   name: z.string().min(1).max(255),
   platform: z.enum(["meta", "google", "linkedin", "other"]).default("meta"),
+  projectId: z.number().int().nullable().optional(),
   externalCampaignId: z.string().optional(),
   adSpend: z.number().min(0).default(0),
   revenue: z.number().min(0).default(0),
@@ -50,6 +51,7 @@ export const adCampaignsRouter = router({
       userId: ctx.user.id,
       name: input.name,
       platform: input.platform,
+      projectId: input.projectId ?? null,
       externalCampaignId: input.externalCampaignId ?? null,
       adSpend: input.adSpend.toString(),
       revenue: input.revenue.toString(),
@@ -79,6 +81,7 @@ export const adCampaignsRouter = router({
       const updateData: Record<string, unknown> = {};
       if (input.data.name !== undefined) updateData.name = input.data.name;
       if (input.data.platform !== undefined) updateData.platform = input.data.platform;
+      if (input.data.projectId !== undefined) updateData.projectId = input.data.projectId;
       if (input.data.externalCampaignId !== undefined) updateData.externalCampaignId = input.data.externalCampaignId;
       if (input.data.adSpend !== undefined) updateData.adSpend = input.data.adSpend.toString();
       if (input.data.revenue !== undefined) updateData.revenue = input.data.revenue.toString();

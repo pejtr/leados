@@ -2763,6 +2763,27 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
         const { getAllProjectsStats } = await import("./projectsDb");
         return getAllProjectsStats(ctx.user.id, input.days);
       }),
+    getAdSummary: protectedProcedure
+      .input(z.object({ id: z.number().int() }))
+      .query(async ({ ctx, input }) => {
+        const { getProjectById, getProjectAdSummary } = await import("./projectsDb");
+        const project = await getProjectById(input.id, ctx.user.id);
+        if (!project) throw new TRPCError({ code: "NOT_FOUND" });
+        return getProjectAdSummary(input.id);
+      }),
+    linkCampaign: protectedProcedure
+      .input(z.object({ campaignId: z.number().int(), projectId: z.number().int().nullable() }))
+      .mutation(async ({ ctx, input }) => {
+        const db = await (await import("./db")).getDb();
+        if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+        const { adCampaigns } = await import("../drizzle/schema");
+        const { eq, and } = await import("drizzle-orm");
+        const [campaign] = await db.select().from(adCampaigns)
+          .where(and(eq(adCampaigns.id, input.campaignId), eq(adCampaigns.userId, ctx.user.id)));
+        if (!campaign) throw new TRPCError({ code: "NOT_FOUND" });
+        await db.update(adCampaigns).set({ projectId: input.projectId }).where(eq(adCampaigns.id, input.campaignId));
+        return { success: true };
+      }),
   }),
   adCampaigns: adCampaignsRouter,
 });
