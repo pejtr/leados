@@ -27,7 +27,7 @@ import {
   Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code,
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
-  TrendingUp, Trophy, Link2,
+  TrendingUp, Trophy, Link2, Megaphone,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -71,6 +71,7 @@ const menuItemDefs = [
   { icon: Target, labelKey: "sidebar.b2bMatching", path: "/matching", group: "insights" },
   { icon: BarChart3, labelKey: "sidebar.statistics", path: "/stats", group: "insights" },
   { icon: DollarSign, labelKey: "sidebar.roiTracker", path: "/roi", group: "insights" },
+  { icon: Megaphone, labelKey: "sidebar.adCampaigns", path: "/ad-campaigns", group: "insights" },
   { icon: Mail, labelKey: "sidebar.emailTemplates", path: "/templates", group: "settings" },
   { icon: Users, labelKey: "sidebar.team", path: "/team", group: "settings" },
   { icon: Building, labelKey: "sidebar.agencyPanel", path: "/agency", group: "settings" },

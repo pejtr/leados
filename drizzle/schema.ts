@@ -1,5 +1,6 @@
 import {
   int,
+  bigint,
   mysqlEnum,
   mysqlTable,
   text,
@@ -1016,3 +1017,26 @@ export const projectEvents = mysqlTable("project_events", {
 });
 export type ProjectEvent = typeof projectEvents.$inferSelect;
 export type InsertProjectEvent = typeof projectEvents.$inferInsert;
+
+// ─── Ad Campaigns (Meta Ads / Google Ads ROAS/PNO tracking) ──────────────────
+export const adCampaigns = mysqlTable("ad_campaigns", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  platform: varchar("platform", { length: 50 }).notNull().default("meta"), // meta | google | linkedin | other
+  externalCampaignId: varchar("externalCampaignId", { length: 255 }),
+  adSpend: decimal("adSpend", { precision: 12, scale: 2 }).notNull().default("0"),
+  revenue: decimal("revenue", { precision: 12, scale: 2 }).notNull().default("0"),
+  conversions: int("conversions").notNull().default(0),
+  clicks: int("clicks").notNull().default(0),
+  impressions: int("impressions").notNull().default(0),
+  currency: varchar("currency", { length: 10 }).notNull().default("EUR"),
+  periodStart: bigint("periodStart", { mode: "number" }),
+  periodEnd: bigint("periodEnd", { mode: "number" }),
+  notes: text("notes"),
+  isActive: boolean("isActive").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type AdCampaign = typeof adCampaigns.$inferSelect;
+export type InsertAdCampaign = typeof adCampaigns.$inferInsert;

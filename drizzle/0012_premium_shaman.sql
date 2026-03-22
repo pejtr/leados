@@ -1,0 +1,20 @@
+CREATE TABLE `ad_campaigns` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`userId` int NOT NULL,
+	`name` varchar(255) NOT NULL,
+	`platform` varchar(50) NOT NULL DEFAULT 'meta',
+	`externalCampaignId` varchar(255),
+	`adSpend` decimal(12,2) NOT NULL DEFAULT '0',
+	`revenue` decimal(12,2) NOT NULL DEFAULT '0',
+	`conversions` int NOT NULL DEFAULT 0,
+	`clicks` int NOT NULL DEFAULT 0,
+	`impressions` int NOT NULL DEFAULT 0,
+	`currency` varchar(10) NOT NULL DEFAULT 'EUR',
+	`periodStart` bigint,
+	`periodEnd` bigint,
+	`notes` text,
+	`isActive` boolean NOT NULL DEFAULT true,
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `ad_campaigns_id` PRIMARY KEY(`id`)
+);

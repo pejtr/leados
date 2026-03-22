@@ -106,6 +106,7 @@ import { invokeLLM } from "./_core/llm";
 import { getDb, getAiMemory, upsertAiMemory, logAiPerformance, getAiPerformanceLogs, saveChatMessage, getChatHistory, clearChatHistory } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { adCampaignsRouter } from "./adCampaignsRouter";
 import {
   createTrackingPixel, getTrackingPixelsByUser, deleteTrackingPixel, updateTrackingPixel,
   getVisitorSessionsByPixel, getVisitorSessionsByUser, createVisitorSession,
@@ -2763,5 +2764,6 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
         return getAllProjectsStats(ctx.user.id, input.days);
       }),
   }),
+  adCampaigns: adCampaignsRouter,
 });
 export type AppRouter = typeof appRouter;

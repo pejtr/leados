@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `ad_campaigns` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`name` varchar(255) NOT NULL,\n\t`platform` varchar(50) NOT NULL DEFAULT 'meta',\n\t`externalCampaignId` varchar(255),\n\t`adSpend` decimal(12,2) NOT NULL DEFAULT '0',\n\t`revenue` decimal(12,2) NOT NULL DEFAULT '0',\n\t`conversions` int NOT NULL DEFAULT 0,\n\t`clicks` int NOT NULL DEFAULT 0,\n\t`impressions` int NOT NULL DEFAULT 0,\n\t`currency` varchar(10) NOT NULL DEFAULT 'EUR',\n\t`periodStart` bigint,\n\t`periodEnd` bigint,\n\t`notes` text,\n\t`isActive` boolean NOT NULL DEFAULT true,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `ad_campaigns_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute CREATE TABLE `ad_campaigns` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`name` varchar(255) NOT NULL,\n\t`platform` varchar(50) NOT NULL DEFAULT 'meta',\n\t`externalCampaignId` varchar(255),\n\t`adSpend` decimal(12,2) NOT NULL DEFAULT '0',\n\t`revenue` decimal(12,2) NOT NULL DEFAULT '0',\n\t`conversions` int NOT NULL DEFAULT 0,\n\t`clicks` int NOT NULL DEFAULT 0,\n\t`impressions` int NOT NULL DEFAULT 0,\n\t`currency` varchar(10) NOT NULL DEFAULT 'EUR',\n\t`periodStart` bigint,\n\t`periodEnd` bigint,\n\t`notes` text,\n\t`isActive` boolean NOT NULL DEFAULT true,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,\n\tCONSTRAINT `ad_campaigns_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 208
+}
