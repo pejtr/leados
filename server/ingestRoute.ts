@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { getProjectByApiKey, ingestEvent } from "./projectsDb";
 import { getDb } from "./db";
-import { adCampaigns } from "../drizzle/schema";
+import { adCampaigns, adCampaignSnapshots } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 /**
@@ -12,11 +12,53 @@ async function autoUpdateCampaignRevenue(projectId: number, saleValue: number) {
   try {
     const db = await getDb();
     if (!db || saleValue <= 0) return;
-    // Update revenue on all campaigns linked to this project
+
+    // 1. Update revenue + conversions on all campaigns linked to this project
     await db
       .update(adCampaigns)
-      .set({ revenue: sql`${adCampaigns.revenue} + ${saleValue}`, conversions: sql`${adCampaigns.conversions} + 1` })
+      .set({
+        revenue: sql`${adCampaigns.revenue} + ${saleValue}`,
+        conversions: sql`${adCampaigns.conversions} + 1`,
+      })
       .where(eq(adCampaigns.projectId, projectId));
+
+    // 2. Auto-snapshot: record today's state for each linked campaign
+    const today = new Date().toISOString().slice(0, 10);
+    const linkedCampaigns = await db
+      .select()
+      .from(adCampaigns)
+      .where(eq(adCampaigns.projectId, projectId));
+
+    for (const campaign of linkedCampaigns) {
+      const spend = parseFloat(campaign.adSpend as string) || 0;
+      // Revenue already incremented above — re-read the updated value
+      const rev = (parseFloat(campaign.revenue as string) || 0) + saleValue;
+      const roas = spend > 0 ? rev / spend : 0;
+      const pno = rev > 0 ? (spend / rev) * 100 : 0;
+
+      // Upsert snapshot for today
+      await db
+        .delete(adCampaignSnapshots)
+        .where(
+          and(
+            eq(adCampaignSnapshots.campaignId, campaign.id),
+            eq(adCampaignSnapshots.snapshotDate, today)
+          )
+        );
+      await db.insert(adCampaignSnapshots).values({
+        campaignId: campaign.id,
+        userId: campaign.userId,
+        snapshotDate: today,
+        adSpend: spend.toString(),
+        revenue: rev.toString(),
+        conversions: (campaign.conversions || 0) + 1,
+        clicks: campaign.clicks || 0,
+        roas: roas.toFixed(4),
+        pno: pno.toFixed(4),
+      });
+    }
+
+    console.log(`[Ingest] Auto-snapshot created for ${linkedCampaigns.length} campaign(s) on project ${projectId}`);
   } catch (err: any) {
     console.error("[Ingest] autoUpdateCampaignRevenue error:", err?.message);
   }

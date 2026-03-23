@@ -111,6 +111,7 @@ export default function PortfolioROAS() {
   const [days, setDays] = useState(30);
   const [historyDays, setHistoryDays] = useState(30);
   const [selectedCampaignIds, setSelectedCampaignIds] = useState<number[]>([]);
+  const [selectedMetric, setSelectedMetric] = useState<"roas" | "adSpend" | "revenue" | "conversions">("roas");
   const printRef = useRef<HTMLDivElement>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareLabel, setShareLabel] = useState("Portfolio ROAS Report");
@@ -151,7 +152,7 @@ export default function PortfolioROAS() {
     toast.success("Data obnovena — Portfolio ROAS aktualizováno.");
   }, [refetchStats, refetchCampaigns]);
 
-  // ── History chart data: pivot snapshots to { date, [campaignName]: roas } ──
+  // ── History chart data: pivot snapshots by selected metric ──
   const historyChartData = useMemo(() => {
     if (!rawHistory.length) return [];
     const campaignMap = new Map(allCampaigns.map((c) => [c.id, c.name]));
@@ -160,12 +161,17 @@ export default function PortfolioROAS() {
       const name = campaignMap.get(snap.campaignId) ?? `Campaign ${snap.campaignId}`;
       const short = name.length > 18 ? name.slice(0, 18) + "…" : name;
       if (!byDate.has(snap.snapshotDate)) byDate.set(snap.snapshotDate, { date: snap.snapshotDate as unknown as number });
-      byDate.get(snap.snapshotDate)![short] = parseFloat(snap.roas as unknown as string) || 0;
+      const metricValue =
+        selectedMetric === "roas" ? (parseFloat(snap.roas as unknown as string) || 0) :
+        selectedMetric === "adSpend" ? (parseFloat(snap.adSpend as unknown as string) || 0) :
+        selectedMetric === "revenue" ? (parseFloat(snap.revenue as unknown as string) || 0) :
+        (snap.conversions || 0);
+      byDate.get(snap.snapshotDate)![short] = metricValue;
     }
     return Array.from(byDate.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([, v]) => v);
-  }, [rawHistory, allCampaigns]);
+  }, [rawHistory, allCampaigns, selectedMetric]);
 
   const historyCampaignNames = useMemo(() => {
     const names = new Set<string>();
@@ -597,11 +603,11 @@ export default function PortfolioROAS() {
               </div>
             )}
 
-            {/* ── ROAS History Line Chart ──────────────────────────── */}
+            {/* ── Multi-Metric History Line Chart ────────────────────── */}
             <div className="bg-card border border-border rounded-2xl p-5">
               <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                 <h2 className="font-bold text-sm flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-400" /> Historický vývoj ROAS kampaní
+                  <TrendingUp className="w-4 h-4 text-emerald-400" /> Historický vývoj kampaní
                 </h2>
                 <div className="flex items-center gap-2 flex-wrap">
                   {/* Campaign filter pills */}
@@ -637,6 +643,27 @@ export default function PortfolioROAS() {
                       ))}
                     </div>
                   )}
+                  {/* Metric selector */}
+                  <div className="flex items-center gap-1 bg-muted/30 border border-border rounded-xl p-1">
+                    {([
+                      { key: "roas", label: "ROAS" },
+                      { key: "adSpend", label: "Spend" },
+                      { key: "revenue", label: "Revenue" },
+                      { key: "conversions", label: "Konverze" },
+                    ] as const).map(({ key, label }) => (
+                      <button
+                        key={key}
+                        onClick={() => setSelectedMetric(key)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                          selectedMetric === key
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                   {/* Period selector */}
                   <div className="flex items-center gap-1 bg-muted/30 border border-border rounded-xl p-1">
                     {[7, 30, 90, 180].map((d) => (
@@ -683,7 +710,11 @@ export default function PortfolioROAS() {
                         tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                         axisLine={false}
                         tickLine={false}
-                        tickFormatter={(v) => `${v.toFixed(1)}×`}
+                        tickFormatter={(v) =>
+                          selectedMetric === "roas" ? `${v.toFixed(1)}×` :
+                          selectedMetric === "conversions" ? `${v}` :
+                          `€${v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v.toFixed(0)}`
+                        }
                       />
                       <Tooltip
                         content={({ active, payload, label }) => {
@@ -697,15 +728,21 @@ export default function PortfolioROAS() {
                                 <div key={p.name} className="flex items-center gap-2">
                                   <span className="w-2 h-2 rounded-full" style={{ background: p.stroke }} />
                                   <span className="text-muted-foreground truncate max-w-[120px]">{p.name}:</span>
-                                  <span className="font-semibold text-foreground">{typeof p.value === "number" ? `${p.value.toFixed(2)}×` : p.value}</span>
+                                  <span className="font-semibold text-foreground">
+                                    {typeof p.value === "number"
+                                      ? selectedMetric === "roas" ? `${p.value.toFixed(2)}×`
+                                        : selectedMetric === "conversions" ? `${p.value}`
+                                        : `€${p.value.toFixed(2)}`
+                                      : p.value}
+                                  </span>
                                 </div>
                               ))}
                             </div>
                           );
                         }}
                       />
-                      <ReferenceLine y={1} stroke="#eab308" strokeDasharray="4 4" />
-                      <ReferenceLine y={2} stroke="#10b981" strokeDasharray="4 4" />
+                      {selectedMetric === "roas" && <ReferenceLine y={1} stroke="#eab308" strokeDasharray="4 4" />}
+                      {selectedMetric === "roas" && <ReferenceLine y={2} stroke="#10b981" strokeDasharray="4 4" />}
                       <Legend wrapperStyle={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }} />
                       {historyCampaignNames.map((name, i) => (
                         <Line
@@ -721,10 +758,19 @@ export default function PortfolioROAS() {
                       ))}
                     </LineChart>
                   </ResponsiveContainer>
-                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><span className="w-6 border-t-2 border-dashed border-yellow-500 inline-block" /> Break-even (1×)</span>
-                    <span className="flex items-center gap-1"><span className="w-6 border-t-2 border-dashed border-emerald-500 inline-block" /> Target (2×)</span>
-                  </div>
+                  {selectedMetric === "roas" && (
+                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1"><span className="w-6 border-t-2 border-dashed border-yellow-500 inline-block" /> Break-even (1×)</span>
+                      <span className="flex items-center gap-1"><span className="w-6 border-t-2 border-dashed border-emerald-500 inline-block" /> Target (2×)</span>
+                    </div>
+                  )}
+                  {selectedMetric !== "roas" && (
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      {selectedMetric === "adSpend" && "Celkový ad spend na kampaň v daném dni"}
+                      {selectedMetric === "revenue" && "Celkové revenue na kampaň v daném dni"}
+                      {selectedMetric === "conversions" && "Počet konverzí na kampaň v daném dni"}
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -854,3 +900,4 @@ export default function PortfolioROAS() {
     </div>
   );
 }
+// force
