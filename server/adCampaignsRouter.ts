@@ -4,6 +4,32 @@ import { getDb } from "./db";
 import { adCampaigns } from "../drizzle/schema";
 import { protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
+import { execSync } from "child_process";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+
+// ── Meta MCP helper ────────────────────────────────────────────────
+function callMetaMCP(toolName: string, inputJson: object): any {
+  const tmpIn = path.join(os.tmpdir(), `mcp_in_${Date.now()}.json`);
+  fs.writeFileSync(tmpIn, JSON.stringify(inputJson));
+  try {
+    const result = execSync(
+      `manus-mcp-cli tool call ${toolName} --server meta-marketing --input '${JSON.stringify(inputJson).replace(/'/g, "'\\''")}' 2>&1`,
+      { timeout: 30000, encoding: "utf-8" }
+    );
+    // Extract JSON result file path from output
+    const match = result.match(/saved to:\s*(\S+\.json)/);
+    if (match && fs.existsSync(match[1])) {
+      return JSON.parse(fs.readFileSync(match[1], "utf-8"));
+    }
+    return null;
+  } catch (e: any) {
+    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Meta MCP error: ${e.message}` });
+  } finally {
+    if (fs.existsSync(tmpIn)) fs.unlinkSync(tmpIn);
+  }
+}
 
 const campaignInput = z.object({
   name: z.string().min(1).max(255),
@@ -110,6 +136,125 @@ export const adCampaignsRouter = router({
       if (!existing) throw new TRPCError({ code: "NOT_FOUND" });
       await db.delete(adCampaigns).where(eq(adCampaigns.id, input.id));
       return { success: true };
+    }),
+
+  // ── Meta Ads import ─────────────────────────────────────────────
+  getMetaAccounts: protectedProcedure.query(async () => {
+    try {
+      const result = callMetaMCP("meta_marketing_get_ad_accounts", { keywords: [] });
+      if (!result || result.error) {
+        return { accounts: [], error: result?.error || "Meta Ads not connected. Please re-authorize in Settings → Connectors." };
+      }
+      const accounts = (result.data || result.accounts || result || []).filter((a: any) => a.id || a.account_id);
+      return { accounts, error: null };
+    } catch (e: any) {
+      return { accounts: [], error: e.message };
+    }
+  }),
+
+  importFromMeta: protectedProcedure
+    .input(z.object({
+      adAccountId: z.string().min(1),
+      datePreset: z.enum(["last_7d", "last_14d", "last_30d", "last_90d", "last_month", "this_month"]).default("last_30d"),
+      projectId: z.number().int().nullable().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+
+      // 1. Fetch campaigns from Meta
+      let campaignsResult: any;
+      try {
+        campaignsResult = callMetaMCP("meta_marketing_get_campaigns", {
+          ad_account_id: input.adAccountId,
+          limit: 50,
+        });
+      } catch (e: any) {
+        throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: e.message });
+      }
+
+      const metaCampaigns = campaignsResult?.data || campaignsResult?.campaigns || [];
+      if (!Array.isArray(metaCampaigns) || metaCampaigns.length === 0) {
+        return { imported: 0, skipped: 0, message: "No campaigns found in this ad account." };
+      }
+
+      // 2. Fetch insights for each campaign
+      let imported = 0;
+      let skipped = 0;
+
+      for (const campaign of metaCampaigns) {
+        const campaignId = campaign.id;
+        const campaignName = campaign.name || `Campaign ${campaignId}`;
+
+        let spend = 0, revenue = 0, conversions = 0, clicks = 0, impressions = 0;
+
+        try {
+          const insightsResult = callMetaMCP("meta_marketing_get_insights", {
+            object_id: campaignId,
+            object_type: "campaign",
+            level: "campaign",
+            date_preset: input.datePreset,
+            limit: 1,
+          });
+          const insight = (insightsResult?.data || insightsResult?.insights || [])[0];
+          if (insight) {
+            spend = parseFloat(insight.spend || "0") || 0;
+            clicks = parseInt(insight.clicks || "0") || 0;
+            impressions = parseInt(insight.impressions || "0") || 0;
+            // Conversions from actions
+            const actions = insight.actions || [];
+            const purchaseAction = actions.find((a: any) => a.action_type === "purchase" || a.action_type === "offsite_conversion.fb_pixel_purchase");
+            conversions = purchaseAction ? parseInt(purchaseAction.value || "0") : 0;
+            // Revenue from action_values
+            const actionValues = insight.action_values || [];
+            const purchaseValue = actionValues.find((a: any) => a.action_type === "purchase" || a.action_type === "offsite_conversion.fb_pixel_purchase");
+            revenue = purchaseValue ? parseFloat(purchaseValue.value || "0") : 0;
+          }
+        } catch {
+          // insights failed for this campaign, use zeros
+        }
+
+        // Check if already imported (by externalCampaignId)
+        const [existing] = await db
+          .select()
+          .from(adCampaigns)
+          .where(and(
+            eq(adCampaigns.userId, ctx.user.id),
+            eq(adCampaigns.externalCampaignId, campaignId)
+          ));
+
+        if (existing) {
+          // Update existing
+          await db.update(adCampaigns).set({
+            adSpend: spend.toString(),
+            revenue: revenue.toString(),
+            conversions,
+            clicks,
+            impressions,
+            isActive: campaign.effective_status !== "DELETED",
+          }).where(eq(adCampaigns.id, existing.id));
+          skipped++;
+        } else {
+          // Insert new
+          await db.insert(adCampaigns).values({
+            userId: ctx.user.id,
+            name: campaignName,
+            platform: "meta",
+            projectId: input.projectId ?? null,
+            externalCampaignId: campaignId,
+            adSpend: spend.toString(),
+            revenue: revenue.toString(),
+            conversions,
+            clicks,
+            impressions,
+            currency: "EUR",
+            isActive: campaign.effective_status !== "DELETED",
+          });
+          imported++;
+        }
+      }
+
+      return { imported, skipped, message: `Importováno ${imported} nových kampaní, aktualizováno ${skipped} existujících.` };
     }),
 
   summary: protectedProcedure.query(async ({ ctx }) => {

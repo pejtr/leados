@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -15,7 +15,7 @@ import {
 import { toast } from "sonner";
 import {
   TrendingUp, TrendingDown, DollarSign, Target, MousePointerClick,
-  Eye, Plus, Pencil, Trash2, Loader2, RefreshCw, BarChart3, Zap,
+  Eye, Plus, Pencil, Trash2, Loader2, RefreshCw, BarChart3, Zap, Download,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LineChart, Line, CartesianGrid,
@@ -115,9 +115,24 @@ export default function AdCampaigns() {
     onError: (e) => toast.error(e.message),
   });
 
-  const [modal, setModal] = useState<"add" | "edit" | null>(null);
+  const [modal, setModal] = useState<"add" | "edit" | "meta-import" | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<CampaignForm>(emptyForm);
+
+  // Meta import state
+  const [metaAccountId, setMetaAccountId] = useState("");
+  const [metaDatePreset, setMetaDatePreset] = useState<"last_7d" | "last_14d" | "last_30d" | "last_90d" | "last_month" | "this_month">("last_30d");
+  const { data: metaAccountsData } = trpc.adCampaigns.getMetaAccounts.useQuery(undefined, { enabled: modal === "meta-import" });
+
+  const importFromMetaMutation = trpc.adCampaigns.importFromMeta.useMutation({
+    onSuccess: (data) => {
+      utils.adCampaigns.list.invalidate();
+      utils.adCampaigns.summary.invalidate();
+      toast.success(`${data.message}`);
+      setModal(null);
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   function openAdd() {
     setForm(emptyForm);
@@ -179,7 +194,7 @@ export default function AdCampaigns() {
     <DashboardLayout>
       <div className="max-w-7xl space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <BarChart3 className="h-6 w-6 text-violet-400" />
@@ -189,10 +204,16 @@ export default function AdCampaigns() {
               Track Meta Ads, Google Ads & LinkedIn spend vs. revenue. ROAS ≥ 4× = profitable. PNO ≤ 25% = excellent.
             </p>
           </div>
-          <Button onClick={openAdd} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Campaign
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setModal("meta-import")} className="gap-2 border-blue-500/30 text-blue-300 hover:bg-blue-500/10">
+              <Download className="h-4 w-4" />
+              Import z Meta Ads
+            </Button>
+            <Button onClick={openAdd} className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add Campaign
+            </Button>
+          </div>
         </div>
 
         {/* Summary KPI Cards */}
@@ -564,6 +585,110 @@ export default function AdCampaigns() {
                 {isMutating && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                 {modal === "add" ? "Add Campaign" : "Save Changes"}
               </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ── Meta Ads Import Dialog ─────────────────────────────── */}
+        <Dialog open={modal === "meta-import"} onOpenChange={(o) => !o && setModal(null)}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Download className="w-5 h-5 text-blue-400" />
+                Import z Meta Ads
+              </DialogTitle>
+              <DialogDescription>
+                Automaticky importuje kampaně, spend a revenue z Meta Ads Manageru.
+              </DialogDescription>
+            </DialogHeader>
+
+            {metaAccountsData?.error ? (
+              <div className="rounded-xl bg-red-500/10 border border-red-500/20 p-4 text-sm text-red-300">
+                <p className="font-semibold mb-1">Meta Ads není připojen</p>
+                <p className="text-xs text-muted-foreground">{metaAccountsData.error}</p>
+                <p className="text-xs mt-2 text-muted-foreground">Přejdi do <strong>Settings → Connectors → Meta Marketing → Configure</strong> a přihlas se přes Facebook.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Ad Account</Label>
+                  {metaAccountsData?.accounts && metaAccountsData.accounts.length > 0 ? (
+                    <Select value={metaAccountId} onValueChange={setMetaAccountId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Vyber ad account..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {metaAccountsData.accounts.map((acc: any) => (
+                          <SelectItem key={acc.id || acc.account_id} value={acc.id || acc.account_id}>
+                            {acc.name || acc.id} ({acc.id})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      placeholder="act_123456789 nebo 123456789"
+                      value={metaAccountId}
+                      onChange={(e) => setMetaAccountId(e.target.value)}
+                    />
+                  )}
+                  <p className="text-xs text-muted-foreground">Najdeš ho v Meta Ads Manager → Account Overview</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Časové období</Label>
+                  <Select value={metaDatePreset} onValueChange={(v) => setMetaDatePreset(v as typeof metaDatePreset)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="last_7d">Posledních 7 dní</SelectItem>
+                      <SelectItem value="last_14d">Posledních 14 dní</SelectItem>
+                      <SelectItem value="last_30d">Posledních 30 dní</SelectItem>
+                      <SelectItem value="last_90d">Posledních 90 dní</SelectItem>
+                      <SelectItem value="last_month">Minulý měsíc</SelectItem>
+                      <SelectItem value="this_month">Tento měsíc</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-3 text-xs text-blue-300">
+                  <p className="font-semibold mb-1">Co se importuje:</p>
+                  <ul className="space-y-0.5 text-muted-foreground">
+                    <li>✓ Názvy kampaní a jejich ID</li>
+                    <li>✓ Ad Spend (výdaje na reklamu)</li>
+                    <li>✓ Revenue z purchase konverzí (pokud máš Meta Pixel)</li>
+                    <li>✓ Clicks, Impressions, Conversions</li>
+                    <li>✓ Existující kampaně se aktualizují, nové se přidají</li>
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setModal(null)}>Zrušit</Button>
+              {!metaAccountsData?.error && (
+                <Button
+                  onClick={() => {
+                    if (!metaAccountId.trim()) {
+                      toast.error("Zadej Ad Account ID");
+                      return;
+                    }
+                    importFromMetaMutation.mutate({
+                      adAccountId: metaAccountId.trim(),
+                      datePreset: metaDatePreset,
+                    });
+                  }}
+                  disabled={importFromMetaMutation.isPending}
+                  className="gap-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  {importFromMetaMutation.isPending ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Importuji...</>
+                  ) : (
+                    <><Download className="w-4 h-4" /> Importovat kampaně</>
+                  )}
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
