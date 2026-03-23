@@ -108,6 +108,7 @@ import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { adCampaignsRouter } from "./adCampaignsRouter";
 import { portfolioShareRouter } from "./portfolioShareRouter";
+import { fiveBrainsRouter } from "./fiveBrainsRouter";
 import {
   createTrackingPixel, getTrackingPixelsByUser, deleteTrackingPixel, updateTrackingPixel,
   getVisitorSessionsByPixel, getVisitorSessionsByUser, createVisitorSession,
@@ -2788,5 +2789,6 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
   }),
   adCampaigns: adCampaignsRouter,
   portfolioShare: portfolioShareRouter,
+  fiveBrains: fiveBrainsRouter,
 });
 export type AppRouter = typeof appRouter;

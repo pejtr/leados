@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `brain_analyses` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`title` varchar(255) NOT NULL,\n\t`contextType` varchar(32) NOT NULL DEFAULT 'project',\n\t`contextId` int,\n\t`contextData` text,\n\t`status` varchar(32) NOT NULL DEFAULT 'pending',\n\t`pragmaticArchitect` text,\n\t`creativeVisionary` text,\n\t`criticalInvestor` text,\n\t`technicalPurist` text,\n\t`growthHacker` text,\n\t`masterReport` text,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`completedAt` timestamp,\n\tCONSTRAINT `brain_analyses_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute CREATE TABLE `brain_analyses` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`userId` int NOT NULL,\n\t`title` varchar(255) NOT NULL,\n\t`contextType` varchar(32) NOT NULL DEFAULT 'project',\n\t`contextId` int,\n\t`contextData` text,\n\t`status` varchar(32) NOT NULL DEFAULT 'pending',\n\t`pragmaticArchitect` text,\n\t`creativeVisionary` text,\n\t`criticalInvestor` text,\n\t`technicalPurist` text,\n\t`growthHacker` text,\n\t`masterReport` text,\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\t`completedAt` timestamp,\n\tCONSTRAINT `brain_analyses_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 132
+}

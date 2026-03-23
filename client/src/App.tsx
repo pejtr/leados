@@ -46,6 +46,7 @@ import ProjectsHub from "./pages/ProjectsHub";
 import AdCampaigns from "./pages/AdCampaigns";
 import PortfolioROAS from "./pages/PortfolioROAS";
 import PublicPortfolioROAS from "./pages/PublicPortfolioROAS";
+import FiveBrains from "./pages/FiveBrains";
 
 function Router() {
   return (
@@ -92,6 +93,7 @@ function Router() {
       <Route path="/ad-campaigns" component={AdCampaigns} />
       <Route path="/portfolio-roas" component={PortfolioROAS} />
       <Route path="/portfolio/share/:token" component={PublicPortfolioROAS} />
+      <Route path="/five-brains" component={FiveBrains} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
