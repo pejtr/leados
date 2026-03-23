@@ -8,8 +8,12 @@ import {
 import {
   TrendingUp, DollarSign, Target, Megaphone,
   BarChart3, ArrowUpRight, ArrowDownRight, Minus, Trophy,
-  Zap, ArrowRight, AlertTriangle, Download, Calendar, RefreshCw,
+  Zap, ArrowRight, AlertTriangle, Download, Calendar, RefreshCw, Share2, Copy, Trash2, ExternalLink, Plus,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -106,6 +110,29 @@ function roasBarColor(roas: number) {
 export default function PortfolioROAS() {
   const [days, setDays] = useState(30);
   const printRef = useRef<HTMLDivElement>(null);
+  const [showShareDialog, setShowShareDialog] = useState(false);
+  const [shareLabel, setShareLabel] = useState("Portfolio ROAS Report");
+  const [shareExpiry, setShareExpiry] = useState(30);
+  const [newShareUrl, setNewShareUrl] = useState<string | null>(null);
+
+  const { data: shareTokens = [], refetch: refetchTokens } = trpc.portfolioShare.listTokens.useQuery();
+  const createToken = trpc.portfolioShare.createToken.useMutation({
+    onSuccess: (data) => {
+      const url = `${window.location.origin}/portfolio/share/${data.token}`;
+      setNewShareUrl(url);
+      refetchTokens();
+      toast.success("Share link vytvořen!");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const revokeToken = trpc.portfolioShare.revokeToken.useMutation({
+    onSuccess: () => { refetchTokens(); toast.success("Share link zrušen."); },
+  });
+
+  const handleCopyLink = (url: string) => {
+    navigator.clipboard.writeText(url);
+    toast.success("Link zkopírován do schránky!");
+  };
 
   const { data: allStats = [], isLoading: loadingStats, refetch: refetchStats } = trpc.projects.getAllStats.useQuery({ days });
   const { data: allCampaigns = [], isLoading: loadingCampaigns, refetch: refetchCampaigns } = trpc.adCampaigns.list.useQuery();
@@ -290,6 +317,9 @@ export default function PortfolioROAS() {
           </Button>
           <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-1.5 no-print">
             <Download className="w-3.5 h-3.5" /> Export PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => { setNewShareUrl(null); setShowShareDialog(true); }} className="gap-1.5 no-print">
+            <Share2 className="w-3.5 h-3.5" /> Sdílet report
           </Button>
           <Link href="/ad-campaigns">
             <Button variant="outline" size="sm" className="gap-1.5 no-print">
@@ -584,6 +614,77 @@ export default function PortfolioROAS() {
           </>
         )}
       </div>
+
+      {/* ── Share Report Dialog ──────────────────────────────────── */}
+      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Share2 className="w-4 h-4" /> Sdílet Portfolio ROAS Report</DialogTitle>
+            <DialogDescription>Vytvořte read-only odkaz pro sdílení s klienty nebo investory — bez přihlášení.</DialogDescription>
+          </DialogHeader>
+
+          {/* New link creation */}
+          {!newShareUrl ? (
+            <div className="space-y-4 pt-2">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Název reportu</label>
+                <Input value={shareLabel} onChange={(e) => setShareLabel(e.target.value)} placeholder="Portfolio ROAS Report" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">Platnost odkazu</label>
+                <div className="flex gap-2">
+                  {[7, 30, 90, 365].map((d) => (
+                    <button key={d} onClick={() => setShareExpiry(d)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                        shareExpiry === d ? "bg-primary text-primary-foreground border-primary" : "border-border text-muted-foreground hover:text-foreground"
+                      }`}>{d === 365 ? "1 rok" : `${d} dní`}</button>
+                  ))}
+                </div>
+              </div>
+              <Button className="w-full gap-2" onClick={() => createToken.mutate({ label: shareLabel, expiresInDays: shareExpiry })} disabled={createToken.isPending}>
+                <Plus className="w-4 h-4" /> {createToken.isPending ? "Vytváří se..." : "Vytvořit share link"}
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4 pt-2">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
+                <div className="text-xs font-semibold text-emerald-400 mb-2">✓ Share link vytvořen</div>
+                <div className="flex items-center gap-2">
+                  <Input value={newShareUrl} readOnly className="text-xs font-mono" />
+                  <Button size="sm" variant="outline" onClick={() => handleCopyLink(newShareUrl!)}><Copy className="w-3.5 h-3.5" /></Button>
+                  <a href={newShareUrl} target="_blank" rel="noopener noreferrer"><Button size="sm" variant="outline"><ExternalLink className="w-3.5 h-3.5" /></Button></a>
+                </div>
+              </div>
+              <Button variant="outline" className="w-full" onClick={() => setNewShareUrl(null)}>Vytvořit další odkaz</Button>
+            </div>
+          )}
+
+          {/* Existing tokens */}
+          {shareTokens.length > 0 && (
+            <div className="border-t border-border pt-4 mt-2">
+              <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Aktivní share linky</div>
+              <div className="space-y-2">
+                {shareTokens.filter((t) => t.isActive).map((t) => {
+                  const url = `${window.location.origin}/portfolio/share/${t.token}`;
+                  return (
+                    <div key={t.id} className="flex items-center gap-2 bg-muted/20 rounded-lg px-3 py-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-semibold truncate">{t.label}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {t.expiresAt ? `Vyprší: ${new Date(t.expiresAt).toLocaleDateString("cs-CZ")}` : "Bez expirace"}
+                        </div>
+                      </div>
+                      <Button size="sm" variant="ghost" onClick={() => handleCopyLink(url)}><Copy className="w-3 h-3" /></Button>
+                      <a href={url} target="_blank" rel="noopener noreferrer"><Button size="sm" variant="ghost"><ExternalLink className="w-3 h-3" /></Button></a>
+                      <Button size="sm" variant="ghost" className="text-red-400 hover:text-red-300" onClick={() => revokeToken.mutate({ id: t.id })}><Trash2 className="w-3 h-3" /></Button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

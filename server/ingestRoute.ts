@@ -1,5 +1,26 @@
 import type { Express, Request, Response } from "express";
 import { getProjectByApiKey, ingestEvent } from "./projectsDb";
+import { getDb } from "./db";
+import { adCampaigns } from "../drizzle/schema";
+import { eq, and, sql } from "drizzle-orm";
+
+/**
+ * When a 'sale' event is ingested for a project, automatically
+ * increment the revenue of all Ad Campaigns linked to that project.
+ */
+async function autoUpdateCampaignRevenue(projectId: number, saleValue: number) {
+  try {
+    const db = await getDb();
+    if (!db || saleValue <= 0) return;
+    // Update revenue on all campaigns linked to this project
+    await db
+      .update(adCampaigns)
+      .set({ revenue: sql`${adCampaigns.revenue} + ${saleValue}`, conversions: sql`${adCampaigns.conversions} + 1` })
+      .where(eq(adCampaigns.projectId, projectId));
+  } catch (err: any) {
+    console.error("[Ingest] autoUpdateCampaignRevenue error:", err?.message);
+  }
+}
 
 /**
  * Public API endpoint for external projects to push analytics events.
@@ -52,6 +73,11 @@ export function registerIngestRoute(app: Express) {
       const occurredAt = body.occurredAt ? new Date(body.occurredAt) : new Date();
 
       await ingestEvent({ projectId: project.id, eventType, value, currency, metadata, occurredAt });
+
+      // Auto-update linked Ad Campaign revenue on sale events
+      if (eventType === "sale" && value > 0) {
+        await autoUpdateCampaignRevenue(project.id, value);
+      }
 
       return res.json({ ok: true, ingested: 1, projectId: project.id, eventType, value });
     } catch (err: any) {

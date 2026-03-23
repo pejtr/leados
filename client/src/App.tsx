@@ -45,6 +45,7 @@ import SalesDashboard from "./pages/SalesDashboard";
 import ProjectsHub from "./pages/ProjectsHub";
 import AdCampaigns from "./pages/AdCampaigns";
 import PortfolioROAS from "./pages/PortfolioROAS";
+import PublicPortfolioROAS from "./pages/PublicPortfolioROAS";
 
 function Router() {
   return (
@@ -90,6 +91,7 @@ function Router() {
       <Route path="/projects" component={ProjectsHub} />
       <Route path="/ad-campaigns" component={AdCampaigns} />
       <Route path="/portfolio-roas" component={PortfolioROAS} />
+      <Route path="/portfolio/share/:token" component={PublicPortfolioROAS} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

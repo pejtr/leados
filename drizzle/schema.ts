@@ -1041,3 +1041,16 @@ export const adCampaigns = mysqlTable("ad_campaigns", {
 });
 export type AdCampaign = typeof adCampaigns.$inferSelect;
 export type InsertAdCampaign = typeof adCampaigns.$inferInsert;
+
+// ─── Portfolio Share Tokens (read-only public ROAS report links) ──
+export const portfolioShareTokens = mysqlTable("portfolio_share_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  token: varchar("token", { length: 64 }).notNull().unique(),
+  label: varchar("label", { length: 128 }).default("Portfolio ROAS Report"),
+  expiresAt: timestamp("expiresAt"),
+  isActive: boolean("isActive").default(true).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type PortfolioShareToken = typeof portfolioShareTokens.$inferSelect;
+export type InsertPortfolioShareToken = typeof portfolioShareTokens.$inferInsert;
