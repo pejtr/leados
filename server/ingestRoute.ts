@@ -80,7 +80,7 @@ export function registerIngestRoute(app: Express) {
     try {
       const { apiKey } = req.params;
 
-      if (!apiKey || !apiKey.startsWith("lpos_")) {
+      if (!apiKey || apiKey.length < 10) {
         return res.status(401).json({ error: "Invalid API key format" });
       }
 
