@@ -1054,3 +1054,20 @@ export const portfolioShareTokens = mysqlTable("portfolio_share_tokens", {
 });
 export type PortfolioShareToken = typeof portfolioShareTokens.$inferSelect;
 export type InsertPortfolioShareToken = typeof portfolioShareTokens.$inferInsert;
+
+// ─── Ad Campaign Snapshots (historical ROAS/PNO data points for trend charts) ─
+export const adCampaignSnapshots = mysqlTable("ad_campaign_snapshots", {
+  id: int("id").autoincrement().primaryKey(),
+  campaignId: int("campaignId").notNull(),
+  userId: int("userId").notNull(),
+  snapshotDate: varchar("snapshotDate", { length: 10 }).notNull(), // "YYYY-MM-DD"
+  adSpend: decimal("adSpend", { precision: 12, scale: 2 }).notNull().default("0"),
+  revenue: decimal("revenue", { precision: 12, scale: 2 }).notNull().default("0"),
+  conversions: int("conversions").notNull().default(0),
+  clicks: int("clicks").notNull().default(0),
+  roas: decimal("roas", { precision: 8, scale: 4 }).notNull().default("0"),
+  pno: decimal("pno", { precision: 8, scale: 4 }).notNull().default("0"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AdCampaignSnapshot = typeof adCampaignSnapshots.$inferSelect;
+export type InsertAdCampaignSnapshot = typeof adCampaignSnapshots.$inferInsert;

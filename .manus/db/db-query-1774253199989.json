@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE `ad_campaign_snapshots` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`campaignId` int NOT NULL,\n\t`userId` int NOT NULL,\n\t`snapshotDate` varchar(10) NOT NULL,\n\t`adSpend` decimal(12,2) NOT NULL DEFAULT '0',\n\t`revenue` decimal(12,2) NOT NULL DEFAULT '0',\n\t`conversions` int NOT NULL DEFAULT 0,\n\t`clicks` int NOT NULL DEFAULT 0,\n\t`roas` decimal(8,4) NOT NULL DEFAULT '0',\n\t`pno` decimal(8,4) NOT NULL DEFAULT '0',\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `ad_campaign_snapshots_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute CREATE TABLE `ad_campaign_snapshots` (\n\t`id` int AUTO_INCREMENT NOT NULL,\n\t`campaignId` int NOT NULL,\n\t`userId` int NOT NULL,\n\t`snapshotDate` varchar(10) NOT NULL,\n\t`adSpend` decimal(12,2) NOT NULL DEFAULT '0',\n\t`revenue` decimal(12,2) NOT NULL DEFAULT '0',\n\t`conversions` int NOT NULL DEFAULT 0,\n\t`clicks` int NOT NULL DEFAULT 0,\n\t`roas` decimal(8,4) NOT NULL DEFAULT '0',\n\t`pno` decimal(8,4) NOT NULL DEFAULT '0',\n\t`createdAt` timestamp NOT NULL DEFAULT (now()),\n\tCONSTRAINT `ad_campaign_snapshots_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 125
+}

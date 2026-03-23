@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   Legend, Cell, ReferenceLine,
 } from "recharts";
 import {
@@ -109,6 +109,8 @@ function roasBarColor(roas: number) {
 // ─── Main Page ────────────────────────────────────────────────────
 export default function PortfolioROAS() {
   const [days, setDays] = useState(30);
+  const [historyDays, setHistoryDays] = useState(30);
+  const [selectedCampaignIds, setSelectedCampaignIds] = useState<number[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareLabel, setShareLabel] = useState("Portfolio ROAS Report");
@@ -136,6 +138,10 @@ export default function PortfolioROAS() {
 
   const { data: allStats = [], isLoading: loadingStats, refetch: refetchStats } = trpc.projects.getAllStats.useQuery({ days });
   const { data: allCampaigns = [], isLoading: loadingCampaigns, refetch: refetchCampaigns } = trpc.adCampaigns.list.useQuery();
+  const { data: rawHistory = [] } = trpc.adCampaigns.getHistory.useQuery(
+    { days: historyDays, campaignIds: selectedCampaignIds.length > 0 ? selectedCampaignIds : undefined },
+    { keepPreviousData: true }
+  );
 
   const isLoading = loadingStats || loadingCampaigns;
 
@@ -144,6 +150,34 @@ export default function PortfolioROAS() {
     refetchCampaigns();
     toast.success("Data obnovena — Portfolio ROAS aktualizováno.");
   }, [refetchStats, refetchCampaigns]);
+
+  // ── History chart data: pivot snapshots to { date, [campaignName]: roas } ──
+  const historyChartData = useMemo(() => {
+    if (!rawHistory.length) return [];
+    const campaignMap = new Map(allCampaigns.map((c) => [c.id, c.name]));
+    const byDate = new Map<string, Record<string, number>>();
+    for (const snap of rawHistory) {
+      const name = campaignMap.get(snap.campaignId) ?? `Campaign ${snap.campaignId}`;
+      const short = name.length > 18 ? name.slice(0, 18) + "…" : name;
+      if (!byDate.has(snap.snapshotDate)) byDate.set(snap.snapshotDate, { date: snap.snapshotDate as unknown as number });
+      byDate.get(snap.snapshotDate)![short] = parseFloat(snap.roas as unknown as string) || 0;
+    }
+    return Array.from(byDate.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, v]) => v);
+  }, [rawHistory, allCampaigns]);
+
+  const historyCampaignNames = useMemo(() => {
+    const names = new Set<string>();
+    const campaignMap = new Map(allCampaigns.map((c) => [c.id, c.name]));
+    for (const snap of rawHistory) {
+      const name = campaignMap.get(snap.campaignId) ?? `Campaign ${snap.campaignId}`;
+      names.add(name.length > 18 ? name.slice(0, 18) + "…" : name);
+    }
+    return Array.from(names);
+  }, [rawHistory, allCampaigns]);
+
+  const LINE_COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4", "#f97316", "#84cc16"];
 
   // ── PDF Export via browser print ──────────────────────────────────
   const handleExportPDF = useCallback(() => {
@@ -562,6 +596,138 @@ export default function PortfolioROAS() {
                 </div>
               </div>
             )}
+
+            {/* ── ROAS History Line Chart ──────────────────────────── */}
+            <div className="bg-card border border-border rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+                <h2 className="font-bold text-sm flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-emerald-400" /> Historický vývoj ROAS kampaní
+                </h2>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Campaign filter pills */}
+                  {allCampaigns.length > 0 && (
+                    <div className="flex items-center gap-1 flex-wrap">
+                      <span className="text-xs text-muted-foreground mr-1">Kampaně:</span>
+                      <button
+                        onClick={() => setSelectedCampaignIds([])}
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                          selectedCampaignIds.length === 0
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "border-border text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        Všechny
+                      </button>
+                      {allCampaigns.slice(0, 6).map((c) => (
+                        <button
+                          key={c.id}
+                          onClick={() =>
+                            setSelectedCampaignIds((prev) =>
+                              prev.includes(c.id) ? prev.filter((id) => id !== c.id) : [...prev, c.id]
+                            )
+                          }
+                          className={`px-2.5 py-1 rounded-full text-xs font-semibold border transition-colors ${
+                            selectedCampaignIds.includes(c.id)
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "border-border text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {c.name.length > 14 ? c.name.slice(0, 14) + "…" : c.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {/* Period selector */}
+                  <div className="flex items-center gap-1 bg-muted/30 border border-border rounded-xl p-1">
+                    {[7, 30, 90, 180].map((d) => (
+                      <button
+                        key={d}
+                        onClick={() => setHistoryDays(d)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                          historyDays === d
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        }`}
+                      >
+                        {d}d
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {historyChartData.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <TrendingUp className="w-10 h-10 text-muted-foreground opacity-20 mb-3" />
+                  <p className="text-sm text-muted-foreground">Žádná historická data</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                    Data se zaznamenávají automaticky při každé aktualizaci kampaně. Upravte kampaň v Ad Campaigns pro první snapshot.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <ResponsiveContainer width="100%" height={280}>
+                    <LineChart data={historyChartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(v) => {
+                          const d = new Date(v);
+                          return `${d.getDate()}.${d.getMonth() + 1}.`;
+                        }}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(v) => `${v.toFixed(1)}×`}
+                      />
+                      <Tooltip
+                        content={({ active, payload, label }) => {
+                          if (!active || !payload?.length) return null;
+                          const d = new Date(label);
+                          const dateStr = `${d.getDate()}.${d.getMonth() + 1}.${d.getFullYear()}`;
+                          return (
+                            <div className="bg-card border border-border rounded-xl px-4 py-3 shadow-xl text-sm">
+                              <div className="font-bold mb-2 text-foreground">{dateStr}</div>
+                              {payload.map((p: any) => (
+                                <div key={p.name} className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full" style={{ background: p.stroke }} />
+                                  <span className="text-muted-foreground truncate max-w-[120px]">{p.name}:</span>
+                                  <span className="font-semibold text-foreground">{typeof p.value === "number" ? `${p.value.toFixed(2)}×` : p.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }}
+                      />
+                      <ReferenceLine y={1} stroke="#eab308" strokeDasharray="4 4" />
+                      <ReferenceLine y={2} stroke="#10b981" strokeDasharray="4 4" />
+                      <Legend wrapperStyle={{ fontSize: 11, color: "hsl(var(--muted-foreground))" }} />
+                      {historyCampaignNames.map((name, i) => (
+                        <Line
+                          key={name}
+                          type="monotone"
+                          dataKey={name}
+                          stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                          strokeWidth={2}
+                          dot={{ r: 3, fill: LINE_COLORS[i % LINE_COLORS.length] }}
+                          activeDot={{ r: 5 }}
+                          connectNulls
+                        />
+                      ))}
+                    </LineChart>
+                  </ResponsiveContainer>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><span className="w-6 border-t-2 border-dashed border-yellow-500 inline-block" /> Break-even (1×)</span>
+                    <span className="flex items-center gap-1"><span className="w-6 border-t-2 border-dashed border-emerald-500 inline-block" /> Target (2×)</span>
+                  </div>
+                </>
+              )}
+            </div>
 
             {/* ── Insights ────────────────────────────────────────── */}
             {campaignsRanked.length > 0 && (

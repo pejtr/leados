@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, asc } from "drizzle-orm";
 import { getDb } from "./db";
-import { adCampaigns } from "../drizzle/schema";
+import { adCampaigns, adCampaignSnapshots } from "../drizzle/schema";
 import { protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { execSync } from "child_process";
@@ -121,6 +121,33 @@ export const adCampaignsRouter = router({
       if (input.data.isActive !== undefined) updateData.isActive = input.data.isActive;
 
       await db.update(adCampaigns).set(updateData).where(eq(adCampaigns.id, input.id));
+
+      // Auto-snapshot: record a data point whenever a campaign is updated
+      const today = new Date().toISOString().slice(0, 10);
+      const merged = { ...existing, ...updateData };
+      const spend = parseFloat(merged.adSpend as string) || 0;
+      const rev = parseFloat(merged.revenue as string) || 0;
+      const roasVal = spend > 0 ? rev / spend : 0;
+      const pnoVal = rev > 0 ? (spend / rev) * 100 : 0;
+      // Upsert snapshot for today (delete existing today's snapshot then insert)
+      await db.delete(adCampaignSnapshots).where(
+        and(
+          eq(adCampaignSnapshots.campaignId, input.id),
+          eq(adCampaignSnapshots.snapshotDate, today)
+        )
+      );
+      await db.insert(adCampaignSnapshots).values({
+        campaignId: input.id,
+        userId: ctx.user.id,
+        snapshotDate: today,
+        adSpend: spend.toString(),
+        revenue: rev.toString(),
+        conversions: (merged.conversions as number) || 0,
+        clicks: (merged.clicks as number) || 0,
+        roas: roasVal.toFixed(4),
+        pno: pnoVal.toFixed(4),
+      });
+
       return { success: true };
     }),
 
@@ -255,6 +282,79 @@ export const adCampaignsRouter = router({
       }
 
       return { imported, skipped, message: `Importováno ${imported} nových kampaní, aktualizováno ${skipped} existujících.` };
+    }),
+
+  // ── Historical snapshots ─────────────────────────────────────────
+  getHistory: protectedProcedure
+    .input(z.object({
+      campaignIds: z.array(z.number()).optional(), // empty = all user campaigns
+      days: z.number().int().min(7).max(365).default(30),
+    }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - input.days);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+      const snapshots = await db
+        .select()
+        .from(adCampaignSnapshots)
+        .where(eq(adCampaignSnapshots.userId, ctx.user.id))
+        .orderBy(asc(adCampaignSnapshots.snapshotDate));
+
+      // Filter by date and optional campaign IDs
+      return snapshots
+        .filter((s) => s.snapshotDate >= cutoffStr)
+        .filter((s) => !input.campaignIds?.length || input.campaignIds.includes(s.campaignId))
+        .map((s) => ({
+          ...s,
+          roas: parseFloat(s.roas as string) || 0,
+          pno: parseFloat(s.pno as string) || 0,
+          adSpend: parseFloat(s.adSpend as string) || 0,
+          revenue: parseFloat(s.revenue as string) || 0,
+        }));
+    }),
+
+  addSnapshot: protectedProcedure
+    .input(z.object({
+      campaignId: z.number().int(),
+      snapshotDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      adSpend: z.number().min(0),
+      revenue: z.number().min(0),
+      conversions: z.number().int().min(0).default(0),
+      clicks: z.number().int().min(0).default(0),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "DB unavailable" });
+      // Verify campaign belongs to user
+      const [campaign] = await db.select().from(adCampaigns)
+        .where(and(eq(adCampaigns.id, input.campaignId), eq(adCampaigns.userId, ctx.user.id)));
+      if (!campaign) throw new TRPCError({ code: "NOT_FOUND" });
+
+      const roas = input.adSpend > 0 ? input.revenue / input.adSpend : 0;
+      const pno = input.revenue > 0 ? (input.adSpend / input.revenue) * 100 : 0;
+
+      // Upsert: delete existing snapshot for that date then insert
+      await db.delete(adCampaignSnapshots).where(
+        and(
+          eq(adCampaignSnapshots.campaignId, input.campaignId),
+          eq(adCampaignSnapshots.snapshotDate, input.snapshotDate)
+        )
+      );
+      await db.insert(adCampaignSnapshots).values({
+        campaignId: input.campaignId,
+        userId: ctx.user.id,
+        snapshotDate: input.snapshotDate,
+        adSpend: input.adSpend.toString(),
+        revenue: input.revenue.toString(),
+        conversions: input.conversions,
+        clicks: input.clicks,
+        roas: roas.toFixed(4),
+        pno: pno.toFixed(4),
+      });
+      return { success: true };
     }),
 
   summary: protectedProcedure.query(async ({ ctx }) => {
