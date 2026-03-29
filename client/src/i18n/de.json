@@ -334,5 +334,8 @@
     "total": "gesamt",
     "leadsTotal": "Leads gesamt",
     "mostPopular": "Am beliebtesten"
+  },
+  "sidebar": {
+    "dailyReport": "Tagesbericht"
   }
 }

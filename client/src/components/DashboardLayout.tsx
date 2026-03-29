@@ -27,7 +27,7 @@ import {
   Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code,
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
-  TrendingUp, Trophy, Link2, Megaphone,
+  TrendingUp, Trophy, Link2, Megaphone, FileBarChart,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -74,6 +74,7 @@ const menuItemDefs = [
   { icon: Megaphone, labelKey: "sidebar.adCampaigns", path: "/ad-campaigns", group: "insights" },
   { icon: Trophy, labelKey: "sidebar.portfolioROAS", path: "/portfolio-roas", group: "insights" },
   { icon: Brain, labelKey: "sidebar.fiveBrains", path: "/five-brains", group: "insights" },
+  { icon: FileBarChart, labelKey: "sidebar.dailyReport", path: "/daily-report", group: "settings" },
   { icon: Mail, labelKey: "sidebar.emailTemplates", path: "/templates", group: "settings" },
   { icon: Users, labelKey: "sidebar.team", path: "/team", group: "settings" },
   { icon: Building, labelKey: "sidebar.agencyPanel", path: "/agency", group: "settings" },
@@ -109,18 +110,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (loading) return <DashboardLayoutSkeleton />;
 
-  if (!user) {
+      if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen mesh-bg">
         <div className="flex flex-col items-center gap-8 p-10 max-w-md w-full">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-2">
             <div className="h-10 w-10 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, oklch(0.65 0.26 290), oklch(0.60 0.24 270))", boxShadow: "0 0 30px oklch(0.65 0.26 290 / 40%)" }}>
+              style={{ background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220))", boxShadow: "0 0 30px oklch(0.55 0.20 192 / 35%)" }}>
               <Zap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-              Lead<span className="gradient-text-violet">OS</span>
+            <span className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "oklch(0.18 0.04 250)" }}>
+              Lead<span className="gradient-text-atlantis">OS</span>
             </span>
           </div>
           <div className="text-center space-y-2">
@@ -217,33 +218,36 @@ function DashboardLayoutContent({
           collapsible="icon"
           className="border-r-0"
           disableTransition={isResizing}
-          style={{ background: "oklch(0.065 0.012 264)" }}
+          style={{ background: "oklch(0.955 0.010 240)" }}
         >
-          {/* Sidebar top gradient line */}
-          <div className="absolute top-0 left-0 right-0 h-px"
-            style={{ background: "linear-gradient(90deg, transparent, oklch(0.65 0.26 290 / 50%), transparent)" }} />
+          {/* Sidebar top teal accent line */}
+          <div className="absolute top-0 left-0 right-0 h-0.5"
+            style={{ background: "linear-gradient(90deg, transparent, oklch(0.55 0.20 192 / 60%), transparent)" }} />
 
-          <SidebarHeader className="h-16 justify-center border-b border-white/5">
+          <SidebarHeader className="h-16 justify-center border-b" style={{ borderColor: "oklch(0.86 0.012 240)" }}>
             <div className="flex items-center gap-3 px-2 w-full">
               <button
                 onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center rounded-lg transition-all focus:outline-none shrink-0 hover:bg-white/5"
+                className="h-8 w-8 flex items-center justify-center rounded-lg transition-all focus:outline-none shrink-0"
+                style={{ color: "oklch(0.52 0.02 250)" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "oklch(0.55 0.20 192 / 8%)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "")}
                 aria-label="Toggle navigation"
               >
-                <PanelLeft className="h-4 w-4 text-muted-foreground" />
+                <PanelLeft className="h-4 w-4" />
               </button>
               {!isCollapsed && (
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
                     style={{
-                      background: "linear-gradient(135deg, oklch(0.65 0.26 290), oklch(0.60 0.24 270))",
-                      boxShadow: "0 0 16px oklch(0.65 0.26 290 / 50%)"
+                      background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220))",
+                      boxShadow: "0 0 16px oklch(0.55 0.20 192 / 35%)"
                     }}>
                     <Zap className="h-3.5 w-3.5 text-white" />
                   </div>
-                  <span className="font-bold tracking-tight truncate text-foreground text-sm"
-                    style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                    Lead<span className="gradient-text-violet">OS</span>
+                  <span className="font-bold tracking-tight truncate text-sm"
+                    style={{ fontFamily: "'Space Grotesk', sans-serif", color: "oklch(0.18 0.04 250)" }}>
+                    Lead<span className="gradient-text-atlantis">OS</span>
                   </span>
                 </div>
               )}
@@ -261,7 +265,7 @@ function DashboardLayoutContent({
                     {label && !isCollapsed && (
                       <div className="px-3 pt-5 pb-1.5">
                         <span className="text-[9px] font-bold uppercase tracking-[0.12em]"
-                          style={{ color: "oklch(0.45 0.018 264)" }}>
+                          style={{ color: "oklch(0.55 0.20 192 / 70%)" }}>
                           {label}
                         </span>
                       </div>
@@ -276,22 +280,22 @@ function DashboardLayoutContent({
                             tooltip={item.label}
                             className="h-8 transition-all font-normal text-[13px] relative"
                             style={isActive ? {
-                              background: "oklch(0.65 0.26 290 / 12%)",
-                              border: "1px solid oklch(0.65 0.26 290 / 20%)",
-                              color: "oklch(0.85 0.15 290)",
+                              background: "oklch(0.55 0.20 192 / 10%)",
+                              border: "1px solid oklch(0.55 0.20 192 / 22%)",
+                              color: "oklch(0.40 0.20 192)",
                             } : {
-                              color: "oklch(0.60 0.015 264)",
+                              color: "oklch(0.42 0.025 250)",
                             }}
                           >
                             {isActive && (
                               <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r"
                                 style={{
-                                  background: "oklch(0.65 0.26 290)",
-                                  boxShadow: "0 0 8px oklch(0.65 0.26 290 / 80%)"
+                                  background: "oklch(0.55 0.20 192)",
+                                  boxShadow: "0 0 8px oklch(0.55 0.20 192 / 70%)"
                                 }} />
                             )}
                             <item.icon className="h-3.5 w-3.5 shrink-0"
-                              style={isActive ? { color: "oklch(0.75 0.22 290)" } : {}} />
+                              style={isActive ? { color: "oklch(0.50 0.20 192)" } : {}} />
                             <span className="truncate">{item.label}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
@@ -303,7 +307,7 @@ function DashboardLayoutContent({
             </SidebarMenu>
           </SidebarContent>
 
-          <SidebarFooter className="p-3 border-t border-white/5">
+          <SidebarFooter className="p-3 border-t" style={{ borderColor: "oklch(0.86 0.012 240)" }}>
             {!isCollapsed && (
               <div className="px-1 pb-2">
                 <LanguageSwitcher variant="pills" className="w-full justify-center" />
@@ -311,12 +315,12 @@ function DashboardLayoutContent({
             )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-xl px-2 py-2 transition-all w-full text-left focus:outline-none hover:bg-white/5 group">
-                  <Avatar className="h-8 w-8 shrink-0 ring-1 ring-white/10">
+                <button className="flex items-center gap-3 rounded-xl px-2 py-2 transition-all w-full text-left focus:outline-none group" style={{ }} onMouseEnter={e => (e.currentTarget.style.background = "oklch(0.55 0.20 192 / 6%)")} onMouseLeave={e => (e.currentTarget.style.background = "")}>
+                  <Avatar className="h-8 w-8 shrink-0 ring-1" style={{ ringColor: "oklch(0.55 0.20 192 / 20%)" }}>
                     <AvatarFallback className="text-xs font-semibold"
                       style={{
-                        background: "linear-gradient(135deg, oklch(0.65 0.26 290 / 30%), oklch(0.72 0.22 200 / 20%))",
-                        color: "oklch(0.85 0.15 290)",
+                        background: "linear-gradient(135deg, oklch(0.55 0.20 192 / 20%), oklch(0.55 0.24 278 / 15%))",
+                        color: "oklch(0.40 0.20 192)",
                         fontFamily: "'Space Grotesk', sans-serif",
                       }}>
                       {initials}
@@ -338,7 +342,7 @@ function DashboardLayoutContent({
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48"
-                style={{ background: "oklch(0.11 0.014 264)", border: "1px solid oklch(1 0 0 / 10%)" }}>
+                style={{ background: "oklch(0.99 0.004 240)", border: "1px solid oklch(0.88 0.012 240)", boxShadow: "0 4px 20px oklch(0 0 0 / 8%)" }}>
                 <DropdownMenuItem
                   onClick={logout}
                   className="cursor-pointer text-destructive focus:text-destructive"
@@ -366,10 +370,10 @@ function DashboardLayoutContent({
         />
       )}
 
-      <SidebarInset style={{ background: "oklch(0.08 0.012 264)" }}>
+      <SidebarInset style={{ background: "oklch(0.965 0.008 240)" }}>
         {isMobile && (
-          <div className="flex border-b border-white/5 h-14 items-center justify-between px-3 backdrop-blur sticky top-0 z-40"
-            style={{ background: "oklch(0.08 0.012 264 / 95%)" }}>
+          <div className="flex border-b h-14 items-center justify-between px-3 backdrop-blur sticky top-0 z-40"
+            style={{ background: "oklch(0.965 0.008 240 / 95%)", borderColor: "oklch(0.88 0.012 240)" }}>
             <div className="flex items-center gap-3">
               <SidebarTrigger className="h-8 w-8 rounded-lg" />
               <span className="text-sm font-semibold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>

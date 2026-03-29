@@ -47,6 +47,7 @@ import AdCampaigns from "./pages/AdCampaigns";
 import PortfolioROAS from "./pages/PortfolioROAS";
 import PublicPortfolioROAS from "./pages/PublicPortfolioROAS";
 import FiveBrains from "./pages/FiveBrains";
+import DailyReport from "./pages/DailyReport";
 
 function Router() {
   return (
@@ -94,6 +95,7 @@ function Router() {
       <Route path="/portfolio-roas" component={PortfolioROAS} />
       <Route path="/portfolio/share/:token" component={PublicPortfolioROAS} />
       <Route path="/five-brains" component={FiveBrains} />
+      <Route path="/daily-report" component={DailyReport} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
@@ -103,7 +105,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="light" switchable={true}>
         <TooltipProvider>
           <Toaster />
           <Router />

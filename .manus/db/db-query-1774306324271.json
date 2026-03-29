@@ -1,0 +1,9 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS `daily_report_configs` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `user_id` varchar(255) NOT NULL,\n  `email` varchar(255) NOT NULL,\n  `is_active` boolean NOT NULL DEFAULT true,\n  `send_hour` int NOT NULL DEFAULT 8,\n  `include_projects` boolean NOT NULL DEFAULT true,\n  `include_campaigns` boolean NOT NULL DEFAULT true,\n  `include_leads` boolean NOT NULL DEFAULT true,\n  `last_sent_at` bigint,\n  `created_at` bigint NOT NULL,\n  `updated_at` bigint NOT NULL,\n  CONSTRAINT `daily_report_configs_id` PRIMARY KEY(`id`)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute CREATE TABLE IF NOT EXISTS `daily_report_configs` (\n  `id` int AUTO_INCREMENT NOT NULL,\n  `user_id` varchar(255) NOT NULL,\n  `email` varchar(255) NOT NULL,\n  `is_active` boolean NOT NULL DEFAULT true,\n  `send_hour` int NOT NULL DEFAULT 8,\n  `include_projects` boolean NOT NULL DEFAULT true,\n  `include_campaigns` boolean NOT NULL DEFAULT true,\n  `include_leads` boolean NOT NULL DEFAULT true,\n  `last_sent_at` bigint,\n  `created_at` bigint NOT NULL,\n  `updated_at` bigint NOT NULL,\n  CONSTRAINT `daily_report_configs_id` PRIMARY KEY(`id`)\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 54
+}

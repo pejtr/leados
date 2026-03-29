@@ -73,7 +73,8 @@
     "automation": "Automatizace",
     "outreachBd": "Outreach & BD",
     "insights": "Přehledy",
-    "settings": "Nastavení"
+    "settings": "Nastavení",
+    "dailyReport": "Denní Report"
   },
   "home": {
     "aiSystemsActive": "AI systémy aktivní",
@@ -617,5 +618,15 @@
     "total": "celkem",
     "leadsTotal": "leadů celkem",
     "mostPopular": "Nejoblíbenější"
+  },
+  "dailyReport": {
+    "title": "Denní Sales Report",
+    "subtitle": "Automatický email s přehledem prodejů, leadů a ROAS metrik každý den.",
+    "active": "Aktivní",
+    "inactive": "Neaktivní",
+    "saveSettings": "Uložit nastavení",
+    "sendTest": "Odeslat testovací report",
+    "lastSent": "Naposledy odesláno",
+    "never": "Nikdy"
   }
 }

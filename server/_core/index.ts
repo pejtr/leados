@@ -72,6 +72,8 @@ async function startServer() {
     import("../autopilotScheduler").then(m => m.startAutopilotScheduler()).catch(console.error);
     // Start email sequence scheduler (checks every 60 minutes for due enrollment steps)
     import("../sequenceScheduler").then(m => m.startSequenceScheduler()).catch(console.error);
+    // Start daily report scheduler (sends email digest at configured hour)
+    import("../dailyReportScheduler").then(m => m.startDailyReportScheduler()).catch(console.error);
   });
 }
 
