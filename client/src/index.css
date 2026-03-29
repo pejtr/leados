@@ -311,17 +311,10 @@
     box-shadow: 0 8px 40px oklch(0.55 0.20 192 / 12%);
   }
 
-  /* ── Glow effects — Atlantis bioluminescence ── */
-  .glow-teal {
-    box-shadow: 0 0 30px oklch(0.55 0.20 192 / 25%), 0 0 60px oklch(0.55 0.20 192 / 12%);
-  }
-  .glow-indigo {
-    box-shadow: 0 0 30px oklch(0.55 0.24 278 / 25%), 0 0 60px oklch(0.55 0.24 278 / 12%);
-  }
-  .glow-emerald {
-    box-shadow: 0 0 30px oklch(0.68 0.18 162 / 25%), 0 0 60px oklch(0.68 0.18 162 / 12%);
-  }
-  /* Legacy aliases */
+  /* ── Glow effects — Atlantis bioluminescence (plain CSS classes, not @apply targets) ── */
+  .glow-teal { box-shadow: 0 0 30px oklch(0.55 0.20 192 / 25%), 0 0 60px oklch(0.55 0.20 192 / 12%); }
+  .glow-indigo { box-shadow: 0 0 30px oklch(0.55 0.24 278 / 25%), 0 0 60px oklch(0.55 0.24 278 / 12%); }
+  .glow-emerald { box-shadow: 0 0 30px oklch(0.68 0.18 162 / 25%), 0 0 60px oklch(0.68 0.18 162 / 12%); }
   .glow-violet { box-shadow: 0 0 30px oklch(0.55 0.24 278 / 25%), 0 0 60px oklch(0.55 0.24 278 / 12%); }
   .glow-cyan { box-shadow: 0 0 30px oklch(0.55 0.20 192 / 25%), 0 0 60px oklch(0.55 0.20 192 / 12%); }
 

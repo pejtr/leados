@@ -336,6 +336,7 @@
     "mostPopular": "Am beliebtesten"
   },
   "sidebar": {
-    "dailyReport": "Tagesbericht"
+    "dailyReport": "Tagesbericht",
+    "aiConstitution": "AI-Verfassung"
   }
 }

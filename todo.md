@@ -568,3 +568,12 @@
 - [ ] Frontend: AI Scoring panel in deal edit modal (score gauge, reasoning, re-score button)
 - [ ] Auto-trigger scoring on deal create/update
 - [ ] Vitest test for scoreDeal procedure
+
+## AI Constitution (AI Ústava)
+- [ ] Create ai_constitution table in drizzle/schema.ts and apply migration
+- [ ] Build constitutionRouter (get/save) in server/routers/constitution.ts
+- [ ] Create getConstitutionContext() helper for injecting into AI calls
+- [ ] Build AIConstitution.tsx Settings page with all form fields
+- [ ] Add route /settings/ai-constitution to App.tsx
+- [ ] Add sidebar nav entry in DashboardLayout
+- [ ] Wire constitution context into invokeLLM calls across platform

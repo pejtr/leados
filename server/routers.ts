@@ -110,6 +110,7 @@ import { adCampaignsRouter } from "./adCampaignsRouter";
 import { portfolioShareRouter } from "./portfolioShareRouter";
 import { fiveBrainsRouter } from "./fiveBrainsRouter";
 import { dailyReportRouter } from "./dailyReportRouter";
+import { constitutionRouter } from "./routers/constitution";
 import {
   createTrackingPixel, getTrackingPixelsByUser, deleteTrackingPixel, updateTrackingPixel,
   getVisitorSessionsByPixel, getVisitorSessionsByUser, createVisitorSession,
@@ -2792,5 +2793,6 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
   portfolioShare: portfolioShareRouter,
   fiveBrains: fiveBrainsRouter,
   dailyReport: dailyReportRouter,
+  constitution: constitutionRouter,
 });
 export type AppRouter = typeof appRouter;

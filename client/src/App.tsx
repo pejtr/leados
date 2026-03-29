@@ -48,6 +48,7 @@ import PortfolioROAS from "./pages/PortfolioROAS";
 import PublicPortfolioROAS from "./pages/PublicPortfolioROAS";
 import FiveBrains from "./pages/FiveBrains";
 import DailyReport from "./pages/DailyReport";
+import AIConstitution from "./pages/AIConstitution";
 
 function Router() {
   return (
@@ -96,6 +97,7 @@ function Router() {
       <Route path="/portfolio/share/:token" component={PublicPortfolioROAS} />
       <Route path="/five-brains" component={FiveBrains} />
       <Route path="/daily-report" component={DailyReport} />
+      <Route path="/ai-constitution" component={AIConstitution} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

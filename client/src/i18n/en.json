@@ -336,6 +336,7 @@
     "mostPopular": "Most Popular"
   },
   "sidebar": {
-    "dailyReport": "Daily Report"
+    "dailyReport": "Daily Report",
+    "aiConstitution": "AI Constitution"
   }
 }
