@@ -375,13 +375,68 @@ export default function Landing() {
           <AtlantisOrb x="10%" y="15%" size={500} color={`${C.teal}28`} delay={0} />
           <AtlantisOrb x="65%" y="5%" size={600} color={`${C.indigo}1e`} delay={2} />
           <AtlantisOrb x="80%" y="55%" size={400} color={`${C.teal}20`} delay={4} />
-          {/* Atlantis grid pattern */}
+          {/* ── Atlantis grid — výrazné linie ── */}
           <div className="absolute inset-0" style={{
-            backgroundImage: `linear-gradient(${C.teal}0a 1px, transparent 1px), linear-gradient(90deg, ${C.teal}0a 1px, transparent 1px)`,
+            backgroundImage: `linear-gradient(${C.teal}30 1px, transparent 1px), linear-gradient(90deg, ${C.teal}30 1px, transparent 1px)`,
             backgroundSize: "64px 64px",
           }} />
+          {/* Tečky na průsečících */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: `radial-gradient(circle, ${C.teal}45 1.5px, transparent 1.5px)`,
+            backgroundSize: "64px 64px",
+            backgroundPosition: "0px 0px",
+          }} />
+
+          {/* ── Donut rings — velký dekorativní kruh ── */}
+          {/* Outer ring */}
+          <div className="absolute" style={{
+            left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "min(1080px, 150vw)", height: "min(1080px, 150vw)",
+            borderRadius: "50%",
+            border: `1px solid ${C.teal}18`,
+            pointerEvents: "none",
+          }} />
+          {/* Main donut ring */}
+          <div className="absolute" style={{
+            left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "min(860px, 120vw)", height: "min(860px, 120vw)",
+            borderRadius: "50%",
+            border: `2px solid ${C.teal}35`,
+            boxShadow: `0 0 40px ${C.teal}12, inset 0 0 40px ${C.teal}06`,
+            pointerEvents: "none",
+          }} />
+          {/* Inner ring */}
+          <div className="absolute" style={{
+            left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "min(640px, 90vw)", height: "min(640px, 90vw)",
+            borderRadius: "50%",
+            border: `1px solid ${C.indigo}28`,
+            pointerEvents: "none",
+          }} />
+          {/* Innermost ring */}
+          <div className="absolute" style={{
+            left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "min(420px, 60vw)", height: "min(420px, 60vw)",
+            borderRadius: "50%",
+            border: `1px dashed ${C.teal}22`,
+            pointerEvents: "none",
+          }} />
+          {/* Donut arc glow — top arc highlight */}
+          <div className="absolute" style={{
+            left: "50%", top: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "min(860px, 120vw)", height: "min(860px, 120vw)",
+            borderRadius: "50%",
+            background: `conic-gradient(from 200deg, transparent 0deg, ${C.teal}22 40deg, ${C.indigo}18 80deg, transparent 120deg, transparent 360deg)`,
+            pointerEvents: "none",
+          }} />
+
           {/* Hexagonal Ancient tech pattern — top right */}
-          <svg className="absolute top-0 right-0 w-96 h-96 opacity-[0.04]" viewBox="0 0 400 400" fill="none">
+          <svg className="absolute top-0 right-0 w-96 h-96 opacity-[0.07]" viewBox="0 0 400 400" fill="none">
             {[0, 1, 2, 3].map(row => [0, 1, 2, 3].map(col => {
               const x = col * 80 + (row % 2) * 40;
               const y = row * 70;
