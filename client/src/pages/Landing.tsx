@@ -425,15 +425,36 @@ export default function Landing() {
             border: `1px dashed ${C.teal}22`,
             pointerEvents: "none",
           }} />
-          {/* Donut arc glow — top arc highlight */}
-          <div className="absolute" style={{
-            left: "50%", top: "50%",
-            transform: "translate(-50%, -50%)",
-            width: "min(860px, 120vw)", height: "min(860px, 120vw)",
-            borderRadius: "50%",
-            background: `conic-gradient(from 200deg, transparent 0deg, ${C.teal}22 40deg, ${C.indigo}18 80deg, transparent 120deg, transparent 360deg)`,
-            pointerEvents: "none",
-          }} />
+          {/* Donut arc glow — rotating arc highlight */}
+          <motion.div
+            className="absolute"
+            style={{
+              left: "50%", top: "50%",
+              marginLeft: "calc(min(860px, 120vw) / -2)",
+              marginTop: "calc(min(860px, 120vw) / -2)",
+              width: "min(860px, 120vw)", height: "min(860px, 120vw)",
+              borderRadius: "50%",
+              background: `conic-gradient(from 0deg, transparent 0deg, ${C.teal}28 45deg, ${C.indigo}22 90deg, transparent 135deg, transparent 360deg)`,
+              pointerEvents: "none",
+            }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+          />
+          {/* Second counter-rotating arc — slower, opposite direction */}
+          <motion.div
+            className="absolute"
+            style={{
+              left: "50%", top: "50%",
+              marginLeft: "calc(min(860px, 120vw) / -2)",
+              marginTop: "calc(min(860px, 120vw) / -2)",
+              width: "min(860px, 120vw)", height: "min(860px, 120vw)",
+              borderRadius: "50%",
+              background: `conic-gradient(from 180deg, transparent 0deg, ${C.indigo}14 30deg, ${C.teal}10 60deg, transparent 90deg, transparent 360deg)`,
+              pointerEvents: "none",
+            }}
+            animate={{ rotate: -360 }}
+            transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+          />
 
           {/* Hexagonal Ancient tech pattern — top right */}
           <svg className="absolute top-0 right-0 w-96 h-96 opacity-[0.07]" viewBox="0 0 400 400" fill="none">
