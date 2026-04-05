@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
 import UrgencyBanner from "@/components/UrgencyBanner";
 import SocialProofCounter from "@/components/SocialProofCounter";
+import SmartPopup from "@/components/SmartPopup";
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -300,6 +301,7 @@ export default function Landing() {
     <div className="min-h-screen overflow-x-hidden" style={{ background: C.bg, color: C.text }}>
       {/* ── Sales Conversion Components ─────────────────────────────────────── */}
       <ExitIntentPopup enabled={true} />
+      <SmartPopup delay={30000} caseStudiesSectionId="case-studies" />
       {/* ── Urgency Banner ──────────────────────────────────────────────────── */}
       <div className="fixed top-0 left-0 right-0 z-[60]">
         <UrgencyBanner />

@@ -586,6 +586,6 @@
 - [ ] Order Bump component — one-click add-on at checkout (e.g., "Add Onboarding Call +€99")
 - [ ] Funnel Progress Indicator — visual step tracker on pricing/signup flow
 - [ ] Abandoned Lead Recovery — email sequence triggered when user starts signup but doesn't complete
-- [ ] Smart Popup — behavior-triggered popup after 30s on Landing page (different from exit-intent)
+- [x] Smart Popup — behavior-triggered popup after 30s on Landing page (different from exit-intent)
 - [ ] Testimonial Rotator — auto-rotating social proof with real metrics on Landing page
 - [ ] One-Click Upsell — post-signup upsell offer page (upgrade to higher tier)
