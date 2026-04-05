@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import ExitIntentPopup from "@/components/ExitIntentPopup";
+import UrgencyBanner from "@/components/UrgencyBanner";
+import SocialProofCounter from "@/components/SocialProofCounter";
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -295,6 +298,12 @@ export default function Landing() {
 
   return (
     <div className="min-h-screen overflow-x-hidden" style={{ background: C.bg, color: C.text }}>
+      {/* ── Sales Conversion Components ─────────────────────────────────────── */}
+      <ExitIntentPopup enabled={true} />
+      {/* ── Urgency Banner ──────────────────────────────────────────────────── */}
+      <div className="fixed top-0 left-0 right-0 z-[60]">
+        <UrgencyBanner />
+      </div>
 
       {/* ── Floating Nav ─────────────────────────────────────────────────────── */}
       <motion.nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
@@ -583,6 +592,12 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── Social Proof Live Counter ─────────────────────────────────────── */}
+      <section className="py-16 px-4 sm:px-6" style={{ background: C.bgDark }}>
+        <div className="max-w-5xl mx-auto">
+          <SocialProofCounter />
+        </div>
+      </section>
       {/* ── How It Works ─────────────────────────────────────────────────────── */}
       <section id="how-it-works" className="py-24 px-4 sm:px-6" style={{ background: C.bg }}>
         <div className="max-w-6xl mx-auto">

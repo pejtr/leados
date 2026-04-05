@@ -577,3 +577,15 @@
 - [ ] Add route /settings/ai-constitution to App.tsx
 - [ ] Add sidebar nav entry in DashboardLayout
 - [ ] Wire constitution context into invokeLLM calls across platform
+
+## Sales Strategy Features (from DeepSleepReset 100k project)
+- [x] Exit-Intent Popup — lead capture with email opt-in when user tries to leave Landing page
+- [x] Social Proof Live Counter — animated counter "X companies using LeadOS" on Landing page
+- [ ] Pre-checkout Wait Popup — swipeable add-ons with live total counter before checkout
+- [x] Urgency/Scarcity Banner — countdown timer for limited offers on pricing section
+- [ ] Order Bump component — one-click add-on at checkout (e.g., "Add Onboarding Call +€99")
+- [ ] Funnel Progress Indicator — visual step tracker on pricing/signup flow
+- [ ] Abandoned Lead Recovery — email sequence triggered when user starts signup but doesn't complete
+- [ ] Smart Popup — behavior-triggered popup after 30s on Landing page (different from exit-intent)
+- [ ] Testimonial Rotator — auto-rotating social proof with real metrics on Landing page
+- [ ] One-Click Upsell — post-signup upsell offer page (upgrade to higher tier)
