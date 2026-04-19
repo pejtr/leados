@@ -1089,6 +1089,11 @@ export const brainAnalyses = mysqlTable("brain_analyses", {
   growthHacker: text("growthHacker"),
   // Synthesized master report
   masterReport: text("masterReport"),
+  // Advocate + Skeptic confidence scoring
+  confidenceScore: int("confidenceScore"),           // 0-100 composite score
+  advocateAnalysis: text("advocateAnalysis"),         // Advocate LLM output
+  skepticAnalysis: text("skepticAnalysis"),           // Skeptic LLM output
+  confidenceReasoning: text("confidenceReasoning"),   // Short explanation of the score
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   completedAt: timestamp("completedAt"),
 });

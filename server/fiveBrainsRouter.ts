@@ -141,6 +141,115 @@ Buď konkrétní, syntetizuj konflikty mezi experty, maximálně 800 slov.${cons
   }
 }
 
+// ─── Helper: Advocate + Skeptic confidence check ───────────────────────────
+
+interface ConfidenceResult {
+  score: number;          // 0-100
+  advocateAnalysis: string;
+  skepticAnalysis: string;
+  reasoning: string;
+}
+
+async function runConfidenceCheck(
+  contextData: string,
+  masterReport: string,
+  constitutionContext: string
+): Promise<ConfidenceResult> {
+  try {
+    const constitutionNote = constitutionContext
+      ? `\n\nFiremní kontext (AI Ústava):\n${constitutionContext}`
+      : "";
+
+    const [advocateRaw, skepticRaw] = await Promise.all([
+      // Advocate — finds strengths, confirms validity
+      invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `Jsi Advokát — tvůj úkol je najít silné stránky a potvrdit platnost analýzy.
+Hledej: správné předpoklady, realistické závěry, dobré nápady, konzistentnost s tržními daty.
+Výstup: JSON objekt { "score": <0-100>, "strengths": ["...", "...", "..."], "summary": "..." }
+Score 80-100 = velmi solidní analýza, 60-79 = dobrá s drobnými mezerami, 40-59 = průměrná, 0-39 = slabá.${constitutionNote}`,
+          },
+          {
+            role: "user",
+            content: `Kontext: ${contextData.slice(0, 1500)}\n\nMaster Report:\n${masterReport.slice(0, 2000)}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "advocate_result",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                score: { type: "integer", description: "0-100 confidence score" },
+                strengths: { type: "array", items: { type: "string" }, description: "Key strengths found" },
+                summary: { type: "string", description: "Brief advocate summary" },
+              },
+              required: ["score", "strengths", "summary"],
+              additionalProperties: false,
+            },
+          },
+        },
+      }),
+      // Skeptic — finds weaknesses, challenges assumptions
+      invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `Jsi Skeptik — tvůj úkol je najít slabiny, zpochybnit předpoklady a odhalit slepá místa.
+Hledej: nerealistické předpoklady, chybějící rizika, přehlédnuté konkurenty, slabé datové základy, logické chyby.
+Výstup: JSON objekt { "score": <0-100>, "weaknesses": ["...", "...", "..."], "summary": "..." }
+Score 80-100 = analýza nemá zásadní slabiny, 60-79 = drobné mezery, 40-59 = výrazné problémy, 0-39 = zásadní chyby.${constitutionNote}`,
+          },
+          {
+            role: "user",
+            content: `Kontext: ${contextData.slice(0, 1500)}\n\nMaster Report:\n${masterReport.slice(0, 2000)}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "skeptic_result",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                score: { type: "integer", description: "0-100 confidence score" },
+                weaknesses: { type: "array", items: { type: "string" }, description: "Key weaknesses found" },
+                summary: { type: "string", description: "Brief skeptic summary" },
+              },
+              required: ["score", "weaknesses", "summary"],
+              additionalProperties: false,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const advocateContent = (advocateRaw as any)?.choices?.[0]?.message?.content || "{}";
+    const skepticContent = (skepticRaw as any)?.choices?.[0]?.message?.content || "{}";
+
+    const advocate = JSON.parse(typeof advocateContent === "string" ? advocateContent : JSON.stringify(advocateContent));
+    const skeptic = JSON.parse(typeof skepticContent === "string" ? skepticContent : JSON.stringify(skepticContent));
+
+    const advocateScore = Math.min(100, Math.max(0, Number(advocate.score) || 70));
+    const skepticScore = Math.min(100, Math.max(0, Number(skeptic.score) || 70));
+    const compositeScore = Math.round((advocateScore * 0.45) + (skepticScore * 0.55));
+
+    const advocateText = `**Advokát (${advocateScore}/100):**\n${advocate.summary || ""}\n\n**Silné stránky:**\n${(advocate.strengths || []).map((s: string) => `• ${s}`).join("\n")}`;
+    const skepticText = `**Skeptik (${skepticScore}/100):**\n${skeptic.summary || ""}\n\n**Slabiny:**\n${(skeptic.weaknesses || []).map((w: string) => `• ${w}`).join("\n")}`;
+    const reasoning = `Advokát: ${advocateScore}/100 | Skeptik: ${skepticScore}/100 → Kompozitní skóre: ${compositeScore}/100`;
+
+    return { score: compositeScore, advocateAnalysis: advocateText, skepticAnalysis: skepticText, reasoning };
+  } catch (err: any) {
+    console.error("[5Brains] Confidence check failed:", err?.message);
+    return { score: 72, advocateAnalysis: "Analýza nedostupná.", skepticAnalysis: "Analýza nedostupná.", reasoning: "Výchozí skóre (chyba při výpočtu)" };
+  }
+}
+
 // ─── Router ──────────────────────────────────────────────────────────────────
 
 export const fiveBrainsRouter = router({
@@ -219,6 +328,9 @@ export const fiveBrainsRouter = router({
             growthHacker: gh,
           }, constitutionContext);
 
+          // Run Advocate + Skeptic confidence check in parallel with DB update
+          const confidence = await runConfidenceCheck(input.contextData, masterReport, constitutionContext);
+
           await db
             .update(brainAnalyses)
             .set({
@@ -229,6 +341,10 @@ export const fiveBrainsRouter = router({
               technicalPurist: tp,
               growthHacker: gh,
               masterReport,
+              confidenceScore: confidence.score,
+              advocateAnalysis: confidence.advocateAnalysis,
+              skepticAnalysis: confidence.skepticAnalysis,
+              confidenceReasoning: confidence.reasoning,
               completedAt: new Date(),
             })
             .where(eq(brainAnalyses.id, analysisId));
