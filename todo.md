@@ -590,3 +590,11 @@
 - [ ] Testimonial Rotator — auto-rotating social proof with real metrics on Landing page
 - [ ] One-Click Upsell — post-signup upsell offer page (upgrade to higher tier)
 - [x] Inject getConstitutionContext() into all 5 Brains system prompts (callExpert + synthesizeMasterReport)
+
+## Lead Capture Backend (from DeepSleepReset playbook)
+- [x] captured_leads DB table created
+- [x] leadsRouter (capturedLeads) with captureEmail, list, stats procedures
+- [x] ExitIntentPopup wired to capturedLeads.captureEmail tRPC mutation
+- [x] Welcome email via LLM + owner notification on new lead capture
+- [x] FunnelProgressIndicator component with animated steps and connector lines
+- [x] FunnelProgressIndicator integrated into Pricing section of Landing page

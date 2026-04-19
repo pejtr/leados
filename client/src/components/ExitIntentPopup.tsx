@@ -4,6 +4,7 @@ import { X, Zap, ArrowRight, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { trpc } from "@/lib/trpc";
 
 interface ExitIntentPopupProps {
   enabled?: boolean;
@@ -14,6 +15,9 @@ export default function ExitIntentPopup({ enabled = true }: ExitIntentPopupProps
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const captureEmail = trpc.capturedLeads.captureEmail.useMutation();
 
   const handleMouseLeave = useCallback(
     (e: MouseEvent) => {
@@ -41,15 +45,33 @@ export default function ExitIntentPopup({ enabled = true }: ExitIntentPopupProps
     };
   }, [enabled, handleMouseLeave]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes("@")) {
       toast.error("Zadejte platnou emailovou adresu");
       return;
     }
-    // In production, this would call a tRPC mutation to save the email
-    setSubmitted(true);
-    toast.success("Výborně! Pošleme vám průvodce na " + email);
+    setIsLoading(true);
+    try {
+      const result = await captureEmail.mutateAsync({
+        email,
+        source: "exit_intent",
+        pageUrl: window.location.href,
+        utmSource: new URLSearchParams(window.location.search).get("utm_source") ?? undefined,
+        utmMedium: new URLSearchParams(window.location.search).get("utm_medium") ?? undefined,
+        utmCampaign: new URLSearchParams(window.location.search).get("utm_campaign") ?? undefined,
+      });
+      setSubmitted(true);
+      if (result.alreadyCaptured) {
+        toast.info(result.message);
+      } else {
+        toast.success("Průvodce je na cestě! Zkontrolujte inbox.");
+      }
+    } catch (err: any) {
+      toast.error("Nepodařilo se odeslat. Zkuste to znovu.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
@@ -182,14 +204,16 @@ export default function ExitIntentPopup({ enabled = true }: ExitIntentPopupProps
                       />
                       <Button
                         type="submit"
+                        disabled={isLoading}
                         className="shrink-0 font-semibold gap-1.5"
                         style={{
                           background: "linear-gradient(135deg, #00D4C8, #6B4FE8)",
                           border: "none",
                           color: "white",
+                          opacity: isLoading ? 0.7 : 1,
                         }}
                       >
-                        Stáhnout <ArrowRight size={14} />
+                        {isLoading ? "Odesílám..." : <>{"Stáhnout"} <ArrowRight size={14} /></>}
                       </Button>
                     </form>
 

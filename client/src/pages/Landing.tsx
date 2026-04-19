@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import ExitIntentPopup from "@/components/ExitIntentPopup";
+import FunnelProgressIndicator from "@/components/FunnelProgressIndicator";
 import UrgencyBanner from "@/components/UrgencyBanner";
 import SocialProofCounter from "@/components/SocialProofCounter";
 import SmartPopup from "@/components/SmartPopup";
@@ -880,6 +881,17 @@ export default function Landing() {
                 {t("landing.pricingTitle") || "Simple, Transparent Pricing"}
               </h2>
               <p className="text-lg" style={{ color: C.textMuted }}>{t("landing.pricingSubtitle") || "Start free. Scale as you grow."}</p>
+              <div className="mt-8 flex justify-center">
+                <FunnelProgressIndicator
+                  steps={[
+                    { id: 1, label: "Choose Plan", sublabel: "Pick your tier" },
+                    { id: 2, label: "Create Account", sublabel: "30 seconds" },
+                    { id: 3, label: "Start Free Trial", sublabel: "No card needed" },
+                  ]}
+                  currentStep={1}
+                  className="max-w-sm"
+                />
+              </div>
             </div>
           </Reveal>
 
