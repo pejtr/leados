@@ -589,3 +589,4 @@
 - [x] Smart Popup — behavior-triggered popup after 30s on Landing page (different from exit-intent)
 - [ ] Testimonial Rotator — auto-rotating social proof with real metrics on Landing page
 - [ ] One-Click Upsell — post-signup upsell offer page (upgrade to higher tier)
+- [x] Inject getConstitutionContext() into all 5 Brains system prompts (callExpert + synthesizeMasterReport)

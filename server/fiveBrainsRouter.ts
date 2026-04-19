@@ -18,6 +18,7 @@ import { getDb } from "./db";
 import { brainAnalyses } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { invokeLLM } from "./_core/llm";
+import { getConstitutionContext } from "./routers/constitution";
 
 // ─── Expert Definitions ──────────────────────────────────────────────────────
 
@@ -78,12 +79,18 @@ Výstup: Akční growth plán v češtině (markdown), max 600 slov. Buď konkr�
 
 async function callExpert(
   expert: (typeof EXPERTS)[number],
-  contextSummary: string
+  contextSummary: string,
+  constitutionContext: string
 ): Promise<string> {
   try {
+    // Prepend AI Constitution context to the expert's system prompt if available
+    const systemContent = constitutionContext
+      ? `${expert.systemPrompt}\n\n${constitutionContext}`
+      : expert.systemPrompt;
+
     const result = await invokeLLM({
       messages: [
-        { role: "system", content: expert.systemPrompt },
+        { role: "system", content: systemContent },
         {
           role: "user",
           content: `## Kontext k analýze\n\n${contextSummary}\n\nProsím analyzuj tento kontext ze své expertní perspektivy.`,
@@ -100,7 +107,8 @@ async function callExpert(
 
 async function synthesizeMasterReport(
   contextSummary: string,
-  expertOutputs: Record<string, string>
+  expertOutputs: Record<string, string>,
+  constitutionContext: string
 ): Promise<string> {
   const expertsText = EXPERTS.map(
     (e) => `### ${e.emoji} ${e.name}\n${expertOutputs[e.key] || "N/A"}`
@@ -119,7 +127,7 @@ Vytvoř strukturovaný master report v češtině (markdown) s těmito sekcemi:
 4. **Doporučené priority** (seřazené akce, numbered list)
 5. **Multispektrální skóre** (tabulka: dimenze | skóre 1-10 | zdůvodnění)
 6. **Závěr** (1 odstavec)
-Buď konkrétní, syntetizuj konflikty mezi experty, maximálně 800 slov.`,
+Buď konkrétní, syntetizuj konflikty mezi experty, maximálně 800 slov.${constitutionContext ? `\n\n${constitutionContext}` : ""}`,
         },
         {
           role: "user",
@@ -186,15 +194,21 @@ export const fiveBrainsRouter = router({
 
       const analysisId = (inserted as any).insertId as number;
 
+      // Fetch AI Constitution context once for this user (injected into all 5 brains)
+      const constitutionContext = await getConstitutionContext(String(ctx.user.id));
+      if (constitutionContext) {
+        console.log(`[5Brains] AI Constitution context loaded for user ${ctx.user.id} (${constitutionContext.length} chars)`);
+      }
+
       // Run all 5 experts in parallel (fire-and-forget, update DB when done)
       (async () => {
         try {
           const [pa, cv, ci, tp, gh] = await Promise.all([
-            callExpert(EXPERTS[0], input.contextData),
-            callExpert(EXPERTS[1], input.contextData),
-            callExpert(EXPERTS[2], input.contextData),
-            callExpert(EXPERTS[3], input.contextData),
-            callExpert(EXPERTS[4], input.contextData),
+            callExpert(EXPERTS[0], input.contextData, constitutionContext),
+            callExpert(EXPERTS[1], input.contextData, constitutionContext),
+            callExpert(EXPERTS[2], input.contextData, constitutionContext),
+            callExpert(EXPERTS[3], input.contextData, constitutionContext),
+            callExpert(EXPERTS[4], input.contextData, constitutionContext),
           ]);
 
           const masterReport = await synthesizeMasterReport(input.contextData, {
@@ -203,7 +217,7 @@ export const fiveBrainsRouter = router({
             criticalInvestor: ci,
             technicalPurist: tp,
             growthHacker: gh,
-          });
+          }, constitutionContext);
 
           await db
             .update(brainAnalyses)
