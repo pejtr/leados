@@ -318,6 +318,146 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
       .limit(20);
   }),
 
+  // ── HERMES-powered AI Chat (drop-in replacement for aiChat.sendMessage) ────
+  aiChat: protectedProcedure
+    .input(
+      z.object({
+        message: z.string().min(1).max(4000),
+        personaId: z.string().optional(), // kept for UI compat, HERMES overrides
+        conversationHistory: z
+          .array(z.object({ role: z.string(), content: z.string() }))
+          .default([]),
+        hermesMode: z.boolean().default(true),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const platformContext = await buildPlatformContext(ctx.user.id);
+
+      if (!input.hermesMode) {
+        // Fallback: direct LLM without HERMES routing
+        const { invokeLLM } = await import("./_core/llm");
+        const { getPersonaById, DEFAULT_PERSONA_ID } = await import("./aiPersonas");
+        const persona = getPersonaById(input.personaId ?? DEFAULT_PERSONA_ID);
+        const systemPrompt = persona
+          ? persona.systemPrompt(platformContext)
+          : `You are an autonomous AI sales assistant.\n${platformContext}`;
+        const messages: any[] = [
+          { role: "system", content: systemPrompt },
+          ...input.conversationHistory.slice(-10),
+          { role: "user", content: input.message },
+        ];
+        const response = await invokeLLM({ messages });
+        const content = response.choices[0].message.content ?? "No response.";
+        return {
+          content,
+          role: "assistant" as const,
+          hermesMode: false,
+          intent: "general",
+          agentsUsed: [] as string[],
+          routingDecision: "Direct LLM (HERMES mode off)",
+          activeAgent: null as null | { name: string; emoji: string; color: string },
+          stats: { totalLeads: 0, closedDeals: 0, revenue: 0 },
+        };
+      }
+
+      // HERMES orchestration path
+      const result = await hermesChat({
+        userMessage: input.message,
+        conversationHistory: input.conversationHistory,
+        platformContext,
+        userId: ctx.user.id,
+      });
+
+      // Resolve active sub-agent info for UI
+      const primaryAgent = result.agentsUsed[0];
+      const agentInfo = primaryAgent ? SUB_AGENT_PERSONAS[primaryAgent] : null;
+
+      // Persist to HERMES messages (best-effort, no session required)
+      try {
+        const db = await getDb();
+        if (db) {
+          // Find or create a "widget" session for this user
+          const existing = await db
+            .select()
+            .from(hermesSessions)
+            .where(and(eq(hermesSessions.userId, ctx.user.id), eq(hermesSessions.intent, "widget")))
+            .orderBy(desc(hermesSessions.lastActivity))
+            .limit(1);
+
+          let sessionId: number;
+          if (existing[0]) {
+            sessionId = existing[0].id;
+          } else {
+            await db.insert(hermesSessions).values({
+              userId: ctx.user.id,
+              sessionName: "AI Chat Widget",
+              intent: "widget",
+              status: "active",
+              messageCount: 0,
+              subAgentsUsed: [],
+              lastActivity: Date.now(),
+              createdAt: Date.now(),
+            });
+            const created = await db
+              .select()
+              .from(hermesSessions)
+              .where(and(eq(hermesSessions.userId, ctx.user.id), eq(hermesSessions.intent, "widget")))
+              .orderBy(desc(hermesSessions.createdAt))
+              .limit(1);
+            sessionId = created[0].id;
+          }
+
+          await Promise.all([
+            db.insert(hermesMessages).values({
+              sessionId,
+              userId: ctx.user.id,
+              role: "user",
+              content: input.message,
+              createdAt: Date.now(),
+            }),
+            db.insert(hermesMessages).values({
+              sessionId,
+              userId: ctx.user.id,
+              role: "hermes",
+              agentName: agentInfo?.name ?? "HERMES",
+              content: result.content,
+              metadata: {
+                intent: result.intent,
+                agentsUsed: result.agentsUsed,
+                routingDecision: result.routingDecision,
+              },
+              createdAt: Date.now() + 1,
+            }),
+          ]);
+
+          await db
+            .update(hermesSessions)
+            .set({
+              intent: result.intent === "widget" ? "widget" : result.intent,
+              messageCount: (existing[0]?.messageCount ?? 0) + 1,
+              subAgentsUsed: result.agentsUsed,
+              lastActivity: Date.now(),
+            })
+            .where(eq(hermesSessions.id, sessionId));
+        }
+      } catch {
+        // Non-fatal: message persistence failure should not break the chat
+      }
+
+      return {
+        content: result.content,
+        role: "assistant" as const,
+        hermesMode: true,
+        intent: result.intent,
+        agentsUsed: result.agentsUsed,
+        routingDecision: result.routingDecision,
+        activeAgent: agentInfo
+          ? { name: agentInfo.name, emoji: agentInfo.emoji, color: agentInfo.color }
+          : null,
+        stats: { totalLeads: 0, closedDeals: 0, revenue: 0 },
+      };
+    }),
+
   // ── Get HERMES platform status ────────────────────────────────────────────
   getStatus: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();

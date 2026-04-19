@@ -5,11 +5,12 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import {
   MessageCircle, X, Minimize2, Maximize2, Send, Loader2,
   Sparkles, User, ChevronLeft, Trash2, Brain, Heart, History,
-  Mic, MicOff, ThumbsUp, ThumbsDown,
+  Mic, MicOff, ThumbsUp, ThumbsDown, Zap, Shield,
 } from "lucide-react";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
@@ -31,6 +32,11 @@ interface Persona {
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  // HERMES metadata (optional)
+  hermesIntent?: string;
+  hermesAgentsUsed?: string[];
+  hermesActiveAgent?: { name: string; emoji: string; color: string } | null;
+  hermesMode?: boolean;
 }
 
 const SUGGESTED_PROMPTS = [
@@ -54,6 +60,20 @@ const CATEGORY_EMOJIS: Record<PersonaCategory, string> = {
   "Favorites": "❤️",
 };
 
+// Intent → display label + color
+const INTENT_LABELS: Record<string, { label: string; color: string }> = {
+  pipeline_analysis: { label: "Pipeline Analysis", color: "text-blue-400" },
+  lead_generation: { label: "Lead Gen", color: "text-emerald-400" },
+  outreach_strategy: { label: "Outreach", color: "text-violet-400" },
+  market_research: { label: "Market Research", color: "text-amber-400" },
+  competitive_intel: { label: "Competitive Intel", color: "text-orange-400" },
+  copywriting: { label: "Copywriting", color: "text-pink-400" },
+  sdr_coaching: { label: "SDR Coaching", color: "text-cyan-400" },
+  security_audit: { label: "NINJA BOT ⚡", color: "text-red-400" },
+  general: { label: "General", color: "text-muted-foreground" },
+  widget: { label: "Chat", color: "text-muted-foreground" },
+};
+
 export default function AIChatWidget() {
   const [, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
@@ -64,12 +84,15 @@ export default function AIChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [hermesMode, setHermesMode] = useState(true); // HERMES orchestration ON by default
+  const [lastHermesAgent, setLastHermesAgent] = useState<{ name: string; emoji: string; color: string } | null>(null);
+  const [lastIntent, setLastIntent] = useState<string>("general");
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported] = useState(() => typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window));
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const [ratings, setRatings] = useState<Record<number, "up" | "down">>({}); // index → rating
+  const [ratings, setRatings] = useState<Record<number, "up" | "down">>({});
 
   const { data: personas, isLoading: personasLoading } = trpc.aiChat.getPersonas.useQuery(undefined, {
     staleTime: Infinity,
@@ -79,6 +102,9 @@ export default function AIChatWidget() {
     staleTime: 30_000,
   });
 
+  // HERMES-powered chat mutation (primary path)
+  const hermesChatMutation = trpc.hermes.aiChat.useMutation();
+  // Legacy direct mutation (fallback when HERMES mode is off)
   const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
   const clearHistoryMutation = trpc.aiChat.clear.useMutation();
   const toggleFavoriteMutation = trpc.aiChat.toggleFavorite.useMutation();
@@ -86,10 +112,13 @@ export default function AIChatWidget() {
 
   const favoriteSet = new Set(favoriteIds);
 
-  const categorizedPersonas =
-    activeCategory === "Favorites"
-      ? (personas ?? []).filter((p) => favoriteSet.has(p.id))
-      : (personas ?? []).filter((p) => p.category === activeCategory);
+  const categorizedPersonas = useMemo(
+    () =>
+      activeCategory === "Favorites"
+        ? (personas ?? []).filter((p) => favoriteSet.has(p.id))
+        : (personas ?? []).filter((p) => p.category === activeCategory),
+    [personas, favoriteSet, activeCategory]
+  );
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -100,6 +129,13 @@ export default function AIChatWidget() {
 
   const handleSelectPersona = useCallback((persona: Persona) => {
     setSelectedPersona(persona);
+    setMessages([]);
+    setView("chat");
+  }, []);
+
+  // Direct HERMES chat (no persona required) — opens chat directly
+  const handleOpenHermesChat = useCallback(() => {
+    setSelectedPersona(null);
     setMessages([]);
     setView("chat");
   }, []);
@@ -125,23 +161,57 @@ export default function AIChatWidget() {
     const newMessages: ChatMessage[] = [...messages, { role: "user", content: userMessage }];
     setMessages(newMessages);
     setIsLoading(true);
+
     try {
-      const result = await sendMessageMutation.mutateAsync({
-        message: userMessage,
-        personaId: selectedPersona?.id,
-        conversationHistory: newMessages.slice(-10).map((m) => ({
-          role: m.role,
-          content: m.content,
-        })),
-      });
-      setMessages((prev) => [...prev, { role: "assistant", content: result.content }]);
+      if (hermesMode) {
+        // ── HERMES orchestration path ──────────────────────────────────────
+        const result = await hermesChatMutation.mutateAsync({
+          message: userMessage,
+          personaId: selectedPersona?.id,
+          conversationHistory: newMessages.slice(-10).map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+          hermesMode: true,
+        });
+
+        // Update HERMES state indicators
+        if (result.activeAgent) setLastHermesAgent(result.activeAgent);
+        if (result.intent) setLastIntent(result.intent);
+
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            content: result.content,
+            hermesMode: true,
+            hermesIntent: result.intent,
+            hermesAgentsUsed: result.agentsUsed,
+            hermesActiveAgent: result.activeAgent,
+          },
+        ]);
+      } else {
+        // ── Legacy direct path ─────────────────────────────────────────────
+        const result = await sendMessageMutation.mutateAsync({
+          message: userMessage,
+          personaId: selectedPersona?.id,
+          conversationHistory: newMessages.slice(-10).map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        });
+        setMessages((prev) => [
+          ...prev,
+          { role: "assistant", content: result.content, hermesMode: false },
+        ]);
+      }
     } catch {
       toast.error("Failed to get response. Please try again.");
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, messages, selectedPersona, sendMessageMutation]);
+  }, [input, isLoading, messages, selectedPersona, hermesMode, hermesChatMutation, sendMessageMutation]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -156,6 +226,8 @@ export default function AIChatWidget() {
   const handleClearChat = useCallback(async () => {
     setMessages([]);
     setRatings({});
+    setLastHermesAgent(null);
+    setLastIntent("general");
     try {
       await clearHistoryMutation.mutateAsync();
     } catch {
@@ -218,6 +290,9 @@ export default function AIChatWidget() {
   const widgetWidth = isMaximized ? "w-[600px]" : "w-[380px]";
   const widgetHeight = isMaximized ? "h-[680px]" : "h-[520px]";
 
+  // Intent display info
+  const intentInfo = INTENT_LABELS[lastIntent] ?? INTENT_LABELS.general;
+
   if (!isOpen) {
     return (
       <button
@@ -226,7 +301,9 @@ export default function AIChatWidget() {
         aria-label="Open AI Assistant"
       >
         <Sparkles className="h-5 w-5" />
-        <span className="text-sm font-semibold hidden sm:block">Chat Agent</span>
+        <span className="text-sm font-semibold hidden sm:block">
+          {hermesMode ? "HERMES" : "Chat Agent"}
+        </span>
       </button>
     );
   }
@@ -236,13 +313,17 @@ export default function AIChatWidget() {
       className={cn(
         "fixed bottom-6 right-6 z-50 flex flex-col rounded-2xl border border-border bg-background shadow-2xl overflow-hidden transition-all duration-200",
         widgetWidth,
-        widgetHeight
+        widgetHeight,
+        hermesMode && "border-primary/30"
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-card border-b border-border shrink-0">
+      <div className={cn(
+        "flex items-center justify-between px-4 py-3 border-b border-border shrink-0",
+        hermesMode ? "bg-gradient-to-r from-primary/10 via-card to-card" : "bg-card"
+      )}>
         <div className="flex items-center gap-2 min-w-0">
-          {view === "chat" && selectedPersona && (
+          {view === "chat" && (
             <button
               onClick={() => setView("personas")}
               className="p-1 rounded-md hover:bg-accent transition-colors shrink-0"
@@ -251,27 +332,85 @@ export default function AIChatWidget() {
               <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </button>
           )}
-          {view === "chat" && selectedPersona ? (
+          {view === "chat" ? (
             <div className="flex items-center gap-2 min-w-0">
-              <span className="text-xl shrink-0">{selectedPersona.emoji}</span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground truncate">{selectedPersona.name}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{selectedPersona.title}</p>
-              </div>
+              {hermesMode ? (
+                <>
+                  <div className="h-7 w-7 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                    <Zap className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold text-foreground">HERMES</p>
+                      <Badge className="text-[9px] px-1 py-0 h-3.5 bg-primary/20 text-primary border-0 font-medium">
+                        CORE AI
+                      </Badge>
+                    </div>
+                    {/* Active sub-agent + intent indicator */}
+                    {lastHermesAgent ? (
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        <span>{lastHermesAgent.emoji}</span>{" "}
+                        <span>{lastHermesAgent.name}</span>
+                        {lastIntent !== "general" && lastIntent !== "widget" && (
+                          <span className={cn("ml-1 font-medium", intentInfo.color)}>
+                            · {intentInfo.label}
+                          </span>
+                        )}
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground">Orchestrating sub-agents</p>
+                    )}
+                  </div>
+                </>
+              ) : selectedPersona ? (
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-xl shrink-0">{selectedPersona.emoji}</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-foreground truncate">{selectedPersona.name}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{selectedPersona.title}</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Chat Agent</span>
+                </div>
+              )}
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Brain className="h-4 w-4 text-primary" />
+              <div className={cn(
+                "h-7 w-7 rounded-lg flex items-center justify-center",
+                hermesMode ? "bg-primary/20" : "bg-primary/10"
+              )}>
+                {hermesMode ? (
+                  <Zap className="h-4 w-4 text-primary" />
+                ) : (
+                  <Brain className="h-4 w-4 text-primary" />
+                )}
               </div>
-              <span className="text-sm font-semibold text-foreground">Chat Agent</span>
+              <span className="text-sm font-semibold text-foreground">
+                {hermesMode ? "HERMES Chat" : "Chat Agent"}
+              </span>
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
-                {personas?.length ?? 0} experts
+                {hermesMode ? "AI Orchestration" : `${personas?.length ?? 0} experts`}
               </Badge>
             </div>
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          {/* HERMES mode toggle */}
+          <div className="flex items-center gap-1 mr-1" title={hermesMode ? "HERMES mode ON" : "HERMES mode OFF"}>
+            <Shield className={cn("h-3 w-3", hermesMode ? "text-primary" : "text-muted-foreground/40")} />
+            <Switch
+              checked={hermesMode}
+              onCheckedChange={(v) => {
+                setHermesMode(v);
+                toast.success(v ? "HERMES orchestration enabled ⚡" : "Direct mode enabled");
+              }}
+              className="h-4 w-7 data-[state=checked]:bg-primary"
+            />
+          </div>
           {view === "chat" && messages.length > 0 && (
             <button
               onClick={handleClearChat}
@@ -316,8 +455,28 @@ export default function AIChatWidget() {
       {/* Persona Selector View */}
       {view === "personas" && (
         <div className="flex flex-col flex-1 min-h-0">
+          {/* HERMES direct chat CTA */}
+          {hermesMode && (
+            <button
+              onClick={handleOpenHermesChat}
+              className="mx-3 mt-3 flex items-center gap-3 p-3 rounded-xl border border-primary/30 bg-primary/5 hover:bg-primary/10 transition-colors text-left shrink-0"
+            >
+              <div className="h-9 w-9 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                <Zap className="h-5 w-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground">Chat with HERMES</p>
+                <p className="text-[10px] text-muted-foreground">Auto-routes to best sub-agent · Full orchestration</p>
+              </div>
+              <Sparkles className="h-4 w-4 text-primary/60 shrink-0 ml-auto" />
+            </button>
+          )}
+
           {/* Category Tabs */}
           <div className="px-3 pt-3 pb-2 shrink-0">
+            <p className="text-[10px] text-muted-foreground mb-2 font-medium uppercase tracking-wide">
+              {hermesMode ? "Or choose a specific expert persona:" : "Choose an expert:"}
+            </p>
             <Tabs
               value={activeCategory}
               onValueChange={(v) => setActiveCategory(v as PersonaCategory)}
@@ -408,7 +567,10 @@ export default function AIChatWidget() {
           {/* Footer hint */}
           <div className="px-3 py-2 border-t border-border shrink-0">
             <p className="text-[10px] text-muted-foreground text-center">
-              Select an expert · ♡ to pin favorites · <button onClick={() => { setIsOpen(false); setLocation("/chat-agent"); }} className="text-primary hover:underline">View history</button>
+              {hermesMode
+                ? "⚡ HERMES routes to best sub-agent automatically"
+                : "Select an expert · ♡ to pin favorites"}{" "}
+              · <button onClick={() => { setIsOpen(false); setLocation("/chat-agent"); }} className="text-primary hover:underline">View history</button>
             </p>
           </div>
         </div>
@@ -424,15 +586,32 @@ export default function AIChatWidget() {
           >
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full gap-4 py-4">
-                {selectedPersona && (
+                {hermesMode ? (
+                  <div className="text-center">
+                    <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3 border border-primary/20">
+                      <Zap className="h-7 w-7 text-primary" />
+                    </div>
+                    <p className="text-sm font-semibold text-foreground">HERMES</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Core AI Orchestration</p>
+                    <div className="flex flex-wrap gap-1 justify-center mt-2">
+                      {["🔍 Prospector", "✍️ Copywriter", "📊 Analyst", "🤝 SDR", "⚡ NINJA BOT"].map((a) => (
+                        <span key={a} className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary/80 font-medium">
+                          {a}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : selectedPersona ? (
                   <div className="text-center">
                     <div className="text-4xl mb-2">{selectedPersona.emoji}</div>
                     <p className="text-sm font-semibold text-foreground">{selectedPersona.name}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{selectedPersona.specialty}</p>
                   </div>
-                )}
+                ) : null}
                 <p className="text-xs text-muted-foreground text-center px-4">
-                  Ask me anything about your B2B lead generation strategy
+                  {hermesMode
+                    ? "HERMES will classify your intent and dispatch the best sub-agent"
+                    : "Ask me anything about your B2B lead generation strategy"}
                 </p>
                 <div className="flex flex-col gap-1.5 w-full">
                   {SUGGESTED_PROMPTS.map((prompt) => (
@@ -456,17 +635,38 @@ export default function AIChatWidget() {
                 )}
               >
                 {msg.role === "assistant" && (
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                    <span className="text-xs">{selectedPersona?.emoji ?? "🤖"}</span>
+                  <div className={cn(
+                    "h-6 w-6 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                    msg.hermesMode ? "bg-primary/20" : "bg-primary/10"
+                  )}>
+                    {msg.hermesMode ? (
+                      <Zap className="h-3 w-3 text-primary" />
+                    ) : (
+                      <span className="text-xs">{selectedPersona?.emoji ?? "🤖"}</span>
+                    )}
                   </div>
                 )}
                 <div className="flex flex-col gap-1 max-w-[85%]">
+                  {/* HERMES sub-agent badge */}
+                  {msg.role === "assistant" && msg.hermesMode && msg.hermesActiveAgent && (
+                    <div className="flex items-center gap-1 pl-0.5">
+                      <span className="text-[9px] text-muted-foreground">
+                        {msg.hermesActiveAgent.emoji} {msg.hermesActiveAgent.name}
+                      </span>
+                      {msg.hermesIntent && msg.hermesIntent !== "general" && msg.hermesIntent !== "widget" && (
+                        <span className={cn("text-[9px] font-medium", (INTENT_LABELS[msg.hermesIntent] ?? INTENT_LABELS.general).color)}>
+                          · {(INTENT_LABELS[msg.hermesIntent] ?? INTENT_LABELS.general).label}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <div
                     className={cn(
                       "rounded-xl px-3 py-2 text-sm",
                       msg.role === "user"
                         ? "bg-primary text-primary-foreground rounded-tr-sm"
-                        : "bg-muted text-foreground rounded-tl-sm"
+                        : "bg-muted text-foreground rounded-tl-sm",
+                      msg.role === "assistant" && msg.hermesMode && "border border-primary/10"
                     )}
                   >
                     {msg.role === "assistant" ? (
@@ -516,11 +716,21 @@ export default function AIChatWidget() {
             ))}
             {isLoading && (
               <div className="flex gap-2 justify-start">
-                <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <span className="text-xs">{selectedPersona?.emoji ?? "🤖"}</span>
+                <div className={cn(
+                  "h-6 w-6 rounded-full flex items-center justify-center shrink-0 mt-0.5",
+                  hermesMode ? "bg-primary/20" : "bg-primary/10"
+                )}>
+                  {hermesMode ? (
+                    <Zap className="h-3 w-3 text-primary animate-pulse" />
+                  ) : (
+                    <span className="text-xs">{selectedPersona?.emoji ?? "🤖"}</span>
+                  )}
                 </div>
-                <div className="rounded-xl rounded-tl-sm bg-muted px-3 py-2.5">
+                <div className="rounded-xl rounded-tl-sm bg-muted px-3 py-2.5 border border-primary/10">
                   <div className="flex gap-1 items-center">
+                    {hermesMode && (
+                      <span className="text-[9px] text-primary/60 mr-1">HERMES routing…</span>
+                    )}
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:300ms]" />
@@ -558,7 +768,13 @@ export default function AIChatWidget() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isRecording ? "Listening..." : `Ask ${selectedPersona?.name ?? "AI"}...`}
+                placeholder={
+                  isRecording
+                    ? "Listening..."
+                    : hermesMode
+                    ? "Ask HERMES anything — auto-routes to best agent…"
+                    : `Ask ${selectedPersona?.name ?? "AI"}...`
+                }
                 className="flex-1 min-h-[38px] max-h-24 resize-none text-xs"
                 rows={1}
                 disabled={isLoading}
@@ -577,7 +793,11 @@ export default function AIChatWidget() {
               </Button>
             </div>
             <p className="text-[9px] text-muted-foreground mt-1.5 text-center">
-              {isRecording ? "🔴 Recording... click mic to stop" : "Press Enter to send · Shift+Enter for new line"}
+              {isRecording
+                ? "🔴 Recording... click mic to stop"
+                : hermesMode
+                ? "⚡ HERMES active · Press Enter to send"
+                : "Press Enter to send · Shift+Enter for new line"}
             </p>
           </div>
         </div>

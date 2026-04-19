@@ -614,3 +614,10 @@
 - [x] Add HERMES to DashboardLayout sidebar (top-level, prominent)
 - [ ] Inject HERMES context into aiChat.sendMessage as default meta-persona (future)
 - [ ] Vitest tests for hermesRouter (future)
+
+## HERMES → AI Chat Integration
+- [x] Extend hermesAgent.ts with hermesAiChatMessage() — HERMES-routed chat with intent classification + sub-agent dispatch
+- [x] Add hermes.aiChat procedure to hermesRouter.ts (replaces direct aiChat.sendMessage for HERMES-mode)
+- [x] Update AIChatWidget.tsx to use hermes.aiChat — HERMES mode toggle, active sub-agent badge, intent label, HERMES header
+- [x] Add HERMES mode toggle in AIChatWidget (HERMES orchestration ON/OFF with Shield+Switch)
+- [x] Persist HERMES widget session in DB (auto-creates 'widget' session per user for conversation continuity)
