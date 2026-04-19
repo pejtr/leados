@@ -273,9 +273,10 @@ export default function Home() {
                           <span className="text-xs font-bold text-[oklch(0.45_0.20_192)]">{t('dashboard.topLeadsToday')}</span>
                         </div>
                         <ul className="space-y-1">
-                          {briefing.topLeads.map((lead: string, i: number) => (
+                          {briefing.topLeads.map((lead: any, i: number) => (
                             <li key={i} className="text-xs text-foreground/60 flex items-start gap-1.5">
-                              <span className="text-[oklch(0.50_0.20_192)] shrink-0 mt-0.5">›</span>{lead}
+                              <span className="text-[oklch(0.50_0.20_192)] shrink-0 mt-0.5">›</span>
+                              <span>{typeof lead === 'object' && lead !== null ? (lead.name || lead.title || lead.company || JSON.stringify(lead)) : String(lead ?? '')}</span>
                             </li>
                           ))}
                         </ul>
@@ -288,9 +289,10 @@ export default function Home() {
                           <span className="text-xs font-bold text-[oklch(0.55_0.18_60)]">{t('dashboard.pipelineAlerts')}</span>
                         </div>
                         <ul className="space-y-1">
-                          {briefing.pipelineAlerts.map((a: string, i: number) => (
+                          {briefing.pipelineAlerts.map((a: any, i: number) => (
                             <li key={i} className="text-xs text-foreground/60 flex items-start gap-1.5">
-                              <span className="text-[oklch(0.60_0.18_60)] shrink-0 mt-0.5">›</span>{a}
+                              <span className="text-[oklch(0.60_0.18_60)] shrink-0 mt-0.5">›</span>
+                              <span>{typeof a === 'object' && a !== null ? (a.name || a.alert || a.reason || a.title || JSON.stringify(a)) : String(a ?? '')}</span>
                             </li>
                           ))}
                         </ul>
@@ -303,9 +305,10 @@ export default function Home() {
                           <span className="text-xs font-bold text-[oklch(0.45_0.18_162)]">{t('dashboard.nextActions')}</span>
                         </div>
                         <ul className="space-y-1">
-                          {briefing.nextActions.map((a: string, i: number) => (
+                          {briefing.nextActions.map((a: any, i: number) => (
                             <li key={i} className="text-xs text-foreground/60 flex items-start gap-1.5">
-                              <span className="text-[oklch(0.50_0.18_162)] shrink-0 mt-0.5">{i + 1}.</span>{a}
+                              <span className="text-[oklch(0.50_0.18_162)] shrink-0 mt-0.5">{i + 1}.</span>
+                              <span>{typeof a === 'object' && a !== null ? (a.action || a.name || a.title || a.reason || JSON.stringify(a)) : String(a ?? '')}</span>
                             </li>
                           ))}
                         </ul>

@@ -18,6 +18,7 @@ import {
   Loader2,
   Layers,
   FlaskConical,
+  Swords,
 } from "lucide-react";
 
 const C = {
@@ -40,6 +41,7 @@ const AGENT_OPTIONS = [
   { id: "strategist", label: "Strategic Orchestrator", icon: Brain, color: "#8B5CF6", description: "ICP & go-to-market strategy" },
   { id: "advisor", label: "Sales Advisor", icon: Shield, color: "#F59E0B", description: "Deal coaching & objection handling" },
   { id: "synthesizer", label: "Master Synthesizer", icon: Layers, color: "#EC4899", description: "Multi-agent synthesis" },
+  { id: "ninja", label: "NINJA BOT ⚡", icon: Swords, color: "#EF4444", description: "Adversarial penetration-test agent" },
 ];
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -53,7 +55,7 @@ const TIER_LABELS: Record<number, string> = {
   1: "Lead Qualification",
   2: "Icebreaker Quality",
   3: "Multi-Signal Reasoning",
-  4: "Adversarial Robustness",
+  4: "⚡ NINJA BOT Attack",
 };
 
 function ScoreRing({ score, size = 80 }: { score: number; size?: number }) {
@@ -287,8 +289,10 @@ export default function AgentBenchmark() {
   const [runningTaskId, setRunningTaskId] = useState<string | null>(null);
   const [suiteResult, setSuiteResult] = useState<any>(null);
   const [runningSuite, setRunningSuite] = useState(false);
+  const [showCorrelation, setShowCorrelation] = useState(false);
 
   const { data: tasks, isLoading: tasksLoading } = trpc.benchmark.listTasks.useQuery();
+  const { data: correlation, isLoading: correlationLoading } = trpc.benchmark.getCorrelation.useQuery();
 
   const runTask = trpc.benchmark.runTask.useMutation({
     onSuccess: (data) => {
@@ -556,6 +560,163 @@ export default function AgentBenchmark() {
               </div>
             );
           })}
+
+          {/* ⚡ NINJA BOT Attack info */}
+          <div
+            style={{
+              background: "linear-gradient(135deg, #1a0a0a, #2d0f0f)",
+              borderRadius: 16,
+              padding: 20,
+              display: "flex",
+              gap: 16,
+              alignItems: "flex-start",
+              marginBottom: 16,
+              border: "1px solid #EF444430",
+            }}
+          >
+            <Swords size={24} color="#EF4444" style={{ flexShrink: 0, marginTop: 2 }} />
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#EF4444", margin: "0 0 6px" }}>
+                ⚡ NINJA BOT — Penetration Test Mode
+              </p>
+              <p style={{ fontSize: 13, color: "#94A3B8", margin: 0, lineHeight: 1.6 }}>
+                NINJA BOTS are adversarial AI agents designed to probe system weaknesses. Tier 4 tasks simulate
+                real attack vectors: contradictory data injection, hallucination traps, and cognitive bias exploitation.
+                Select <strong style={{ color: "#EF4444" }}>NINJA BOT ⚡</strong> agent to run penetration tests.
+              </p>
+            </div>
+          </div>
+
+          {/* Benchmark ↔ Confidence Correlation Panel */}
+          <div
+            style={{
+              background: C.bgCard,
+              borderRadius: 16,
+              border: "1px solid #E2E8F0",
+              marginBottom: 16,
+              overflow: "hidden",
+            }}
+          >
+            <button
+              onClick={() => setShowCorrelation(!showCorrelation)}
+              style={{
+                width: "100%",
+                padding: "16px 20px",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <BarChart3 size={18} color={C.indigo} />
+                <span style={{ fontSize: 14, fontWeight: 700, color: C.textPrimary }}>Benchmark ↔ Confidence Correlation</span>
+                {correlation && correlation.correlationStrength > 0 && (
+                  <span style={{
+                    padding: "2px 8px",
+                    borderRadius: 20,
+                    background: correlation.correlationStrength >= 80 ? `${C.emerald}20` : `${C.amber}20`,
+                    color: correlation.correlationStrength >= 80 ? C.emerald : C.amber,
+                    fontSize: 11,
+                    fontWeight: 700,
+                  }}>
+                    {correlation.correlationStrength}% correlation
+                  </span>
+                )}
+              </div>
+              {showCorrelation ? <ChevronUp size={16} color={C.textSecondary} /> : <ChevronDown size={16} color={C.textSecondary} />}
+            </button>
+
+            {showCorrelation && (
+              <div style={{ padding: "0 20px 20px" }}>
+                {correlationLoading ? (
+                  <div style={{ textAlign: "center", padding: 20 }}>
+                    <Loader2 size={20} color={C.teal} style={{ animation: "spin 1s linear infinite" }} />
+                    <p style={{ fontSize: 13, color: C.textSecondary, marginTop: 8 }}>Loading correlation data...</p>
+                  </div>
+                ) : !correlation || (correlation.benchmarkRuns.length === 0 && correlation.confidenceHistory.length === 0) ? (
+                  <div style={{ textAlign: "center", padding: 20, color: C.textSecondary }}>
+                    <FlaskConical size={32} color="#E2E8F0" style={{ marginBottom: 8 }} />
+                    <p style={{ fontSize: 13, margin: 0 }}>Run a benchmark suite and some 5 Brains analyses to see correlation data.</p>
+                  </div>
+                ) : (
+                  <div>
+                    {/* Avg scores summary */}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
+                      <div style={{ background: `${C.teal}10`, borderRadius: 12, padding: "14px 16px", border: `1px solid ${C.teal}25` }}>
+                        <p style={{ fontSize: 11, color: C.textSecondary, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Avg Benchmark</p>
+                        <p style={{ fontSize: 28, fontWeight: 800, color: C.teal, margin: 0 }}>{correlation.avgBenchmark}<span style={{ fontSize: 14, fontWeight: 400 }}>/100</span></p>
+                        <p style={{ fontSize: 11, color: C.textSecondary, margin: "4px 0 0" }}>{correlation.benchmarkRuns.length} runs</p>
+                      </div>
+                      <div style={{ background: `${C.indigo}10`, borderRadius: 12, padding: "14px 16px", border: `1px solid ${C.indigo}25` }}>
+                        <p style={{ fontSize: 11, color: C.textSecondary, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Avg Confidence</p>
+                        <p style={{ fontSize: 28, fontWeight: 800, color: C.indigo, margin: 0 }}>{correlation.avgConfidence}<span style={{ fontSize: 14, fontWeight: 400 }}>/100</span></p>
+                        <p style={{ fontSize: 11, color: C.textSecondary, margin: "4px 0 0" }}>{correlation.confidenceHistory.length} analyses</p>
+                      </div>
+                      <div style={{
+                        background: correlation.correlationStrength >= 80 ? `${C.emerald}10` : `${C.amber}10`,
+                        borderRadius: 12,
+                        padding: "14px 16px",
+                        border: `1px solid ${correlation.correlationStrength >= 80 ? C.emerald : C.amber}25`,
+                      }}>
+                        <p style={{ fontSize: 11, color: C.textSecondary, margin: "0 0 4px", textTransform: "uppercase", letterSpacing: "0.05em" }}>Correlation</p>
+                        <p style={{ fontSize: 28, fontWeight: 800, color: correlation.correlationStrength >= 80 ? C.emerald : C.amber, margin: 0 }}>{correlation.correlationStrength}<span style={{ fontSize: 14, fontWeight: 400 }}>%</span></p>
+                        <p style={{ fontSize: 11, color: C.textSecondary, margin: "4px 0 0" }}>{correlation.correlationStrength >= 80 ? "Strong" : correlation.correlationStrength >= 60 ? "Moderate" : "Weak"}</p>
+                      </div>
+                    </div>
+
+                    {/* Tier reliability bars */}
+                    <p style={{ fontSize: 12, fontWeight: 700, color: C.textSecondary, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>Tier Reliability</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+                      {correlation.tierReliability.map((tier) => (
+                        <div key={tier.tier}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                            <span style={{ fontSize: 12, color: C.textSecondary }}>
+                              {tier.tier === 4 ? "⚡ NINJA BOT Attack" : tier.label}
+                            </span>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: tier.avgScore >= 70 ? C.emerald : tier.avgScore >= 50 ? C.amber : C.rose }}>
+                              {tier.avgScore > 0 ? `${tier.avgScore}/100` : "No data"}
+                            </span>
+                          </div>
+                          <div style={{ height: 6, background: "#F1F5F9", borderRadius: 3, overflow: "hidden" }}>
+                            <div style={{
+                              height: "100%",
+                              width: `${tier.avgScore}%`,
+                              background: tier.tier === 4
+                                ? "linear-gradient(90deg, #EF4444, #B91C1C)"
+                                : tier.avgScore >= 70 ? C.emerald : tier.avgScore >= 50 ? C.amber : C.rose,
+                              borderRadius: 3,
+                              transition: "width 1s ease",
+                            }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Recent benchmark history */}
+                    {correlation.benchmarkRuns.length > 0 && (
+                      <>
+                        <p style={{ fontSize: 12, fontWeight: 700, color: C.textSecondary, marginBottom: 10, textTransform: "uppercase", letterSpacing: "0.05em" }}>Recent Benchmark Runs</p>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          {correlation.benchmarkRuns.slice(0, 5).map((run, i) => (
+                            <div key={run.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "#F8FAFC", borderRadius: 8 }}>
+                              <span style={{ fontSize: 12, color: C.textSecondary }}>Run #{correlation.benchmarkRuns.length - i}</span>
+                              <div style={{ display: "flex", gap: 12 }}>
+                                <span style={{ fontSize: 12, fontWeight: 600, color: C.teal }}>Score: {run.totalScore}</span>
+                                <span style={{ fontSize: 12, color: C.textSecondary }}>Pass: {run.passRate}%</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* ARC-AGI info banner */}
           <div

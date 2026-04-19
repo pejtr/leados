@@ -598,3 +598,8 @@
 - [x] Welcome email via LLM + owner notification on new lead capture
 - [x] FunnelProgressIndicator component with animated steps and connector lines
 - [x] FunnelProgressIndicator integrated into Pricing section of Landing page
+
+## Bug Fixes & NINJA BOTS (Session 2026-04-19)
+- [x] Fix React dashboard bug — objects {name, reason} rendered as React children in <li> elements (briefing.topLeads, pipelineAlerts, nextActions)
+- [x] Rename penetration test AI agents to NINJA BOTS — Tier 4 category renamed to "NINJA BOT Attack", new ninja agent persona added to benchmark router and UI
+- [x] Benchmark-Confidence Correlation UI panel — collapsible panel in AgentBenchmark.tsx with avg scores, tier reliability bars, recent benchmark runs history
