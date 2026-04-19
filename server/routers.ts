@@ -113,6 +113,7 @@ import { dailyReportRouter } from "./dailyReportRouter";
 import { constitutionRouter } from "./routers/constitution";
 import { leadsRouter as capturedLeadsRouter } from "./routers/leads";
 import { benchmarkRouter } from "./routers/benchmark";
+import { hermesRouter } from "./hermesRouter";
 import {
   createTrackingPixel, getTrackingPixelsByUser, deleteTrackingPixel, updateTrackingPixel,
   getVisitorSessionsByPixel, getVisitorSessionsByUser, createVisitorSession,
@@ -2798,5 +2799,6 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
   constitution: constitutionRouter,
   capturedLeads: capturedLeadsRouter,
   benchmark: benchmarkRouter,
+  hermes: hermesRouter,
 });
 export type AppRouter = typeof appRouter;

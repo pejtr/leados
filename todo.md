@@ -603,3 +603,14 @@
 - [x] Fix React dashboard bug — objects {name, reason} rendered as React children in <li> elements (briefing.topLeads, pipelineAlerts, nextActions)
 - [x] Rename penetration test AI agents to NINJA BOTS — Tier 4 category renamed to "NINJA BOT Attack", new ninja agent persona added to benchmark router and UI
 - [x] Benchmark-Confidence Correlation UI panel — collapsible panel in AgentBenchmark.tsx with avg scores, tier reliability bars, recent benchmark runs history
+
+## HERMES — Core AI Orchestration Agent
+- [x] DB schema: hermes_sessions table (session log, intent, plan, result, sub-agents used)
+- [x] Backend: hermesAgent.ts — HERMES persona, intent routing, sub-agent orchestration
+- [x] Backend: hermesRouter.ts — tRPC procedures (chat, getHistory, getStatus, runMission)
+- [x] Wire hermesRouter into routers.ts
+- [x] Frontend: Hermes.tsx — HERMES Command Center page with mission console, sub-agent status, live log
+- [x] Wire /hermes route in App.tsx
+- [x] Add HERMES to DashboardLayout sidebar (top-level, prominent)
+- [ ] Inject HERMES context into aiChat.sendMessage as default meta-persona (future)
+- [ ] Vitest tests for hermesRouter (future)

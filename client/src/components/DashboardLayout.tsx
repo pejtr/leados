@@ -27,7 +27,7 @@ import {
   Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code,
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
-  TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical,
+  TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical, Sparkles,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -39,6 +39,7 @@ import AIChatWidget from "./AIChatWidget";
 import { trpc } from "@/lib/trpc";
 
 const menuItemDefs = [
+  { icon: Sparkles, labelKey: "sidebar.hermes", path: "/hermes", group: "core" },
   { icon: LayoutDashboard, labelKey: "sidebar.dashboard", path: "/dashboard", group: "core" },
   { icon: Brain, labelKey: "sidebar.aiAdvisor", path: "/chat-agent", group: "core" },
   { icon: Zap, labelKey: "sidebar.generateLeads", path: "/generate", group: "core" },

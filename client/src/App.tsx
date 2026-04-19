@@ -50,6 +50,7 @@ import FiveBrains from "./pages/FiveBrains";
 import DailyReport from "./pages/DailyReport";
 import AIConstitution from "./pages/AIConstitution";
 import AgentBenchmark from "./pages/AgentBenchmark";
+import Hermes from "./pages/Hermes";
 
 function Router() {
   return (
@@ -100,6 +101,7 @@ function Router() {
       <Route path="/daily-report" component={DailyReport} />
       <Route path="/ai-constitution" component={AIConstitution} />
       <Route path="/agent-benchmark" component={AgentBenchmark} />
+      <Route path="/hermes" component={Hermes} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

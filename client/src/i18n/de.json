@@ -336,6 +336,7 @@
     "mostPopular": "Am beliebtesten"
   },
   "sidebar": {
+    "hermes": "HERMES Core AI",
     "dailyReport": "Tagesbericht",
     "aiConstitution": "AI-Verfassung",
     "agentBenchmark": "Agenten-Benchmark"
