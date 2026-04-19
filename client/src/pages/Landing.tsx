@@ -303,16 +303,15 @@ export default function Landing() {
       {/* ── Sales Conversion Components ─────────────────────────────────────── */}
       <ExitIntentPopup enabled={true} />
       <SmartPopup delay={30000} caseStudiesSectionId="case-studies" />
-      {/* ── Urgency Banner ──────────────────────────────────────────────────── */}
-      <div className="fixed top-0 left-0 right-0 z-[60]">
+      {/* ── Urgency Banner + Nav (stacked, fixed together) ──────────────────── */}
+      <div className="fixed top-0 left-0 right-0 z-[60]" style={{ display: "flex", flexDirection: "column" }}>
         <UrgencyBanner />
-      </div>
 
       {/* ── Floating Nav ─────────────────────────────────────────────────────── */}
-      <motion.nav className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+      <motion.nav className="w-full transition-all duration-300"
         style={{
-          background: scrolled ? "rgba(240,244,248,0.92)" : "transparent",
-          backdropFilter: scrolled ? "blur(20px)" : "none",
+          background: scrolled ? "rgba(240,244,248,0.92)" : "rgba(240,244,248,0.85)",
+          backdropFilter: "blur(20px)",
           borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent",
           boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,0.06)" : "none",
         }}>
@@ -378,10 +377,11 @@ export default function Landing() {
           )}
         </AnimatePresence>
       </motion.nav>
+      </div>{/* end fixed banner+nav wrapper */}
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
-      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16"
-        style={{ background: `linear-gradient(160deg, #e8f0fe 0%, #f0f4f8 40%, #e6faf8 100%)` }}>
+      <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden"
+        style={{ paddingTop: "104px", background: `linear-gradient(160deg, #e8f0fe 0%, #f0f4f8 40%, #e6faf8 100%)` }}>
         {/* Atlantis orbs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <AtlantisOrb x="10%" y="15%" size={500} color={`${C.teal}28`} delay={0} />
