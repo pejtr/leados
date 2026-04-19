@@ -75,7 +75,8 @@
     "insights": "Přehledy",
     "settings": "Nastavení",
     "dailyReport": "Denní Report",
-    "aiConstitution": "AI Ústava"
+    "aiConstitution": "AI Ústava",
+    "agentBenchmark": "Benchmark agentů"
   },
   "home": {
     "aiSystemsActive": "AI systémy aktivní",

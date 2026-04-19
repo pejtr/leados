@@ -27,7 +27,7 @@ import {
   Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code,
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
-  TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll,
+  TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -76,6 +76,7 @@ const menuItemDefs = [
   { icon: Brain, labelKey: "sidebar.fiveBrains", path: "/five-brains", group: "insights" },
   { icon: FileBarChart, labelKey: "sidebar.dailyReport", path: "/daily-report", group: "settings" },
   { icon: Scroll, labelKey: "sidebar.aiConstitution", path: "/ai-constitution", group: "settings" },
+  { icon: FlaskConical, labelKey: "sidebar.agentBenchmark", path: "/agent-benchmark", group: "settings" },
   { icon: Mail, labelKey: "sidebar.emailTemplates", path: "/templates", group: "settings" },
   { icon: Users, labelKey: "sidebar.team", path: "/team", group: "settings" },
   { icon: Building, labelKey: "sidebar.agencyPanel", path: "/agency", group: "settings" },

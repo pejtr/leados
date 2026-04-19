@@ -337,6 +337,7 @@
   },
   "sidebar": {
     "dailyReport": "Tagesbericht",
-    "aiConstitution": "AI-Verfassung"
+    "aiConstitution": "AI-Verfassung",
+    "agentBenchmark": "Agenten-Benchmark"
   }
 }

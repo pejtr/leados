@@ -337,6 +337,7 @@
   },
   "sidebar": {
     "dailyReport": "Daily Report",
-    "aiConstitution": "AI Constitution"
+    "aiConstitution": "AI Constitution",
+    "agentBenchmark": "Agent Benchmark"
   }
 }
