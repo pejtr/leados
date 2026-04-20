@@ -374,16 +374,47 @@ function DsrLivePanel() {
 
 // ─── Digest Panel ───────────────────────────────────────────────────────────
 
-function DigestPanel() {
+function DigestPanel({ sessionId, onMissionStart, onMissionComplete }: {
+  sessionId: number | null;
+  onMissionStart: () => void;
+  onMissionComplete: (result: any) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+
   const triggerDigest = trpc.hermes.triggerDigest.useMutation({
     onSuccess: () => toast.success("⚡ HERMES Digest odeslán!"),
     onError: (err) => toast.error("Chyba při generování digestu", { description: err.message }),
   });
+
+  const executeMission = trpc.hermes.executeMission.useMutation({
+    onError: (err) => toast.error("Optimalizace selhala", { description: err.message }),
+  });
+
   const { data: history, refetch } = trpc.hermes.getDigestHistory.useQuery(undefined, {
     enabled: expanded,
     staleTime: 30_000,
   });
+
+  const handleOptimize = async () => {
+    if (!sessionId || isOptimizing) return;
+    setIsOptimizing(true);
+    onMissionStart();
+    toast.info("🚀 Spouštím optimalizaci...", { description: "HERMES analyzuje všechny projekty a navrhuje akce" });
+    try {
+      const result = await executeMission.mutateAsync({
+        missionType: "full_analysis",
+        sessionId,
+        customContext: "Zaměř se na konkrétní optimalizační kroky doporučené v ranním přehledu. Prioritizuj akce s nejvyšším ROI.",
+      });
+      onMissionComplete(result);
+      toast.success("✅ Optimalizace dokončena!");
+    } catch {
+      // error handled by onError
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
 
   return (
     <div className="border-t border-slate-800 pt-3 mt-3">
@@ -398,21 +429,25 @@ function DigestPanel() {
           {expanded ? "Skrýt" : "Historie"}
         </button>
       </div>
+
+      {/* Generate digest button */}
       <Button
         size="sm"
         variant="outline"
         className="w-full text-xs border-cyan-900/50 text-cyan-400 hover:bg-cyan-900/20 hover:text-cyan-300"
         onClick={() => { triggerDigest.mutate(); refetch(); }}
-        disabled={triggerDigest.isPending}
+        disabled={triggerDigest.isPending || isOptimizing}
       >
         {triggerDigest.isPending ? (
-          <><Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> Generuji...</>  
+          <><Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> Generuji...</>
         ) : (
-          <><Zap className="h-3 w-3 mr-1.5" /> Spustit ranní přehled</>  
+          <><Zap className="h-3 w-3 mr-1.5" /> Spustit ranní přehled</>
         )}
       </Button>
+
+      {/* Digest history */}
       {expanded && history && history.length > 0 && (
-        <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+        <div className="mt-2 space-y-2 max-h-40 overflow-y-auto">
           {history.map((item) => (
             <div key={item.id} className="bg-slate-900/60 rounded p-2 border border-slate-800">
               <p className="text-xs text-slate-500 mb-1">
@@ -425,6 +460,24 @@ function DigestPanel() {
       )}
       {expanded && history && history.length === 0 && (
         <p className="text-xs text-slate-600 mt-2 text-center">Žádné přehledy zatím.</p>
+      )}
+
+      {/* Confirm & Integrate button */}
+      <Button
+        size="sm"
+        className="w-full mt-2 text-xs bg-gradient-to-r from-emerald-700 to-cyan-700 hover:from-emerald-600 hover:to-cyan-600 text-white border-0 font-semibold"
+        onClick={handleOptimize}
+        disabled={isOptimizing || triggerDigest.isPending || !sessionId}
+        title="Spustí HERMES Full Analysis misi — realizuje optimalizační kroky z přehledu"
+      >
+        {isOptimizing ? (
+          <><Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> Optimalizuji...</>
+        ) : (
+          <><Sparkles className="h-3 w-3 mr-1.5" /> Potvrdit a integrovat</>
+        )}
+      </Button>
+      {!sessionId && (
+        <p className="text-xs text-slate-600 mt-1 text-center">Inicializuji sezení...</p>
       )}
     </div>
   );
@@ -943,7 +996,15 @@ export default function Hermes() {
                 ))}
               </div>
               {/* Daily Digest trigger */}
-              <DigestPanel />
+              <DigestPanel
+                sessionId={sessionId}
+                onMissionStart={() => setIsMissionRunning(true)}
+                onMissionComplete={(result) => {
+                  setMissionResult(result);
+                  setIsMissionRunning(false);
+                  refetchStatus();
+                }}
+              />
             </div>
           </div>
         </div>

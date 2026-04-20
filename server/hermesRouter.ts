@@ -525,7 +525,7 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
 
   /** Get digest history from hermes_messages (role: hermes, type: daily_digest) */
   getDigestHistory: protectedProcedure.query(async ({ ctx }) => {
-    const db = getDb();
+    const db = await getDb();
     // Find the digest session for this user
     const digestSessions = await db
       .select()

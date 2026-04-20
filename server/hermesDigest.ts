@@ -127,7 +127,7 @@ ${dsr.abTests.length > 0 ? `- A/B testy: ${dsr.abTests.map((t) => `${t.name} (${
 `
     : "";
 
-  const systemPrompt = `Jsi HERMES — core AI orchestrační agent platformy LeadOS. Komunikuješ výhradně česky. Jsi stručný, přímý, analytický. Bez pozdravu, bez zbytečných frází.`;
+  const systemPrompt = `Jsi HERMES — core AI orchestrační agent platformy LeadOS. VŽDY píšeš VÝHRADNĚ v češtině. Nikdy nepoužíváš angličtinu ani žádný jiný jazyk. Jsi stručný, přímý, analytický. Bez pozdravu, bez zbytečných frází. Celý výstup musí být česky — každé slovo.`;
 
   const userPrompt = `Dnes je ${dateStr}. Vygeneruj ranní přehled výkonu projektů na základě těchto dat:
 
@@ -141,7 +141,9 @@ Struktura přehledu:
 4. **Priorita dnes** — 2-3 konkrétní akce pro maximalizaci výkonu
 5. **Rizika** — 1-2 věci, na které si dát pozor
 
-Maximálně 250 slov. Žádné nadpisy s #, použij **tučné** pro sekce.`;
+Maximálně 250 slov. Žádné nadpisy s #, použij **tučné** pro sekce.
+
+DŮLEŽITÉ: Celý přehled piš VÝHRADNĚ česky. Žádná anglická slova ani fráze.`;
 
   const result = await invokeLLM({
     messages: [
