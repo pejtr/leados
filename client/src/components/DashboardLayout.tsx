@@ -7,30 +7,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
-} from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
-import { useIsMobile } from "@/hooks/useMobile";
 import {
-  LayoutDashboard, LogOut, PanelLeft, Zap, History, BarChart3, Mail, Users,
+  LayoutDashboard, LogOut, Zap, History, BarChart3, Mail, Users,
   Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code,
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
-  CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
+  CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, Calendar, Phone,
   TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical, Sparkles, Moon,
-  CircleDollarSign, TrendingUp as TrendUp, Activity, Inbox,
+  CircleDollarSign, TrendingUp as TrendUp, Activity, Inbox, ChevronRight, Wifi, Battery,
+  Volume2, Search, Settings,
 } from "lucide-react";
-import { CSSProperties, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
@@ -39,161 +26,441 @@ import OnboardingWizard from "./OnboardingWizard";
 import AIChatWidget from "./AIChatWidget";
 import { trpc } from "@/lib/trpc";
 
-/** Compact sticky earnings bar — shows live global revenue across all connected projects */
-function GlobalEarningsBar() {
-  const { data, isLoading } = trpc.globalEarnings.summary.useQuery(undefined, {
-    refetchInterval: 60_000, // refresh every 60s
+// ─── Dock item definitions ─────────────────────────────────────────────────
+const dockItems = [
+  { icon: Sparkles,     path: "/hermes",         label: "HERMES",         color: "oklch(0.65 0.22 280)" },
+  { icon: LayoutDashboard, path: "/dashboard",   label: "Dashboard",      color: "oklch(0.55 0.20 192)" },
+  { icon: Brain,        path: "/chat-agent",      label: "AI Advisor",     color: "oklch(0.60 0.22 260)" },
+  { icon: Zap,          path: "/generate",        label: "Generate",       color: "oklch(0.65 0.20 150)" },
+  { icon: History,      path: "/history",         label: "History",        color: "oklch(0.60 0.15 220)" },
+  { icon: Kanban,       path: "/kanban",          label: "Pipeline",       color: "oklch(0.58 0.18 200)" },
+  { icon: TrendingUp,   path: "/deal-pipeline",   label: "Deals",          color: "oklch(0.60 0.20 140)" },
+  { icon: UserCheck,    path: "/sdr",             label: "SDR Agent",      color: "oklch(0.62 0.22 192)" },
+  { icon: Bot,          path: "/autopilot",       label: "Autopilot",      color: "oklch(0.55 0.22 270)" },
+  { icon: MailOpen,     path: "/sequences",       label: "Sequences",      color: "oklch(0.58 0.18 230)" },
+  { icon: Target,       path: "/icp",             label: "ICP Builder",    color: "oklch(0.60 0.20 20)" },
+  { icon: ListFilter,   path: "/smart-lists",     label: "Smart Lists",    color: "oklch(0.58 0.16 180)" },
+  { icon: Trophy,       path: "/sales-dashboard", label: "Sales",          color: "oklch(0.65 0.20 60)" },
+  { icon: BarChart3,    path: "/stats",           label: "Stats",          color: "oklch(0.58 0.18 240)" },
+  { icon: Megaphone,    path: "/ad-campaigns",    label: "Ads",            color: "oklch(0.60 0.22 30)" },
+  { icon: Link2,        path: "/projects",        label: "Projects",       color: "oklch(0.58 0.16 200)" },
+  { icon: Inbox,        path: "/external-leads",  label: "Ext. Leads",     color: "oklch(0.60 0.18 160)" },
+  { icon: Webhook,      path: "/integrations",    label: "Integrations",   color: "oklch(0.55 0.18 280)" },
+  { icon: DollarSign,   path: "/billing",         label: "Billing",        color: "oklch(0.62 0.20 140)" },
+  { icon: Users,        path: "/team",            label: "Team",           color: "oklch(0.58 0.16 220)" },
+  { icon: Settings,     path: "/ai-constitution", label: "Settings",       color: "oklch(0.52 0.12 250)" },
+];
+
+// Full sidebar items for the slide-out panel
+const allMenuItems = [
+  { icon: Sparkles,     labelKey: "sidebar.hermes",           path: "/hermes",          group: "core" },
+  { icon: LayoutDashboard, labelKey: "sidebar.dashboard",     path: "/dashboard",       group: "core" },
+  { icon: Brain,        labelKey: "sidebar.aiAdvisor",        path: "/chat-agent",      group: "core" },
+  { icon: Zap,          labelKey: "sidebar.generateLeads",    path: "/generate",        group: "core" },
+  { icon: History,      labelKey: "sidebar.leadHistory",      path: "/history",         group: "core" },
+  { icon: Kanban,       labelKey: "sidebar.pipelineBoard",    path: "/kanban",          group: "core" },
+  { icon: Target,       labelKey: "sidebar.icpBuilder",       path: "/icp",             group: "intelligence" },
+  { icon: Code,         labelKey: "sidebar.trackingPixel",    path: "/tracking",        group: "intelligence" },
+  { icon: Cpu,          labelKey: "sidebar.techStack",        path: "/tech-stack",      group: "intelligence" },
+  { icon: ListFilter,   labelKey: "sidebar.smartLists",       path: "/smart-lists",     group: "intelligence" },
+  { icon: ShieldCheck,  labelKey: "sidebar.emailVerify",      path: "/email-verify",    group: "intelligence" },
+  { icon: UserCheck,    labelKey: "sidebar.aiSdrAgent",       path: "/sdr",             group: "automation" },
+  { icon: Bot,          labelKey: "sidebar.aiAgents",         path: "/ai-agents",       group: "automation" },
+  { icon: Bot,          labelKey: "sidebar.autopilot",        path: "/autopilot",       group: "automation" },
+  { icon: GitBranch,    labelKey: "sidebar.campaigns",        path: "/campaigns",       group: "automation" },
+  { icon: Timer,        labelKey: "sidebar.speedToLead",      path: "/speed-to-lead",   group: "automation" },
+  { icon: Lightbulb,    labelKey: "sidebar.nextActions",      path: "/next-actions",    group: "automation" },
+  { icon: Bell,         labelKey: "sidebar.smartAlerts",      path: "/alerts",          group: "automation" },
+  { icon: MailOpen,     labelKey: "sidebar.emailSequences",   path: "/sequences",       group: "outreach" },
+  { icon: Calendar,     labelKey: "sidebar.meetingScheduler", path: "/meetings",        group: "outreach" },
+  { icon: Phone,        labelKey: "sidebar.callIntelligence", path: "/calls",           group: "outreach" },
+  { icon: CheckSquare,  labelKey: "sidebar.activityTracker",  path: "/tasks",           group: "outreach" },
+  { icon: Crosshair,    labelKey: "sidebar.capturePlanning",  path: "/capture",         group: "outreach" },
+  { icon: Globe,        labelKey: "sidebar.marketIntel",      path: "/market-intel",    group: "outreach" },
+  { icon: BookOpen,     labelKey: "sidebar.knowledgeBase",    path: "/knowledge",       group: "outreach" },
+  { icon: Map,          labelKey: "sidebar.competitiveMap",   path: "/competitive",     group: "outreach" },
+  { icon: TrendingUp,   labelKey: "sidebar.dealPipeline",     path: "/deal-pipeline",   group: "insights" },
+  { icon: Trophy,       labelKey: "sidebar.salesDashboard",   path: "/sales-dashboard", group: "insights" },
+  { icon: Link2,        labelKey: "sidebar.projectsHub",      path: "/projects",        group: "insights" },
+  { icon: Inbox,        labelKey: "sidebar.externalLeads",    path: "/external-leads",  group: "insights" },
+  { icon: Ear,          labelKey: "sidebar.socialListening",  path: "/social",          group: "insights" },
+  { icon: Target,       labelKey: "sidebar.b2bMatching",      path: "/matching",        group: "insights" },
+  { icon: BarChart3,    labelKey: "sidebar.statistics",       path: "/stats",           group: "insights" },
+  { icon: DollarSign,   labelKey: "sidebar.roiTracker",       path: "/roi",             group: "insights" },
+  { icon: Megaphone,    labelKey: "sidebar.adCampaigns",      path: "/ad-campaigns",    group: "insights" },
+  { icon: Trophy,       labelKey: "sidebar.portfolioROAS",    path: "/portfolio-roas",  group: "insights" },
+  { icon: Brain,        labelKey: "sidebar.fiveBrains",       path: "/five-brains",     group: "insights" },
+  { icon: FileBarChart, labelKey: "sidebar.dailyReport",      path: "/daily-report",    group: "settings" },
+  { icon: Scroll,       labelKey: "sidebar.aiConstitution",   path: "/ai-constitution", group: "settings" },
+  { icon: FlaskConical, labelKey: "sidebar.agentBenchmark",   path: "/agent-benchmark", group: "settings" },
+  { icon: Moon,         labelKey: "sidebar.deepSleep",        path: "/deep-sleep",      group: "settings" },
+  { icon: Mail,         labelKey: "sidebar.emailTemplates",   path: "/templates",       group: "settings" },
+  { icon: Users,        labelKey: "sidebar.team",             path: "/team",            group: "settings" },
+  { icon: Building,     labelKey: "sidebar.agencyPanel",      path: "/agency",          group: "settings" },
+  { icon: Webhook,      labelKey: "sidebar.integrations",     path: "/integrations",    group: "settings" },
+  { icon: DollarSign,   labelKey: "sidebar.billingPlans",     path: "/billing",         group: "settings" },
+];
+
+const groupLabels: Record<string, string> = {
+  core: "",
+  intelligence: "Intelligence",
+  automation: "Automation",
+  outreach: "Outreach",
+  insights: "Insights",
+  settings: "Settings",
+};
+
+// ─── macOS MenuBar ─────────────────────────────────────────────────────────
+function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => void; onAppsClick: () => void }) {
+  const [time, setTime] = useState(() => new Date());
+  const { data: earningsData } = trpc.globalEarnings.summary.useQuery(undefined, {
+    refetchInterval: 60_000,
     staleTime: 30_000,
   });
+
+  useEffect(() => {
+    const t = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const fmt = (cents: number) =>
     new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(cents / 100);
 
-  const totalRevenue = data?.totalRevenueCents ?? 0;
-  const todayRevenue = data?.todayRevenueCents ?? 0;
-  const projectCount = data?.projectCount ?? 0;
+  const timeStr = time.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
+  const dateStr = time.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "short" });
+
+  const initials = user?.name
+    ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
+    : "U";
 
   return (
     <div
-      className="sticky top-0 z-50 flex items-center gap-4 px-4 h-10 border-b backdrop-blur-sm"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-8 select-none"
       style={{
-        background: "oklch(0.18 0.04 250 / 97%)",
-        borderColor: "oklch(0.55 0.20 192 / 30%)",
-        boxShadow: "0 1px 0 oklch(0.55 0.20 192 / 15%)",
+        background: "oklch(0.97 0.006 240 / 88%)",
+        backdropFilter: "blur(20px) saturate(180%)",
+        WebkitBackdropFilter: "blur(20px) saturate(180%)",
+        borderBottom: "1px solid oklch(0.88 0.010 240 / 60%)",
+        boxShadow: "0 1px 0 oklch(0 0 0 / 6%), 0 2px 8px oklch(0 0 0 / 4%)",
       }}
     >
-      {/* Live pulse indicator */}
-      <span className="flex items-center gap-1.5">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
-            style={{ background: "oklch(0.65 0.20 150)" }} />
-          <span className="relative inline-flex rounded-full h-2 w-2"
-            style={{ background: "oklch(0.65 0.20 150)" }} />
-        </span>
-        <span className="text-xs font-medium tracking-widest uppercase" style={{ color: "oklch(0.65 0.20 150)", fontFamily: "'Space Grotesk', sans-serif", fontSize: "10px" }}>LIVE</span>
-      </span>
+      {/* Left: Apple logo + app name */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={onAppsClick}
+          className="flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all text-xs font-semibold"
+          style={{ color: "oklch(0.25 0.04 250)", fontFamily: "'Space Grotesk', sans-serif" }}
+          onMouseEnter={e => (e.currentTarget.style.background = "oklch(0.55 0.20 192 / 10%)")}
+          onMouseLeave={e => (e.currentTarget.style.background = "")}
+        >
+          <div className="h-4 w-4 rounded flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220))" }}>
+            <Zap className="h-2.5 w-2.5 text-white" />
+          </div>
+          Lead<span style={{ color: "oklch(0.50 0.22 192)" }}>OS</span>
+        </button>
 
-      {/* Divider */}
-      <span className="h-4 w-px" style={{ background: "oklch(0.55 0.20 192 / 25%)" }} />
+        {/* Live earnings pill */}
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded-full ml-1"
+          style={{ background: "oklch(0.55 0.20 150 / 10%)", border: "1px solid oklch(0.55 0.20 150 / 20%)" }}>
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+              style={{ background: "oklch(0.65 0.20 150)" }} />
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5"
+              style={{ background: "oklch(0.65 0.20 150)" }} />
+          </span>
+          <span className="text-[10px] font-medium tabular-nums" style={{ color: "oklch(0.45 0.18 150)", fontFamily: "'Space Grotesk', sans-serif" }}>
+            {earningsData ? fmt(earningsData.todayRevenueCents) : "…"} dnes
+          </span>
+        </div>
+      </div>
 
-      {/* Total Revenue */}
-      <span className="flex items-center gap-1.5">
-        <CircleDollarSign className="h-3.5 w-3.5" style={{ color: "oklch(0.75 0.15 192)" }} />
-        <span className="text-xs" style={{ color: "oklch(0.75 0.12 240)" }}>Global:</span>
-        <span className="text-xs font-bold tabular-nums" style={{ color: "oklch(0.90 0.08 192)", fontFamily: "'Space Grotesk', sans-serif" }}>
-          {isLoading ? "…" : fmt(totalRevenue)}
+      {/* Center: date */}
+      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+        <span className="text-[11px] font-medium" style={{ color: "oklch(0.42 0.04 250)", fontFamily: "'Space Grotesk', sans-serif" }}>
+          {dateStr}
         </span>
-      </span>
+      </div>
 
-      {/* Today */}
-      <span className="flex items-center gap-1.5">
-        <TrendUp className="h-3.5 w-3.5" style={{ color: "oklch(0.70 0.18 150)" }} />
-        <span className="text-xs" style={{ color: "oklch(0.75 0.12 240)" }}>Dnes:</span>
-        <span className="text-xs font-bold tabular-nums" style={{ color: "oklch(0.85 0.12 150)", fontFamily: "'Space Grotesk', sans-serif" }}>
-          {isLoading ? "…" : fmt(todayRevenue)}
-        </span>
-      </span>
+      {/* Right: status icons + time + user */}
+      <div className="flex items-center gap-2">
+        <Wifi className="h-3 w-3" style={{ color: "oklch(0.50 0.04 250)" }} />
+        <Battery className="h-3 w-3" style={{ color: "oklch(0.50 0.04 250)" }} />
+        <Volume2 className="h-3 w-3" style={{ color: "oklch(0.50 0.04 250)" }} />
 
-      {/* Projects count */}
-      <span className="flex items-center gap-1.5">
-        <Activity className="h-3.5 w-3.5" style={{ color: "oklch(0.65 0.15 280)" }} />
-        <span className="text-xs" style={{ color: "oklch(0.75 0.12 240)" }}>
-          {isLoading ? "…" : `${projectCount} projekt${projectCount === 1 ? "" : projectCount < 5 ? "y" : "ů"}`}
+        <span className="text-[11px] font-semibold tabular-nums" style={{ color: "oklch(0.25 0.04 250)", fontFamily: "'Space Grotesk', sans-serif" }}>
+          {timeStr}
         </span>
-      </span>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md transition-all focus:outline-none"
+              onMouseEnter={e => (e.currentTarget.style.background = "oklch(0.55 0.20 192 / 10%)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "")}>
+              <Avatar className="h-5 w-5">
+                <AvatarFallback className="text-[9px] font-bold"
+                  style={{ background: "linear-gradient(135deg, oklch(0.55 0.20 192 / 25%), oklch(0.55 0.24 278 / 20%))", color: "oklch(0.40 0.20 192)" }}>
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-[11px] font-medium hidden sm:block" style={{ color: "oklch(0.30 0.04 250)" }}>
+                {user?.name?.split(" ")[0] ?? "User"}
+              </span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44 mt-1"
+            style={{ background: "oklch(0.98 0.004 240 / 95%)", backdropFilter: "blur(20px)", border: "1px solid oklch(0.88 0.012 240)", boxShadow: "0 8px 32px oklch(0 0 0 / 12%)" }}>
+            <div className="px-3 py-2 border-b" style={{ borderColor: "oklch(0.90 0.010 240)" }}>
+              <p className="text-xs font-semibold truncate" style={{ color: "oklch(0.25 0.04 250)" }}>{user?.name}</p>
+              <p className="text-[10px] truncate mt-0.5" style={{ color: "oklch(0.55 0.04 250)" }}>{user?.email}</p>
+            </div>
+            <DropdownMenuItem onClick={logout} className="cursor-pointer mt-1 text-red-600 focus:text-red-600 focus:bg-red-50">
+              <LogOut className="mr-2 h-3.5 w-3.5" />
+              <span className="text-xs">Sign out</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   );
 }
 
-const menuItemDefs = [
-  { icon: Sparkles, labelKey: "sidebar.hermes", path: "/hermes", group: "core" },
-  { icon: LayoutDashboard, labelKey: "sidebar.dashboard", path: "/dashboard", group: "core" },
-  { icon: Brain, labelKey: "sidebar.aiAdvisor", path: "/chat-agent", group: "core" },
-  { icon: Zap, labelKey: "sidebar.generateLeads", path: "/generate", group: "core" },
-  { icon: History, labelKey: "sidebar.leadHistory", path: "/history", group: "core" },
-  { icon: Kanban, labelKey: "sidebar.pipelineBoard", path: "/kanban", group: "core" },
-  { icon: Target, labelKey: "sidebar.icpBuilder", path: "/icp", group: "intelligence" },
-  { icon: Code, labelKey: "sidebar.trackingPixel", path: "/tracking", group: "intelligence" },
-  { icon: Cpu, labelKey: "sidebar.techStack", path: "/tech-stack", group: "intelligence" },
-  { icon: ListFilter, labelKey: "sidebar.smartLists", path: "/smart-lists", group: "intelligence" },
-  { icon: ShieldCheck, labelKey: "sidebar.emailVerify", path: "/email-verify", group: "intelligence" },
-  { icon: UserCheck, labelKey: "sidebar.aiSdrAgent", path: "/sdr", group: "automation" },
-  { icon: Bot, labelKey: "sidebar.aiAgents", path: "/ai-agents", group: "automation" },
-  { icon: Bot, labelKey: "sidebar.autopilot", path: "/autopilot", group: "automation" },
-  { icon: GitBranch, labelKey: "sidebar.campaigns", path: "/campaigns", group: "automation" },
-  { icon: Timer, labelKey: "sidebar.speedToLead", path: "/speed-to-lead", group: "automation" },
-  { icon: Lightbulb, labelKey: "sidebar.nextActions", path: "/next-actions", group: "automation" },
-  { icon: Bell, labelKey: "sidebar.smartAlerts", path: "/alerts", group: "automation" },
-  { icon: MailOpen, labelKey: "sidebar.emailSequences", path: "/sequences", group: "outreach" },
-  { icon: Calendar, labelKey: "sidebar.meetingScheduler", path: "/meetings", group: "outreach" },
-  { icon: Phone, labelKey: "sidebar.callIntelligence", path: "/calls", group: "outreach" },
-  { icon: CheckSquare, labelKey: "sidebar.activityTracker", path: "/tasks", group: "outreach" },
-  { icon: Crosshair, labelKey: "sidebar.capturePlanning", path: "/capture", group: "outreach" },
-  { icon: Globe, labelKey: "sidebar.marketIntel", path: "/market-intel", group: "outreach" },
-  { icon: BookOpen, labelKey: "sidebar.knowledgeBase", path: "/knowledge", group: "outreach" },
-  { icon: Map, labelKey: "sidebar.competitiveMap", path: "/competitive", group: "outreach" },
-  { icon: TrendingUp, labelKey: "sidebar.dealPipeline", path: "/deal-pipeline", group: "insights" },
-  { icon: Trophy, labelKey: "sidebar.salesDashboard", path: "/sales-dashboard", group: "insights" },
-  { icon: Link2, labelKey: "sidebar.projectsHub", path: "/projects", group: "insights" },
-  { icon: Inbox, labelKey: "sidebar.externalLeads", path: "/external-leads", group: "insights" },
-  { icon: Ear, labelKey: "sidebar.socialListening", path: "/social", group: "insights" },
-  { icon: Target, labelKey: "sidebar.b2bMatching", path: "/matching", group: "insights" },
-  { icon: BarChart3, labelKey: "sidebar.statistics", path: "/stats", group: "insights" },
-  { icon: DollarSign, labelKey: "sidebar.roiTracker", path: "/roi", group: "insights" },
-  { icon: Megaphone, labelKey: "sidebar.adCampaigns", path: "/ad-campaigns", group: "insights" },
-  { icon: Trophy, labelKey: "sidebar.portfolioROAS", path: "/portfolio-roas", group: "insights" },
-  { icon: Brain, labelKey: "sidebar.fiveBrains", path: "/five-brains", group: "insights" },
-  { icon: FileBarChart, labelKey: "sidebar.dailyReport", path: "/daily-report", group: "settings" },
-  { icon: Scroll, labelKey: "sidebar.aiConstitution", path: "/ai-constitution", group: "settings" },
-  { icon: FlaskConical, labelKey: "sidebar.agentBenchmark", path: "/agent-benchmark", group: "settings" },
-  { icon: Moon, labelKey: "sidebar.deepSleep", path: "/deep-sleep", group: "settings" },
-  { icon: Mail, labelKey: "sidebar.emailTemplates", path: "/templates", group: "settings" },
-  { icon: Users, labelKey: "sidebar.team", path: "/team", group: "settings" },
-  { icon: Building, labelKey: "sidebar.agencyPanel", path: "/agency", group: "settings" },
-  { icon: Webhook, labelKey: "sidebar.integrations", path: "/integrations", group: "settings" },
-  { icon: DollarSign, labelKey: "sidebar.billingPlans", path: "/billing", group: "settings" },
-];
+// ─── macOS Dock ────────────────────────────────────────────────────────────
+function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
+  const [location, setLocation] = useLocation();
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const { t } = useTranslation();
 
-const groupConfigBase = {
-  core: { labelKey: "", color: "violet" },
-  intelligence: { labelKey: "sidebar.groups.intelligence", color: "cyan" },
-  automation: { labelKey: "sidebar.groups.automation", color: "violet" },
-  outreach: { labelKey: "sidebar.groups.outreach", color: "emerald" },
-  insights: { labelKey: "sidebar.groups.insights", color: "amber" },
-  settings: { labelKey: "sidebar.groups.settings", color: "muted" },
-} as const;
+  const getScale = (idx: number) => {
+    if (hoveredIdx === null) return 1;
+    const dist = Math.abs(idx - hoveredIdx);
+    if (dist === 0) return 1.55;
+    if (dist === 1) return 1.28;
+    if (dist === 2) return 1.12;
+    return 1;
+  };
 
-const SIDEBAR_WIDTH_KEY = "sidebar-width";
-const DEFAULT_WIDTH = 260;
-const MIN_WIDTH = 200;
-const MAX_WIDTH = 400;
+  return (
+    <div
+      className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 flex items-end gap-1 px-3 py-2 rounded-2xl"
+      style={{
+        background: "oklch(0.97 0.006 240 / 82%)",
+        backdropFilter: "blur(24px) saturate(200%)",
+        WebkitBackdropFilter: "blur(24px) saturate(200%)",
+        border: "1px solid oklch(0.88 0.012 240 / 70%)",
+        boxShadow: "0 8px 32px oklch(0 0 0 / 14%), 0 2px 8px oklch(0 0 0 / 8%), inset 0 1px 0 oklch(1 0 0 / 60%)",
+      }}
+    >
+      {dockItems.map((item, idx) => {
+        const isActive = location === item.path;
+        const scale = getScale(idx);
+        const Icon = item.icon;
 
+        return (
+          <div key={item.path} className="relative flex flex-col items-center"
+            style={{ transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: `scale(${scale})`, transformOrigin: "bottom center" }}
+            onMouseEnter={() => setHoveredIdx(idx)}
+            onMouseLeave={() => setHoveredIdx(null)}
+          >
+            {/* Tooltip */}
+            {hoveredIdx === idx && (
+              <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-[10px] font-medium whitespace-nowrap pointer-events-none"
+                style={{ background: "oklch(0.20 0.04 250 / 90%)", color: "white", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px oklch(0 0 0 / 20%)" }}>
+                {item.label}
+              </div>
+            )}
+
+            <button
+              onClick={() => setLocation(item.path)}
+              className="relative flex items-center justify-center rounded-xl transition-all focus:outline-none"
+              style={{
+                width: 40,
+                height: 40,
+                background: isActive
+                  ? `linear-gradient(135deg, ${item.color}22, ${item.color}15)`
+                  : "oklch(0.94 0.008 240)",
+                border: isActive
+                  ? `1.5px solid ${item.color}44`
+                  : "1.5px solid oklch(0.88 0.010 240 / 50%)",
+                boxShadow: isActive
+                  ? `0 0 12px ${item.color}30, 0 2px 8px oklch(0 0 0 / 8%)`
+                  : "0 2px 6px oklch(0 0 0 / 6%)",
+              }}
+            >
+              <Icon className="h-[18px] w-[18px]" style={{ color: isActive ? item.color : "oklch(0.45 0.06 250)" }} />
+            </button>
+
+            {/* Active dot */}
+            {isActive && (
+              <div className="absolute -bottom-1 w-1 h-1 rounded-full"
+                style={{ background: item.color, boxShadow: `0 0 4px ${item.color}` }} />
+            )}
+          </div>
+        );
+      })}
+
+      {/* Separator */}
+      <div className="w-px h-8 mx-1 self-center rounded-full" style={{ background: "oklch(0.80 0.012 240)" }} />
+
+      {/* All Apps button */}
+      <div className="relative flex flex-col items-center"
+        style={{ transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: `scale(${hoveredIdx === dockItems.length ? 1.55 : 1})`, transformOrigin: "bottom center" }}
+        onMouseEnter={() => setHoveredIdx(dockItems.length)}
+        onMouseLeave={() => setHoveredIdx(null)}
+      >
+        {hoveredIdx === dockItems.length && (
+          <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-[10px] font-medium whitespace-nowrap pointer-events-none"
+            style={{ background: "oklch(0.20 0.04 250 / 90%)", color: "white" }}>
+            All Apps
+          </div>
+        )}
+        <button
+          onClick={onAppsClick}
+          className="flex items-center justify-center rounded-xl focus:outline-none"
+          style={{
+            width: 40,
+            height: 40,
+            background: "linear-gradient(135deg, oklch(0.55 0.20 192 / 12%), oklch(0.55 0.24 278 / 10%))",
+            border: "1.5px solid oklch(0.55 0.20 192 / 25%)",
+          }}
+        >
+          <div className="grid grid-cols-2 gap-0.5">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="w-1.5 h-1.5 rounded-sm" style={{ background: "oklch(0.55 0.20 192)" }} />
+            ))}
+          </div>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── All Apps Slide-over Panel ─────────────────────────────────────────────
+function AppsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [location, setLocation] = useLocation();
+  const { t } = useTranslation();
+  const menuItems = allMenuItems.map(item => ({ ...item, label: t(item.labelKey) }));
+
+  const navigate = (path: string) => {
+    setLocation(path);
+    onClose();
+  };
+
+  return (
+    <>
+      {/* Backdrop */}
+      {open && (
+        <div
+          className="fixed inset-0 z-40"
+          style={{ background: "oklch(0 0 0 / 20%)", backdropFilter: "blur(2px)" }}
+          onClick={onClose}
+        />
+      )}
+
+      {/* Panel */}
+      <div
+        className="fixed left-0 top-8 bottom-0 z-40 w-72 overflow-y-auto"
+        style={{
+          background: "oklch(0.97 0.006 240 / 95%)",
+          backdropFilter: "blur(24px) saturate(180%)",
+          WebkitBackdropFilter: "blur(24px) saturate(180%)",
+          borderRight: "1px solid oklch(0.88 0.012 240 / 70%)",
+          boxShadow: "4px 0 24px oklch(0 0 0 / 10%)",
+          transform: open ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
+        }}
+      >
+        {/* Search bar */}
+        <div className="sticky top-0 px-4 py-3 border-b"
+          style={{ borderColor: "oklch(0.88 0.012 240 / 60%)", background: "oklch(0.97 0.006 240 / 95%)", backdropFilter: "blur(20px)" }}>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
+            style={{ background: "oklch(0.92 0.008 240)", border: "1px solid oklch(0.86 0.010 240)" }}>
+            <Search className="h-3.5 w-3.5" style={{ color: "oklch(0.55 0.04 250)" }} />
+            <span className="text-xs" style={{ color: "oklch(0.60 0.04 250)" }}>Hledat aplikaci…</span>
+          </div>
+        </div>
+
+        <div className="px-3 py-2">
+          {(["core", "intelligence", "automation", "outreach", "insights", "settings"] as const).map(group => {
+            const groupItems = menuItems.filter(i => i.group === group);
+            if (!groupItems.length) return null;
+            return (
+              <div key={group} className="mb-4">
+                {groupLabels[group] && (
+                  <div className="px-2 pt-3 pb-1">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.12em]"
+                      style={{ color: "oklch(0.55 0.20 192 / 70%)" }}>
+                      {groupLabels[group]}
+                    </span>
+                  </div>
+                )}
+                {groupItems.map(item => {
+                  const isActive = location === item.path;
+                  return (
+                    <button
+                      key={item.path}
+                      onClick={() => navigate(item.path)}
+                      className="w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-left"
+                      style={isActive ? {
+                        background: "oklch(0.55 0.20 192 / 10%)",
+                        border: "1px solid oklch(0.55 0.20 192 / 20%)",
+                      } : {}}
+                      onMouseEnter={e => !isActive && (e.currentTarget.style.background = "oklch(0.90 0.008 240)")}
+                      onMouseLeave={e => !isActive && (e.currentTarget.style.background = "")}
+                    >
+                      <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
+                        style={{ background: isActive ? "oklch(0.55 0.20 192 / 15%)" : "oklch(0.92 0.008 240)" }}>
+                        <item.icon className="h-3.5 w-3.5"
+                          style={{ color: isActive ? "oklch(0.50 0.20 192)" : "oklch(0.50 0.06 250)" }} />
+                      </div>
+                      <span className="text-xs font-medium truncate"
+                        style={{ color: isActive ? "oklch(0.40 0.20 192)" : "oklch(0.35 0.04 250)" }}>
+                        {item.label}
+                      </span>
+                      {isActive && <ChevronRight className="h-3 w-3 ml-auto shrink-0" style={{ color: "oklch(0.55 0.20 192)" }} />}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─── Main Layout ───────────────────────────────────────────────────────────
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarWidth, setSidebarWidth] = useState(() => {
-    const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
-    return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
-  });
   const { loading, user } = useAuth();
+  const [appsOpen, setAppsOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { data: onboardingData } = trpc.onboarding.status.useQuery(undefined, {
+    enabled: !!user,
+    staleTime: Infinity,
+  });
+  const { logout } = useAuth();
   const { t } = useTranslation();
 
   useEffect(() => {
-    localStorage.setItem(SIDEBAR_WIDTH_KEY, sidebarWidth.toString());
-  }, [sidebarWidth]);
+    if (onboardingData && onboardingData.completed === false) {
+      setShowOnboarding(true);
+    }
+  }, [onboardingData]);
 
   if (loading) return <DashboardLayoutSkeleton />;
 
-      if (!user) {
+  if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen mesh-bg">
         <div className="flex flex-col items-center gap-8 p-10 max-w-md w-full">
-          {/* Logo */}
           <div className="flex items-center gap-3 mb-2">
             <div className="h-10 w-10 rounded-xl flex items-center justify-center"
               style={{ background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220))", boxShadow: "0 0 30px oklch(0.55 0.20 192 / 35%)" }}>
               <Zap className="h-5 w-5 text-white" />
             </div>
             <span className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "oklch(0.18 0.04 250)" }}>
-              Lead<span className="gradient-text-atlantis">OS</span>
+              Lead<span style={{ color: "oklch(0.50 0.22 192)" }}>OS</span>
             </span>
           </div>
           <div className="text-center space-y-2">
@@ -202,7 +469,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
           <Button
             onClick={() => { window.location.href = getLoginUrl(); }}
-            size="lg"
             className="w-full btn-premium h-12 text-base"
           >
             {t('home.signInButton')}
@@ -213,227 +479,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <SidebarProvider style={{ "--sidebar-width": `${sidebarWidth}px` } as CSSProperties}>
-      <DashboardLayoutContent setSidebarWidth={setSidebarWidth}>
+    <div className="flex flex-col min-h-screen" style={{ background: "oklch(0.965 0.008 240)" }}>
+      {/* macOS top menubar */}
+      <MacMenuBar user={user} logout={logout} onAppsClick={() => setAppsOpen(v => !v)} />
+
+      {/* Apps slide-over panel */}
+      <AppsPanel open={appsOpen} onClose={() => setAppsOpen(false)} />
+
+      {/* Main content — padded for menubar (top 8) and dock (bottom ~80px) */}
+      <main
+        className="flex-1 overflow-y-auto p-5 md:p-6"
+        style={{ paddingTop: "calc(2rem + 16px)", paddingBottom: "88px" }}
+      >
         {children}
-      </DashboardLayoutContent>
-    </SidebarProvider>
-  );
-}
+      </main>
 
-function DashboardLayoutContent({
-  children,
-  setSidebarWidth,
-}: {
-  children: React.ReactNode;
-  setSidebarWidth: (width: number) => void;
-}) {
-  const { user, logout } = useAuth();
-  const [location, setLocation] = useLocation();
-  const { state, toggleSidebar } = useSidebar();
-  const isCollapsed = state === "collapsed";
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef<HTMLDivElement>(null);
-  const { t } = useTranslation();
-  const menuItems = menuItemDefs.map(item => ({ ...item, label: t(item.labelKey) }));
-  const groupConfig = Object.fromEntries(
-    Object.entries(groupConfigBase).map(([k, v]) => [k, { ...v, label: v.labelKey ? t(v.labelKey) : "" }])
-  ) as Record<string, { label: string; color: string }>;
-  const activeMenuItem = menuItems.find(item => item.path === location);
-  const isMobile = useIsMobile();
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const { data: onboardingData } = trpc.onboarding.status.useQuery(undefined, {
-    enabled: !!user,
-    staleTime: Infinity,
-  });
-
-  useEffect(() => {
-    if (onboardingData && onboardingData.completed === false) {
-      setShowOnboarding(true);
-    }
-  }, [onboardingData]);
-
-  useEffect(() => {
-    if (isCollapsed) setIsResizing(false);
-  }, [isCollapsed]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-      const sidebarLeft = sidebarRef.current?.getBoundingClientRect().left ?? 0;
-      const newWidth = e.clientX - sidebarLeft;
-      if (newWidth >= MIN_WIDTH && newWidth <= MAX_WIDTH) setSidebarWidth(newWidth);
-    };
-    const handleMouseUp = () => setIsResizing(false);
-    if (isResizing) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "col-resize";
-      document.body.style.userSelect = "none";
-    }
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-    };
-  }, [isResizing, setSidebarWidth]);
-
-  const initials = user?.name
-    ? user.name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2)
-    : "U";
-
-  return (
-    <>
-      <div className="relative" ref={sidebarRef}>
-        <Sidebar
-          collapsible="icon"
-          className="border-r-0"
-          disableTransition={isResizing}
-          style={{ background: "oklch(0.955 0.010 240)" }}
-        >
-          {/* Sidebar top teal accent line */}
-          <div className="absolute top-0 left-0 right-0 h-0.5"
-            style={{ background: "linear-gradient(90deg, transparent, oklch(0.55 0.20 192 / 60%), transparent)" }} />
-
-          <SidebarHeader className="h-16 justify-center border-b" style={{ borderColor: "oklch(0.86 0.012 240)" }}>
-            <div className="flex items-center gap-3 px-2 w-full">
-              <button
-                onClick={toggleSidebar}
-                className="h-8 w-8 flex items-center justify-center rounded-lg transition-all focus:outline-none shrink-0"
-                style={{ color: "oklch(0.52 0.02 250)" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "oklch(0.55 0.20 192 / 8%)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "")}
-                aria-label="Toggle navigation"
-              >
-                <PanelLeft className="h-4 w-4" />
-              </button>
-              {!isCollapsed && (
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
-                    style={{
-                      background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220))",
-                      boxShadow: "0 0 16px oklch(0.55 0.20 192 / 35%)"
-                    }}>
-                    <Zap className="h-3.5 w-3.5 text-white" />
-                  </div>
-                  <span className="font-bold tracking-tight truncate text-sm"
-                    style={{ fontFamily: "'Space Grotesk', sans-serif", color: "oklch(0.18 0.04 250)" }}>
-                    Lead<span className="gradient-text-atlantis">OS</span>
-                  </span>
-                </div>
-              )}
-            </div>
-          </SidebarHeader>
-
-          <SidebarContent className="gap-0 overflow-y-auto py-2">
-            <SidebarMenu className="px-2">
-              {(["core", "intelligence", "automation", "outreach", "insights", "settings"] as const).map((group) => {
-                const { label } = groupConfig[group];
-                const groupItems = menuItems.filter(i => i.group === group);
-                if (groupItems.length === 0) return null;
-                return (
-                  <div key={group}>
-                    {label && !isCollapsed && (
-                      <div className="px-3 pt-5 pb-1.5">
-                        <span className="text-[9px] font-bold uppercase tracking-[0.12em]"
-                          style={{ color: "oklch(0.55 0.20 192 / 70%)" }}>
-                          {label}
-                        </span>
-                      </div>
-                    )}
-                    {groupItems.map(item => {
-                      const isActive = location === item.path;
-                      return (
-                        <SidebarMenuItem key={item.path}>
-                          <SidebarMenuButton
-                            isActive={isActive}
-                            onClick={() => setLocation(item.path)}
-                            tooltip={item.label}
-                            className="h-8 transition-all font-normal text-[13px] relative"
-                            style={isActive ? {
-                              background: "oklch(0.55 0.20 192 / 10%)",
-                              border: "1px solid oklch(0.55 0.20 192 / 22%)",
-                              color: "oklch(0.40 0.20 192)",
-                            } : {
-                              color: "oklch(0.42 0.025 250)",
-                            }}
-                          >
-                            {isActive && (
-                              <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r"
-                                style={{
-                                  background: "oklch(0.55 0.20 192)",
-                                  boxShadow: "0 0 8px oklch(0.55 0.20 192 / 70%)"
-                                }} />
-                            )}
-                            <item.icon className="h-3.5 w-3.5 shrink-0"
-                              style={isActive ? { color: "oklch(0.50 0.20 192)" } : {}} />
-                            <span className="truncate">{item.label}</span>
-                          </SidebarMenuButton>
-                        </SidebarMenuItem>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarContent>
-
-          <SidebarFooter className="p-3 border-t" style={{ borderColor: "oklch(0.86 0.012 240)" }}>
-            {!isCollapsed && (
-              <div className="px-1 pb-2">
-                <LanguageSwitcher variant="pills" className="w-full justify-center" />
-              </div>
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-xl px-2 py-2 transition-all w-full text-left focus:outline-none group" style={{ }} onMouseEnter={e => (e.currentTarget.style.background = "oklch(0.55 0.20 192 / 6%)")} onMouseLeave={e => (e.currentTarget.style.background = "")}>
-                  <Avatar className="h-8 w-8 shrink-0 ring-1" style={{ ringColor: "oklch(0.55 0.20 192 / 20%)" }}>
-                    <AvatarFallback className="text-xs font-semibold"
-                      style={{
-                        background: "linear-gradient(135deg, oklch(0.55 0.20 192 / 20%), oklch(0.55 0.24 278 / 15%))",
-                        color: "oklch(0.40 0.20 192)",
-                        fontFamily: "'Space Grotesk', sans-serif",
-                      }}>
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  {!isCollapsed && (
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold truncate leading-none text-foreground">
-                        {user?.name || "User"}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground truncate mt-1">
-                        {user?.email || ""}
-                      </p>
-                    </div>
-                  )}
-                  {!isCollapsed && (
-                    <ChevronRight className="h-3 w-3 text-muted-foreground/50 shrink-0" />
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48"
-                style={{ background: "oklch(0.99 0.004 240)", border: "1px solid oklch(0.88 0.012 240)", boxShadow: "0 4px 20px oklch(0 0 0 / 8%)" }}>
-                <DropdownMenuItem
-                  onClick={logout}
-                  className="cursor-pointer text-destructive focus:text-destructive"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarFooter>
-        </Sidebar>
-
-        {/* Resize handle */}
-        <div
-          className={`absolute top-0 right-0 w-1 h-full cursor-col-resize transition-colors hover:bg-primary/20 ${isCollapsed ? "hidden" : ""}`}
-          onMouseDown={() => { if (!isCollapsed) setIsResizing(true); }}
-          style={{ zIndex: 50 }}
-        />
-      </div>
+      {/* macOS Dock */}
+      <MacDock onAppsClick={() => setAppsOpen(v => !v)} />
 
       {showOnboarding && (
         <OnboardingWizard
@@ -442,25 +504,7 @@ function DashboardLayoutContent({
         />
       )}
 
-      <SidebarInset style={{ background: "oklch(0.965 0.008 240)" }}>
-        {/* Global Earnings sticky bar — always visible */}
-        <GlobalEarningsBar />
-        {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between px-3 backdrop-blur sticky top-0 z-40"
-            style={{ background: "oklch(0.965 0.008 240 / 95%)", borderColor: "oklch(0.88 0.012 240)" }}>
-            <div className="flex items-center gap-3">
-              <SidebarTrigger className="h-8 w-8 rounded-lg" />
-              <span className="text-sm font-semibold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
-                {activeMenuItem?.label ?? "Menu"}
-              </span>
-            </div>
-            <LanguageSwitcher variant="pills" className="mr-1" />
-          </div>
-        )}
-        <main className="flex-1 p-5 md:p-6">{children}</main>
-      </SidebarInset>
-
       {user && <AIChatWidget />}
-    </>
+    </div>
   );
 }

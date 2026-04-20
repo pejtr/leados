@@ -74,7 +74,7 @@ export const leads = mysqlTable("leads", {
   isEnriched: boolean("isEnriched").default(false).notNull(),
 
   // Data source
-  dataSource: mysqlEnum("dataSource", ["mock", "linkedin_apify"]).default("mock").notNull(),
+  dataSource: mysqlEnum("dataSource", ["mock", "linkedin_apify", "xing_apify"]).default("mock").notNull(),
 
   // Pipeline status
   status: mysqlEnum("status", ["new", "contacted", "replied", "qualified", "disqualified"]).default("new").notNull(),

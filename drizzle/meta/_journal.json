@@ -148,6 +148,13 @@
       "when": 1776672748400,
       "tag": "0020_gifted_darkhawk",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "5",
+      "when": 1776678441799,
+      "tag": "0021_flippant_shiver_man",
+      "breakpoints": true
     }
   ]
 }

@@ -1,0 +1,1 @@
+ALTER TABLE `leads` MODIFY COLUMN `dataSource` enum('mock','linkedin_apify','xing_apify') NOT NULL DEFAULT 'mock';

@@ -135,7 +135,7 @@ const LINKEDIN_INDUSTRY_IDS: Record<string, number[]> = {
 
 // ─── Types ───────────────────────────────────────────────────────
 
-export type DataSource = "mock" | "linkedin_apify";
+export type DataSource = "mock" | "linkedin_apify" | "xing_apify";
 
 export interface RawLead {
   companyName: string;
@@ -336,6 +336,121 @@ export async function scrapeLeadsApify(
     });
   } catch (e) {
     console.warn("[Apify] Scraping failed, falling back to mock data:", e);
+    return generateMockLeads(industry, location, count, seniorityLevel);
+  }
+}
+
+// ─── 2b. Apify XING Scraper (epctex/xing-scraper) ──────────────
+
+interface XingCompany {
+  url?: string;
+  name?: string;
+  summary?: string;
+  description?: string;
+  websiteUrl?: string;
+  followers?: number;
+  companySizeRange?: { min?: number; max?: number };
+  location?: string;
+  industry?: string;
+  scrapedType?: string;
+}
+
+interface XingProfile {
+  url?: string;
+  name?: string;
+  occupation?: string;
+  location?: string;
+  profilePicture?: string;
+  scrapedType?: string;
+}
+
+/**
+ * Run the epctex/xing-scraper Apify actor to get DACH B2B leads from XING.
+ * Searches by keyword (industry) and location, returns company + profile data.
+ */
+export async function scrapeLeadsXing(
+  industry: string,
+  location: string,
+  count: number,
+  seniorityLevel: string,
+  apifyToken: string
+): Promise<RawLead[]> {
+  // Build search URLs for XING company search
+  const searchKeyword = encodeURIComponent(industry);
+  const locationQuery = location && location.toLowerCase() !== "worldwide" ? encodeURIComponent(location) : "Deutschland";
+
+  const startUrls = [
+    { url: `https://www.xing.com/search/companies?keywords=${searchKeyword}&location=${locationQuery}` },
+    { url: `https://www.xing.com/search/members?keywords=${searchKeyword}&location=${locationQuery}` },
+  ];
+
+  const actorInput = {
+    startUrls,
+    maxItems: Math.min(count * 2, 100), // Request 2x to account for filtering
+    proxy: { useApifyProxy: true, apifyProxyGroups: ["RESIDENTIAL"] },
+  };
+
+  console.log(`[Xing] Starting epctex/xing-scraper for "${industry}" in "${location}", max ${count} items`);
+
+  try {
+    const url = `https://api.apify.com/v2/acts/epctex~xing-scraper/run-sync-get-dataset-items?token=${apifyToken}&timeout=180&memory=512`;
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(actorInput),
+      signal: AbortSignal.timeout(200_000),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Xing Apify HTTP ${response.status}: ${errorText.slice(0, 300)}`);
+    }
+
+    const data = (await response.json()) as (XingCompany | XingProfile)[];
+    console.log(`[Xing] Received ${data.length} items from XING`);
+
+    if (!Array.isArray(data) || data.length === 0) {
+      console.warn("[Xing] Empty result, falling back to mock data");
+      return generateMockLeads(industry, location, count, seniorityLevel);
+    }
+
+    // Filter for company entries first, then profiles
+    const companies = data.filter((d) => d.scrapedType === "company" || !d.scrapedType) as XingCompany[];
+    const profiles = data.filter((d) => d.scrapedType === "profile") as XingProfile[];
+    const items = companies.length > 0 ? companies : profiles;
+
+    return items.slice(0, count).map((item): RawLead => {
+      const isCompany = (item as XingCompany).websiteUrl !== undefined || (item as XingCompany).summary !== undefined;
+      const company = item as XingCompany;
+      const profile = item as XingProfile;
+
+      const companyName = company.name ?? profile.name ?? "Unknown Company";
+      const website = company.websiteUrl ?? "";
+      const desc = company.summary ?? company.description ?? profile.occupation ?? "";
+      const loc = company.location ?? profile.location ?? location;
+      const sizeRange = company.companySizeRange;
+      const companySize = sizeRange ? `${sizeRange.min ?? 1}-${sizeRange.max ?? 50} employees` : "Unknown";
+      const xingUrl = item.url ?? "";
+
+      return {
+        companyName,
+        email: website ? `contact@${new URL(website.startsWith("http") ? website : `https://${website}`).hostname}` : "",
+        website,
+        industry: company.industry ?? industry,
+        location: loc,
+        companySize,
+        seniorityLevel,
+        contactName: isCompany ? "" : (profile.name ?? ""),
+        linkedinUrl: xingUrl, // store Xing URL in linkedinUrl field
+        companyDescription: desc,
+        icebreaker: "",
+        isEnriched: false,
+        dataSource: "xing_apify",
+      };
+    });
+  } catch (e) {
+    console.warn("[Xing] Scraping failed, falling back to mock data:", e);
     return generateMockLeads(industry, location, count, seniorityLevel);
   }
 }
@@ -559,15 +674,17 @@ export interface PipelineOptions {
   useApify?: boolean;
   enrichEmails?: boolean;
   segment?: string;
+  dataSource?: "linkedin" | "xing" | "mock";
   onProgress?: (step: string, current: number, total: number) => void;
 }
 
 export async function runLeadPipeline(opts: PipelineOptions): Promise<{ leads: RawLead[] }> {
-  const { industry, location, count, seniorityLevel, apifyToken, useApify, onProgress } = opts;
+  const { industry, location, count, seniorityLevel, apifyToken, useApify, dataSource, onProgress } = opts;
 
   // Determine effective Apify token: prefer explicit param, fall back to env var
   const effectiveToken = apifyToken || process.env.APIFY_TOKEN;
   const shouldUseApify = (useApify !== false) && !!effectiveToken;
+  const resolvedSource = dataSource ?? (shouldUseApify ? "linkedin" : "mock");
 
   // Step 1: Validate industry
   onProgress?.("Validating industry with AI...", 0, count);
@@ -576,7 +693,10 @@ export async function runLeadPipeline(opts: PipelineOptions): Promise<{ leads: R
 
   // Step 2: Scrape leads
   let rawLeads: RawLead[];
-  if (shouldUseApify && effectiveToken) {
+  if (resolvedSource === "xing" && effectiveToken) {
+    onProgress?.("Connecting to XING via Apify...", 0, count);
+    rawLeads = await scrapeLeadsXing(resolvedIndustry, location, count, seniorityLevel, effectiveToken);
+  } else if (resolvedSource === "linkedin" && shouldUseApify && effectiveToken) {
     onProgress?.("Connecting to LinkedIn via Apify...", 0, count);
     rawLeads = await scrapeLeadsApify(resolvedIndustry, location, count, seniorityLevel, effectiveToken);
   } else {

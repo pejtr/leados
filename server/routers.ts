@@ -164,6 +164,7 @@ export const appRouter = router({
           useApify: z.boolean().default(true),
           enrichEmails: z.boolean().default(true),
           segment: z.string().optional(),
+          dataSource: z.enum(["linkedin", "xing", "mock"]).default("linkedin"),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -188,6 +189,7 @@ export const appRouter = router({
             useApify: input.useApify,
             enrichEmails: input.enrichEmails,
             segment: input.segment,
+            dataSource: input.dataSource,
           });
 
           const leadsToInsert = result.leads.map((l) => ({
@@ -205,7 +207,7 @@ export const appRouter = router({
             companyDescription: l.companyDescription ?? null,
             icebreaker: l.icebreaker ?? null,
             isEnriched: !!l.icebreaker,
-            dataSource: l.dataSource as "mock" | "linkedin_apify",
+            dataSource: l.dataSource as "mock" | "linkedin_apify" | "xing_apify",
             status: "new" as const,
             segment: input.segment ?? null,
           }));
