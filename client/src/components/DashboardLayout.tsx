@@ -46,6 +46,7 @@ const dockItems = [
   { icon: TrendingUp,   path: "/roi-audit",       label: "ROI Audit",        color: "oklch(0.60 0.22 160)" },
   { icon: Link2,        path: "/projects",        label: "Projekty",         color: "oklch(0.58 0.16 200)" },
   // TIER 4 — AI & Knowledge
+  { icon: Cpu,          path: "/computer-flow",  label: "Computer Flow",   color: "oklch(0.62 0.22 190)" },
   { icon: Sparkles,     path: "/hermes",          label: "HERMES",           color: "oklch(0.65 0.22 280)" },
   { icon: Brain,        path: "/chat-agent",      label: "AI Poradce",       color: "oklch(0.60 0.22 260)" },
   { icon: BookOpen,     path: "/ai-skills",       label: "AI Skills",        color: "oklch(0.62 0.22 300)" },
@@ -86,6 +87,7 @@ const allMenuItems = [
   { icon: Link2,        labelKey: "sidebar.projectsHub",      path: "/projects",        group: "analytics" },
   { icon: History,      labelKey: "sidebar.leadHistory",      path: "/history",         group: "analytics" },
   // TIER 4 — AI & Knowledge
+  { icon: Cpu,          labelKey: "sidebar.computerFlow",    path: "/computer-flow",  group: "ai" },
   { icon: Sparkles,     labelKey: "sidebar.hermes",           path: "/hermes",          group: "ai" },
   { icon: Brain,        labelKey: "sidebar.aiAdvisor",        path: "/chat-agent",      group: "ai" },
   { icon: BookOpen,     labelKey: "sidebar.aiSkills",         path: "/ai-skills",       group: "ai" },

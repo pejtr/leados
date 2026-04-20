@@ -545,6 +545,33 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
       return { content, expertIds: input.expertIds };
     }),
 
+  /** COMPUTER FLOW — Perplexity-style multi-brain parallel orchestration */
+  computerFlow: protectedProcedure
+    .input(z.object({
+      query: z.string().min(1).max(4000),
+      domain: z.string().optional().default("general"),
+      maxSubTasks: z.number().min(2).max(5).optional().default(4),
+      enableDeepThink: z.boolean().optional().default(false),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { runComputerFlow } = await import("./computerFlow");
+      const platformContext = await buildPlatformContext(ctx.user.id);
+      const result = await runComputerFlow({
+        query: input.query,
+        context: platformContext,
+        domain: input.domain,
+        maxSubTasks: input.maxSubTasks,
+        enableDeepThink: input.enableDeepThink,
+      });
+      return result;
+    }),
+
+  /** COMPUTER FLOW — get brain layer configs for UI */
+  getComputerFlowConfig: protectedProcedure.query(async () => {
+    const { BRAIN_CONFIGS_PUBLIC } = await import("./computerFlow");
+    return BRAIN_CONFIGS_PUBLIC;
+  }),
+
   /** Get digest history from hermes_messages (role: hermes, type: daily_digest) */
   getDigestHistory: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();

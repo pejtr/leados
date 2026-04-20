@@ -57,6 +57,7 @@ import IngestSources from "./pages/IngestSources";
 import Datenschutz from "./pages/Datenschutz";
 import AiSkills from "./pages/AiSkills";
 import RoiAudit from "./pages/RoiAudit";
+import ComputerFlow from "./pages/ComputerFlow";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -121,6 +122,7 @@ function Router() {
       <Route path="/datenschutz" component={Datenschutz} />
       <Route path="/ai-skills" component={AiSkills} />
       <Route path="/roi-audit" component={RoiAudit} />
+      <Route path="/computer-flow" component={ComputerFlow} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -22,6 +22,7 @@
     "goToDashboard": "Přejít na dashboard"
   },
   "sidebar": {
+    "computerFlow": "Computer Flow",
     "hermes": "HERMES Core AI",
     "dashboard": "Dashboard",
     "aiAdvisor": "Chat Agent",

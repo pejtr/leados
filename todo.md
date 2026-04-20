@@ -694,3 +694,20 @@
 - [x] ScrollToTop component added to App.tsx (fires on every route change)
 - [x] HERMES Mastermind tab added to Hermes.tsx — expert multi-select sidebar + LLM chat
 - [x] mastermindChat tRPC procedure added to hermesRouter.ts (uses buildMastermindPrompt from shared/hermesMastermind.ts)
+
+## Computer Flow — Perplexity-style Multi-Brain Orchestration (April 2026)
+- [x] server/computerFlow.ts — full orchestration engine (decomposer, parallel executor, synthesizer)
+- [x] DECOMPOSER brain: breaks query into 2-5 specialized sub-tasks via LLM (thinking budget 128)
+- [x] EXECUTOR: runs all sub-tasks in parallel via Promise.all (Scout/Analyst/Strategist/DeepThink layers)
+- [x] SYNTHESIZER: merges all outputs into unified optimized result (thinking budget 2048)
+- [x] Gemini 2.5 Pro direct API integration for Deep Think layer (optional, via GEMINI_API_KEY)
+- [x] hermesRouter.ts: hermes.computerFlow mutation + hermes.getComputerFlowConfig query
+- [x] client/src/pages/ComputerFlow.tsx — full UI with SVG execution graph, brain nodes, timing stats
+- [x] Animated circular SVG graph showing brain layers + connection lines + status
+- [x] Sub-task cards with expand/collapse for individual brain outputs
+- [x] Synthesis panel with Streamdown markdown rendering
+- [x] Export to Markdown (.md) download
+- [x] Settings panel: domain selector, sub-task count (2-5), Deep Think toggle
+- [x] Route /computer-flow added to App.tsx
+- [x] Computer Flow added to DashboardLayout dock (TIER 4 AI) and sidebar menu
+- [x] i18n keys added to cs.json, en.json, de.json
