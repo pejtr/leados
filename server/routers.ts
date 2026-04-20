@@ -2154,21 +2154,21 @@ Include 4-6 real or realistic competitors.`;
       const stats = await getLeadStats(ctx.user.id);
       const recentLeads = await getLeads({ userId: ctx.user.id, limit: 10, offset: 0, status: "new" });
       const topLeadsText = recentLeads.items.slice(0, 5).map((l: any) => `${l.companyName} (${l.industry})`).join(", ");
-      const prompt = `You are an AI sales advisor generating a morning briefing for a sales professional.
-Context:
-- Total leads: ${stats.total}, New: ${stats.byStatus?.new ?? 0}, Contacted: ${stats.byStatus?.contacted ?? 0}, Qualified: ${stats.byStatus?.qualified ?? 0}
-- Recent new leads: ${topLeadsText || "none yet"}
-- Today: ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+      const prompt = `Jsi AI obchodní poradce generující ranní přehled pro obchodního profesionála. VEŠKERÝ TEXT MUSÍ BÝT V ČEŠTINĚ.
+Kontext:
+- Celkem leadů: ${stats.total}, Nové: ${stats.byStatus?.new ?? 0}, Kontaktované: ${stats.byStatus?.contacted ?? 0}, Kvalifikované: ${stats.byStatus?.qualified ?? 0}
+- Nedávné nové leady: ${topLeadsText || "žádné zatím"}
+- Dnes: ${new Date().toLocaleDateString("cs-CZ", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
 
-Generate a concise, actionable morning briefing in JSON format with:
-- summary: 2-3 sentence overview of the day's priorities
-- topLeads: array of 3 lead names/companies to focus on today with reason
-- pipelineAlerts: array of 2-3 pipeline risks or opportunities
-- nextActions: array of 3-5 specific actions to take today
-Keep it practical, direct, and motivating.`;
+Vygeneruj stručný, akční ranní přehled ve formátu JSON s těmito poli (VŠE V ČEŠTINĚ):
+- summary: 2-3 věty shrnující priority dne
+- topLeads: pole 3 leadů/firem na které se dnes zaměřit s důvodem (v češtině)
+- pipelineAlerts: pole 2-3 rizik nebo příležitostí v pipeline (v češtině)
+- nextActions: pole 3-5 konkrétních akcí na dnešek (v češtině)
+Buď praktický, přímý a motivující. NIKDY nepoužívej angličtinu.`;
       const response = await invokeLLM({
         messages: [
-          { role: "system", content: "You are a sales performance AI. Always respond with valid JSON." },
+          { role: "system", content: "Jsi AI asistent pro obchodn\u00ed v\u00fdkon. V\u017edy odpov\u00eddej validn\u00edm JSON. V\u0160ECHNY textov\u00e9 hodnoty mus\u00ed b\u00fdt v \u010de\u0161tin\u011b." },
           { role: "user", content: prompt },
         ],
         response_format: { type: "json_object" },
