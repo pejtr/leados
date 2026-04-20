@@ -6,6 +6,7 @@ import {
   Mail, Phone, Sparkles, Timer, TrendingUp, Users, Zap, Linkedin,
   XCircle, ArrowRight, Shield, Brain, ChevronRight, Activity, BookOpen, Star,
   Sun, X, RefreshCw, Target, AlertTriangle, ListChecks, Cpu, Flame,
+  ExternalLink, Globe, ShoppingCart, Package, Wifi, WifiOff, AlertCircle,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -664,6 +665,9 @@ export default function Home() {
           </div>
         </div>
 
+        {/* ── Projects Analytics Hub ────────────────── */}
+        <ProjectsHub fmtCZK={fmtCZK} onNavigate={setLocation} />
+
       </div>
     </DashboardLayout>
   );
@@ -734,5 +738,235 @@ function QuickAction({
         <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
       </div>
     </button>
+  );
+}
+
+// ─── Projects Analytics Hub ──────────────────────────────────
+const PROJECT_ROUTES: Record<string, string> = {
+  "deep-sleep-reset": "/global-earnings",
+  "leadOS": "/global-earnings",
+};
+
+const PROJECT_COLORS: Record<string, { accent: string; bg: string; border: string; bar: string }> = {
+  "deep-sleep-reset": {
+    accent: "text-[oklch(0.50_0.24_278)]",
+    bg: "from-[oklch(0.55_0.24_278_/_8%)]",
+    border: "border-[oklch(0.55_0.24_278_/_25%)]",
+    bar: "bg-[oklch(0.55_0.24_278)]",
+  },
+  "leadOS": {
+    accent: "text-[oklch(0.50_0.20_192)]",
+    bg: "from-[oklch(0.55_0.20_192_/_8%)]",
+    border: "border-[oklch(0.55_0.20_192_/_25%)]",
+    bar: "bg-[oklch(0.55_0.20_192)]",
+  },
+};
+
+const DEFAULT_COLOR = {
+  accent: "text-[oklch(0.50_0.18_162)]",
+  bg: "from-[oklch(0.68_0.18_162_/_8%)]",
+  border: "border-[oklch(0.68_0.18_162_/_25%)]",
+  bar: "bg-[oklch(0.68_0.18_162)]",
+};
+
+function MiniSparkBar({ values, color }: { values: number[]; color: string }) {
+  const max = Math.max(...values, 1);
+  return (
+    <div className="flex items-end gap-0.5 h-8">
+      {values.map((v, i) => (
+        <div
+          key={i}
+          className={`flex-1 rounded-sm opacity-80 ${color}`}
+          style={{ height: `${Math.max(4, (v / max) * 32)}px` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ProjectCard({
+  project,
+  fmtCZK,
+  onNavigate,
+}: {
+  project: any;
+  fmtCZK: (cents: number) => string;
+  onNavigate: (path: string) => void;
+}) {
+  const c = PROJECT_COLORS[project.id] ?? DEFAULT_COLOR;
+  const route = PROJECT_ROUTES[project.id] ?? "/global-earnings";
+  const USD_TO_CZK = 25;
+  const toCZK = (usd: number) => usd * USD_TO_CZK;
+
+  // Build sparkbar data: [last30d/4, last7d, today*3] — approximation for visual rhythm
+  const sparkValues = [
+    project.last30dRevenue / 4,
+    project.last30dRevenue / 4,
+    project.last7dRevenue / 2,
+    project.last7dRevenue / 2,
+    project.todayRevenue,
+  ].map(v => Math.max(0, v));
+
+  const statusIcon =
+    project.status === "online" ? <Wifi className="h-3 w-3 text-[oklch(0.68_0.18_162)]" /> :
+    project.status === "offline" ? <WifiOff className="h-3 w-3 text-[oklch(0.58_0.22_27)]" /> :
+    project.status === "unconfigured" ? <AlertCircle className="h-3 w-3 text-[oklch(0.65_0.18_60)]" /> :
+    <Globe className="h-3 w-3 text-muted-foreground/40" />;
+
+  const statusLabel =
+    project.status === "online" ? "Online" :
+    project.status === "offline" ? "Offline" :
+    project.status === "unconfigured" ? "Nenastaveno" : "Neznámý";
+
+  const roasValue = project.totalOrders > 0
+    ? ((project.totalRevenue / (project.totalOrders * 15)) * 100).toFixed(0) + "%"
+    : "—";
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl border ${c.border} bg-gradient-to-br ${c.bg} to-white p-5 cursor-pointer hover:shadow-md transition-all duration-200 group`}
+      onClick={() => onNavigate(route)}
+    >
+      {/* Top accent */}
+      <div className={`absolute top-0 left-0 right-0 h-0.5 ${c.bar}`} />
+
+      {/* Header */}
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <p className="text-sm font-black text-foreground truncate">{project.name}</p>
+            <span className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground">
+              {statusIcon} {statusLabel}
+            </span>
+          </div>
+          <a
+            href={project.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className={`text-[10px] ${c.accent} hover:underline flex items-center gap-0.5`}
+          >
+            {project.url.replace(/^https?:\/\//, "")} <ExternalLink className="h-2.5 w-2.5" />
+          </a>
+        </div>
+        <div className={`p-1.5 rounded-lg bg-white/60 border ${c.border} group-hover:scale-110 transition-transform`}>
+          <ArrowRight className={`h-3.5 w-3.5 ${c.accent}`} />
+        </div>
+      </div>
+
+      {/* KPI row */}
+      <div className="grid grid-cols-3 gap-2 mb-3">
+        <div>
+          <p className="text-[10px] text-muted-foreground font-medium">Dnes</p>
+          <p className="text-base font-black text-foreground tabular-nums">
+            {new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(toCZK(project.todayRevenue))}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] text-muted-foreground font-medium">30 dní</p>
+          <p className="text-base font-black text-foreground tabular-nums">
+            {new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(toCZK(project.last30dRevenue))}
+          </p>
+        </div>
+        <div>
+          <p className="text-[10px] text-muted-foreground font-medium">Objednávky</p>
+          <p className="text-base font-black text-foreground tabular-nums">
+            {project.totalOrders}
+          </p>
+        </div>
+      </div>
+
+      {/* Sparkbar */}
+      <MiniSparkBar values={sparkValues} color={c.bar} />
+
+      {/* Footer */}
+      <div className="flex items-center justify-between mt-2 pt-2 border-t border-black/5">
+        <div className="flex items-center gap-3">
+          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <ShoppingCart className="h-2.5 w-2.5" /> ROAS {roasValue}
+          </span>
+          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+            <Package className="h-2.5 w-2.5" /> Conv {project.conversionRate?.toFixed(1) ?? "0.0"}%
+          </span>
+        </div>
+        <span className={`text-[10px] font-bold ${c.accent}`}>Detail →</span>
+      </div>
+    </div>
+  );
+}
+
+function ProjectsHub({
+  fmtCZK,
+  onNavigate,
+}: {
+  fmtCZK: (cents: number) => string;
+  onNavigate: (path: string) => void;
+}) {
+  const { data: snapshot, isLoading } = trpc.globalEarnings.snapshot.useQuery(undefined, {
+    refetchInterval: 120_000,
+    staleTime: 60_000,
+  });
+
+  return (
+    <div className="rounded-2xl border border-border bg-white shadow-sm p-5">
+      {/* Section header */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.20_192_/_10%)]">
+            <Globe className="h-4 w-4 text-[oklch(0.50_0.20_192)]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-foreground">Přehled projektů</h2>
+            <p className="text-[10px] text-muted-foreground">
+              {snapshot ? `Aktualizováno ${new Date(snapshot.generatedAt).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}` : "Načítám..."}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => onNavigate("/global-earnings")}
+          className="text-xs text-[oklch(0.50_0.20_192)] hover:text-[oklch(0.45_0.20_192)] flex items-center gap-1 transition-colors"
+        >
+          Celkový přehled <ChevronRight className="h-3.5 w-3.5" />
+        </button>
+      </div>
+
+      {/* Aggregate bar */}
+      {snapshot && (
+        <div className="grid grid-cols-4 gap-3 mb-5 p-3 rounded-xl bg-[oklch(0.55_0.20_192_/_5%)] border border-[oklch(0.55_0.20_192_/_15%)]">
+          {[
+            { label: "Celkem dnes", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.todayRevenue * 25) },
+            { label: "Posledních 7 dní", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.last7dRevenue * 25) },
+            { label: "Posledních 30 dní", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.last30dRevenue * 25) },
+            { label: "Celkem objednávek", value: snapshot.totals.totalOrders.toString() },
+          ].map(m => (
+            <div key={m.label} className="text-center">
+              <p className="text-[10px] text-muted-foreground font-medium">{m.label}</p>
+              <p className="text-sm font-black text-foreground tabular-nums mt-0.5">{m.value}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Project cards grid */}
+      {isLoading ? (
+        <div className="flex items-center justify-center h-32">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/40" />
+        </div>
+      ) : !snapshot || snapshot.projects.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-32 text-center gap-2">
+          <Globe className="h-8 w-8 text-muted-foreground/20" />
+          <p className="text-xs text-muted-foreground">Žádné projekty nejsou propojeny</p>
+          <button onClick={() => onNavigate("/global-earnings")} className="text-xs text-[oklch(0.50_0.20_192)] hover:underline">
+            Přidat projekt →
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {snapshot.projects.map((project: any) => (
+            <ProjectCard key={project.id} project={project} fmtCZK={fmtCZK} onNavigate={onNavigate} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
