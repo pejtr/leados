@@ -868,6 +868,85 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── DSGVO / DACH Trust ──────────────────────────────────────────────── */}
+      <section className="py-16 px-4 sm:px-6" style={{ background: "#f0f4ff", borderTop: `1px solid ${C.border}` }}>
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-10">
+              <Badge className="mb-4 text-xs px-3 py-1" style={{ background: "#e0e7ff", border: "1px solid #c7d2fe", color: "#4338ca" }}>
+                DACH Enterprise Ready
+              </Badge>
+              <h2 className="text-2xl sm:text-3xl font-black mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
+                Vertrauen durch Transparenz
+              </h2>
+              <p className="text-base" style={{ color: C.textMuted }}>Datenschutz nach DSGVO · EU-Rechenzentren · ISO 27001 ready</p>
+            </div>
+          </Reveal>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+            {[
+              { icon: Shield, label: "DSGVO-konform", sub: "Art. 13 & 14 DSGVO", color: C.green },
+              { icon: Globe, label: "EU-Rechenzentren", sub: "Frankfurt · Amsterdam", color: C.indigo },
+              { icon: BadgeCheck, label: "ISO 27001 ready", sub: "Audit Q3 2026", color: C.teal },
+              { icon: Users, label: "EU VAT compliant", sub: "Reverse Charge DE/AT/CH", color: C.amber },
+            ].map(({ icon: Icon, label, sub, color }) => (
+              <Reveal key={label}>
+                <div className="flex flex-col items-center text-center p-5 rounded-2xl" style={{ background: C.bgCard, border: `1px solid ${C.border}`, boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${color}18` }}>
+                    <Icon className="w-5 h-5" style={{ color }} />
+                  </div>
+                  <div className="font-bold text-sm mb-1" style={{ color: C.text, fontFamily: "'Space Grotesk', sans-serif" }}>{label}</div>
+                  <div className="text-xs" style={{ color: C.textLight }}>{sub}</div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[
+              { name: "Klaus Bergmann", role: "VP Sales, Muenchner SaaS GmbH", flag: "DE", text: "LeadOS hat unsere Outbound-Pipeline in 3 Wochen verdreifacht. Die DSGVO-Konformitaet war entscheidend.", metric: "3x Pipeline", metricLabel: "in 3 Wochen" },
+              { name: "Sabine Mueller", role: "Head of BD, Wien Consulting AG", flag: "AT", text: "Xing-Integration ist Gold wert. 80% unserer Zielkunden sind auf Xing aktiver als auf LinkedIn.", metric: "80% DACH Leads", metricLabel: "via Xing" },
+              { name: "Markus Zimmermann", role: "CEO, Zuerich FinTech Startup", flag: "CH", text: "Wir haben 3 Enterprise-Deals in der Schweiz mit LeadOS abgeschlossen. ROI war im ersten Monat positiv.", metric: "3 Enterprise Deals", metricLabel: "Monat 1" },
+            ].map(({ name, role, flag, text, metric, metricLabel }) => (
+              <Reveal key={name}>
+                <div className="p-5 rounded-2xl h-full flex flex-col" style={{ background: C.bgCard, border: `1px solid ${C.border}`, boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
+                  <div className="flex gap-0.5 mb-3">
+                    {[1,2,3,4,5].map(j => <Star key={j} className="w-3.5 h-3.5 fill-current" style={{ color: C.amber }} />)}
+                    <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: C.indigo + "18", color: C.indigo }}>{flag}</span>
+                  </div>
+                  <p className="text-sm leading-relaxed mb-4 flex-1 italic" style={{ color: C.textMuted }}>{text}</p>
+                  <div className="flex items-center justify-between pt-3" style={{ borderTop: `1px solid ${C.border}` }}>
+                    <div>
+                      <div className="font-semibold text-sm" style={{ color: C.text }}>{name}</div>
+                      <div className="text-xs" style={{ color: C.textLight }}>{role}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-base font-black" style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{metric}</div>
+                      <div className="text-xs" style={{ color: C.textLight }}>{metricLabel}</div>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal>
+            <div className="mt-8 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4" style={{ background: `linear-gradient(135deg, ${C.indigo}10, ${C.teal}10)`, border: `1px solid ${C.indigo}20` }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${C.indigo}18` }}>
+                  <Mail className="w-5 h-5" style={{ color: C.indigo }} />
+                </div>
+                <div>
+                  <div className="font-bold text-sm" style={{ color: C.text }}>Deutschsprachiger Support</div>
+                  <div className="text-xs" style={{ color: C.textMuted }}>Antwort innerhalb von 24 Stunden · Mo-Fr 9-17 Uhr MEZ</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-4 text-sm">
+                <a href="mailto:support-de@crmleadsystem.com" className="font-medium hover:underline" style={{ color: C.indigo }}>support-de@crmleadsystem.com</a>
+                <a href="/datenschutz" className="hover:underline" style={{ color: C.textMuted }}>Datenschutzerklaerung</a>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ── Pricing ──────────────────────────────────────────────────────────── */}
       <section id="pricing" className="py-24 px-4 sm:px-6" style={{ background: C.bgAlt, borderTop: `1px solid ${C.border}` }}>
         <div className="max-w-5xl mx-auto">

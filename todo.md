@@ -658,3 +658,21 @@
 - [ ] Add hermes.triggerDigest tRPC procedure for manual testing
 - [ ] Add "Denní přehledy" tab on Hermes.tsx showing digest history
 - [ ] Fix deepSleep.getAnalytics → deepSleep.analytics in Hermes.tsx DsrLivePanel
+
+## DACH Market Expansion (Germany/Austria/Switzerland)
+- [ ] Update Stripe prices to DACH rates (Pro €149, Growth €349, Enterprise €799+)
+- [ ] Update landing page pricing section in cs.json, en.json, de.json
+- [ ] Add DSGVO/GDPR compliance section to landing page
+- [ ] Add trust badges: EU data processing, GDPR compliant, ISO 27001 ready
+- [ ] Add Xing as lead generation source in Generate page
+- [ ] Add Xing scraping backend support (Apify Xing actor)
+- [ ] Add DACH-specific German testimonials to landing page
+- [ ] Add German support email / contact info
+- [ ] Add EU VAT compliance note to pricing section
+- [ ] Add Datenschutz link in footer (German privacy policy page)
+
+## External Project Integration (LeadOS Ingest)
+- [x] POST /api/leads/ingest endpoint with API key auth
+- [x] ingested_leads DB table created and migrated
+- [x] IngestSources dashboard page (External Leads in sidebar)
+- [x] i18n keys for externalLeads in cs/en/de

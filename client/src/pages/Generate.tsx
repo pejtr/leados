@@ -87,7 +87,8 @@ export default function Generate() {
   const [seniorityLevel, setSeniorityLevel] = useState("Manager");
   const [apifyToken, setApifyToken] = useState("");
   const { t } = useTranslation();
-  const [useApify, setUseApify] = useState(true);
+  const [dataSource, setDataSource] = useState<'linkedin' | 'xing' | 'demo'>('linkedin');
+  const useApify = dataSource === 'linkedin' || dataSource === 'xing';
   const [enrichEmails, setEnrichEmails] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [results, setResults] = useState<Lead[]>([]);
@@ -200,34 +201,53 @@ export default function Generate() {
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => setUseApify(true)}
+                      onClick={() => setDataSource('linkedin')}
                       className={cn(
                         "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs font-medium transition-all",
-                        useApify
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border bg-input text-muted-foreground hover:border-border/80"
-                      )}
-                    >
-                      <Linkedin className="h-4 w-4" />
-                      <span>LinkedIn</span>
+        dataSource === 'linkedin'
+          ? "border-primary bg-primary/10 text-primary"
+          : "border-border bg-input text-muted-foreground hover:border-border/80"
+      )}
+    >
+      <Linkedin className="h-4 w-4" />
+      <span>LinkedIn</span>
                       <span className={cn("text-[10px]", useApify ? "text-primary/70" : "text-muted-foreground/60")}>
                         via Apify · {t('generate.liveData', 'Živá data')}
                       </span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setUseApify(false)}
+                      onClick={() => setDataSource('demo')}
                       className={cn(
                         "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs font-medium transition-all",
-                        !useApify
-                          ? "border-primary bg-primary/10 text-primary"
+        dataSource === 'demo'
+          ? "border-primary bg-primary/10 text-primary"
+          : "border-border bg-input text-muted-foreground hover:border-border/80"
+      )}
+    >
+      <Database className="h-4 w-4" />
+      <span>{t('generate.demoData', 'Demo data')}</span>
+                      <span className={cn("text-[10px]", !useApify ? "text-primary/70" : "text-muted-foreground/60")}>
+                        Mock · {t('generate.noTokenNeeded', 'Bez tokenu')}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDataSource('xing')}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs font-medium transition-all col-span-2",
+                        dataSource === 'xing'
+                          ? "border-blue-500 bg-blue-500/10 text-blue-600"
                           : "border-border bg-input text-muted-foreground hover:border-border/80"
                       )}
                     >
-                      <Database className="h-4 w-4" />
-                      <span>{t('generate.demoData', 'Demo data')}</span>
-                      <span className={cn("text-[10px]", !useApify ? "text-primary/70" : "text-muted-foreground/60")}>
-                        Mock · {t('generate.noTokenNeeded', 'Bez tokenu')}
+                      <div className="flex items-center gap-1.5">
+                        <Globe className="h-4 w-4" />
+                        <span className="font-semibold">Xing</span>
+                        <span className="text-[9px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold">DACH</span>
+                      </div>
+                      <span className={cn("text-[10px]", dataSource === 'xing' ? "text-blue-500/70" : "text-muted-foreground/60")}>
+                        via Apify · {t('generate.liveData', 'Živá data')} · DE/AT/CH
                       </span>
                     </button>
                   </div>
