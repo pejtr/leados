@@ -6,10 +6,10 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -322,7 +322,7 @@ function MissionResultPanel({
 // ─── DSR Live Performance Panel ─────────────────────────────────────────────
 
 function DsrLivePanel() {
-  const { data, isLoading } = trpc.deepSleep.getAnalytics.useQuery(undefined, {
+  const { data, isLoading } = trpc.deepSleep.analytics.useQuery(undefined, {
     staleTime: 60_000,
     retry: false,
   });
@@ -371,6 +371,64 @@ function DsrLivePanel() {
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
+
+// ─── Digest Panel ───────────────────────────────────────────────────────────
+
+function DigestPanel() {
+  const [expanded, setExpanded] = useState(false);
+  const triggerDigest = trpc.hermes.triggerDigest.useMutation({
+    onSuccess: () => toast.success("⚡ HERMES Digest odeslán!"),
+    onError: (err) => toast.error("Chyba při generování digestu", { description: err.message }),
+  });
+  const { data: history, refetch } = trpc.hermes.getDigestHistory.useQuery(undefined, {
+    enabled: expanded,
+    staleTime: 30_000,
+  });
+
+  return (
+    <div className="border-t border-slate-800 pt-3 mt-3">
+      <div className="flex items-center justify-between mb-2">
+        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          Denní přehled
+        </p>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="text-xs text-slate-600 hover:text-cyan-400 transition-colors"
+        >
+          {expanded ? "Skrýt" : "Historie"}
+        </button>
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        className="w-full text-xs border-cyan-900/50 text-cyan-400 hover:bg-cyan-900/20 hover:text-cyan-300"
+        onClick={() => { triggerDigest.mutate(); refetch(); }}
+        disabled={triggerDigest.isPending}
+      >
+        {triggerDigest.isPending ? (
+          <><Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> Generuji...</>  
+        ) : (
+          <><Zap className="h-3 w-3 mr-1.5" /> Spustit ranní přehled</>  
+        )}
+      </Button>
+      {expanded && history && history.length > 0 && (
+        <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+          {history.map((item) => (
+            <div key={item.id} className="bg-slate-900/60 rounded p-2 border border-slate-800">
+              <p className="text-xs text-slate-500 mb-1">
+                {item.createdAt ? new Date(item.createdAt).toLocaleString("cs-CZ", { timeZone: "Europe/Prague", dateStyle: "short", timeStyle: "short" }) : ""}
+              </p>
+              <p className="text-xs text-slate-300 line-clamp-3">{item.content}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {expanded && history && history.length === 0 && (
+        <p className="text-xs text-slate-600 mt-2 text-center">Žádné přehledy zatím.</p>
+      )}
+    </div>
+  );
+}
 
 export default function Hermes() {
   const [sessionId, setSessionId] = useState<number | null>(null);
@@ -884,6 +942,8 @@ export default function Hermes() {
                   </button>
                 ))}
               </div>
+              {/* Daily Digest trigger */}
+              <DigestPanel />
             </div>
           </div>
         </div>

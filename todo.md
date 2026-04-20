@@ -649,3 +649,12 @@
 - [x] Auto-send "Shrň mi aktuální výkon projektů" on /hermes page load after session init
 - [x] Show loading state while briefing is being generated (isSending=true during auto-briefing)
 - [x] Prevent duplicate briefing on re-render (autoBriefingFiredRef)
+
+## HERMES Daily Digest (08:00 CET Scheduler)
+- [ ] Create server/hermesDigest.ts — generateDailyDigest() fetches live DSR data + LeadOS stats, invokes LLM for Czech briefing
+- [ ] Add node-cron scheduler in server/_core/index.ts — fires at 08:00 CET daily
+- [ ] Store digest in hermes_messages table (role: "digest") for history
+- [ ] Send digest via notifyOwner({ title, content })
+- [ ] Add hermes.triggerDigest tRPC procedure for manual testing
+- [ ] Add "Denní přehledy" tab on Hermes.tsx showing digest history
+- [ ] Fix deepSleep.getAnalytics → deepSleep.analytics in Hermes.tsx DsrLivePanel

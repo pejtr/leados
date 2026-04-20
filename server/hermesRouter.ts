@@ -503,9 +503,8 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
         .limit(5),
     ]);
 
-    const totalMessages = sessions.reduce((sum, s) => sum + (s.messageCount ?? 0), 0);
+     const totalMessages = sessions.reduce((sum, s) => sum + (s.messageCount ?? 0), 0);
     const completedMissions = missions.filter((m) => m.status === "completed").length;
-
     return {
       totalSessions: sessions.length,
       totalMessages,
@@ -515,5 +514,37 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
       subAgentCount: Object.keys(SUB_AGENT_PERSONAS).length,
       missionTemplateCount: MISSION_TEMPLATES.length,
     };
+  }),
+
+  /** Manually trigger a HERMES Daily Digest (admin/testing) */
+  triggerDigest: protectedProcedure.mutation(async () => {
+    const { sendDailyDigest } = await import("./hermesDigest");
+    await sendDailyDigest();
+    return { ok: true, message: "Digest vygenerován a odeslán." };
+  }),
+
+  /** Get digest history from hermes_messages (role: hermes, type: daily_digest) */
+  getDigestHistory: protectedProcedure.query(async ({ ctx }) => {
+    const db = getDb();
+    // Find the digest session for this user
+    const digestSessions = await db
+      .select()
+      .from(hermesSessions)
+      .where(and(eq(hermesSessions.userId, ctx.user.id), eq(hermesSessions.intent, "daily_digest")))
+      .orderBy(desc(hermesSessions.createdAt))
+      .limit(1);
+    if (!digestSessions.length) return [];
+    const messages = await db
+      .select()
+      .from(hermesMessages)
+      .where(eq(hermesMessages.sessionId, digestSessions[0].id))
+      .orderBy(desc(hermesMessages.createdAt))
+      .limit(30);
+    return messages.map((m) => ({
+      id: m.id,
+      content: m.content,
+      createdAt: m.createdAt,
+      metadata: m.metadata ? JSON.parse(m.metadata as string) : null,
+    }));
   }),
 });
