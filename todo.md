@@ -621,3 +621,18 @@
 - [x] Update AIChatWidget.tsx to use hermes.aiChat — HERMES mode toggle, active sub-agent badge, intent label, HERMES header
 - [x] Add HERMES mode toggle in AIChatWidget (HERMES orchestration ON/OFF with Shield+Switch)
 - [x] Persist HERMES widget session in DB (auto-creates 'widget' session per user for conversation continuity)
+
+## DeepSleepReset Integration (External Project Monitoring)
+- [x] Add DEEP_SLEEP_RESET_API_KEY secret via webdev_request_secrets
+- [x] Create server/routers/deepSleep.ts — backend proxy for all 6 DSR endpoints (health, analytics, leads, orders, ab-tests, email-sequence)
+- [x] Wire deepSleepRouter into routers.ts
+- [x] Build client/src/pages/DeepSleepDashboard.tsx — full monitoring page (KPI cards, leads table, orders, A/B tests, email sequence, health badge)
+- [x] Add /deep-sleep route in App.tsx
+- [x] Add "DeepSleep" nav item in DashboardLayout sidebar
+
+## DSR Push Ingest Endpoint + Global Earnings Widget
+- [ ] DB schema: dsr_snapshots table (stores push payloads from DSR hourly_stats.py)
+- [ ] Express route POST /api/dsr/ingest — public, auth via X-API-Key header
+- [ ] globalEarningsRouter wired into routers.ts
+- [ ] Live Global Earnings widget on Home.tsx dashboard (total across all projects)
+- [ ] Wire globalEarningsRouter into routers.ts

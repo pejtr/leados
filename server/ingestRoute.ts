@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { getProjectByApiKey, ingestEvent } from "./projectsDb";
 import { getDb } from "./db";
-import { adCampaigns, adCampaignSnapshots } from "../drizzle/schema";
+import { adCampaigns, adCampaignSnapshots, dsrSnapshots } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 /**
@@ -125,6 +125,48 @@ export function registerIngestRoute(app: Express) {
     } catch (err: any) {
       console.error("[Ingest] Error:", err?.message);
       return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // ── POST /api/dsr/ingest — DeepSleepReset push ingest ─────────────────────
+  // Auth: X-API-Key header must match DEEP_SLEEP_RESET_API_KEY env var
+  // Payload: { kpis, leads, orders, source?, pushedAt? } (same shape as DSR analytics)
+  app.post("/api/dsr/ingest", async (req: Request, res: Response) => {
+    try {
+      const apiKey = (req.headers["x-api-key"] as string) ||
+        (req.headers["authorization"] as string)?.replace("Bearer ", "");
+      const expectedKey = process.env.DEEP_SLEEP_RESET_API_KEY;
+      if (!expectedKey || apiKey !== expectedKey) {
+        return res.status(401).json({ ok: false, error: "Invalid API key" });
+      }
+      const body = req.body || {};
+      const kpis = body.kpis || body.analytics?.kpis || {};
+      const db = await getDb();
+      if (!db) return res.status(503).json({ ok: false, error: "DB unavailable" });
+      // dsrSnapshots imported at top of file
+      const toUsdCents = (v: string | number | undefined) =>
+        Math.round(parseFloat(String(v || 0)) * 100);
+      await db.insert(dsrSnapshots).values({
+        source: String(body.source || "deep-sleep-reset"),
+        totalRevenueCents: toUsdCents(kpis.totalRevenueUsd),
+        todayRevenueCents: toUsdCents(kpis.todayRevenueUsd),
+        last7dRevenueCents: toUsdCents(kpis.last7DaysRevenueUsd),
+        last30dRevenueCents: toUsdCents(kpis.last30DaysRevenueUsd),
+        totalOrders: parseInt(String(kpis.totalOrders || 0)),
+        totalLeads: parseInt(String(kpis.totalLeads || body.leads?.total || 0)),
+        convertedLeads: parseInt(String(kpis.convertedLeads || 0)),
+        conversionRatePct: Math.round(parseFloat(String(kpis.conversionRatePct || 0))),
+        rawPayload: body,
+        pushedAt: Date.now(),
+        createdAt: Date.now(),
+      });
+      console.log(
+        `[DSR Ingest] Snapshot stored — revenue: $${kpis.totalRevenueUsd || 0}, orders: ${kpis.totalOrders || 0}`
+      );
+      return res.json({ ok: true, stored: true, receivedAt: new Date().toISOString() });
+    } catch (err: any) {
+      console.error("[DSR Ingest] Error:", err?.message);
+      return res.status(500).json({ ok: false, error: "Internal server error" });
     }
   });
 

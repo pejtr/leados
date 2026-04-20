@@ -77,7 +77,8 @@
     "settings": "Nastavení",
     "dailyReport": "Denní Report",
     "aiConstitution": "AI Ústava",
-    "agentBenchmark": "Benchmark agentů"
+    "agentBenchmark": "Benchmark agentů",
+    "deepSleep": "DeepSleepReset"
   },
   "home": {
     "aiSystemsActive": "AI systémy aktivní",

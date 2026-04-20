@@ -339,6 +339,7 @@
     "hermes": "HERMES Core AI",
     "dailyReport": "Daily Report",
     "aiConstitution": "AI Constitution",
-    "agentBenchmark": "Agent Benchmark"
+    "agentBenchmark": "Agent Benchmark",
+      "deepSleep": "DeepSleepReset"
   }
 }

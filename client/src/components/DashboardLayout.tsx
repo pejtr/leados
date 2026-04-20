@@ -27,7 +27,8 @@ import {
   Kanban, DollarSign, Bot, Webhook, Target, UserCheck, Lightbulb, Ear, Code,
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
-  TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical, Sparkles,
+  TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical, Sparkles, Moon,
+  CircleDollarSign, TrendingUp as TrendUp, Activity,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -37,6 +38,72 @@ import { Button } from "./ui/button";
 import OnboardingWizard from "./OnboardingWizard";
 import AIChatWidget from "./AIChatWidget";
 import { trpc } from "@/lib/trpc";
+
+/** Compact sticky earnings bar — shows live global revenue across all connected projects */
+function GlobalEarningsBar() {
+  const { data, isLoading } = trpc.globalEarnings.summary.useQuery(undefined, {
+    refetchInterval: 60_000, // refresh every 60s
+    staleTime: 30_000,
+  });
+
+  const fmt = (cents: number) =>
+    new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(cents / 100);
+
+  const totalRevenue = data?.totalRevenueCents ?? 0;
+  const todayRevenue = data?.todayRevenueCents ?? 0;
+  const projectCount = data?.projectCount ?? 0;
+
+  return (
+    <div
+      className="sticky top-0 z-50 flex items-center gap-4 px-4 h-10 border-b backdrop-blur-sm"
+      style={{
+        background: "oklch(0.18 0.04 250 / 97%)",
+        borderColor: "oklch(0.55 0.20 192 / 30%)",
+        boxShadow: "0 1px 0 oklch(0.55 0.20 192 / 15%)",
+      }}
+    >
+      {/* Live pulse indicator */}
+      <span className="flex items-center gap-1.5">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+            style={{ background: "oklch(0.65 0.20 150)" }} />
+          <span className="relative inline-flex rounded-full h-2 w-2"
+            style={{ background: "oklch(0.65 0.20 150)" }} />
+        </span>
+        <span className="text-xs font-medium tracking-widest uppercase" style={{ color: "oklch(0.65 0.20 150)", fontFamily: "'Space Grotesk', sans-serif", fontSize: "10px" }}>LIVE</span>
+      </span>
+
+      {/* Divider */}
+      <span className="h-4 w-px" style={{ background: "oklch(0.55 0.20 192 / 25%)" }} />
+
+      {/* Total Revenue */}
+      <span className="flex items-center gap-1.5">
+        <CircleDollarSign className="h-3.5 w-3.5" style={{ color: "oklch(0.75 0.15 192)" }} />
+        <span className="text-xs" style={{ color: "oklch(0.75 0.12 240)" }}>Global:</span>
+        <span className="text-xs font-bold tabular-nums" style={{ color: "oklch(0.90 0.08 192)", fontFamily: "'Space Grotesk', sans-serif" }}>
+          {isLoading ? "…" : fmt(totalRevenue)}
+        </span>
+      </span>
+
+      {/* Today */}
+      <span className="flex items-center gap-1.5">
+        <TrendUp className="h-3.5 w-3.5" style={{ color: "oklch(0.70 0.18 150)" }} />
+        <span className="text-xs" style={{ color: "oklch(0.75 0.12 240)" }}>Dnes:</span>
+        <span className="text-xs font-bold tabular-nums" style={{ color: "oklch(0.85 0.12 150)", fontFamily: "'Space Grotesk', sans-serif" }}>
+          {isLoading ? "…" : fmt(todayRevenue)}
+        </span>
+      </span>
+
+      {/* Projects count */}
+      <span className="flex items-center gap-1.5">
+        <Activity className="h-3.5 w-3.5" style={{ color: "oklch(0.65 0.15 280)" }} />
+        <span className="text-xs" style={{ color: "oklch(0.75 0.12 240)" }}>
+          {isLoading ? "…" : `${projectCount} projekt${projectCount === 1 ? "" : projectCount < 5 ? "y" : "ů"}`}
+        </span>
+      </span>
+    </div>
+  );
+}
 
 const menuItemDefs = [
   { icon: Sparkles, labelKey: "sidebar.hermes", path: "/hermes", group: "core" },
@@ -78,6 +145,7 @@ const menuItemDefs = [
   { icon: FileBarChart, labelKey: "sidebar.dailyReport", path: "/daily-report", group: "settings" },
   { icon: Scroll, labelKey: "sidebar.aiConstitution", path: "/ai-constitution", group: "settings" },
   { icon: FlaskConical, labelKey: "sidebar.agentBenchmark", path: "/agent-benchmark", group: "settings" },
+  { icon: Moon, labelKey: "sidebar.deepSleep", path: "/deep-sleep", group: "settings" },
   { icon: Mail, labelKey: "sidebar.emailTemplates", path: "/templates", group: "settings" },
   { icon: Users, labelKey: "sidebar.team", path: "/team", group: "settings" },
   { icon: Building, labelKey: "sidebar.agencyPanel", path: "/agency", group: "settings" },
@@ -374,6 +442,8 @@ function DashboardLayoutContent({
       )}
 
       <SidebarInset style={{ background: "oklch(0.965 0.008 240)" }}>
+        {/* Global Earnings sticky bar — always visible */}
+        <GlobalEarningsBar />
         {isMobile && (
           <div className="flex border-b h-14 items-center justify-between px-3 backdrop-blur sticky top-0 z-40"
             style={{ background: "oklch(0.965 0.008 240 / 95%)", borderColor: "oklch(0.88 0.012 240)" }}>
