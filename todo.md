@@ -644,3 +644,8 @@
 - [ ] hermesAgent.ts: auto-fetch DSR analytics on every chat call, include in context
 - [ ] Hermes.tsx: Czech labels throughout, auto-briefing panel on load with live project status
 - [ ] Hermes.tsx: DeepSleepReset performance card in project status grid
+
+## HERMES Auto-Briefing on Startup
+- [x] Auto-send "Shrň mi aktuální výkon projektů" on /hermes page load after session init
+- [x] Show loading state while briefing is being generated (isSending=true during auto-briefing)
+- [x] Prevent duplicate briefing on re-render (autoBriefingFiredRef)

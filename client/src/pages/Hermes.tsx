@@ -382,6 +382,7 @@ export default function Hermes() {
   const [showMissions, setShowMissions] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const autoBriefingFiredRef = useRef(false);
 
   // tRPC hooks
   const { data: identity } = trpc.hermes.getIdentity.useQuery(undefined, { staleTime: Infinity });
@@ -394,12 +395,58 @@ export default function Hermes() {
     { enabled: !!sessionId, staleTime: 5_000 }
   );
 
-  // Initialize session on mount
+  // Initialize session on mount + auto-briefing
   useEffect(() => {
-    getOrCreateSession.mutateAsync({}).then((session) => {
+    getOrCreateSession.mutateAsync({}).then(async (session) => {
       setSessionId(session.id);
     });
   }, []);
+
+  // Auto-briefing: fire once when session is ready and no existing messages loaded
+  useEffect(() => {
+    if (!sessionId || autoBriefingFiredRef.current) return;
+    // Wait for dbMessages to load — if there are existing messages, skip briefing
+    if (dbMessages === undefined) return; // still loading
+    if (dbMessages.length > 0) {
+      // Existing conversation — just load, no auto-briefing
+      autoBriefingFiredRef.current = true;
+      return;
+    }
+    // New session — fire auto-briefing
+    autoBriefingFiredRef.current = true;
+    const BRIEFING_QUERY = "Shrň mi aktuální výkon všech projektů — zejména DeepSleepReset. Jak si stojí tržby, objednávky, konverze a leady? Co je priorita dnes?";
+    const briefingUserMsg: Message = {
+      id: Date.now(),
+      role: "user",
+      content: BRIEFING_QUERY,
+      createdAt: Date.now(),
+    };
+    setMessages([briefingUserMsg]);
+    setIsSending(true);
+    sendMessage.mutateAsync({
+      sessionId,
+      message: BRIEFING_QUERY,
+      conversationHistory: [],
+    }).then((result) => {
+      const hermesMsg: Message = {
+        id: Date.now() + 1,
+        role: "hermes",
+        content: result.content,
+        agentName: result.agentsUsed.join(", "),
+        metadata: {
+          intent: result.intent,
+          agentsUsed: result.agentsUsed,
+          routingDecision: result.routingDecision,
+        },
+        createdAt: Date.now() + 1,
+      };
+      setMessages((prev) => [...prev, hermesMsg]);
+    }).catch(() => {
+      // Silently ignore auto-briefing errors
+    }).finally(() => {
+      setIsSending(false);
+    });
+  }, [sessionId, dbMessages]);
 
   // Load messages from DB when session changes
   useEffect(() => {
