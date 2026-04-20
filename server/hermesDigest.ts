@@ -7,7 +7,7 @@
 
 import { invokeLLM } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
-import { db } from "./_core/db";
+import { getDb } from "./db";
 import { hermesSessions, hermesMessages } from "../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
 
@@ -172,6 +172,7 @@ export async function sendDailyDigest(): Promise<void> {
     // Store digest in hermes_messages for history
     try {
       // Find or create the digest session
+      const db = await getDb();
       let digestSession = await db
         .select()
         .from(hermesSessions)
