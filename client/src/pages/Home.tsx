@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
-// ─── Animated Counter Hook ───────────────────────────────────
+// --- Animated Counter Hook -----------------------------------
 function useCountUp(target: number, duration = 1400) {
   const [count, setCount] = useState(0);
   const startTime = useRef<number | null>(null);
@@ -36,7 +36,7 @@ function useCountUp(target: number, duration = 1400) {
   return count;
 }
 
-// ─── Atlantis Stat Card ──────────────────────────────────────
+// --- Atlantis Stat Card --------------------------------------
 function AnimatedStatCard({
   title, value, icon, description, color, suffix = "",
 }: {
@@ -91,7 +91,7 @@ function AnimatedStatCard({
   );
 }
 
-// ─── Pipeline Flow ───────────────────────────────────────────
+// --- Pipeline Flow -------------------------------------------
 function PipelineFlow({ stats }: { stats: any }) {
   const stages = [
     { label: "Generated", value: stats?.totalLeads ?? 0, color: "bg-[oklch(0.55_0.20_192)]", light: "bg-[oklch(0.55_0.20_192_/_10%)]", text: "text-[oklch(0.45_0.20_192)]", icon: <Zap className="h-3.5 w-3.5" /> },
@@ -130,7 +130,7 @@ function PipelineFlow({ stats }: { stats: any }) {
   );
 }
 
-// ─── Activity Pulse ──────────────────────────────────────────
+// --- Activity Pulse ------------------------------------------
 function ActivityPulse({ sessions }: { sessions: any[] }) {
   const recent = sessions?.slice(0, 7) ?? [];
   const maxLeads = Math.max(...recent.map(s => s.leadsFound ?? 0), 1);
@@ -187,7 +187,7 @@ export default function Home() {
     <DashboardLayout>
       <div className="space-y-6 max-w-7xl">
 
-        {/* ── Hero Header — Atlantis Command Center ─────────── */}
+        {/* -- Hero Header — Atlantis Command Center ----------- */}
         <div className="relative overflow-hidden rounded-2xl border border-[oklch(0.55_0.20_192_/_20%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] via-white to-[oklch(0.55_0.24_278_/_5%)] p-6 shadow-sm">
           {/* Ambient orbs */}
           <div className="absolute top-0 right-0 w-72 h-72 bg-[oklch(0.55_0.20_192_/_8%)] rounded-full blur-3xl pointer-events-none" />
@@ -224,7 +224,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── CZK Earnings KPI Bar ─────────────────────── */}
+        {/* -- Projects Analytics Hub ------------------ */}
+        <ProjectsHub fmtCZK={fmtCZK} onNavigate={setLocation} />
+
+        {/* -- CZK Earnings KPI Bar ----------------------- */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* Dnes */}
           <div className="relative overflow-hidden rounded-xl border border-[oklch(0.68_0.18_162_/_25%)] bg-gradient-to-br from-[oklch(0.68_0.18_162_/_8%)] to-white p-4">
@@ -264,7 +267,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── Morning Briefing ────────────────────────────── */}
+        {/* -- Morning Briefing ------------------------------ */}
         {!briefingLoading && (
           <>
             {(!briefing || briefing.dismissed) ? (
@@ -366,7 +369,7 @@ export default function Home() {
           </>
         )}
 
-        {/* ── Stats Row — Atlantis Data Nodes ─────────────── */}
+        {/* -- Stats Row — Atlantis Data Nodes --------------- */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <AnimatedStatCard title={t('dashboard.totalLeads')} value={isLoading ? null : stats?.totalLeads ?? 0} icon={<Users className="h-4 w-4" />} description={t('dashboard.allTime')} color="teal" />
           <AnimatedStatCard title={t('dashboard.aiEnriched')} value={isLoading ? null : stats?.enrichedLeads ?? 0} icon={<Sparkles className="h-4 w-4" />} description={t('dashboard.withIcebreakers')} color="emerald" />
@@ -374,7 +377,7 @@ export default function Home() {
           <AnimatedStatCard title={t('dashboard.sessions')} value={isLoading ? null : stats?.totalSessions ?? 0} icon={<BarChart3 className="h-4 w-4" />} description={t('dashboard.generationRuns')} color="amber" />
         </div>
 
-        {/* ── Pipeline + Activity ──────────────────────────── */}
+        {/* -- Pipeline + Activity ---------------------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Pipeline Flow — large light card */}
           <div className="lg:col-span-2 rounded-2xl border border-border bg-white shadow-sm p-5">
@@ -420,7 +423,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── NBA + Speed-to-Lead ──────────────────────────── */}
+        {/* -- NBA + Speed-to-Lead ---------------------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* NBA — violet Atlantis card */}
           <div className="lg:col-span-2 rounded-2xl border border-[oklch(0.55_0.24_278_/_20%)] bg-[oklch(0.88_0.06_278_/_30%)] p-5">
@@ -494,7 +497,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── Setup Progress + Quick Actions ──────────────── */}
+        {/* -- Setup Progress + Quick Actions ---------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {setupProgress && setupProgress.percentage < 100 && (
             <div className="rounded-2xl border border-border bg-white shadow-sm p-5">
@@ -555,7 +558,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── AI Insights Panel ───────────────────────────── */}
+        {/* -- AI Insights Panel ----------------------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* AI Agent Actions */}
           <div className="rounded-2xl border border-[oklch(0.55_0.20_192_/_20%)] bg-[oklch(0.55_0.20_192_/_5%)] p-5">
@@ -665,15 +668,12 @@ export default function Home() {
           </div>
         </div>
 
-        {/* ── Projects Analytics Hub ────────────────── */}
-        <ProjectsHub fmtCZK={fmtCZK} onNavigate={setLocation} />
-
       </div>
     </DashboardLayout>
   );
 }
 
-// ─── Sub-components ──────────────────────────────────────────
+// --- Sub-components ------------------------------------------
 
 function NbaCard({ item }: { item: any }) {
   const actionIcons: Record<string, React.ReactNode> = {
@@ -741,7 +741,7 @@ function QuickAction({
   );
 }
 
-// ─── Projects Analytics Hub ──────────────────────────────────
+// --- Projects Analytics Hub ----------------------------------
 const PROJECT_ROUTES: Record<string, string> = {
   "deep-sleep-reset": "/global-earnings",
   "leadOS": "/global-earnings",
