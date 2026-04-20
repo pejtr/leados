@@ -636,3 +636,11 @@
 - [ ] globalEarningsRouter wired into routers.ts
 - [ ] Live Global Earnings widget on Home.tsx dashboard (total across all projects)
 - [ ] Wire globalEarningsRouter into routers.ts
+
+## HERMES Czech + Live Project Performance
+- [ ] Fix ingestRoute.ts schema import path error (Cannot find module '/home/ubuntu/drizzle/schema')
+- [ ] Apply dsr_snapshots migration to DB
+- [ ] hermesAgent.ts: Czech as primary language, no greeting, inject live DSR+LeadOS KPIs into system prompt
+- [ ] hermesAgent.ts: auto-fetch DSR analytics on every chat call, include in context
+- [ ] Hermes.tsx: Czech labels throughout, auto-briefing panel on load with live project status
+- [ ] Hermes.tsx: DeepSleepReset performance card in project status grid

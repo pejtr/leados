@@ -319,6 +319,57 @@ function MissionResultPanel({
   );
 }
 
+// ─── DSR Live Performance Panel ─────────────────────────────────────────────
+
+function DsrLivePanel() {
+  const { data, isLoading } = trpc.deepSleep.getAnalytics.useQuery(undefined, {
+    staleTime: 60_000,
+    retry: false,
+  });
+
+  const kpis = (data as any)?.kpis ?? data;
+
+  return (
+    <div className="border-t border-slate-800 pt-3">
+      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        DeepSleepReset
+      </p>
+      {isLoading ? (
+        <div className="flex items-center gap-1.5 text-xs text-slate-600">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Načítám...
+        </div>
+      ) : kpis ? (
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">Tržby celkem</span>
+            <span className="text-sm font-bold text-emerald-400">${parseFloat(kpis.totalRevenueUsd ?? 0).toFixed(2)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">Dnes</span>
+            <span className="text-sm font-bold text-cyan-400">${parseFloat(kpis.todayRevenueUsd ?? 0).toFixed(2)}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">Objednávky</span>
+            <span className="text-sm font-bold text-violet-400">{kpis.totalOrders ?? 0}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">Konverze</span>
+            <span className="text-sm font-bold text-amber-400">{parseFloat(kpis.conversionRatePct ?? 0).toFixed(1)}%</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500">Leady</span>
+            <span className="text-sm font-bold text-slate-300">{kpis.totalLeads ?? 0}</span>
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-slate-600">Data nedostupná</p>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function Hermes() {
@@ -715,19 +766,19 @@ export default function Hermes() {
           </div>
 
           {/* ── Right: Status Panel ── */}
-          <div className="shrink-0 w-56 border-l border-slate-800/60 bg-slate-950/80 backdrop-blur-sm p-3 hidden lg:flex flex-col gap-3">
+          <div className="shrink-0 w-56 border-l border-slate-800/60 bg-slate-950/80 backdrop-blur-sm p-3 hidden lg:flex flex-col gap-3 overflow-y-auto">
             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <Activity className="h-3.5 w-3.5 text-emerald-400" />
-              Status
+              Stav
             </p>
 
             {/* Stats */}
             <div className="space-y-2">
               {[
-                { label: "Sessions", value: status?.totalSessions ?? 0, color: "text-cyan-400" },
-                { label: "Messages", value: status?.totalMessages ?? 0, color: "text-violet-400" },
-                { label: "Missions", value: status?.completedMissions ?? 0, color: "text-emerald-400" },
-                { label: "Sub-Agents", value: status?.subAgentCount ?? 7, color: "text-amber-400" },
+                { label: "Sezení", value: status?.totalSessions ?? 0, color: "text-cyan-400" },
+                { label: "Zprávy", value: status?.totalMessages ?? 0, color: "text-violet-400" },
+                { label: "Mise", value: status?.completedMissions ?? 0, color: "text-emerald-400" },
+                { label: "Sub-Agenti", value: status?.subAgentCount ?? 7, color: "text-amber-400" },
               ].map((stat) => (
                 <div key={stat.label} className="flex items-center justify-between">
                   <span className="text-xs text-slate-500">{stat.label}</span>
@@ -738,11 +789,14 @@ export default function Hermes() {
               ))}
             </div>
 
-            {/* Recent missions */}
+            {/* DSR Live Performance */}
+            <DsrLivePanel />
+
+            {/* Poslední mise */}
             {status?.recentMissions && status.recentMissions.length > 0 && (
               <div className="border-t border-slate-800 pt-3">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                  Recent Missions
+                  Poslední mise
                 </p>
                 <div className="space-y-1.5">
                   {status.recentMissions.slice(0, 4).map((m: any) => (
@@ -761,17 +815,17 @@ export default function Hermes() {
               </div>
             )}
 
-            {/* Agent quick-launch */}
+            {/* Rychlé příkazy */}
             <div className="border-t border-slate-800 pt-3 mt-auto">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                Quick Commands
+                Rychlé příkazy
               </p>
               <div className="space-y-1">
                 {[
-                  { cmd: "Analyze pipeline", icon: "📊" },
-                  { cmd: "Top leads today", icon: "🎯" },
+                  { cmd: "Jak si stojí DeepSleepReset?", icon: "📊" },
+                  { cmd: "Analyzuj pipeline", icon: "🎯" },
                   { cmd: "NINJA BOT test", icon: "⚡" },
-                  { cmd: "Strategy review", icon: "🧠" },
+                  { cmd: "Strategie růstu", icon: "🧠" },
                 ].map((q) => (
                   <button
                     key={q.cmd}

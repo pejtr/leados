@@ -130,6 +130,35 @@ export const deepSleepRouter = router({
     return dsrFetch("/email-sequence");
   }),
 
+  /** Last 7 days daily revenue history — for sparkline chart */
+  earningsHistory: protectedProcedure.query(async () => {
+    const analytics: DsrAnalytics = await dsrFetch("/analytics");
+    const daily = analytics.dailyRevenue ?? [];
+    // Build exactly 7 days, filling missing days with 0
+    const today = new Date();
+    const days: { date: string; label: string; revenueUsd: number; orders: number }[] = [];
+    const dayNames = ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const iso = d.toISOString().slice(0, 10);
+      const found = daily.find((r: { date: string; totalCents: number; orderCount: number }) =>
+        r.date?.slice(0, 10) === iso
+      );
+      days.push({
+        date: iso,
+        label: i === 0 ? "Dnes" : dayNames[d.getDay()],
+        revenueUsd: found ? found.totalCents / 100 : 0,
+        orders: found?.orderCount ?? 0,
+      });
+    }
+    const totalRevenue7d = days.reduce((s, d) => s + d.revenueUsd, 0);
+    const totalOrders7d = days.reduce((s, d) => s + d.orders, 0);
+    const peakDay = days.reduce((a, b) => (b.revenueUsd > a.revenueUsd ? b : a), days[0]);
+    const avgDailyRevenue = totalRevenue7d / 7;
+    return { days, totalRevenue7d, totalOrders7d, peakDay, avgDailyRevenue };
+  }),
+
   /** All data in one call (used by dashboard overview) */
   overview: protectedProcedure.query(async () => {
     const [health, analytics, leads, orders, abTests, emailSequence] = await Promise.all([

@@ -9,8 +9,12 @@ import { cn } from "@/lib/utils";
 import {
   Activity, DollarSign, Users, ShoppingCart, RefreshCw,
   TrendingUp, Mail, FlaskConical, CheckCircle2, AlertCircle,
-  Clock, ArrowUpRight, ExternalLink, Zap,
+  Clock, ArrowUpRight, ExternalLink, Zap, BarChart2,
 } from "lucide-react";
+import {
+  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, ReferenceLine,
+} from "recharts";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -72,6 +76,27 @@ export default function DeepSleepDashboard() {
 
   const kpis = analytics?.kpis;
   const dailyRevenue = analytics?.dailyRevenue ?? [];
+
+  // Build 7-day sparkline data (fill missing days with 0)
+  const sparklineData = (() => {
+    const today = new Date();
+    const dayNames = ["Ne", "Po", "Út", "St", "Čt", "Pá", "So"];
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - (6 - i));
+      const iso = d.toISOString().slice(0, 10);
+      const found = dailyRevenue.find((r) => r.date?.slice(0, 10) === iso);
+      return {
+        date: iso,
+        label: i === 6 ? "Dnes" : dayNames[d.getDay()],
+        revenue: found ? found.totalCents / 100 : 0,
+        orders: found?.orderCount ?? 0,
+      };
+    });
+  })();
+  const sparkTotal = sparklineData.reduce((s, d) => s + d.revenue, 0);
+  const sparkPeak = sparklineData.reduce((a, b) => (b.revenue > a.revenue ? b : a), sparklineData[0]);
+  const sparkAvg = sparkTotal / 7;
 
   // Sort A/B variants by CVR desc
   const sortedVariants = [...(abTests?.variants ?? [])].sort(
@@ -177,36 +202,105 @@ export default function DeepSleepDashboard() {
 
           {/* ── Overview ─────────────────────────────────────────────────── */}
           <TabsContent value="overview" className="mt-4 space-y-4">
-            {/* Daily Revenue */}
-            {dailyRevenue.length > 0 && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-semibold">Daily Revenue History</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left py-2 pr-4 text-muted-foreground font-medium">Date</th>
-                          <th className="text-right py-2 pr-4 text-muted-foreground font-medium">Orders</th>
-                          <th className="text-right py-2 text-muted-foreground font-medium">Revenue</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {dailyRevenue.map((d) => (
-                          <tr key={d.date} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                            <td className="py-2 pr-4 text-foreground">{fmtDate(d.date)}</td>
-                            <td className="py-2 pr-4 text-right text-muted-foreground">{d.orderCount}</td>
-                            <td className="py-2 text-right font-semibold text-emerald-400">{fmt$(d.totalCents / 100)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+            {/* ── Earnings Sparkline Chart (7 days) ─────────────────── */}
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                    <BarChart2 className="h-4 w-4 text-emerald-400" />
+                    Revenue — posledních 7 dní
+                  </CardTitle>
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <span className="h-2 w-2 rounded-full bg-emerald-400 inline-block" />
+                      Celkem: <strong className="text-emerald-400 ml-1">{fmt$(sparkTotal)}</strong>
+                    </span>
+                    <span>Průměr: <strong className="text-foreground ml-1">{fmt$(sparkAvg)}/den</strong></span>
+                    {sparkPeak.revenue > 0 && (
+                      <span>Peak: <strong className="text-amber-400 ml-1">{sparkPeak.label} ({fmt$(sparkPeak.revenue)})</strong></span>
+                    )}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                </div>
+              </CardHeader>
+              <CardContent className="pt-0 pb-4">
+                {/* Area chart — revenue */}
+                <div style={{ height: 200 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={sparklineData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#34d399" stopOpacity={0.35} />
+                          <stop offset="95%" stopColor="#34d399" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.15)" vertical={false} />
+                      <XAxis
+                        dataKey="label"
+                        tick={{ fontSize: 11, fill: "#94a3b8" }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 10, fill: "#94a3b8" }}
+                        axisLine={false}
+                        tickLine={false}
+                        tickFormatter={(v) => `$${v}`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: "#1e293b",
+                          border: "1px solid rgba(99,102,241,0.3)",
+                          borderRadius: 8,
+                          fontSize: 12,
+                        }}
+                        labelStyle={{ color: "#e2e8f0", fontWeight: 600 }}
+                        formatter={(value: number, name: string) => [
+                          name === "revenue" ? fmt$(value) : value,
+                          name === "revenue" ? "Revenue" : "Objednávky",
+                        ]}
+                      />
+                      {sparkAvg > 0 && (
+                        <ReferenceLine
+                          y={sparkAvg}
+                          stroke="#f59e0b"
+                          strokeDasharray="4 3"
+                          label={{ value: "avg", position: "insideTopRight", fontSize: 10, fill: "#f59e0b" }}
+                        />
+                      )}
+                      <Area
+                        type="monotone"
+                        dataKey="revenue"
+                        stroke="#34d399"
+                        strokeWidth={2.5}
+                        fill="url(#revenueGrad)"
+                        dot={{ r: 3, fill: "#34d399", strokeWidth: 0 }}
+                        activeDot={{ r: 5, fill: "#34d399", stroke: "#fff", strokeWidth: 2 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+                {/* Bar chart — orders per day */}
+                <div style={{ height: 56 }} className="mt-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={sparklineData} margin={{ top: 0, right: 8, left: -20, bottom: 0 }}>
+                      <XAxis dataKey="label" hide />
+                      <YAxis hide />
+                      <Tooltip
+                        contentStyle={{
+                          background: "#1e293b",
+                          border: "1px solid rgba(99,102,241,0.3)",
+                          borderRadius: 8,
+                          fontSize: 11,
+                        }}
+                        formatter={(value: number) => [value, "Objednávky"]}
+                      />
+                      <Bar dataKey="orders" fill="rgba(139,92,246,0.55)" radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-[10px] text-muted-foreground text-center mt-1">Spodní graf: počet objednávek / den</p>
+              </CardContent>
+            </Card>
 
             {/* Funnel */}
             {analytics?.funnel && (

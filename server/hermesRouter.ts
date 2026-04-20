@@ -17,19 +17,44 @@ import { getLeadStats } from "./db";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+async function fetchDsrAnalytics(): Promise<string> {
+  try {
+    const apiKey = process.env.DEEP_SLEEP_RESET_API_KEY;
+    if (!apiKey) return "";
+    const res = await fetch("https://deep-sleep-reset.com/api/v1/analytics", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!res.ok) return "";
+    const data = await res.json() as any;
+    const k = data.kpis ?? data;
+    return `\n## Projekt: DeepSleepReset (live data)
+- Celkové tržby: $${parseFloat(k.totalRevenueUsd ?? 0).toFixed(2)}
+- Dnes: $${parseFloat(k.todayRevenueUsd ?? 0).toFixed(2)} | Posledních 7 dní: $${parseFloat(k.last7DaysRevenueUsd ?? 0).toFixed(2)} | 30 dní: $${parseFloat(k.last30DaysRevenueUsd ?? 0).toFixed(2)}
+- Objednávky celkem: ${k.totalOrders ?? 0} | Průměrná hodnota: $${parseFloat(k.avgOrderValueUsd ?? 0).toFixed(2)}
+- Leady: ${k.totalLeads ?? 0} celkem | Konverzní poměr: ${parseFloat(k.conversionRatePct ?? 0).toFixed(1)}%
+- Stav webu: ${k.healthStatus ?? 'unknown'}`;
+  } catch {
+    return "";
+  }
+}
+
 async function buildPlatformContext(userId: number): Promise<string> {
   try {
-    const stats = await getLeadStats(userId);
+    const [stats, dsrContext] = await Promise.all([
+      getLeadStats(userId),
+      fetchDsrAnalytics(),
+    ]);
     return `User ID: ${userId}
-Live platform stats:
-- Total leads: ${stats.totalLeads} | Enriched: ${stats.enrichedLeads} | Sessions: ${stats.totalSessions}
-- Pipeline: ${stats.statusBreakdown?.map((s: any) => `${s.status}(${s.count})`).join(", ") || "empty"}
-- Top industries: ${stats.industryBreakdown?.slice(0, 3).map((i: any) => `${i.industry}(${i.count})`).join(", ") || "none"}
-- Revenue: $${stats.roiStats?.totalRevenue?.toFixed(0) ?? 0} from ${stats.roiStats?.closedDeals ?? 0} closed deals
-- Close rate: ${stats.roiStats?.closeRate?.toFixed(1) ?? 0}%
-- Quality: ${stats.qualityBreakdown?.good ?? 0} good / ${stats.qualityBreakdown?.bad ?? 0} bad / ${stats.qualityBreakdown?.unrated ?? 0} unrated`;
+## LeadOS — Live statistiky platformy
+- Celkem leadů: ${stats.totalLeads} | Obohaceno: ${stats.enrichedLeads} | Sezení: ${stats.totalSessions}
+- Pipeline: ${stats.statusBreakdown?.map((s: any) => `${s.status}(${s.count})`).join(", ") || "prázdná"}
+- Top odvětví: ${stats.industryBreakdown?.slice(0, 3).map((i: any) => `${i.industry}(${i.count})`).join(", ") || "žádná"}
+- Tržby: $${stats.roiStats?.totalRevenue?.toFixed(0) ?? 0} z ${stats.roiStats?.closedDeals ?? 0} uzavřených dealů
+- Míra uzavření: ${stats.roiStats?.closeRate?.toFixed(1) ?? 0}%
+- Kvalita: ${stats.qualityBreakdown?.good ?? 0} dobrých / ${stats.qualityBreakdown?.bad ?? 0} špatných / ${stats.qualityBreakdown?.unrated ?? 0} nehodnocených${dsrContext}`;
   } catch {
-    return `User ID: ${userId}\nPlatform stats unavailable.`;
+    return `User ID: ${userId}\nStatistiky platformy nejsou dostupné.`;
   }
 }
 
