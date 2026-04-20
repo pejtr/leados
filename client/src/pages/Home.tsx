@@ -194,8 +194,9 @@ export default function Home() {
           <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-[oklch(0.55_0.24_278_/_6%)] rounded-full blur-3xl pointer-events-none" />
           {/* Ancient geometry decoration */}
           <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-[0.04] text-[120px] font-black text-[oklch(0.55_0.20_192)] select-none pointer-events-none leading-none">⬡</div>
-          <div className="relative flex items-center justify-between">
-            <div>
+          <div className="relative flex items-center justify-between gap-6">
+            {/* Left: title */}
+            <div className="shrink-0">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-2 w-2 rounded-full bg-[oklch(0.68_0.18_162)] animate-pulse" />
                 <span className="text-xs text-[oklch(0.45_0.18_162)] font-semibold">{t('dashboard.aiSystemsActive')}</span>
@@ -203,7 +204,51 @@ export default function Home() {
               <h1 className="text-3xl font-black text-foreground tracking-tight">{t('dashboard.commandCenter')}</h1>
               <p className="text-muted-foreground text-sm mt-1">{today}</p>
             </div>
-            <div className="flex items-center gap-3">
+
+            {/* Center: Setup Progress */}
+            {!setupLoading && setupProgress && setupProgress.percentage < 100 && (
+              <div className="flex-1 max-w-sm">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-[oklch(0.50_0.18_162)]" />
+                    <span className="text-xs font-bold text-foreground">Pr&#367;b&#283;h nastaven&#237;</span>
+                  </div>
+                  <span className="text-xs font-black text-[oklch(0.50_0.20_192)]">{setupProgress.percentage}%</span>
+                </div>
+                {/* Progress bar */}
+                <div className="h-2 bg-black/8 rounded-full overflow-hidden mb-2">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[oklch(0.50_0.22_192)] to-[oklch(0.55_0.24_278)] transition-all duration-700"
+                    style={{ width: `${setupProgress.percentage}%` }}
+                  />
+                </div>
+                {/* Steps */}
+                <div className="space-y-0.5">
+                  {setupProgress.steps?.slice(0, 4).map((step: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2 text-[11px]">
+                      {step.completed ? (
+                        <CheckCircle2 className="h-3 w-3 text-[oklch(0.50_0.18_162)] shrink-0" />
+                      ) : (
+                        <div className="h-3 w-3 rounded-full border border-muted-foreground/30 shrink-0" />
+                      )}
+                      <span className={step.completed ? "line-through text-muted-foreground/50" : "text-foreground/80"}>
+                        {step.label}
+                      </span>
+                      {!step.completed && (
+                        <button
+                          onClick={() => setLocation(step.path ?? "/generate")}
+                          className="ml-auto text-[oklch(0.50_0.20_192)] hover:underline shrink-0"
+                        >
+                          &#8250;
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-3 shrink-0">
               <Button
                 variant="outline"
                 size="sm"
