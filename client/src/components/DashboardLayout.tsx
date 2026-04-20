@@ -154,13 +154,15 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 h-8 select-none"
+      className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 select-none"
       style={{
         background: "oklch(0.97 0.006 240 / 88%)",
         backdropFilter: "blur(20px) saturate(180%)",
         WebkitBackdropFilter: "blur(20px) saturate(180%)",
         borderBottom: "1px solid oklch(0.88 0.010 240 / 60%)",
         boxShadow: "0 1px 0 oklch(0 0 0 / 6%), 0 2px 8px oklch(0 0 0 / 4%)",
+        paddingTop: "env(safe-area-inset-top, 0px)",
+        height: "calc(2rem + env(safe-area-inset-top, 0px))",
       }}
     >
       {/* Left: Apple logo + app name */}
@@ -264,8 +266,9 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
 
   return (
     <div
-      className="fixed left-0 top-8 bottom-0 z-40 flex flex-col items-center py-3 gap-1 overflow-y-auto"
+      className="fixed left-0 bottom-0 z-40 flex flex-col items-center py-3 gap-1 overflow-y-auto"
       style={{
+        top: "calc(2rem + env(safe-area-inset-top, 0px))",
         width: 56,
         background: "oklch(0.97 0.006 240 / 92%)",
         backdropFilter: "blur(24px) saturate(200%)",
@@ -383,8 +386,9 @@ function AppsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
 
       {/* Panel */}
       <div
-        className="fixed left-0 top-8 bottom-0 z-40 w-72 overflow-y-auto"
+        className="fixed left-0 bottom-0 z-40 w-72 overflow-y-auto"
         style={{
+          top: "calc(2rem + env(safe-area-inset-top, 0px))",
           background: "oklch(0.97 0.006 240 / 95%)",
           backdropFilter: "blur(24px) saturate(180%)",
           WebkitBackdropFilter: "blur(24px) saturate(180%)",
@@ -513,7 +517,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content — padded for menubar (top 8) and dock (bottom ~80px) */}
       <main
         className="flex-1 overflow-y-auto p-5 md:p-6"
-        style={{ paddingTop: "calc(2rem + 16px)", paddingBottom: "24px", paddingLeft: "56px" }}
+        style={{
+          paddingTop: "calc(2rem + env(safe-area-inset-top, 0px) + 16px)",
+          paddingBottom: "calc(24px + env(safe-area-inset-bottom, 0px))",
+          paddingLeft: "56px",
+          minWidth: 0,
+          overflowX: "hidden",
+        }}
       >
         {children}
       </main>

@@ -194,9 +194,9 @@ export default function Home() {
           <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-[oklch(0.55_0.24_278_/_6%)] rounded-full blur-3xl pointer-events-none" />
           {/* Ancient geometry decoration */}
           <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-[0.04] text-[120px] font-black text-[oklch(0.55_0.20_192)] select-none pointer-events-none leading-none">⬡</div>
-          <div className="relative flex items-center justify-between gap-6">
+          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Left: title */}
-            <div className="shrink-0">
+            <div className="min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-2 w-2 rounded-full bg-[oklch(0.68_0.18_162)] animate-pulse" />
                 <span className="text-xs text-[oklch(0.45_0.18_162)] font-semibold">{t('dashboard.aiSystemsActive')}</span>
@@ -249,7 +249,7 @@ export default function Home() {
               </div>
             )}
 
-            <div className="flex items-center gap-3 shrink-0">
+            <div className="flex flex-wrap items-center gap-3">
               <Button
                 variant="outline"
                 size="sm"

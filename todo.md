@@ -711,3 +711,8 @@
 - [x] Route /computer-flow added to App.tsx
 - [x] Computer Flow added to DashboardLayout dock (TIER 4 AI) and sidebar menu
 - [x] i18n keys added to cs.json, en.json, de.json
+
+## Mobile Layout Fixes (April 2026)
+- [x] Fix top status bar overlapping dashboard content on mobile (safe-area-inset)
+- [x] Fix first dashboard widget (Řídicí centrum) overflowing horizontally on mobile
+- [x] Ensure sidebar dock doesn't overlap main content on mobile
