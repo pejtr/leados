@@ -1,0 +1,56 @@
+{
+  "name": "LeadOS — AI Lead Generation",
+  "short_name": "LeadOS",
+  "description": "B2B AI-powered lead generation CRM platform with HERMES AI agent",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f7fa",
+  "theme_color": "#0ea5a0",
+  "lang": "cs",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "HERMES AI",
+      "short_name": "HERMES",
+      "description": "Otevřít HERMES AI agenta",
+      "url": "/hermes",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Generovat leady",
+      "short_name": "Generovat",
+      "description": "Spustit generování leadů",
+      "url": "/generate",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Přehled výkonu",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

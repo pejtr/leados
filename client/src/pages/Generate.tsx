@@ -88,6 +88,8 @@ export default function Generate() {
   const [apifyToken, setApifyToken] = useState("");
   const { t } = useTranslation();
   const [dataSource, setDataSource] = useState<'linkedin' | 'xing' | 'demo'>('linkedin');
+  const [xingKeywords, setXingKeywords] = useState("");
+  const [xingCompanySize, setXingCompanySize] = useState("11-50");
   const useApify = dataSource === 'linkedin' || dataSource === 'xing';
   const [enrichEmails, setEnrichEmails] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -276,6 +278,63 @@ export default function Generate() {
                     </div>
                   )}
                 </div>
+
+                {/* Xing DACH-specific inputs */}
+                {dataSource === 'xing' && (
+                  <div className="space-y-3 p-3 rounded-xl" style={{ background: "oklch(0.55 0.20 220 / 6%)", border: "1px solid oklch(0.55 0.20 220 / 20%)" }}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Globe className="h-3.5 w-3.5" style={{ color: "oklch(0.50 0.20 220)" }} />
+                      <span className="text-xs font-semibold" style={{ color: "oklch(0.35 0.04 250)" }}>Xing DACH Parametry</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold" style={{ background: "oklch(0.55 0.20 220 / 15%)", color: "oklch(0.45 0.20 220)" }}>DE · AT · CH</span>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Klíčová slova / Pozice</Label>
+                      <Input
+                        value={xingKeywords}
+                        onChange={e => setXingKeywords(e.target.value)}
+                        placeholder="např. Geschäftsführer, Marketing Leiter, IT Manager"
+                        className="bg-input border-border text-xs h-8"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Velikost firmy</Label>
+                      <Select value={xingCompanySize} onValueChange={setXingCompanySize}>
+                        <SelectTrigger className="bg-input border-border text-xs h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["1-10", "11-50", "51-200", "201-500", "501-1000", "1001+"].map(s => (
+                            <SelectItem key={s} value={s}>{s} zaměstnanců</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Region DACH</Label>
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {["Deutschland", "Österreich", "Schweiz"].map(r => (
+                          <button
+                            key={r}
+                            type="button"
+                            onClick={() => setLocation(r)}
+                            className="text-[10px] py-1.5 rounded-lg border transition-all font-medium"
+                            style={location === r ? {
+                              background: "oklch(0.55 0.20 220 / 12%)",
+                              border: "1px solid oklch(0.55 0.20 220 / 35%)",
+                              color: "oklch(0.40 0.20 220)"
+                            } : {
+                              background: "oklch(0.93 0.008 240)",
+                              border: "1px solid oklch(0.88 0.010 240)",
+                              color: "oklch(0.50 0.04 250)"
+                            }}
+                          >
+                            {r === "Deutschland" ? "🇩🇪" : r === "Österreich" ? "🇦🇹" : "🇨🇭"} {r.slice(0, 3)}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Segment Presets */}
                 <div className="space-y-2">

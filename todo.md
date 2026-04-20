@@ -676,3 +676,14 @@
 - [x] ingested_leads DB table created and migrated
 - [x] IngestSources dashboard page (External Leads in sidebar)
 - [x] i18n keys for externalLeads in cs/en/de
+
+## macOS UI Redesign + PWA + DACH Features (April 2026)
+- [x] macOS-style DashboardLayout: MacMenuBar (top) + MacDock (bottom sticky) + AppsPanel (slide-over)
+- [x] Removed old shadcn Sidebar dependency entirely
+- [x] Live earnings pill in MacMenuBar with real-time clock
+- [x] Dock magnification on hover (21 app icons + All Apps button)
+- [x] PWA support: manifest.json, service worker (sw.js), apple-touch-icon (180x180), icon-192.png, icon-512.png
+- [x] PWA meta tags in index.html (apple-mobile-web-app-capable, manifest link, SW registration)
+- [x] Datenschutzerklärung page (/datenschutz) — full DSGVO-compliant German privacy policy
+- [x] Xing DACH-specific UI inputs in Generate.tsx (keywords, company size, DE/AT/CH region buttons)
+- [x] notifyOwner() call on every new external lead ingested via /api/leads/ingest

@@ -3,6 +3,7 @@ import { getProjectByApiKey, ingestEvent } from "./projectsDb";
 import { getDb } from "./db";
 import { adCampaigns, adCampaignSnapshots, dsrSnapshots, ingestedLeads } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
+import { notifyOwner } from "./_core/notification";
 
 /**
  * When a 'sale' event is ingested for a project, automatically
@@ -235,6 +236,13 @@ export function registerIngestRoute(app: Express) {
       });
 
       console.log(`[Leads Ingest] New lead from ${project.name}: ${email}`);
+
+      // Notify owner about new external lead (fire-and-forget)
+      notifyOwner({
+        title: `🎯 Nový lead z ${project.name}`,
+        content: `**Email:** ${email}\n**Jméno:** ${name || 'neznámé'}\n**Zdroj:** ${source || project.name}\n**Zájem:** ${interest || '—'}\n**Projekt:** ${project.name}\n**Čas:** ${new Date().toLocaleString('cs-CZ', { timeZone: 'Europe/Prague' })}`,
+      }).catch(err => console.warn('[Leads Ingest] notifyOwner failed:', err?.message));
+
       return res.json({ ok: true, leadId: (inserted as any)?.insertId, project: project.name });
     } catch (err: any) {
       console.error("[Leads Ingest] Error:", err?.message);

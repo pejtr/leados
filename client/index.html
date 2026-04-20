@@ -7,12 +7,20 @@
     <title>LeadOS — AI B2B Lead Generation | crmleadsystem.com</title>
     <meta name="description" content="LeadOS is an AI-powered B2B lead generation platform. Generate qualified leads from LinkedIn, enrich with verified emails and AI icebreakers, manage pipeline and automate follow-ups. Try free at crmleadsystem.com" />
     <meta name="keywords" content="CRM lead system, lead generation software, CRM automation, B2B leads, AI CRM, lead management, email sequences, sales automation, LinkedIn scraping, AI icebreaker" />
-    <meta name="theme-color" content="#050510" />
+    <meta name="theme-color" content="#0ea5a0" />
+    <!-- PWA Support -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="LeadOS" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="LeadOS" />
     <link rel="canonical" href="https://crmleadsystem.com/" />
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192.png" />
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://crmleadsystem.com/" />
@@ -78,6 +86,18 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- PWA Service Worker registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            console.log('[LeadOS SW] Registered:', reg.scope);
+          }).catch(function(err) {
+            console.warn('[LeadOS SW] Registration failed:', err);
+          });
+        });
+      }
+    </script>
     <script
       defer
       src="%VITE_ANALYTICS_ENDPOINT%/umami"
