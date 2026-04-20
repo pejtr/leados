@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { getProjectByApiKey, ingestEvent } from "./projectsDb";
 import { getDb } from "./db";
-import { adCampaigns, adCampaignSnapshots, dsrSnapshots } from "../drizzle/schema";
+import { adCampaigns, adCampaignSnapshots, dsrSnapshots, ingestedLeads } from "../drizzle/schema";
 import { eq, and, sql } from "drizzle-orm";
 
 /**
@@ -166,6 +166,78 @@ export function registerIngestRoute(app: Express) {
       return res.json({ ok: true, stored: true, receivedAt: new Date().toISOString() });
     } catch (err: any) {
       console.error("[DSR Ingest] Error:", err?.message);
+      return res.status(500).json({ ok: false, error: "Internal server error" });
+    }
+  });
+
+  // ── POST /api/leads/ingest — Universal lead capture from external projects ──────
+  // Auth: X-LeadOS-Key header = project apiKey from connectedProjects table
+  // Payload: { source, name?, email, phone?, interest?, url?, utm_source?, utm_medium?, utm_campaign?, ...extra }
+  app.post("/api/leads/ingest", async (req: Request, res: Response) => {
+    try {
+      const apiKey = (req.headers["x-leados-key"] as string) ||
+        (req.headers["x-api-key"] as string) ||
+        (req.headers["authorization"] as string)?.replace("Bearer ", "");
+
+      if (!apiKey || apiKey.length < 8) {
+        return res.status(401).json({ ok: false, error: "Missing X-LeadOS-Key header" });
+      }
+
+      const project = await getProjectByApiKey(apiKey);
+      if (!project) {
+        return res.status(401).json({ ok: false, error: "Invalid or inactive API key" });
+      }
+
+      const body = req.body || {};
+      const email = (body.email || "").trim().toLowerCase();
+      if (!email || !email.includes("@")) {
+        return res.status(400).json({ ok: false, error: "Valid email is required" });
+      }
+
+      const db = await getDb();
+      if (!db) return res.status(503).json({ ok: false, error: "DB unavailable" });
+
+      // Extract known fields, put the rest in extraData
+      const { source, name, phone, interest, url, utm_source, utm_medium, utm_campaign, ...rest } = body;
+      const extraData: Record<string, any> = {};
+      for (const [k, v] of Object.entries(rest)) {
+        if (!['email'].includes(k)) extraData[k] = v;
+      }
+
+      const [inserted] = await db.insert(ingestedLeads).values({
+        projectId: project.id,
+        projectName: project.name,
+        source: String(source || project.name),
+        name: name ? String(name).slice(0, 256) : undefined,
+        email,
+        phone: phone ? String(phone).slice(0, 64) : undefined,
+        interest: interest ? String(interest).slice(0, 512) : undefined,
+        pageUrl: url ? String(url) : undefined,
+        utmSource: utm_source ? String(utm_source).slice(0, 128) : undefined,
+        utmMedium: utm_medium ? String(utm_medium).slice(0, 128) : undefined,
+        utmCampaign: utm_campaign ? String(utm_campaign).slice(0, 128) : undefined,
+        ipAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.socket.remoteAddress || undefined,
+        userAgent: (req.headers['user-agent'] as string)?.slice(0, 512) || undefined,
+        extraData: Object.keys(extraData).length > 0 ? extraData : undefined,
+        status: 'new',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+
+      // Also fire a 'signup' event into projectEvents for analytics tracking
+      await ingestEvent({
+        projectId: project.id,
+        eventType: 'signup',
+        value: 0,
+        currency: project.currency,
+        metadata: { email, name: name || '', source: source || project.name },
+        occurredAt: new Date(),
+      });
+
+      console.log(`[Leads Ingest] New lead from ${project.name}: ${email}`);
+      return res.json({ ok: true, leadId: (inserted as any)?.insertId, project: project.name });
+    } catch (err: any) {
+      console.error("[Leads Ingest] Error:", err?.message);
       return res.status(500).json({ ok: false, error: "Internal server error" });
     }
   });

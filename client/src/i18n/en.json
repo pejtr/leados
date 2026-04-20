@@ -340,6 +340,7 @@
     "dailyReport": "Daily Report",
     "aiConstitution": "AI Constitution",
     "agentBenchmark": "Agent Benchmark",
-      "deepSleep": "DeepSleepReset"
+      "deepSleep": "DeepSleepReset",
+    "externalLeads": "External Leads"
   }
 }

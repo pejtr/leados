@@ -52,6 +52,7 @@ import AIConstitution from "./pages/AIConstitution";
 import AgentBenchmark from "./pages/AgentBenchmark";
 import Hermes from "./pages/Hermes";
 import DeepSleepDashboard from "./pages/DeepSleepDashboard";
+import IngestSources from "./pages/IngestSources";
 
 function Router() {
   return (
@@ -104,6 +105,7 @@ function Router() {
       <Route path="/agent-benchmark" component={AgentBenchmark} />
       <Route path="/hermes" component={Hermes} />
       <Route path="/deep-sleep" component={DeepSleepDashboard} />
+      <Route path="/external-leads" component={IngestSources} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

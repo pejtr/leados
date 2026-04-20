@@ -141,6 +141,13 @@
       "when": 1776662975929,
       "tag": "0019_loose_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1776672748400,
+      "tag": "0020_gifted_darkhawk",
+      "breakpoints": true
     }
   ]
 }

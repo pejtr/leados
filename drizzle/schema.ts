@@ -1235,6 +1235,32 @@ export const hermesMissions = mysqlTable("hermes_missions", {
 export type HermesMission = typeof hermesMissions.$inferSelect;
 export type InsertHermesMission = typeof hermesMissions.$inferInsert;
 
+// ── Ingested Leads (from external projects via /api/leads/ingest) ────────────────
+export const ingestedLeads = mysqlTable("ingested_leads", {
+  id: int("id").primaryKey().autoincrement(),
+  projectId: int("project_id"),           // FK to connectedProjects.id (nullable if unknown project)
+  projectName: varchar("project_name", { length: 128 }).notNull(), // e.g. "bezmasajidla.cz"
+  source: varchar("source", { length: 128 }).notNull(),            // project slug / identifier
+  name: varchar("name", { length: 256 }),
+  email: varchar("email", { length: 320 }).notNull(),
+  phone: varchar("phone", { length: 64 }),
+  interest: varchar("interest", { length: 512 }),
+  pageUrl: text("page_url"),
+  utmSource: varchar("utm_source", { length: 128 }),
+  utmMedium: varchar("utm_medium", { length: 128 }),
+  utmCampaign: varchar("utm_campaign", { length: 128 }),
+  ipAddress: varchar("ip_address", { length: 64 }),
+  userAgent: text("user_agent"),
+  extraData: json("extra_data").$type<Record<string, any>>(),
+  status: mysqlEnum("status", ["new", "contacted", "qualified", "disqualified"]).default("new").notNull(),
+  assignedUserId: int("assigned_user_id"),  // LeadOS user who owns this lead
+  notes: text("notes"),
+  createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
+  updatedAt: bigint("updated_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
+});
+export type IngestedLead = typeof ingestedLeads.$inferSelect;
+export type InsertIngestedLead = typeof ingestedLeads.$inferInsert;
+
 // ── DSR Snapshots — Push payloads from DeepSleepReset hourly_stats.py ─────────
 export const dsrSnapshots = mysqlTable("dsr_snapshots", {
   id: int("id").primaryKey().autoincrement(),

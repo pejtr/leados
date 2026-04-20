@@ -28,7 +28,7 @@ import {
   Bell, ListFilter, ShieldCheck, GitBranch, Building, Timer, Cpu, MailOpen,
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, ChevronRight, Calendar, Phone,
   TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical, Sparkles, Moon,
-  CircleDollarSign, TrendingUp as TrendUp, Activity,
+  CircleDollarSign, TrendingUp as TrendUp, Activity, Inbox,
 } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -135,6 +135,7 @@ const menuItemDefs = [
   { icon: TrendingUp, labelKey: "sidebar.dealPipeline", path: "/deal-pipeline", group: "insights" },
   { icon: Trophy, labelKey: "sidebar.salesDashboard", path: "/sales-dashboard", group: "insights" },
   { icon: Link2, labelKey: "sidebar.projectsHub", path: "/projects", group: "insights" },
+  { icon: Inbox, labelKey: "sidebar.externalLeads", path: "/external-leads", group: "insights" },
   { icon: Ear, labelKey: "sidebar.socialListening", path: "/social", group: "insights" },
   { icon: Target, labelKey: "sidebar.b2bMatching", path: "/matching", group: "insights" },
   { icon: BarChart3, labelKey: "sidebar.statistics", path: "/stats", group: "insights" },

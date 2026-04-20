@@ -1,0 +1,23 @@
+CREATE TABLE `ingested_leads` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`project_id` int,
+	`project_name` varchar(128) NOT NULL,
+	`source` varchar(128) NOT NULL,
+	`name` varchar(256),
+	`email` varchar(320) NOT NULL,
+	`phone` varchar(64),
+	`interest` varchar(512),
+	`page_url` text,
+	`utm_source` varchar(128),
+	`utm_medium` varchar(128),
+	`utm_campaign` varchar(128),
+	`ip_address` varchar(64),
+	`user_agent` text,
+	`extra_data` json,
+	`status` enum('new','contacted','qualified','disqualified') NOT NULL DEFAULT 'new',
+	`assigned_user_id` int,
+	`notes` text,
+	`created_at` bigint NOT NULL,
+	`updated_at` bigint NOT NULL,
+	CONSTRAINT `ingested_leads_id` PRIMARY KEY(`id`)
+);

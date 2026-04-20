@@ -340,6 +340,7 @@
     "dailyReport": "Tagesbericht",
     "aiConstitution": "AI-Verfassung",
     "agentBenchmark": "Agenten-Benchmark",
-    "deepSleep": "DeepSleepReset"
+    "deepSleep": "DeepSleepReset",
+    "externalLeads": "Externe Leads"
   }
 }

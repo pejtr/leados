@@ -78,7 +78,8 @@
     "dailyReport": "Denní Report",
     "aiConstitution": "AI Ústava",
     "agentBenchmark": "Benchmark agentů",
-    "deepSleep": "DeepSleepReset"
+    "deepSleep": "DeepSleepReset",
+    "externalLeads": "Externí leady"
   },
   "home": {
     "aiSystemsActive": "AI systémy aktivní",
