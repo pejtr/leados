@@ -224,23 +224,24 @@ export default function Home() {
                 </div>
                 {/* Steps */}
                 <div className="space-y-0.5">
-                  {setupProgress.steps?.slice(0, 4).map((step: any, i: number) => (
-                    <div key={i} className="flex items-center gap-2 text-[11px]">
-                      {step.completed ? (
+                  {setupProgress.steps?.slice(0, 6).map((step: any, i: number) => (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-2 text-[11px] rounded px-1 py-0.5 ${
+                        !step.done ? "cursor-pointer hover:bg-black/5 group" : ""
+                      }`}
+                      onClick={() => !step.done && setLocation(step.link ?? "/generate")}
+                    >
+                      {step.done ? (
                         <CheckCircle2 className="h-3 w-3 text-[oklch(0.50_0.18_162)] shrink-0" />
                       ) : (
                         <div className="h-3 w-3 rounded-full border border-muted-foreground/30 shrink-0" />
                       )}
-                      <span className={step.completed ? "line-through text-muted-foreground/50" : "text-foreground/80"}>
+                      <span className={step.done ? "line-through text-muted-foreground/50" : "text-foreground/80 group-hover:text-[oklch(0.45_0.20_192)]"}>
                         {step.label}
                       </span>
-                      {!step.completed && (
-                        <button
-                          onClick={() => setLocation(step.path ?? "/generate")}
-                          className="ml-auto text-[oklch(0.50_0.20_192)] hover:underline shrink-0"
-                        >
-                          &#8250;
-                        </button>
+                      {!step.done && (
+                        <ChevronRight className="ml-auto h-3 w-3 text-[oklch(0.50_0.20_192)] shrink-0 opacity-60 group-hover:opacity-100" />
                       )}
                     </div>
                   ))}

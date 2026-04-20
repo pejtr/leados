@@ -1960,12 +1960,12 @@ Be concise: max 3-4 sentences unless asked for more. Use numbers from stats abov
       const stats = await getLeadStats(userId);
 
       const steps = [
-        { id: "profile", label: "Complete your profile", done: !!(user.name && user.email), link: "/settings" },
-        { id: "icp", label: "Define your ICP", done: false, link: "/icp-builder" },
-        { id: "first_leads", label: "Generate your first leads", done: stats.totalLeads > 0, link: "/generate" },
-        { id: "sequence", label: "Create an email sequence", done: false, link: "/sequences" },
-        { id: "integration", label: "Set up an integration", done: false, link: "/integrations" },
-        { id: "deal", label: "Close your first deal", done: stats.roiStats.closedDeals > 0, link: "/pipeline" },
+        { id: "profile", label: "Dokon\u010di sv\u016fj profil", done: !!(user.name && user.email), link: "/settings" },
+        { id: "icp", label: "Definuj sv\u016fj ICP", done: false, link: "/icp-builder" },
+        { id: "first_leads", label: "Vygeneruj prvn\u00ed leady", done: stats.totalLeads > 0, link: "/generate" },
+        { id: "sequence", label: "Vytvo\u0159 e-mailov\u00fd sled", done: false, link: "/sequences" },
+        { id: "integration", label: "Nastav integraci", done: false, link: "/integrations" },
+        { id: "deal", label: "Uzav\u0159i prvn\u00ed obchod", done: stats.roiStats.closedDeals > 0, link: "/pipeline" },
       ];
 
       // Check ICP
