@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
+import { useGoogleAds } from "@/hooks/useGoogleAds";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -383,6 +384,8 @@ export default function DealPipeline() {
     onError: (e) => toast.error(e.message),
   });
 
+  const { track } = useGoogleAds();
+
   const createMutation = trpc.crm.createDeal.useMutation({
     onSuccess: () => {
       utils.crm.listDeals.invalidate();
@@ -390,6 +393,7 @@ export default function DealPipeline() {
       setCreateOpen(false);
       setForm(EMPTY_FORM);
       toast.success("Deal vytvořen!");
+      track('deal_created', { value: parseFloat(form.value || '0'), currency: form.currency || 'CZK' });
     },
     onError: (e) => toast.error(e.message),
   });
@@ -454,6 +458,11 @@ export default function DealPipeline() {
   // Drag & drop
   const handleDragStart = (id: number) => setDraggingId(id);
   const handleDrop = (stage: string) => {
+    if (draggingId) {
+      track('deal_stage_changed', { new_stage: stage });
+      if (stage === 'won') track('deal_won', { value: 1 });
+      if (stage === 'lost') track('deal_lost');
+    }
     if (draggingId == null) return;
     updateMutation.mutate({ id: draggingId, stage: stage as Stage });
     setDraggingId(null);

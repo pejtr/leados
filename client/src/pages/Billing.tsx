@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Check, Zap, Star, Building2, CreditCard, ExternalLink, Phone, ArrowRight } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useLocation } from "wouter";
+import { useGoogleAds } from "@/hooks/useGoogleAds";
 
 const PLANS = [
   {
@@ -85,6 +86,10 @@ export default function Billing() {
   const { data: subscription, refetch } = trpc.billing.getSubscription.useQuery();
   const checkoutMut = trpc.billing.createCheckout.useMutation();
   const portalMut = trpc.billing.createPortal.useMutation();
+  const { track } = useGoogleAds();
+
+  // Track billing page view once
+  useEffect(() => { track('billing_page_viewed'); }, []);
 
   // Check for success/canceled params
   const params = new URLSearchParams(window.location.search);
@@ -103,6 +108,10 @@ export default function Billing() {
 
   const handleCheckout = async (plan: "starter" | "growth" | "pro") => {
     setLoadingPlan(plan);
+    // Track checkout intent with plan value
+    const planValues = { starter: 149, growth: 399, pro: 799 };
+    const planValue = interval === 'yearly' ? planValues[plan] * 12 * 0.83 : planValues[plan];
+    track('subscription_checkout_started', { value: planValue, currency: 'EUR', plan, interval });
     try {
       toast.info(t("billing.redirectingCheckout", "Přesměrovávám na bezpečnou platbu..."));
       const result = await checkoutMut.mutateAsync({
@@ -121,6 +130,7 @@ export default function Billing() {
   };
 
   const handlePortal = async () => {
+    track('billing_portal_opened');
     try {
       toast.info(t("billing.openingPortal", "Otevírám fakturační portál..."));
       const result = await portalMut.mutateAsync({ origin: window.location.origin });

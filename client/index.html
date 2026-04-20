@@ -53,6 +53,22 @@
       }
     }
     </script>
+    <!-- Google Ads / Google Analytics tag (gtag.js) -->
+    <!-- VITE_GOOGLE_ADS_ID = AW-XXXXXXXXX | VITE_GA4_ID = G-XXXXXXXXXX -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=%VITE_GOOGLE_ADS_ID%"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      // Google Ads conversion tracking
+      if ('%VITE_GOOGLE_ADS_ID%' && '%VITE_GOOGLE_ADS_ID%' !== 'undefined') {
+        gtag('config', '%VITE_GOOGLE_ADS_ID%', { send_page_view: true });
+      }
+      // GA4 analytics (optional, same tag)
+      if ('%VITE_GA4_ID%' && '%VITE_GA4_ID%' !== 'undefined' && '%VITE_GA4_ID%' !== '%VITE_GA4_ID%') {
+        gtag('config', '%VITE_GA4_ID%', { send_page_view: true });
+      }
+    </script>
     <!-- Premium fonts: Inter for body, Space Grotesk for headings -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

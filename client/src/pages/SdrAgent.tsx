@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserCheck, Plus, Trash2, Play, Pause, Loader2, Mail, MessageSquare, Clock, Send, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useGoogleAds } from "@/hooks/useGoogleAds";
 
 export default function SdrAgent() {
   const [open, setOpen] = useState(false);
@@ -31,12 +32,14 @@ export default function SdrAgent() {
   const utils = trpc.useUtils();
   const { data: campaigns = [], isLoading } = trpc.sdr.list.useQuery();
   const { data: industries } = trpc.leads.industries.useQuery();
+  const { track } = useGoogleAds();
 
   const createMut = trpc.sdr.create.useMutation({
     onSuccess: () => {
       toast.success("SDR campaign created");
       utils.sdr.list.invalidate();
       setOpen(false);
+      track('sdr_email_generated', { campaign_name: form.name, industry: form.industry });
       setForm({ name: "", industry: "", location: "", seniorityLevel: "C-Level", leadCount: 20, emailSubject: "", emailTone: "professional", followUpDays: 3, maxFollowUps: 2 });
     },
     onError: (e) => toast.error(e.message),
@@ -59,6 +62,7 @@ export default function SdrAgent() {
     onSuccess: (data) => {
       setEmailPreview(data);
       toast.success("Email draft generated!");
+      track('sdr_email_generated', { value: 1 });
     },
     onError: (e) => {
       toast.error(e.message);

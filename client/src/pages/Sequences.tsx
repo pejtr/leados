@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Plus, Trash2, Mail, ChevronRight, Users, Edit2, Save, Linkedin, Sparkles, Loader2, Phone } from "lucide-react";
+import { useGoogleAds } from "@/hooks/useGoogleAds";
 
 const STEP_ICONS: Record<string, string> = {
   email: "📧",
@@ -39,17 +40,20 @@ export default function Sequences() {
     { enabled: !!selectedSeq }
   );
   const { data: enrollments = [] } = trpc.sequences.enrollments.useQuery();
+  const { track } = useGoogleAds();
 
-  const createMut = trpc.sequences.create.useMutation({ onSuccess: () => { refetch(); setCreating(false); setNewName(""); setNewDesc(""); } });
+  const createMut = trpc.sequences.create.useMutation({ onSuccess: () => { refetch(); setCreating(false); setNewName(""); setNewDesc(""); track('sequence_created'); } });
   const deleteMut = trpc.sequences.delete.useMutation({ onSuccess: () => { refetch(); setSelectedSeq(null); } });
   const saveStepsMut = trpc.sequences.saveSteps.useMutation({
     onSuccess: () => {
       refetchSteps();
       setEditingSteps(false);
       toast.success("Steps saved successfully.");
+      track('sequence_steps_saved', { step_count: steps.length });
     },
   });
   const generateLinkedIn = trpc.sequences.generateLinkedInMessage.useMutation({
+    onSuccess: () => { track('linkedin_message_generated'); },
     onError: (e) => { setGeneratingLinkedIn(null); toast.error(e.message); },
   });
 

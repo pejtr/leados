@@ -30,8 +30,9 @@ import {
   Globe,
   Sheet,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useGoogleAds } from "@/hooks/useGoogleAds";
 import SheetsExportModal from "@/components/SheetsExportModal";
 import { cn } from "@/lib/utils";
 
@@ -96,6 +97,9 @@ export default function Generate() {
 
   const { data: industries } = trpc.leads.industries.useQuery();
   const utils = trpc.useUtils();
+  const { track } = useGoogleAds();
+
+  useEffect(() => { track('generate_page_viewed'); }, []);
 
   const generate = trpc.leads.generate.useMutation({
     onSuccess: (data) => {
@@ -103,6 +107,7 @@ export default function Generate() {
       setSessionId(data.sessionId);
       setCurrentStep(0);
       toast.success(`Vygenerováno ${data.count} leadů úspěšně!`);
+      track('leads_generated', { value: data.count, currency: 'EUR', lead_count: data.count, industry, location });
       utils.leads.stats.invalidate();
       utils.leads.sessions.invalidate();
     },

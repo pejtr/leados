@@ -4,6 +4,7 @@ import express from "express";
 import { getDb } from "./db";
 import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { sendServerSideConversion } from "./googleAdsConversions";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2025-01-27.acacia",
@@ -58,6 +59,20 @@ export function registerStripeWebhook(app: Express) {
                   } as any)
                   .where(eq(users.id, parseInt(userId)));
                 console.log(`[Stripe Webhook] User ${userId} subscription activated`);
+
+                // ── Server-side Google Ads conversion (bypasses ad blockers) ──
+                const plan = session.metadata?.plan ?? 'starter';
+                const planValues: Record<string, number> = { starter: 149, growth: 399, pro: 799 };
+                const conversionValue = planValues[plan] ?? 149;
+                const customerEmail = session.customer_details?.email ?? session.metadata?.customer_email;
+                await sendServerSideConversion({
+                  conversionLabel: process.env.GOOGLE_ADS_CONVERSION_LABEL_PURCHASE ?? 'purchase',
+                  transactionId: session.id,
+                  value: conversionValue,
+                  currency: 'EUR',
+                  email: customerEmail ?? undefined,
+                  orderId: session.id,
+                }).catch(e => console.error('[GoogleAds] Conversion send failed:', e));
               }
             }
             break;

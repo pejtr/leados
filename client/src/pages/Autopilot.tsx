@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Bot, Plus, Trash2, Clock, Zap, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useGoogleAds } from "@/hooks/useGoogleAds";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -30,12 +31,14 @@ export default function Autopilot() {
   const utils = trpc.useUtils();
   const { data: configs, isLoading } = trpc.autopilot.list.useQuery();
   const { data: industries } = trpc.leads.industries.useQuery();
+  const { track } = useGoogleAds();
 
   const createMut = trpc.autopilot.create.useMutation({
     onSuccess: () => {
       toast.success("Autopilot config created");
       utils.autopilot.list.invalidate();
       setOpen(false);
+      track('autopilot_created', { schedule_type: form.scheduleType, industry: form.industry });
       setForm({ name: "", industry: "", location: "", seniorityLevel: "Manager", leadCount: 10, scheduleType: "weekly", scheduleDayOfWeek: 1, scheduleHour: 9 });
     },
     onError: (e) => toast.error(e.message),
