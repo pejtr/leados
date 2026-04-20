@@ -72,10 +72,12 @@ export const globalEarningsRouter = router({
     const kpis = dsrAnalytics?.kpis;
     const dsrTotal = kpis ? Math.round(parseFloat(kpis.totalRevenueUsd ?? "0") * 100) : 0;
     const dsrToday = kpis ? Math.round(parseFloat(kpis.todayRevenueUsd ?? "0") * 100) : 0;
+    const dsrLast30d = kpis ? Math.round(parseFloat(kpis.last30DaysRevenueUsd ?? "0") * 100) : 0;
     const projectCount = dsrHeaders() ? 2 : 1; // DSR + LeadOS
     return {
-      totalRevenueCents: dsrTotal,
-      todayRevenueCents: dsrToday,
+      totalRevenueCents: dsrTotal,       // all-time total
+      todayRevenueCents: dsrToday,       // today only
+      last30dRevenueCents: dsrLast30d,   // last 30 days
       projectCount,
       lastUpdated: new Date().toISOString(),
     };

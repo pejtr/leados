@@ -167,6 +167,10 @@ export default function Home() {
   const { data: setupProgress, isLoading: setupLoading } = trpc.aiChat.setupProgress.useQuery();
   const { data: insights, isLoading: insightsLoading } = trpc.aiChat.insights.useQuery();
   const { data: briefing, refetch: refetchBriefing, isLoading: briefingLoading } = trpc.morningBriefing.getLatest.useQuery();
+  const { data: earningsData } = trpc.globalEarnings.summary.useQuery(undefined, { refetchInterval: 60_000, staleTime: 30_000 });
+  const USD_TO_CZK = 25;
+  const fmtCZK = (cents: number) =>
+    new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format((cents / 100) * USD_TO_CZK);
   const generateBriefingMutation = trpc.morningBriefing.generate.useMutation({
     onSuccess: () => { refetchBriefing(); toast.success("Morning briefing generated!"); },
     onError: () => toast.error("Failed to generate briefing"),
@@ -216,6 +220,46 @@ export default function Home() {
                 {t('sidebar.generateLeads')}
               </Button>
             </div>
+          </div>
+        </div>
+
+        {/* ── CZK Earnings KPI Bar ─────────────────────── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {/* Dnes */}
+          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.68_0.18_162_/_25%)] bg-gradient-to-br from-[oklch(0.68_0.18_162_/_8%)] to-white p-4">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.68_0.18_162)]" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.50_0.18_162)] mb-1">💰 Dnes</p>
+            <p className="text-2xl font-black text-foreground tabular-nums">
+              {earningsData ? fmtCZK(earningsData.todayRevenueCents) : <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">tržby za dnešek</p>
+          </div>
+          {/* Posledních 30 dní */}
+          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.55_0.20_192_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] to-white p-4">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.55_0.20_192)]" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.45_0.20_192)] mb-1">📈 30 dní</p>
+            <p className="text-2xl font-black text-foreground tabular-nums">
+              {earningsData ? fmtCZK((earningsData as any).last30dRevenueCents ?? 0) : <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">posledních 30 dní</p>
+          </div>
+          {/* Celkem */}
+          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.72_0.18_60_/_25%)] bg-gradient-to-br from-[oklch(0.72_0.18_60_/_8%)] to-white p-4">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.72_0.18_60)]" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.55_0.18_60)] mb-1">🏆 Celkem</p>
+            <p className="text-2xl font-black text-foreground tabular-nums">
+              {earningsData ? fmtCZK(earningsData.totalRevenueCents) : <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">výdělek celkem</p>
+          </div>
+          {/* Projekty */}
+          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.55_0.24_278_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.24_278_/_8%)] to-white p-4">
+            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.55_0.24_278)]" />
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.45_0.24_278)] mb-1">🔗 Projekty</p>
+            <p className="text-2xl font-black text-foreground tabular-nums">
+              {earningsData ? earningsData.projectCount : <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />}
+            </p>
+            <p className="text-[10px] text-muted-foreground mt-0.5">aktivní zdroje příjmů</p>
           </div>
         </div>
 

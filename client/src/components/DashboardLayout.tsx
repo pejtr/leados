@@ -49,6 +49,8 @@ const dockItems = [
   { icon: DollarSign,   path: "/billing",         label: "Billing",        color: "oklch(0.62 0.20 140)" },
   { icon: Users,        path: "/team",            label: "Team",           color: "oklch(0.58 0.16 220)" },
   { icon: Settings,     path: "/ai-constitution", label: "Settings",       color: "oklch(0.52 0.12 250)" },
+  { icon: BookOpen,     path: "/ai-skills",       label: "AI Skills",      color: "oklch(0.62 0.22 300)" },
+  { icon: TrendingUp,   path: "/roi-audit",       label: "ROI Audit",      color: "oklch(0.60 0.22 160)" },
 ];
 
 // Full sidebar items for the slide-out panel
@@ -67,6 +69,8 @@ const allMenuItems = [
   { icon: UserCheck,    labelKey: "sidebar.aiSdrAgent",       path: "/sdr",             group: "automation" },
   { icon: Bot,          labelKey: "sidebar.aiAgents",         path: "/ai-agents",       group: "automation" },
   { icon: Bot,          labelKey: "sidebar.autopilot",        path: "/autopilot",       group: "automation" },
+  { icon: BookOpen,     labelKey: "sidebar.aiSkills",         path: "/ai-skills",       group: "automation" },
+  { icon: TrendingUp,   labelKey: "sidebar.roiAudit",         path: "/roi-audit",       group: "automation" },
   { icon: GitBranch,    labelKey: "sidebar.campaigns",        path: "/campaigns",       group: "automation" },
   { icon: Timer,        labelKey: "sidebar.speedToLead",      path: "/speed-to-lead",   group: "automation" },
   { icon: Lightbulb,    labelKey: "sidebar.nextActions",      path: "/next-actions",    group: "automation" },
@@ -123,8 +127,10 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
     return () => clearInterval(t);
   }, []);
 
-  const fmt = (cents: number) =>
-    new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(cents / 100);
+  // 1 USD ≈ 25 CZK — earnings stored in USD cents, displayed in CZK
+  const USD_TO_CZK = 25;
+  const fmtCZK = (cents: number) =>
+    new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format((cents / 100) * USD_TO_CZK);
 
   const timeStr = time.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
   const dateStr = time.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "short" });
@@ -170,7 +176,10 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
               style={{ background: "oklch(0.65 0.20 150)" }} />
           </span>
           <span className="text-[10px] font-medium tabular-nums" style={{ color: "oklch(0.45 0.18 150)", fontFamily: "'Space Grotesk', sans-serif" }}>
-            {earningsData ? fmt(earningsData.todayRevenueCents) : "…"} dnes
+            {earningsData ? fmtCZK(earningsData.todayRevenueCents) : "…"} dnes
+            {earningsData && earningsData.totalRevenueCents > 0 && (
+              <span className="ml-1.5 opacity-60">| celkem {fmtCZK(earningsData.totalRevenueCents)}</span>
+            )}
           </span>
         </div>
       </div>

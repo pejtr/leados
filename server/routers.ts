@@ -117,6 +117,8 @@ import { hermesRouter } from "./hermesRouter";
 import { deepSleepRouter } from "./routers/deepSleep";
 import { globalEarningsRouter } from "./routers/globalEarnings";
 import { ingestedLeadsRouter } from "./routers/ingestedLeads";
+import { aiSkillsRouter } from "./routers/aiSkills";
+import { roiAuditRouter } from "./routers/roiAudit";
 import {
   createTrackingPixel, getTrackingPixelsByUser, deleteTrackingPixel, updateTrackingPixel,
   getVisitorSessionsByPixel, getVisitorSessionsByUser, createVisitorSession,
@@ -2808,5 +2810,7 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
   deepSleep: deepSleepRouter,
   globalEarnings: globalEarningsRouter,
   ingestedLeads: ingestedLeadsRouter,
+  aiSkills: aiSkillsRouter,
+  roiAudit: roiAuditRouter,
 });
 export type AppRouter = typeof appRouter;

@@ -79,7 +79,9 @@
     "aiConstitution": "AI Ústava",
     "agentBenchmark": "Benchmark agentů",
     "deepSleep": "DeepSleepReset",
-    "externalLeads": "Externí leady"
+    "externalLeads": "Externí leady",
+    "aiSkills": "Knihovna AI Skills",
+    "roiAudit": "ROI Audit Wizard"
   },
   "home": {
     "aiSystemsActive": "AI systémy aktivní",

@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import {
   Webhook, Plus, Trash2, TestTube, CheckCircle2, XCircle,
   Clock, ExternalLink, Slack, SquareKanban, Globe, Loader2,
-  Activity, Send, Settings2,
+  Activity, Send, Settings2, ShieldCheck, AlertTriangle, Lock, Eye, Zap, ArrowRight,
 } from "lucide-react";
 
 type IntegrationType = "generic" | "clickup" | "slack";
@@ -334,6 +334,10 @@ export default function Integrations() {
               <Activity className="h-4 w-4" />
               Delivery Logs
             </TabsTrigger>
+            <TabsTrigger value="n8n-gateway" className="gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              n8n Security Gateway
+            </TabsTrigger>
           </TabsList>
 
           {/* Configurations Tab */}
@@ -569,6 +573,138 @@ export default function Integrations() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* n8n Security Gateway Tab */}
+          <TabsContent value="n8n-gateway" className="mt-4 space-y-4">
+            <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="p-2.5 rounded-xl bg-orange-50 text-orange-600 shrink-0">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-bold text-foreground">n8n Security Gateway</h2>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Best practice z AI OS videa: AI nikdy nekomunikuje přímo s citlivými systémy (CRM, banka, ERP). Všechna automatizace prochází přes n8n jako Security Gateway s Human-in-the-Loop schválením.
+                  </p>
+                </div>
+              </div>
+
+              {/* Architecture diagram */}
+              <div className="bg-muted/40 rounded-xl p-4">
+                <div className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Architektura Security Gateway</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {[
+                    { icon: <Zap className="h-4 w-4" />, label: "LeadOS AI", color: "bg-blue-100 text-blue-700 border-blue-200" },
+                    { icon: <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />, label: "", color: "" },
+                    { icon: <ShieldCheck className="h-4 w-4" />, label: "n8n Gateway", color: "bg-orange-100 text-orange-700 border-orange-200" },
+                    { icon: <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />, label: "", color: "" },
+                    { icon: <Eye className="h-4 w-4" />, label: "Human Review", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
+                    { icon: <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />, label: "", color: "" },
+                    { icon: <Lock className="h-4 w-4" />, label: "CRM / ERP / Banka", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+                  ].map((item, i) => (
+                    item.label ? (
+                      <div key={i} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium ${item.color}`}>
+                        {item.icon}{item.label}
+                      </div>
+                    ) : (
+                      <div key={i}>{item.icon}</div>
+                    )
+                  ))}
+                </div>
+              </div>
+
+              {/* Best practices */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  {
+                    title: "Draft-Only Mode",
+                    desc: "Všechny akce z AI jsou nejprve uloženy jako draft. Žádná akce se neprovede bez explicitního schválení.",
+                    icon: <Eye className="h-4 w-4" />,
+                    color: "bg-blue-50 border-blue-200 text-blue-800",
+                    iconColor: "text-blue-600",
+                    status: "Aktivní v LeadOS",
+                    statusColor: "bg-emerald-100 text-emerald-700",
+                  },
+                  {
+                    title: "Webhook Sandboxing",
+                    desc: "Webhooky do externích systémů procházejí validací payloadu a rate limitingem před odesíláním.",
+                    icon: <ShieldCheck className="h-4 w-4" />,
+                    color: "bg-orange-50 border-orange-200 text-orange-800",
+                    iconColor: "text-orange-600",
+                    status: "Doporučeno",
+                    statusColor: "bg-yellow-100 text-yellow-700",
+                  },
+                  {
+                    title: "Human-in-the-Loop",
+                    desc: "SDR kampaně vyžadují manuální schválení před aktivací. AI připraví, člověk rozhodne.",
+                    icon: <CheckCircle2 className="h-4 w-4" />,
+                    color: "bg-emerald-50 border-emerald-200 text-emerald-800",
+                    iconColor: "text-emerald-600",
+                    status: "Implementováno",
+                    statusColor: "bg-emerald-100 text-emerald-700",
+                  },
+                  {
+                    title: "Audit Log",
+                    desc: "Každá akce AI agenta je logována s timestampem, userem a výsledkem pro úply plnou auditovatelnost.",
+                    icon: <Activity className="h-4 w-4" />,
+                    color: "bg-violet-50 border-violet-200 text-violet-800",
+                    iconColor: "text-violet-600",
+                    status: "Delivery Logs",
+                    statusColor: "bg-violet-100 text-violet-700",
+                  },
+                ].map(bp => (
+                  <div key={bp.title} className={`border rounded-xl p-4 ${bp.color}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className={`flex items-center gap-1.5 font-semibold text-sm ${bp.iconColor}`}>
+                        {bp.icon}{bp.title}
+                      </div>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${bp.statusColor}`}>{bp.status}</span>
+                    </div>
+                    <p className="text-xs opacity-80">{bp.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* n8n setup guide */}
+              <div className="border border-border rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm font-semibold">Jak nastavit n8n Security Gateway</span>
+                </div>
+                <ol className="space-y-2">
+                  {[
+                    { step: "1", text: "Nainstaluj n8n (cloud nebo self-hosted): n8n.io" },
+                    { step: "2", text: "Vytvoř Webhook trigger workflow v n8n" },
+                    { step: "3", text: "Přidej Webhook URL do LeadOS Integrations → New Webhook (typ: generic)" },
+                    { step: "4", text: "V n8n přidej IF node: pokud data.security.requires_approval = true → pošli Slack notifikaci" },
+                    { step: "5", text: "Schválení přes Slack button spustí další akce (CRM update, email, task)" },
+                  ].map(item => (
+                    <li key={item.step} className="flex items-start gap-2.5 text-xs text-muted-foreground">
+                      <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">{item.step}</span>
+                      {item.text}
+                    </li>
+                  ))}
+                </ol>
+                <a
+                  href="https://n8n.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Otevřít n8n.io
+                </a>
+              </div>
+
+              {/* Warning */}
+              <div className="flex items-start gap-2.5 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-yellow-800">
+                  <strong>Security tip:</strong> Nikdy nepřipojuj AI agenta přímo k bankovnímu API nebo produkčnímu CRM. Vždy použij n8n nebo Make jako buffer vrstvu s manuálním schválením pro kritické akce.
+                </p>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

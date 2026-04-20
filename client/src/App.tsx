@@ -54,6 +54,8 @@ import Hermes from "./pages/Hermes";
 import DeepSleepDashboard from "./pages/DeepSleepDashboard";
 import IngestSources from "./pages/IngestSources";
 import Datenschutz from "./pages/Datenschutz";
+import AiSkills from "./pages/AiSkills";
+import RoiAudit from "./pages/RoiAudit";
 
 function Router() {
   return (
@@ -108,6 +110,8 @@ function Router() {
       <Route path="/deep-sleep" component={DeepSleepDashboard} />
       <Route path="/external-leads" component={IngestSources} />
       <Route path="/datenschutz" component={Datenschutz} />
+      <Route path="/ai-skills" component={AiSkills} />
+      <Route path="/roi-audit" component={RoiAudit} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

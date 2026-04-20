@@ -155,6 +155,13 @@
       "when": 1776678441799,
       "tag": "0021_flippant_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "5",
+      "when": 1776680668572,
+      "tag": "0022_dry_boom_boom",
+      "breakpoints": true
     }
   ]
 }

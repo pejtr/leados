@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserCheck, Plus, Trash2, Play, Pause, Loader2, Mail, MessageSquare, Clock, Send, Sparkles } from "lucide-react";
+import { UserCheck, Plus, Trash2, Play, Pause, Loader2, Mail, MessageSquare, Clock, Send, Sparkles, ShieldCheck, AlertTriangle, Eye, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useGoogleAds } from "@/hooks/useGoogleAds";
@@ -79,6 +79,29 @@ export default function SdrAgent() {
       industry: campaign.industry,
       tone: campaign.emailTone,
     });
+  };
+
+  const [approvalCampaign, setApprovalCampaign] = useState<any | null>(null);
+
+  const handleActivateWithApproval = (campaign: any) => {
+    // Human-in-the-Loop: show review screen before activating
+    setApprovalCampaign(campaign);
+    setGeneratingFor(campaign.id);
+    setEmailPreview(null);
+    generateEmailMut.mutate({
+      companyName: "Example Corp",
+      contactName: "Decision Maker",
+      industry: campaign.industry,
+      tone: campaign.emailTone,
+      subject: campaign.emailSubject || undefined,
+    });
+  };
+
+  const confirmActivate = () => {
+    if (!approvalCampaign) return;
+    updateMut.mutate({ id: approvalCampaign.id, status: "active" });
+    setApprovalCampaign(null);
+    toast.success("Kampaň aktivována po schválení ✓");
   };
 
   const statusColors: Record<string, string> = {
@@ -234,9 +257,10 @@ export default function SdrAgent() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => updateMut.mutate({ id: campaign.id, status: "active" })}
+                          className="border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                          onClick={() => handleActivateWithApproval(campaign)}
                         >
-                          <Play className="h-4 w-4 mr-1" /> Activate
+                          <ShieldCheck className="h-4 w-4 mr-1" /> Review & Activate
                         </Button>
                       )}
                       {campaign.status === "active" && (
@@ -289,6 +313,84 @@ export default function SdrAgent() {
           </div>
         )}
       </div>
+      {/* Human-in-the-Loop Approval Modal */}
+      {approvalCampaign && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="bg-background border border-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-5 border-b border-border">
+              <div className="flex items-center gap-2 mb-1">
+                <ShieldCheck className="h-5 w-5 text-emerald-500" />
+                <h2 className="font-bold text-foreground">Human-in-the-Loop Review</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Zkontroluj kampaň před aktivací. AI připravila návrh — ty rozhoduješ.
+              </p>
+            </div>
+            <div className="p-5 space-y-4">
+              {/* Campaign summary */}
+              <div className="bg-muted/40 rounded-xl p-4 space-y-2">
+                <div className="text-sm font-semibold text-foreground">{approvalCampaign.name}</div>
+                <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                  <div><span className="font-medium">Industrie:</span> {approvalCampaign.industry}</div>
+                  <div><span className="font-medium">Lokace:</span> {approvalCampaign.location}</div>
+                  <div><span className="font-medium">Seniority:</span> {approvalCampaign.seniorityLevel}</div>
+                  <div><span className="font-medium">Leads:</span> {approvalCampaign.leadCount}</div>
+                  <div><span className="font-medium">Tón:</span> {approvalCampaign.emailTone}</div>
+                  <div><span className="font-medium">Follow-ups:</span> {approvalCampaign.maxFollowUps}× / {approvalCampaign.followUpDays}d</div>
+                </div>
+              </div>
+
+              {/* Email preview */}
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <Eye className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold">Náhled AI emailu</span>
+                </div>
+                {generateEmailMut.isPending ? (
+                  <div className="flex items-center justify-center py-8 bg-muted/30 rounded-xl">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary mr-2" />
+                    <span className="text-sm text-muted-foreground">Generuji návrh emailu...</span>
+                  </div>
+                ) : emailPreview ? (
+                  <div className="bg-muted/30 border border-border rounded-xl p-4 space-y-3">
+                    <div className="text-sm">
+                      <span className="font-medium text-muted-foreground">Předmět: </span>
+                      <span className="text-foreground">{emailPreview.subject}</span>
+                    </div>
+                    <div className="border-t border-border pt-3 text-sm text-foreground whitespace-pre-wrap">{emailPreview.body}</div>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Warning */}
+              <div className="flex items-start gap-2.5 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
+                <p className="text-xs text-yellow-800">
+                  <strong>Human-in-the-Loop:</strong> Po aktivaci začne AI automaticky odesílat emaily leadům. Ujisti se, že obsah emailu, cílová skupina a ton odpovídá tvé brand strategii.
+                </p>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => { setApprovalCampaign(null); setEmailPreview(null); }}
+                >
+                  Zrušit — vrátit do draftu
+                </Button>
+                <Button
+                  className="flex-1 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  onClick={confirmActivate}
+                  disabled={generateEmailMut.isPending || updateMut.isPending}
+                >
+                  {updateMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                  Schválit & Aktivovat Kampaň
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
