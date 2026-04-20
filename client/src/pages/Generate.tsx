@@ -30,7 +30,7 @@ import {
   Globe,
   Sheet,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useGoogleAds } from "@/hooks/useGoogleAds";
 import SheetsExportModal from "@/components/SheetsExportModal";
@@ -55,6 +55,229 @@ interface Lead {
 }
 
 const SENIORITY_LEVELS = ["Manager", "Director", "VP", "C-Level", "Head of"];
+
+// ── Location data: continent -> countries ─────────────────────────────────────
+const LOCATIONS_BY_CONTINENT: Record<string, { name: string; flag: string }[]> = {
+  "Evropa": [
+    { name: "Česká republika", flag: "🇨🇿" },
+    { name: "Slovensko", flag: "🇸🇰" },
+    { name: "Německo", flag: "🇩🇪" },
+    { name: "Rakousko", flag: "🇦🇹" },
+    { name: "Švýcarsko", flag: "🇨🇭" },
+    { name: "Polsko", flag: "🇵🇱" },
+    { name: "Maďarsko", flag: "🇭🇺" },
+    { name: "Francie", flag: "🇫🇷" },
+    { name: "Velká Británie", flag: "🇬🇧" },
+    { name: "Nizozemsko", flag: "🇳🇱" },
+    { name: "Belgie", flag: "🇧🇪" },
+    { name: "Španělsko", flag: "🇪🇸" },
+    { name: "Itálie", flag: "🇮🇹" },
+    { name: "Švédsko", flag: "🇸🇪" },
+    { name: "Norsko", flag: "🇳🇴" },
+    { name: "Dánsko", flag: "🇩🇰" },
+    { name: "Finsko", flag: "🇫🇮" },
+    { name: "Rumunsko", flag: "🇷🇴" },
+    { name: "Chorvatsko", flag: "🇭🇷" },
+    { name: "Srbsko", flag: "🇷🇸" },
+    { name: "Bulharsko", flag: "🇧🇬" },
+    { name: "Řecko", flag: "🇬🇷" },
+    { name: "Portugalsko", flag: "🇵🇹" },
+    { name: "Irsko", flag: "🇮🇪" },
+  ],
+  "Severní Amerika": [
+    { name: "United States", flag: "🇺🇸" },
+    { name: "Canada", flag: "🇨🇦" },
+    { name: "Mexico", flag: "🇲🇽" },
+  ],
+  "Jižní Amerika": [
+    { name: "Brazil", flag: "🇧🇷" },
+    { name: "Argentina", flag: "🇦🇷" },
+    { name: "Colombia", flag: "🇨🇴" },
+    { name: "Chile", flag: "🇨🇱" },
+    { name: "Peru", flag: "🇵🇪" },
+  ],
+  "Asie": [
+    { name: "India", flag: "🇮🇳" },
+    { name: "China", flag: "🇨🇳" },
+    { name: "Japan", flag: "🇯🇵" },
+    { name: "South Korea", flag: "🇰🇷" },
+    { name: "Singapore", flag: "🇸🇬" },
+    { name: "United Arab Emirates", flag: "🇦🇪" },
+    { name: "Israel", flag: "🇮🇱" },
+    { name: "Turkey", flag: "🇹🇷" },
+    { name: "Indonesia", flag: "🇮🇩" },
+    { name: "Vietnam", flag: "🇻🇳" },
+    { name: "Thailand", flag: "🇹🇭" },
+    { name: "Malaysia", flag: "🇲🇾" },
+    { name: "Philippines", flag: "🇵🇭" },
+    { name: "Pakistan", flag: "🇵🇰" },
+    { name: "Bangladesh", flag: "🇧🇩" },
+    { name: "Saudi Arabia", flag: "🇸🇦" },
+    { name: "Qatar", flag: "🇶🇦" },
+  ],
+  "Afrika": [
+    { name: "South Africa", flag: "🇿🇦" },
+    { name: "Nigeria", flag: "🇳🇬" },
+    { name: "Kenya", flag: "🇰🇪" },
+    { name: "Egypt", flag: "🇪🇬" },
+    { name: "Morocco", flag: "🇲🇦" },
+    { name: "Ghana", flag: "🇬🇭" },
+    { name: "Ethiopia", flag: "🇪🇹" },
+  ],
+  "Oceánie": [
+    { name: "Australia", flag: "🇦🇺" },
+    { name: "New Zealand", flag: "🇳🇿" },
+  ],
+};
+
+const ALL_LOCATIONS = Object.entries(LOCATIONS_BY_CONTINENT).flatMap(([continent, countries]) =>
+  countries.map(c => ({ ...c, continent }))
+);
+
+// ── LocationPicker component ──────────────────────────────────────────────────
+function LocationPicker({ selected, onChange }: { selected: string[]; onChange: (locs: string[]) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [activeContinent, setActiveContinent] = useState("Evropa");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  const filtered = search.trim()
+    ? ALL_LOCATIONS.filter(l => l.name.toLowerCase().includes(search.toLowerCase()))
+    : LOCATIONS_BY_CONTINENT[activeContinent] || [];
+
+  const toggle = (name: string) => {
+    if (selected.includes(name)) {
+      onChange(selected.filter(s => s !== name));
+    } else if (selected.length < 3) {
+      onChange([...selected, name]);
+    }
+  };
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Selected tags */}
+      <div
+        className="min-h-[36px] flex flex-wrap gap-1 p-1.5 rounded-lg border border-border bg-input cursor-pointer"
+        onClick={() => setOpen(v => !v)}
+      >
+        {selected.length === 0 && (
+          <span className="text-xs text-muted-foreground px-1 py-0.5">Vyberte lokalitu (max 3)</span>
+        )}
+        {selected.map(loc => {
+          const found = ALL_LOCATIONS.find(l => l.name === loc);
+          return (
+            <span
+              key={loc}
+              className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
+              style={{ background: "oklch(0.55 0.20 192 / 12%)", color: "oklch(0.35 0.18 192)", border: "1px solid oklch(0.55 0.20 192 / 30%)" }}
+            >
+              {found?.flag} {loc}
+              <button
+                type="button"
+                className="ml-0.5 hover:text-red-500 transition-colors"
+                onClick={e => { e.stopPropagation(); toggle(loc); }}
+              >x</button>
+            </span>
+          );
+        })}
+        {selected.length < 3 && selected.length > 0 && (
+          <span className="text-xs text-muted-foreground px-1 py-0.5">+ pridat</span>
+        )}
+      </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div
+          className="absolute z-50 mt-1 w-full rounded-xl border border-border shadow-xl"
+          style={{ background: "oklch(0.98 0.004 240)", maxHeight: "320px", overflow: "hidden", display: "flex", flexDirection: "column" }}
+        >
+          {/* Search */}
+          <div className="p-2 border-b border-border">
+            <input
+              autoFocus
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Hledat zemi..."
+              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-border bg-input outline-none"
+            />
+          </div>
+
+          {/* Continent tabs (hidden when searching) */}
+          {!search.trim() && (
+            <div className="flex gap-0 border-b border-border overflow-x-auto">
+              {Object.keys(LOCATIONS_BY_CONTINENT).map(c => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setActiveContinent(c)}
+                  className="text-[10px] px-2.5 py-1.5 whitespace-nowrap font-medium transition-colors"
+                  style={activeContinent === c ? {
+                    borderBottom: "2px solid oklch(0.50 0.22 192)",
+                    color: "oklch(0.40 0.20 192)",
+                    background: "oklch(0.55 0.20 192 / 6%)"
+                  } : {
+                    color: "oklch(0.55 0.04 250)",
+                    borderBottom: "2px solid transparent"
+                  }}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Country list */}
+          <div className="overflow-y-auto" style={{ maxHeight: "200px" }}>
+            {filtered.length === 0 && (
+              <div className="text-xs text-muted-foreground text-center py-4">Nic nenalezeno</div>
+            )}
+            {filtered.map(loc => {
+              const isSelected = selected.includes(loc.name);
+              const isDisabled = !isSelected && selected.length >= 3;
+              return (
+                <button
+                  key={loc.name}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => toggle(loc.name)}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-xs text-left transition-colors"
+                  style={isSelected ? {
+                    background: "oklch(0.55 0.20 192 / 10%)",
+                    color: "oklch(0.35 0.18 192)",
+                    fontWeight: 600
+                  } : isDisabled ? {
+                    opacity: 0.4,
+                    cursor: "not-allowed"
+                  } : {
+                    color: "oklch(0.25 0.04 250)"
+                  }}
+                >
+                  <span className="text-base">{loc.flag}</span>
+                  <span>{loc.name}</span>
+                  {isSelected && <span className="ml-auto text-[10px]">✓</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="px-3 py-1.5 border-t border-border text-[10px] text-muted-foreground">
+            {selected.length}/3 vybráno
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const SEGMENT_PRESETS = [
   { label: "Finance", emoji: "💰", industry: "Financial Services", seniority: "Director", location: "United States" },
@@ -82,7 +305,7 @@ const PIPELINE_STEPS_MOCK = [
 
 export default function Generate() {
   const [industry, setIndustry] = useState("Technology");
-  const [location, setLocation] = useState("United States");
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(["Česká republika"]);
   const [count, setCount] = useState(10);
   const [seniorityLevel, setSeniorityLevel] = useState("Manager");
   const [apifyToken, setApifyToken] = useState("");
@@ -110,7 +333,7 @@ export default function Generate() {
       setSessionId(data.sessionId);
       setCurrentStep(0);
       toast.success(`Vygenerováno ${data.count} leadů úspěšně!`);
-      track('leads_generated', { value: data.count, currency: 'EUR', lead_count: data.count, industry, location });
+      track('leads_generated', { value: data.count, currency: 'EUR', lead_count: data.count, industry, location: selectedLocations.join(', ') });
       utils.leads.stats.invalidate();
       utils.leads.sessions.invalidate();
     },
@@ -126,7 +349,7 @@ export default function Generate() {
     setCurrentStep(1);
     generate.mutate({
       industry,
-      location,
+      location: selectedLocations.join(', '),
       count: Math.min(50, Math.max(1, count)),
       seniorityLevel,
       apifyToken: apifyToken || undefined,
@@ -316,9 +539,9 @@ export default function Generate() {
                           <button
                             key={r}
                             type="button"
-                            onClick={() => setLocation(r)}
+                            onClick={() => setSelectedLocations(prev => prev.includes(r) ? prev.filter(x => x !== r) : prev.length < 3 ? [...prev, r] : prev)}
                             className="text-[10px] py-1.5 rounded-lg border transition-all font-medium"
-                            style={location === r ? {
+                            style={selectedLocations.includes(r) ? {
                               background: "oklch(0.55 0.20 220 / 12%)",
                               border: "1px solid oklch(0.55 0.20 220 / 35%)",
                               color: "oklch(0.40 0.20 220)"
@@ -347,7 +570,7 @@ export default function Generate() {
                         onClick={() => {
                           setIndustry(preset.industry);
                           setSeniorityLevel(preset.seniority);
-                          setLocation(preset.location);
+                          setSelectedLocations([preset.location]);
                         }}
                         className="inline-flex items-center gap-1 text-xs rounded-full border border-border bg-input px-2.5 py-1 hover:border-primary/50 hover:bg-primary/5 hover:text-primary transition-all"
                       >
@@ -373,14 +596,8 @@ export default function Generate() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="location">{t('generate.location', 'Lokalita')}</Label>
-                  <Input
-                    id="location"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="např. Česká republika, Německo, Praha"
-                    className="bg-input border-border"
-                  />
+                  <Label>{t('generate.location', 'Lokalita')} <span className="text-[10px] text-muted-foreground">(max 3)</span></Label>
+                  <LocationPicker selected={selectedLocations} onChange={setSelectedLocations} />
                 </div>
 
                 <div className="space-y-1.5">

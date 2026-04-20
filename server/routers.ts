@@ -428,11 +428,13 @@ export const appRouter = router({
     // ── Predictive Scoring ────────────────────────────────────
     getPredictiveScores: protectedProcedure.query(async ({ ctx }) => {
       const { predictiveScores } = await import('../drizzle/schema');
+      const db = await getDb();
       const scores = await db.select().from(predictiveScores).where(eq(predictiveScores.userId, ctx.user.id));
       return scores;
     }),
     computePredictiveScores: protectedProcedure.mutation(async ({ ctx }) => {
       const { predictiveScores } = await import('../drizzle/schema');
+      const db = await getDb();
       const userLeads = await db.select().from(leads).where(eq(leads.userId, ctx.user.id));
       if (userLeads.length === 0) return { scored: 0 };
       const statusWeights: Record<string, number> = { new: 30, contacted: 50, replied: 70, qualified: 90, disqualified: 5 };
