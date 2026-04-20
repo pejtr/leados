@@ -523,6 +523,28 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
     return { ok: true, message: "Digest vygenerován a odeslán." };
   }),
 
+  /** HERMES Mastermind — multi-expert virtual board chat */
+  mastermindChat: protectedProcedure
+    .input(z.object({
+      message: z.string().min(1).max(4000),
+      expertIds: z.array(z.string()).min(1).max(8),
+      conversationHistory: z.array(z.object({ role: z.string(), content: z.string() })).default([]),
+      userContext: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { invokeLLM } = await import("./_core/llm");
+      const { buildMastermindPrompt } = await import("../shared/hermesMastermind");
+      const systemPrompt = buildMastermindPrompt(input.expertIds, input.userContext);
+      const messages: any[] = [
+        { role: "system", content: systemPrompt },
+        ...input.conversationHistory.slice(-10),
+        { role: "user", content: input.message },
+      ];
+      const response = await invokeLLM({ messages });
+      const content = response.choices[0].message.content ?? "No response.";
+      return { content, expertIds: input.expertIds };
+    }),
+
   /** Get digest history from hermes_messages (role: hermes, type: daily_digest) */
   getDigestHistory: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();

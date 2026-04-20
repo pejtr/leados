@@ -262,13 +262,15 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
 
   return (
     <div
-      className="fixed bottom-3 left-1/2 -translate-x-1/2 z-50 flex items-end gap-1 px-3 py-2 rounded-2xl"
+      className="fixed left-0 top-8 bottom-0 z-40 flex flex-col items-center py-3 gap-1 overflow-y-auto"
       style={{
-        background: "oklch(0.97 0.006 240 / 82%)",
+        width: 56,
+        background: "oklch(0.97 0.006 240 / 92%)",
         backdropFilter: "blur(24px) saturate(200%)",
         WebkitBackdropFilter: "blur(24px) saturate(200%)",
-        border: "1px solid oklch(0.88 0.012 240 / 70%)",
-        boxShadow: "0 8px 32px oklch(0 0 0 / 14%), 0 2px 8px oklch(0 0 0 / 8%), inset 0 1px 0 oklch(1 0 0 / 60%)",
+        borderRight: "1px solid oklch(0.88 0.012 240 / 70%)",
+        boxShadow: "2px 0 16px oklch(0 0 0 / 6%)",
+        scrollbarWidth: "none",
       }}
     >
       {dockItems.map((item, idx) => {
@@ -278,13 +280,13 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
 
         return (
           <div key={item.path} className="relative flex flex-col items-center"
-            style={{ transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: `scale(${scale})`, transformOrigin: "bottom center" }}
+            style={{ transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: `scale(${scale})`, transformOrigin: "center left" }}
             onMouseEnter={() => setHoveredIdx(idx)}
             onMouseLeave={() => setHoveredIdx(null)}
           >
             {/* Tooltip */}
             {hoveredIdx === idx && (
-              <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-[10px] font-medium whitespace-nowrap pointer-events-none"
+              <div className="absolute left-12 z-50 px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap pointer-events-none"
                 style={{ background: "oklch(0.20 0.04 250 / 90%)", color: "white", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px oklch(0 0 0 / 20%)" }}>
                 {item.label}
               </div>
@@ -312,7 +314,7 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
 
             {/* Active dot */}
             {isActive && (
-              <div className="absolute -bottom-1 w-1 h-1 rounded-full"
+              <div className="absolute left-0 w-0.5 h-6 rounded-r-full"
                 style={{ background: item.color, boxShadow: `0 0 4px ${item.color}` }} />
             )}
           </div>
@@ -320,7 +322,7 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
       })}
 
       {/* Separator */}
-      <div className="w-px h-8 mx-1 self-center rounded-full" style={{ background: "oklch(0.80 0.012 240)" }} />
+      <div className="w-6 h-px my-1 rounded-full" style={{ background: "oklch(0.80 0.012 240)" }} />
 
       {/* All Apps button */}
       <div className="relative flex flex-col items-center"
@@ -329,7 +331,7 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
         onMouseLeave={() => setHoveredIdx(null)}
       >
         {hoveredIdx === dockItems.length && (
-          <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-[10px] font-medium whitespace-nowrap pointer-events-none"
+          <div className="absolute left-12 z-50 px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap pointer-events-none"
             style={{ background: "oklch(0.20 0.04 250 / 90%)", color: "white" }}>
             All Apps
           </div>
@@ -509,7 +511,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main content — padded for menubar (top 8) and dock (bottom ~80px) */}
       <main
         className="flex-1 overflow-y-auto p-5 md:p-6"
-        style={{ paddingTop: "calc(2rem + 16px)", paddingBottom: "88px" }}
+        style={{ paddingTop: "calc(2rem + 16px)", paddingBottom: "24px", paddingLeft: "56px" }}
       >
         {children}
       </main>

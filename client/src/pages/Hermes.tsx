@@ -19,6 +19,7 @@ import {
   RefreshCw, Plus, X, ChevronDown, ChevronUp, Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HERMES_EXPERTS, buildMastermindPrompt, DEFAULT_MASTERMIND_IDS, type HermesExpert } from "../../../shared/hermesMastermind";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -491,6 +492,13 @@ export default function Hermes() {
   const [isMissionRunning, setIsMissionRunning] = useState(false);
   const [missionResult, setMissionResult] = useState<any | null>(null);
   const [showMissions, setShowMissions] = useState(true);
+  const [activeView, setActiveView] = useState<"chat" | "mastermind">("chat");
+  // Mastermind state
+  const [selectedExperts, setSelectedExperts] = useState<string[]>(DEFAULT_MASTERMIND_IDS);
+  const [mastermindInput, setMastermindInput] = useState("");
+  const [mastermindMessages, setMastermindMessages] = useState<{role: "user" | "ai"; content: string}[]>([]);
+  const [isMastermindSending, setIsMastermindSending] = useState(false);
+  const mastermindScrollRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoBriefingFiredRef = useRef(false);
@@ -635,6 +643,35 @@ export default function Hermes() {
     }
   }, [input, isSending, sessionId, messages, sendMessage]);
 
+  const mastermindChatMutation = trpc.hermes.mastermindChat.useMutation();
+
+  const handleMastermindSend = useCallback(async () => {
+    if (!mastermindInput.trim() || isMastermindSending) return;
+    const userMsg = { role: "user" as const, content: mastermindInput.trim() };
+    setMastermindMessages(prev => [...prev, userMsg]);
+    setMastermindInput("");
+    setIsMastermindSending(true);
+    try {
+      const history = mastermindMessages.slice(-8).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.content }));
+      const result = await mastermindChatMutation.mutateAsync({
+        message: userMsg.content,
+        expertIds: selectedExperts,
+        conversationHistory: history,
+      });
+      setMastermindMessages(prev => [...prev, { role: "ai", content: result.content }]);
+    } catch (err: any) {
+      toast.error("Mastermind error", { description: err.message });
+    } finally {
+      setIsMastermindSending(false);
+    }
+  }, [mastermindInput, isMastermindSending, mastermindMessages, selectedExperts, mastermindChatMutation]);
+
+  useEffect(() => {
+    if (mastermindScrollRef.current) {
+      mastermindScrollRef.current.scrollTop = mastermindScrollRef.current.scrollHeight;
+    }
+  }, [mastermindMessages]);
+
   const handleLaunchMission = useCallback(async (missionType: string) => {
     if (!sessionId || isMissionRunning) return;
 
@@ -713,6 +750,23 @@ export default function Hermes() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* View tabs */}
+            <div className="flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-800 mr-2">
+              <button
+                onClick={() => setActiveView("chat")}
+                className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all",
+                  activeView === "chat" ? "bg-cyan-600 text-white" : "text-slate-400 hover:text-slate-200")}
+              >
+                <Zap className="h-3 w-3 inline mr-1" />HERMES
+              </button>
+              <button
+                onClick={() => setActiveView("mastermind")}
+                className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all",
+                  activeView === "mastermind" ? "bg-violet-600 text-white" : "text-slate-400 hover:text-slate-200")}
+              >
+                <Brain className="h-3 w-3 inline mr-1" />Mastermind
+              </button>
+            </div>
             {/* Sub-agent status dots */}
             <div className="hidden sm:flex items-center gap-1.5 mr-2">
               {identity?.subAgents?.map((agent) => (
@@ -745,6 +799,135 @@ export default function Hermes() {
         </div>
 
         {/* ── Main Layout ── */}
+        {activeView === "mastermind" ? (
+          /* ── MASTERMIND VIEW ── */
+          <div className="relative z-10 flex flex-1 min-h-0 overflow-hidden">
+            {/* Expert selector sidebar */}
+            <div className="shrink-0 w-64 border-r border-slate-800/60 bg-slate-950/80 backdrop-blur-sm p-3 overflow-y-auto flex flex-col gap-2">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1">
+                <Brain className="h-3.5 w-3.5 text-violet-400" />
+                Experti ({selectedExperts.length}/8)
+              </p>
+              {HERMES_EXPERTS.map((expert) => {
+                const isSelected = selectedExperts.includes(expert.id);
+                return (
+                  <button
+                    key={expert.id}
+                    onClick={() => setSelectedExperts(prev =>
+                      isSelected ? prev.filter(id => id !== expert.id) : prev.length < 8 ? [...prev, expert.id] : prev
+                    )}
+                    className={cn(
+                      "w-full text-left p-2.5 rounded-lg border transition-all",
+                      isSelected
+                        ? "border-violet-500/50 bg-violet-900/20"
+                        : "border-slate-800 bg-slate-900/40 hover:border-slate-700"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg leading-none">{expert.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("text-xs font-semibold truncate", isSelected ? "text-violet-300" : "text-slate-300")}>{expert.name}</p>
+                        <p className="text-xs text-slate-600 truncate">{expert.title}</p>
+                      </div>
+                      {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-violet-400 shrink-0" />}
+                    </div>
+                  </button>
+                );
+              })}
+              {selectedExperts.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-slate-800">
+                  <p className="text-xs text-slate-500 mb-1">Aktivní panel:</p>
+                  <div className="flex flex-wrap gap-1">
+                    {selectedExperts.map(id => {
+                      const e = HERMES_EXPERTS.find(x => x.id === id);
+                      return e ? <span key={id} className="text-sm">{e.emoji}</span> : null;
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Mastermind chat */}
+            <div className="flex-1 flex flex-col min-w-0">
+              <div ref={mastermindScrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                {mastermindMessages.length === 0 && (
+                  <div className="text-center py-16">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30 flex items-center justify-center mx-auto mb-4">
+                      <Brain className="h-8 w-8 text-violet-400" />
+                    </div>
+                    <h2 className="text-xl font-bold text-white mb-2">HERMES Mastermind</h2>
+                    <p className="text-slate-400 text-sm max-w-md mx-auto mb-4">
+                      Virtuální poradní sbor světových business expertů. Vyber experty vlevo a zeptej se na cokoliv.
+                    </p>
+                    <div className="flex flex-wrap gap-2 justify-center max-w-lg mx-auto">
+                      {["Jak maximalizovat ROI mých leadů?", "Jaká je nejlepší strategie pro DACH trh?", "Jak nastavit ceny pro B2B SaaS?", "Jak škálovat outreach?"].map(q => (
+                        <button key={q} onClick={() => setMastermindInput(q)}
+                          className="text-xs text-slate-400 hover:text-violet-300 border border-slate-800 hover:border-violet-500/30 rounded-lg px-3 py-1.5 bg-slate-900/50 transition-all">
+                          {q}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {mastermindMessages.map((msg, i) => (
+                  <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
+                    {msg.role === "ai" && (
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30 flex items-center justify-center mr-2 shrink-0 mt-0.5">
+                        <Brain className="h-3.5 w-3.5 text-violet-400" />
+                      </div>
+                    )}
+                    <div className={cn(
+                      "max-w-[80%] rounded-xl px-4 py-3 text-sm",
+                      msg.role === "user"
+                        ? "bg-violet-600/20 border border-violet-500/30 text-slate-200 rounded-br-sm"
+                        : "bg-slate-900/80 border border-slate-700/50 text-slate-200 rounded-bl-sm"
+                    )}>
+                      <Streamdown>{msg.content}</Streamdown>
+                    </div>
+                  </div>
+                ))}
+                {isMastermindSending && (
+                  <div className="flex justify-start">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30 flex items-center justify-center mr-2 shrink-0">
+                      <Brain className="h-3.5 w-3.5 text-violet-400" />
+                    </div>
+                    <div className="bg-slate-900/80 border border-slate-700/50 rounded-xl rounded-bl-sm px-4 py-3">
+                      <div className="flex gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Mastermind input */}
+              <div className="shrink-0 px-4 py-3 border-t border-slate-800/60 bg-slate-950/80">
+                {selectedExperts.length === 0 && (
+                  <p className="text-xs text-amber-400 mb-2 text-center">Vyber alespoň jednoho experta vlevo</p>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    value={mastermindInput}
+                    onChange={e => setMastermindInput(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleMastermindSend(); } }}
+                    placeholder={selectedExperts.length === 0 ? "Vyber experty..." : `Zeptej se ${selectedExperts.length} expertů...`}
+                    disabled={isMastermindSending || selectedExperts.length === 0}
+                    className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-violet-500/50 disabled:opacity-50"
+                  />
+                  <Button
+                    onClick={handleMastermindSend}
+                    disabled={isMastermindSending || !mastermindInput.trim() || selectedExperts.length === 0}
+                    className="h-10 w-10 p-0 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shrink-0"
+                  >
+                    {isMastermindSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
         <div className="relative z-10 flex flex-1 min-h-0 overflow-hidden">
           {/* ── Left: Missions Panel ── */}
           <div
@@ -1007,7 +1190,7 @@ export default function Hermes() {
               />
             </div>
           </div>
-        </div>
+        </div>)}
       </div>
     </DashboardLayout>
   );

@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerStripeWebhook } from "../stripeWebhook";
 import { registerCallsUploadRoute } from "../callsUploadRoute";
 import { registerIngestRoute } from "../ingestRoute";
+import { registerGoogleOAuthRoutes } from "../googleOAuth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -44,6 +45,8 @@ async function startServer() {
   registerCallsUploadRoute(app);
   // Public project analytics ingest endpoint
   registerIngestRoute(app);
+  // Google OAuth routes
+  registerGoogleOAuthRoutes(app);
   // tRPC API
   app.use(
     "/api/trpc",

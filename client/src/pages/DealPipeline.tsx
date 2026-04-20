@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import DashboardLayout from "@/components/DashboardLayout";
 import { trpc } from "@/lib/trpc";
 import { useGoogleAds } from "@/hooks/useGoogleAds";
 import { Button } from "@/components/ui/button";
@@ -482,7 +483,8 @@ export default function DealPipeline() {
   const unscoredCount = deals.filter((d: any) => !d.aiScoredAt && d.stage !== "won" && d.stage !== "lost").length;
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e] text-white p-6">
+    <DashboardLayout>
+    <div className="text-white p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -538,14 +540,14 @@ export default function DealPipeline() {
       {isLoading ? (
         <div className="text-center text-slate-400 py-20">Načítám...</div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-3 pb-4">
           {STAGES.map((stage) => {
             const stageDeals = dealsByStage(stage.key);
             const stageValue = stageDeals.reduce((s: number, d: any) => s + parseFloat(d.value ?? "0"), 0);
             return (
               <div
                 key={stage.key}
-                className={`flex-shrink-0 w-64 rounded-xl border ${dragOver === stage.key ? "border-violet-500 bg-violet-900/20" : "border-slate-800 bg-slate-900/40"} transition-colors`}
+                className={`rounded-xl border ${dragOver === stage.key ? "border-violet-500 bg-violet-900/20" : "border-slate-800 bg-slate-900/40"} transition-colors`}
                 onDragOver={(e) => { e.preventDefault(); setDragOver(stage.key); }}
                 onDragLeave={() => setDragOver(null)}
                 onDrop={() => handleDrop(stage.key)}
@@ -695,6 +697,7 @@ export default function DealPipeline() {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 }
 

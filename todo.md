@@ -687,3 +687,10 @@
 - [x] Datenschutzerklärung page (/datenschutz) — full DSGVO-compliant German privacy policy
 - [x] Xing DACH-specific UI inputs in Generate.tsx (keywords, company size, DE/AT/CH region buttons)
 - [x] notifyOwner() call on every new external lead ingested via /api/leads/ingest
+
+## Session 2026-04-20 Improvements
+- [x] Google Sign-In button added to ManusDialog.tsx and Landing.tsx hero CTA
+- [x] DealPipeline.tsx wrapped in DashboardLayout with kanban overflow fix
+- [x] ScrollToTop component added to App.tsx (fires on every route change)
+- [x] HERMES Mastermind tab added to Hermes.tsx — expert multi-select sidebar + LLM chat
+- [x] mastermindChat tRPC procedure added to hermesRouter.ts (uses buildMastermindPrompt from shared/hermesMastermind.ts)
