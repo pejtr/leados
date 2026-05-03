@@ -369,14 +369,7 @@ export async function* runComputerFlowStream(
     const subTasks = (await decompose(query, context, domain)).slice(0, maxSubTasks);
     yield { type: "decomposed", subTasks };
 
-    // Step 2: Execute in parallel but yield events as they complete
-    const taskPromises = subTasks.map(async (task) => {
-      yield { type: "task_start", taskId: task.id, title: task.title, layer: task.layer } as FlowEvent;
-      const result = await executeSubTask(task, query, context, enableDeepThink);
-      return result;
-    });
-
-    // Emit task_start for all, then collect results
+    // Step 2: Emit task_start for all, then execute in parallel
     for (const task of subTasks) {
       yield { type: "task_start", taskId: task.id, title: task.title, layer: task.layer };
     }
