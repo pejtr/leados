@@ -116,6 +116,7 @@ const allMenuItems = [
   { icon: Scroll,       labelKey: "sidebar.aiConstitution",   path: "/ai-constitution", group: "settings" },
   { icon: FlaskConical, labelKey: "sidebar.agentBenchmark",   path: "/agent-benchmark", group: "settings" },
   { icon: Moon,         labelKey: "sidebar.deepSleep",        path: "/deep-sleep",      group: "settings" },
+  { icon: Moon,         labelKey: "sidebar.dsrHub",            path: "/dsr",             group: "settings" },
 ];
 
 const groupLabels: Record<string, string> = {

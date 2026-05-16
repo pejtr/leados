@@ -53,6 +53,7 @@ import AIConstitution from "./pages/AIConstitution";
 import AgentBenchmark from "./pages/AgentBenchmark";
 import Hermes from "./pages/Hermes";
 import DeepSleepDashboard from "./pages/DeepSleepDashboard";
+import DeepSleepReset from "./pages/DeepSleepReset";
 import IngestSources from "./pages/IngestSources";
 import Datenschutz from "./pages/Datenschutz";
 import AiSkills from "./pages/AiSkills";
@@ -118,6 +119,7 @@ function Router() {
       <Route path="/agent-benchmark" component={AgentBenchmark} />
       <Route path="/hermes" component={Hermes} />
       <Route path="/deep-sleep" component={DeepSleepDashboard} />
+      <Route path="/dsr" component={DeepSleepReset} />
       <Route path="/external-leads" component={IngestSources} />
       <Route path="/datenschutz" component={Datenschutz} />
       <Route path="/ai-skills" component={AiSkills} />

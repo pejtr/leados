@@ -716,3 +716,16 @@
 - [x] Fix top status bar overlapping dashboard content on mobile (safe-area-inset)
 - [x] Fix first dashboard widget (Řídicí centrum) overflowing horizontally on mobile
 - [x] Ensure sidebar dock doesn't overlap main content on mobile
+
+## Video Best Practices Integration (2026-05-04)
+- [x] Fix globalEarnings.ts JSON parse error (content-type check before res.json())
+- [x] Landing page: Add Before/After Excel vs LeadOS comparison section
+- [x] Landing page: Upgrade Pricing to 3-tier agency model (DFY/Retainer/Agency)
+- [x] Social Listening: Add Intent Mining tab (review mining pattern)
+
+## Deep Sleep Reset Integration (May 2026)
+- [x] Create DSR Dashboard page with live sales metrics, product overview, and quick actions
+- [x] Add DSR-specific lead generation presets and targeting (sleep niche ICP, DACH market)
+- [x] Add DSR nav item to DashboardLayout and route in App.tsx
+- [ ] DSR campaign manager: Reddit Ads, Meta Ads targeting for sleep niche
+- [ ] DSR affiliate tracking panel

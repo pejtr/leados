@@ -291,9 +291,10 @@ export default function Landing() {
   ];
 
   const PRICING = [
-    { name: t("landing.plan1Name"), price: t("landing.plan1Price"), period: "", description: t("landing.plan1Desc"), features: [t("landing.plan1Feature1"), t("landing.plan1Feature2"), t("landing.plan1Feature3"), t("landing.plan1Feature4")], cta: t("landing.plan1Cta"), highlighted: false },
-    { name: t("landing.plan2Name"), price: t("landing.plan2Price"), period: t("landing.pricingMonthly"), description: t("landing.plan2Desc"), features: [t("landing.plan2Feature1"), t("landing.plan2Feature2"), t("landing.plan2Feature3"), t("landing.plan2Feature4"), t("landing.plan2Feature5"), t("landing.plan2Feature6"), t("landing.plan2Feature7")], cta: t("landing.plan2Cta"), highlighted: true },
-    { name: t("landing.plan3Name"), price: t("landing.plan3Price"), period: t("landing.pricingMonthly"), description: t("landing.plan3Desc"), features: [t("landing.plan3Feature1"), t("landing.plan3Feature2"), t("landing.plan3Feature3"), t("landing.plan3Feature4"), t("landing.plan3Feature5"), t("landing.plan3Feature6")], cta: t("landing.plan3Cta"), highlighted: false },
+    { name: t("landing.plan1Name"), price: t("landing.plan1Price"), period: "", description: t("landing.plan1Desc"), features: [t("landing.plan1Feature1"), t("landing.plan1Feature2"), t("landing.plan1Feature3"), t("landing.plan1Feature4")], cta: t("landing.plan1Cta"), highlighted: false, badge: null as string | null },
+    { name: t("landing.plan2Name"), price: t("landing.plan2Price"), period: t("landing.pricingMonthly"), description: t("landing.plan2Desc"), features: [t("landing.plan2Feature1"), t("landing.plan2Feature2"), t("landing.plan2Feature3"), t("landing.plan2Feature4"), t("landing.plan2Feature5"), t("landing.plan2Feature6"), t("landing.plan2Feature7")], cta: t("landing.plan2Cta"), highlighted: true, badge: "Most Popular" as string | null },
+    { name: t("landing.plan3Name"), price: t("landing.plan3Price"), period: t("landing.pricingMonthly"), description: t("landing.plan3Desc"), features: [t("landing.plan3Feature1"), t("landing.plan3Feature2"), t("landing.plan3Feature3"), t("landing.plan3Feature4"), t("landing.plan3Feature5"), t("landing.plan3Feature6")], cta: t("landing.plan3Cta"), highlighted: false, badge: null as string | null },
+    { name: "Agency / DFY", price: "€2,000", period: "one-time", description: "Done-For-You setup + €200/mo retainer. We build, configure and run LeadOS for your agency.", features: ["Full LeadOS Pro setup & config", "Custom ICP & DACH targeting", "Branded outreach sequences", "Monthly optimization retainer", "Dedicated account manager", "SLA + priority support"], cta: "Book Discovery Call", highlighted: false, badge: "🏆 Agency" as string | null },
   ];
 
   const HOW_IT_WORKS = [
@@ -967,6 +968,80 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ── Before / After ─────────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6" style={{ background: C.bg, borderTop: `1px solid ${C.border}` }}>
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-12">
+              <Badge className="mb-4 text-xs px-3 py-1" style={{ background: `${C.amber}12`, border: `1px solid ${C.amber}30`, color: "#d97706" }}>Before / After</Badge>
+              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>From Excel Chaos to AI Pipeline</h2>
+              <p className="text-lg" style={{ color: C.textMuted }}>See exactly what changes when you replace manual prospecting with LeadOS automation.</p>
+            </div>
+          </Reveal>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* BEFORE */}
+            <Reveal delay={0}>
+              <div className="rounded-2xl p-6" style={{ background: "#fff5f5", border: "1px solid #fecaca" }}>
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#fee2e2" }}>
+                    <TrendingDown className="w-4 h-4" style={{ color: "#ef4444" }} />
+                  </div>
+                  <span className="font-bold text-sm" style={{ color: "#dc2626" }}>BEFORE — Excel + Manual Research</span>
+                </div>
+                <ul className="space-y-3">
+                  {[
+                    "📋 Copy-paste leads from LinkedIn manually — 2h/day",
+                    "📊 Excel sheets with stale data, duplicates, no scoring",
+                    "✉️ Generic cold emails with 2% reply rate",
+                    "🔍 No signal detection — cold outreach to cold leads",
+                    "⏳ 80% of sales time on research, 20% on selling",
+                    "💸 €0 tooling cost but €50K+ in wasted salesperson time",
+                  ].map(item => (
+                    <li key={item} className="flex items-start gap-2 text-sm" style={{ color: "#7f1d1d" }}>
+                      <span className="mt-0.5 flex-shrink-0">✗</span>
+                      <span>{item.substring(2)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+            {/* AFTER */}
+            <Reveal delay={0.1}>
+              <div className="rounded-2xl p-6" style={{ background: `linear-gradient(160deg, ${C.teal}0d, ${C.indigo}0a)`, border: `1px solid ${C.teal}30` }}>
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${C.teal}20` }}>
+                    <Rocket className="w-4 h-4" style={{ color: C.teal }} />
+                  </div>
+                  <span className="font-bold text-sm" style={{ color: C.tealDark }}>AFTER — LeadOS AI Automation</span>
+                </div>
+                <ul className="space-y-3">
+                  {[
+                    "🤖 AI scrapes & enriches 2,000 leads/month automatically",
+                    "🎯 Real-time intent signals: pricing page visits, job changes",
+                    "✉️ Personalized icebreakers with 28% reply rate",
+                    "📈 AI lead scoring — only talk to 90+ score prospects",
+                    "⚡ 80% less research time — focus on closing",
+                    "💰 ROI: 1 closed deal pays for 12 months of LeadOS",
+                  ].map(item => (
+                    <li key={item} className="flex items-start gap-2 text-sm" style={{ color: C.text }}>
+                      <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: C.teal }} />
+                      <span>{item.substring(2)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Reveal>
+          </div>
+          {/* ROI Calculator teaser */}
+          <Reveal delay={0.2}>
+            <div className="mt-8 p-5 rounded-2xl text-center" style={{ background: `linear-gradient(135deg, ${C.indigo}08, ${C.teal}06)`, border: `1px solid ${C.indigo}20` }}>
+              <p className="text-sm font-medium mb-1" style={{ color: C.text }}>💡 Quick ROI: If your average deal is <strong>€5,000</strong> and LeadOS helps you close just <strong>1 extra deal/month</strong></p>
+              <p className="text-2xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>That's €60,000/year ROI on a €149/mo tool.</p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ── Pricing ──────────────────────────────────────────────────────────── */}
       <section id="pricing" className="py-24 px-4 sm:px-6" style={{ background: C.bgAlt, borderTop: `1px solid ${C.border}` }}>
         <div className="max-w-5xl mx-auto">
@@ -994,20 +1069,22 @@ export default function Landing() {
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-            {PRICING.map(({ name, price, period, description, features, cta, highlighted }, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 items-start">
+            {PRICING.map(({ name, price, period, description, features, cta, highlighted, badge }, i) => {
+              const isAgency = name === "Agency / DFY";
+              return (
               <Reveal key={name} delay={i * 0.1}>
                 <motion.div whileHover={{ y: -6 }} className="p-6 rounded-2xl relative"
                   style={{
-                    background: highlighted ? `linear-gradient(160deg, ${C.indigo}0d, ${C.teal}0a)` : C.bgCard,
-                    border: highlighted ? `1px solid ${C.indigo}35` : `1px solid ${C.border}`,
-                    boxShadow: highlighted ? `0 8px 40px ${C.indigo}18` : "0 2px 8px rgba(0,0,0,0.04)",
+                    background: isAgency ? `linear-gradient(160deg, ${C.amber}0d, ${C.violet}0a)` : highlighted ? `linear-gradient(160deg, ${C.indigo}0d, ${C.teal}0a)` : C.bgCard,
+                    border: isAgency ? `1px solid ${C.amber}35` : highlighted ? `1px solid ${C.indigo}35` : `1px solid ${C.border}`,
+                    boxShadow: isAgency ? `0 8px 40px ${C.amber}18` : highlighted ? `0 8px 40px ${C.indigo}18` : "0 2px 8px rgba(0,0,0,0.04)",
                   }}>
-                  {highlighted && (
+                  {badge && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="text-xs px-3 py-0.5 text-white"
-                        style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none" }}>
-                        Most Popular
+                      <Badge className="text-xs px-3 py-0.5 text-white whitespace-nowrap"
+                        style={{ background: isAgency ? `linear-gradient(135deg, ${C.amber}, ${C.violet})` : `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none" }}>
+                        {badge}
                       </Badge>
                     </div>
                   )}
@@ -1029,12 +1106,15 @@ export default function Landing() {
                     ))}
                   </ul>
                   <Button onClick={handleCTA} className="w-full h-10 font-semibold"
-                    style={highlighted ? { background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", color: "white", boxShadow: `0 4px 20px ${C.indigo}35` } : { background: C.bg, border: `1px solid ${C.border}`, color: C.text }}>
+                    style={isAgency ? { background: `linear-gradient(135deg, ${C.amber}, ${C.violet})`, border: "none", color: "white", boxShadow: `0 4px 20px ${C.amber}35` } : highlighted ? { background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", color: "white", boxShadow: `0 4px 20px ${C.indigo}35` } : { background: C.bg, border: `1px solid ${C.border}`, color: C.text }}>
                     {cta} <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                   </Button>
                 </motion.div>
               </Reveal>
-            ))}
+            );
+          })}
+
+
           </div>
 
           {/* Competitor Comparison */}

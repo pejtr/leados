@@ -22,7 +22,9 @@ async function fetchDsrAnalytics() {
   try {
     const res = await fetch(`${DSR_BASE}/analytics`, { headers, signal: AbortSignal.timeout(8000) });
     if (!res.ok) return null;
-    return res.json();
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) return null;
+    return await res.json();
   } catch {
     return null;
   }
@@ -32,7 +34,9 @@ async function fetchDsrHealth() {
   try {
     const res = await fetch(`${DSR_BASE}/health`, { signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
-    return res.json();
+    const contentType = res.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) return null;
+    return await res.json();
   } catch {
     return null;
   }

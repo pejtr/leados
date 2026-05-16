@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Ear, Plus, Trash2, Loader2, Radio, Hash, Globe, ArrowRight,
   TrendingUp, MessageCircle, UserPlus, ExternalLink,
+  Search, Star, AlertTriangle, DollarSign, Target, Zap, CheckCircle2,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -141,6 +142,10 @@ export default function SocialListening() {
             <TabsTrigger value="signals" className="gap-2">
               <TrendingUp className="h-4 w-4" />
               Signals Feed
+            </TabsTrigger>
+            <TabsTrigger value="intent-mining" className="gap-2">
+              <Target className="h-4 w-4" />
+              Intent Mining
             </TabsTrigger>
           </TabsList>
 
@@ -297,6 +302,86 @@ export default function SocialListening() {
                     })}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Intent Mining Tab */}
+          <TabsContent value="intent-mining" className="mt-4 space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Target className="h-5 w-5 text-orange-500" />
+                  Intent Mining — Review & Complaint Analysis
+                </CardTitle>
+                <CardDescription>
+                  Find prospects actively complaining about competitor tools on G2, Capterra, Reddit, and LinkedIn.
+                  These are your highest-intent leads — they’re already looking for an alternative.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {([
+                    { icon: Star, color: "text-yellow-500", bg: "bg-yellow-50", title: "G2 / Capterra Reviews", desc: "1-2 star reviews of HubSpot, Apollo, Salesforce", count: 142, signal: "Switching intent" },
+                    { icon: MessageCircle, color: "text-blue-500", bg: "bg-blue-50", title: "Reddit Complaints", desc: "/r/sales, /r/entrepreneur — 'looking for alternative'", count: 89, signal: "Research phase" },
+                    { icon: AlertTriangle, color: "text-red-500", bg: "bg-red-50", title: "LinkedIn Pain Posts", desc: "Posts about CRM frustration, manual prospecting", count: 67, signal: "High frustration" },
+                    { icon: DollarSign, color: "text-green-500", bg: "bg-green-50", title: "Pricing Complaints", desc: "'Too expensive', 'price increase', 'cancelling'", count: 54, signal: "Budget pressure" },
+                    { icon: Zap, color: "text-purple-500", bg: "bg-purple-50", title: "Job Change Signals", desc: "New VP Sales / Head of Growth hired", count: 38, signal: "New budget cycle" },
+                    { icon: Search, color: "text-teal-500", bg: "bg-teal-50", title: "Competitor Mentions", desc: "'vs LeadOS', 'LeadOS alternative', 'LeadOS review'", count: 23, signal: "Active evaluation" },
+                  ] as const).map(({ icon: Icon, color, bg, title, desc, count, signal }) => (
+                    <div key={title} className="p-4 rounded-xl border border-border bg-card hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${bg}`}>
+                          <Icon className={`h-4 w-4 ${color}`} />
+                        </div>
+                        <Badge variant="outline" className="text-xs">{count} leads</Badge>
+                      </div>
+                      <h4 className="font-semibold text-sm mb-1">{title}</h4>
+                      <p className="text-xs text-muted-foreground mb-2">{desc}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-orange-600">{signal}</span>
+                        <Button size="sm" variant="outline" className="h-6 text-xs px-2" onClick={() => {}}>Mine <ArrowRight className="h-3 w-3 ml-1" /></Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-orange-500" />
+                    Sample High-Intent Leads Detected
+                  </h3>
+                  <div className="space-y-2">
+                    {[
+                      { name: "Tomáš Procházka", title: "VP Sales", company: "DataFlow s.r.o.", source: "G2 Review", quote: "HubSpot is way too expensive for our team size. Looking for alternatives.", score: 96, intent: "Switching" },
+                      { name: "Jana Kovářová", title: "Head of Growth", company: "ScaleUp Praha", source: "Reddit r/sales", quote: "Manual prospecting is killing us. Need something automated for DACH market.", score: 92, intent: "Research" },
+                      { name: "Michal Blažek", title: "CEO", company: "B2B Connect", source: "LinkedIn Post", quote: "Just cancelled Apollo. The data quality for Czech companies is terrible.", score: 89, intent: "Cancelled competitor" },
+                    ].map(lead => (
+                      <div key={lead.name} className="flex items-start gap-3 p-3 rounded-xl border border-border bg-card">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                          {lead.name.split(" ").map((n: string) => n[0]).join("")}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-sm">{lead.name}</span>
+                            <span className="text-xs text-muted-foreground">{lead.title} @ {lead.company}</span>
+                            <Badge variant="outline" className="text-xs">{lead.source}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1 italic">"{lead.quote}"</p>
+                        </div>
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          <Badge className="text-xs bg-orange-100 text-orange-700 border-orange-200">{lead.intent}</Badge>
+                          <span className="text-xs font-bold text-green-600">{lead.score} AI</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-xl bg-orange-50 border border-orange-200">
+                  <p className="text-sm font-medium text-orange-800 mb-1">🎯 Intent Mining Strategy</p>
+                  <p className="text-xs text-orange-700">Find people who wrote 1-2 star reviews of competitor tools, then reach out: <em>"I saw your review of [Competitor] — we built LeadOS specifically to solve [their exact complaint]. Worth a 15-min call?"</em> Reply rates 3-5× higher than cold outreach.</p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
