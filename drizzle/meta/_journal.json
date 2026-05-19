@@ -162,6 +162,13 @@
       "when": 1776680668572,
       "tag": "0022_dry_boom_boom",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "5",
+      "when": 1779184956717,
+      "tag": "0023_new_omega_red",
+      "breakpoints": true
     }
   ]
 }

@@ -129,31 +129,9 @@ export const teamMembers = mysqlTable("team_members", {
 export type TeamMember = typeof teamMembers.$inferSelect;
 export type InsertTeamMember = typeof teamMembers.$inferInsert;
 
-// ─── Webhook Configs ────────────────────────────────────────────
-export const webhookConfigs = mysqlTable("webhook_configs", {
-  id: int("id").autoincrement().primaryKey(),
-  userId: int("userId").notNull(),
-  name: varchar("name", { length: 128 }).notNull(),
-  type: mysqlEnum("type", ["generic", "clickup", "slack"]).default("generic").notNull(),
-  // For generic webhooks: the URL to POST to
-  webhookUrl: text("webhookUrl"),
-  // For ClickUp: API token + list ID
-  clickupApiKey: text("clickupApiKey"),
-  clickupListId: varchar("clickupListId", { length: 64 }),
-  // For Slack: webhook URL
-  slackWebhookUrl: text("slackWebhookUrl"),
-  // Trigger events
-  triggerOnGenerate: boolean("triggerOnGenerate").default(true).notNull(),
-  triggerOnStatusChange: boolean("triggerOnStatusChange").default(false).notNull(),
-  triggerOnDealClose: boolean("triggerOnDealClose").default(false).notNull(),
-  // Status
-  isActive: boolean("isActive").default(true).notNull(),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-});
-
-export type WebhookConfig = typeof webhookConfigs.$inferSelect;
-export type InsertWebhookConfig = typeof webhookConfigs.$inferInsert;
+// ─── Webhook Configs (Legacy — use webhookLogs for new integration) ────────
+// Old webhook_configs table kept for backward compatibility
+// New integrations should use webhookLogs + webhookConfigs from CRM integration
 
 // ─── Integration Logs ───────────────────────────────────────────
 export const integrationLogs = mysqlTable("integration_logs", {
@@ -1324,3 +1302,45 @@ export const roiAuditSessions = mysqlTable("roi_audit_sessions", {
 });
 export type RoiAuditSession = typeof roiAuditSessions.$inferSelect;
 export type InsertRoiAuditSession = typeof roiAuditSessions.$inferInsert;
+
+// ─── API Keys Management (LeadOS CRM Integration) ─────────────────────────────
+export const apiKeys = mysqlTable("api_keys", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: int("user_id").notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  keyHash: varchar("key_hash", { length: 256 }).notNull().unique(),
+  // Permissions: 'read' | 'write' | 'email' | 'admin'
+  permissions: varchar("permissions", { length: 512 }).notNull().default("read"),
+  // Status: 'active' | 'revoked' | 'expired'
+  status: mysqlEnum("status", ["active", "revoked", "expired"]).default("active").notNull(),
+  lastUsedAt: bigint("last_used_at", { mode: "number" }),
+  expiresAt: bigint("expires_at", { mode: "number" }),
+  createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
+  revokedAt: bigint("revoked_at", { mode: "number" }),
+});
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+// ─── Webhook Delivery Logs (Event Dispatch History) ────────────────────────────
+export const webhookLogs = mysqlTable("webhook_logs", {
+  id: int("id").primaryKey().autoincrement(),
+  webhookConfigId: int("webhook_config_id").notNull(),
+  userId: int("user_id").notNull(),
+  event: varchar("event", { length: 64 }).notNull(),
+  // Payload sent to webhook
+  payload: json("payload").$type<Record<string, any>>(),
+  // HTTP status code from webhook endpoint
+  statusCode: int("status_code"),
+  // Response body from webhook endpoint
+  response: text("response"),
+  // Attempt number (1-based)
+  attempt: int("attempt").notNull().default(1),
+  // Status: 'pending' | 'success' | 'failed' | 'retrying'
+  status: mysqlEnum("status", ["pending", "success", "failed", "retrying"]).default("pending").notNull(),
+  nextRetryAt: bigint("next_retry_at", { mode: "number" }),
+  error: text("error"),
+  createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
+  completedAt: bigint("completed_at", { mode: "number" }),
+});
+export type WebhookLog = typeof webhookLogs.$inferSelect;
+export type InsertWebhookLog = typeof webhookLogs.$inferInsert;
