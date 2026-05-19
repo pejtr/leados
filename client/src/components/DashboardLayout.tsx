@@ -85,6 +85,7 @@ const allMenuItems = [
   { icon: DollarSign,   labelKey: "sidebar.roiTracker",       path: "/roi",             group: "analytics" },
   { icon: Trophy,       labelKey: "sidebar.portfolioROAS",    path: "/portfolio-roas",  group: "analytics" },
   { icon: Link2,        labelKey: "sidebar.projectsHub",      path: "/projects",        group: "analytics" },
+  { icon: DollarSign,   labelKey: "sidebar.globalEarnings",   path: "/global-earnings", group: "analytics" },
   { icon: History,      labelKey: "sidebar.leadHistory",      path: "/history",         group: "analytics" },
   // TIER 4 — AI & Knowledge
   { icon: Cpu,          labelKey: "sidebar.computerFlow",    path: "/computer-flow",  group: "ai" },

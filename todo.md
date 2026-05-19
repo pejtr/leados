@@ -729,3 +729,19 @@
 - [x] Add DSR nav item to DashboardLayout and route in App.tsx
 - [ ] DSR campaign manager: Reddit Ads, Meta Ads targeting for sleep niche
 - [ ] DSR affiliate tracking panel
+
+
+## Global Earnings Integration (May 2026)
+- [x] Create GlobalEarnings.tsx page with project performance metrics
+- [x] Add globalEarnings tRPC router with analytics procedures
+- [x] Fix DashboardLayout import in GlobalEarnings.tsx
+- [x] Add GlobalEarnings nav item to DashboardLayout sidebar (TIER 3 Analytics)
+- [x] Register /global-earnings route in App.tsx
+
+## LeadOS CRM Integration (May 2026)
+- [ ] Create API Keys management system (DB table, CRUD, permissions: read/write/email)
+- [ ] Build External REST API endpoints (/api/external/leads, /api/external/email-sequences, /api/external/analytics, /api/external/orders)
+- [ ] Implement Bearer token authentication for external API
+- [ ] Implement Outbound Webhooks (HMAC-SHA256 signing, real-time dispatch for new_order/new_lead/quiz_completed)
+- [ ] Build Admin Integrations tab (API docs, key management, webhook configuration)
+- [ ] Create Professional Dashboard Phase 1 (KPI metrics, Waterfall Funnel, Date Range Picker, Revenue Timeline, Traffic sources)
