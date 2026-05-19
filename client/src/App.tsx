@@ -61,6 +61,8 @@ import RoiAudit from "./pages/RoiAudit";
 import ComputerFlow from "./pages/ComputerFlow";
 import { GlobalEarnings } from "./pages/GlobalEarnings";
 import AdminIntegrations from "./pages/AdminIntegrations";
+import ProfessionalDashboard from "./pages/ProfessionalDashboard";
+import WebhookActivity from "./pages/WebhookActivity";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -129,6 +131,8 @@ function Router() {
       <Route path="/computer-flow" component={ComputerFlow} />
         <Route path="/global-earnings" component={GlobalEarnings} />
       <Route path="/admin/integrations" component={AdminIntegrations} />
+      <Route path="/analytics/professional" component={ProfessionalDashboard} />
+      <Route path="/webhooks/activity" component={WebhookActivity} />
       <Route path="*" component={NotFound} />
     </Switch>
   );
