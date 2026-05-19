@@ -1,0 +1,10 @@
+{
+  "query": "CREATE TABLE IF NOT EXISTS webhook_configs_crm (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  user_id INT NOT NULL,\n  name VARCHAR(256) NOT NULL,\n  url TEXT NOT NULL,\n  secret VARCHAR(256) NOT NULL,\n  events VARCHAR(512) NOT NULL,\n  status ENUM('active', 'paused', 'failed') DEFAULT 'active' NOT NULL,\n  max_retries INT DEFAULT 3 NOT NULL,\n  retry_delay_seconds INT DEFAULT 300 NOT NULL,\n  headers JSON DEFAULT '{}',\n  last_triggered_at BIGINT,\n  failure_count INT DEFAULT 0 NOT NULL,\n  created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP()*1000),\n  updated_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP()*1000)\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute CREATE TABLE IF NOT EXISTS webhook_configs_crm (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  user_id INT NOT NULL,\n  name VARCHAR(256) NOT NULL,\n  url TEXT NOT NULL,\n  secret VARCHAR(256) NOT NULL,\n  events VARCHAR(512) NOT NULL,\n  status ENUM('active', 'paused', 'failed') DEFAULT 'active' NOT NULL,\n  max_retries INT DEFAULT 3 NOT NULL,\n  retry_delay_seconds INT DEFAULT 300 NOT NULL,\n  headers JSON DEFAULT '{}',\n  last_triggered_at BIGINT,\n  failure_count INT DEFAULT 0 NOT NULL,\n  created_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP()*1000),\n  updated_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP()*1000)\n);",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1064 (42000) at line 1: You have an error in your SQL syntax; check the manual that corresponds to your TiDB version for the right syntax to use line 14 column 56 near \"*1000),",
+    "  updated_at BIGINT NOT NULL DEFAULT (UNIX_TIMESTAMP()*1000)",
+    ")\""
+  ]
+}

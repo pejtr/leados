@@ -5,7 +5,7 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { webhookConfigs, webhookLogs } from "../drizzle/schema";
+import { webhookConfigs, webhookLogs } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { testWebhook } from "../webhookDispatcher";
 

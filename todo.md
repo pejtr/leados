@@ -739,9 +739,25 @@
 - [x] Register /global-earnings route in App.tsx
 
 ## LeadOS CRM Integration (May 2026)
-- [ ] Create API Keys management system (DB table, CRUD, permissions: read/write/email)
-- [ ] Build External REST API endpoints (/api/external/leads, /api/external/email-sequences, /api/external/analytics, /api/external/orders)
-- [ ] Implement Bearer token authentication for external API
-- [ ] Implement Outbound Webhooks (HMAC-SHA256 signing, real-time dispatch for new_order/new_lead/quiz_completed)
-- [ ] Build Admin Integrations tab (API docs, key management, webhook configuration)
-- [ ] Create Professional Dashboard Phase 1 (KPI metrics, Waterfall Funnel, Date Range Picker, Revenue Timeline, Traffic sources)
+
+### Phase 1: API Keys & External Endpoints (Completed)
+- [x] Create API Keys management system (DB table, CRUD, permissions)
+- [x] Build External REST API endpoints (/api/external/leads, /api/external/email-sequences, /api/external/analytics)
+- [x] Implement Bearer token authentication for external API
+- [x] Create apiKeys.ts with key generation and validation
+- [x] Create apiKeysRouter.ts with tRPC CRUD procedures
+- [x] Create externalApi.ts with REST endpoints
+
+### Phase 2: Webhook Dispatcher & Admin UI (Completed)
+- [x] Implement Outbound Webhooks with HMAC-SHA256 signing
+- [x] Create webhookDispatcherV2.ts with exponential backoff retry
+- [x] Create webhooksRouter.ts with tRPC procedures
+- [x] Build Admin Integrations dashboard page
+- [x] Create AdminIntegrations.tsx with API key and webhook UI
+- [x] Write 20 vitest tests for API authentication
+- [x] All tests passing
+
+### Phase 3: Pipeline Integration (Pending)
+- [ ] Integrate webhook dispatcher into lead generation pipeline
+- [ ] Trigger webhooks on new_lead, new_order, quiz_completed events
+- [ ] Create Professional Dashboard Phase 1 (KPI metrics, analytics)
