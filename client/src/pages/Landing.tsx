@@ -163,16 +163,28 @@ function AtlantisOrb({ x, y, size, color, delay }: { x: string; y: string; size:
 }
 
 // ── Case Study Section ────────────────────────────────────────────────────────
-const CASE_STUDIES = [
-  { industry: "SaaS", icon: Code2, color: C.indigo, company: "TechScale s.r.o.", result: "47 qualified leads", period: "in 3 days", detail: "SaaS startup targeting Czech enterprise market. LeadOS identified decision-makers via LinkedIn signals and delivered personalized icebreakers with 28% reply rate.", metric1: "28%", metric1Label: "Reply rate", metric2: "47", metric2Label: "Leads / 3 days" },
-  { industry: "Logistics", icon: Factory, color: C.teal, company: "LogiCzech a.s.", result: "+1,200 contacts", period: "in 6 months", detail: "B2B logistics provider targeting warehouse managers and procurement directors. LeadOS filtered by company size and tech stack to find ideal buyers.", metric1: "1,200+", metric1Label: "Contacts", metric2: "€340K", metric2Label: "Pipeline value" },
-  { industry: "E-commerce", icon: ShoppingCart, color: C.amber, company: "ShopBoost CZ", result: "3× pipeline growth", period: "in 90 days", detail: "E-commerce agency scaling outbound. LeadOS automated prospecting for online store owners with >€500K revenue, cutting research time by 80%.", metric1: "3×", metric1Label: "Pipeline growth", metric2: "80%", metric2Label: "Less research time" },
-  { industry: "Manufacturing", icon: Building2, color: C.green, company: "Průmysl Pro s.r.o.", result: "90 warm leads", period: "in 8 months", detail: "Industrial equipment supplier targeting plant managers. LeadOS identified companies with recent expansion signals and delivered context-aware outreach.", metric1: "90", metric1Label: "Warm leads", metric2: "23%", metric2Label: "Meeting rate" },
-  { industry: "FinTech", icon: TrendingUp, color: "#ec4899", company: "PayFlow Praha", result: "€1.2M pipeline", period: "in 4 months", detail: "B2B payments startup targeting CFOs and finance directors. LeadOS scored leads by company revenue and tech stack compatibility.", metric1: "€1.2M", metric1Label: "Pipeline", metric2: "94", metric2Label: "Avg AI score" },
-  { industry: "Healthcare", icon: Stethoscope, color: C.violet, company: "MedTech Solutions", result: "35 demo bookings", period: "in 6 weeks", detail: "Healthcare SaaS targeting hospital procurement managers. LeadOS navigated complex org structures to identify true decision-makers.", metric1: "35", metric1Label: "Demo bookings", metric2: "41%", metric2Label: "Demo-to-deal rate" },
+function useCaseStudies() {
+  const { t } = useTranslation();
+  return [
+    { industry: "SaaS", icon: Code2, color: C.indigo, company: "TechScale s.r.o.", result: t("landing.caseStudy1Result"), period: t("landing.caseStudy1Period"), detail: t("landing.caseStudy1Detail"), metric1: "28%", metric1Label: t("landing.caseStudy1Metric1Label"), metric2: "47", metric2Label: t("landing.caseStudy1Metric2Label") },
+    { industry: "Logistics", icon: Factory, color: C.teal, company: "LogiCzech a.s.", result: t("landing.caseStudy2Result"), period: t("landing.caseStudy2Period"), detail: t("landing.caseStudy2Detail"), metric1: "1,200+", metric1Label: t("landing.caseStudy2Metric1Label"), metric2: "€340K", metric2Label: t("landing.caseStudy2Metric2Label") },
+    { industry: "E-commerce", icon: ShoppingCart, color: C.amber, company: "ShopBoost CZ", result: t("landing.caseStudy3Result"), period: t("landing.caseStudy3Period"), detail: t("landing.caseStudy3Detail"), metric1: "3×", metric1Label: t("landing.caseStudy3Metric1Label"), metric2: "80%", metric2Label: t("landing.caseStudy3Metric2Label") },
+    { industry: "Manufacturing", icon: Building2, color: C.green, company: "Průmysl Pro s.r.o.", result: t("landing.caseStudy4Result"), period: t("landing.caseStudy4Period"), detail: t("landing.caseStudy4Detail"), metric1: "90", metric1Label: t("landing.caseStudy4Metric1Label"), metric2: "23%", metric2Label: t("landing.caseStudy4Metric2Label") },
+    { industry: "FinTech", icon: TrendingUp, color: "#ec4899", company: "PayFlow Praha", result: t("landing.caseStudy5Result"), period: t("landing.caseStudy5Period"), detail: t("landing.caseStudy5Detail"), metric1: "€1.2M", metric1Label: t("landing.caseStudy5Metric1Label"), metric2: "94", metric2Label: t("landing.caseStudy5Metric2Label") },
+    { industry: "Healthcare", icon: Stethoscope, color: C.violet, company: "MedTech Solutions", result: t("landing.caseStudy6Result"), period: t("landing.caseStudy6Period"), detail: t("landing.caseStudy6Detail"), metric1: "35", metric1Label: t("landing.caseStudy6Metric1Label"), metric2: "41%", metric2Label: t("landing.caseStudy6Metric2Label") },
+  ];
+}
+const CASE_STUDIES_STATIC = [
+  { industry: "SaaS", icon: Code2, color: C.indigo, company: "TechScale s.r.o." },
+  { industry: "Logistics", icon: Factory, color: C.teal, company: "LogiCzech a.s." },
+  { industry: "E-commerce", icon: ShoppingCart, color: C.amber, company: "ShopBoost CZ" },
+  { industry: "Manufacturing", icon: Building2, color: C.green, company: "Průmysl Pro s.r.o." },
+  { industry: "FinTech", icon: TrendingUp, color: "#ec4899", company: "PayFlow Praha" },
+  { industry: "Healthcare", icon: Stethoscope, color: C.violet, company: "MedTech Solutions" },
 ];
 
 function CaseStudySection({ onCTA }: { onCTA: () => void }) {
+  const CASE_STUDIES = useCaseStudies();
   const [activeFilter, setActiveFilter] = useState("All");
   const filters = ["All", ...CASE_STUDIES.map(c => c.industry)];
   const filtered = activeFilter === "All" ? CASE_STUDIES : CASE_STUDIES.filter(c => c.industry === activeFilter);
@@ -292,9 +304,9 @@ export default function Landing() {
 
   const PRICING = [
     { name: t("landing.plan1Name"), price: t("landing.plan1Price"), period: "", description: t("landing.plan1Desc"), features: [t("landing.plan1Feature1"), t("landing.plan1Feature2"), t("landing.plan1Feature3"), t("landing.plan1Feature4")], cta: t("landing.plan1Cta"), highlighted: false, badge: null as string | null },
-    { name: t("landing.plan2Name"), price: t("landing.plan2Price"), period: t("landing.pricingMonthly"), description: t("landing.plan2Desc"), features: [t("landing.plan2Feature1"), t("landing.plan2Feature2"), t("landing.plan2Feature3"), t("landing.plan2Feature4"), t("landing.plan2Feature5"), t("landing.plan2Feature6"), t("landing.plan2Feature7")], cta: t("landing.plan2Cta"), highlighted: true, badge: "Most Popular" as string | null },
+    { name: t("landing.plan2Name"), price: t("landing.plan2Price"), period: t("landing.pricingMonthly"), description: t("landing.plan2Desc"), features: [t("landing.plan2Feature1"), t("landing.plan2Feature2"), t("landing.plan2Feature3"), t("landing.plan2Feature4"), t("landing.plan2Feature5"), t("landing.plan2Feature6"), t("landing.plan2Feature7")], cta: t("landing.plan2Cta"), highlighted: true, badge: t("landing.badgeMostPopular") as string | null },
     { name: t("landing.plan3Name"), price: t("landing.plan3Price"), period: t("landing.pricingMonthly"), description: t("landing.plan3Desc"), features: [t("landing.plan3Feature1"), t("landing.plan3Feature2"), t("landing.plan3Feature3"), t("landing.plan3Feature4"), t("landing.plan3Feature5"), t("landing.plan3Feature6")], cta: t("landing.plan3Cta"), highlighted: false, badge: null as string | null },
-    { name: "Agency / DFY", price: "€2,000", period: "one-time", description: "Done-For-You setup + €200/mo retainer. We build, configure and run LeadOS for your agency.", features: ["Full LeadOS Pro setup & config", "Custom ICP & DACH targeting", "Branded outreach sequences", "Monthly optimization retainer", "Dedicated account manager", "SLA + priority support"], cta: "Book Discovery Call", highlighted: false, badge: "🏆 Agency" as string | null },
+    { name: t("landing.plan4Name"), price: t("landing.plan4Price"), period: t("landing.plan4Period"), description: t("landing.plan4Desc"), features: [t("landing.plan4Feature1"), t("landing.plan4Feature2"), t("landing.plan4Feature3"), t("landing.plan4Feature4"), t("landing.plan4Feature5"), t("landing.plan4Feature6")], cta: t("landing.plan4Cta"), highlighted: false, badge: `🏆 ${t("landing.plan4Badge")}` as string | null },
   ];
 
   const HOW_IT_WORKS = [
@@ -335,7 +347,7 @@ export default function Landing() {
           <div className="hidden lg:flex items-center gap-8 text-sm" style={{ color: C.textMuted }}>
             <a href="#features" className="hover:text-indigo-600 transition-colors">{t("nav.features")}</a>
             <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">{t("nav.howItWorks")}</a>
-            <a href="#case-studies" className="hover:text-indigo-600 transition-colors">Results</a>
+            <a href="#case-studies" className="hover:text-indigo-600 transition-colors">{t("nav.results")}</a>
             <a href="#pricing" className="hover:text-indigo-600 transition-colors">{t("nav.pricing")}</a>
           </div>
 
@@ -540,9 +552,9 @@ export default function Landing() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.5 }}
               className="flex flex-wrap justify-start items-center gap-6 text-sm" style={{ color: C.textMuted }}>
               {[
-                { icon: CheckCircle2, text: "No credit card required", color: C.green },
-                { icon: Shield, text: "GDPR Compliant", color: C.indigo },
-                { icon: Rocket, text: "Setup in 2 minutes", color: C.teal },
+                { icon: CheckCircle2, text: t("landing.noCreditCard"), color: C.green },
+                { icon: Shield, text: t("landing.gdprCompliant"), color: C.indigo },
+                { icon: Rocket, text: t("landing.setupTime"), color: C.teal },
               ].map(({ icon: Icon, text, color }) => (
                 <div key={text} className="flex items-center gap-1.5">
                   <Icon className="w-3.5 h-3.5" style={{ color }} />
@@ -712,11 +724,11 @@ export default function Landing() {
             <Reveal>
               <div className="space-y-4">
                 {[
-                  { icon: BadgeCheck, color: C.green, title: "AI Score ≥ 70", desc: "Every lead is scored by our AI on 12 signals including intent, company fit, and decision-maker authority. Only high-probability leads pass." },
-                  { icon: Mail, color: C.teal, title: "Verified Contact Data", desc: "Email, LinkedIn, phone — all verified before delivery. Zero bounced emails, zero wasted outreach." },
-                  { icon: Activity, color: C.indigo, title: "Behavioral Signal Detected", desc: "Leads show real buying intent: visited pricing page, downloaded content, searched for your solution, or engaged with competitors." },
-                  { icon: MessageSquare, color: C.amber, title: "Personalized AI Icebreaker", desc: "Each lead comes with a custom opening message written by AI — referencing their company, role, and recent activity." },
-                  { icon: Target, color: "#ec4899", title: "ICP Match Confirmed", desc: "Filtered against your Ideal Customer Profile: industry, company size, geography, tech stack, and seniority level." },
+                  { icon: BadgeCheck, color: C.green, title: t("landing.qualityAIScore") || "AI Score ≥ 70", desc: t("landing.qualityAIScoreDesc") || "Every lead is scored by our AI on 12 signals including intent, company fit, and decision-maker authority." },
+                  { icon: Mail, color: C.teal, title: t("landing.qualityVerified") || "Verified Contact Data", desc: t("landing.qualityVerifiedDesc") || "Email, LinkedIn, phone — all verified before delivery. Zero bounced emails." },
+                  { icon: Activity, color: C.indigo, title: t("landing.qualitySignal") || "Behavioral Signal Detected", desc: t("landing.qualitySignalDesc") || "Leads show real buying intent: visited pricing page, downloaded content." },
+                  { icon: MessageSquare, color: C.amber, title: t("landing.qualityIcebreaker") || "Personalized AI Icebreaker", desc: t("landing.qualityIcebreakerDesc") || "Each lead comes with a custom opening message written by AI." },
+                  { icon: Target, color: "#ec4899", title: t("landing.qualityICP") || "ICP Match Confirmed", desc: t("landing.qualityICPDesc") || "Filtered against your Ideal Customer Profile." },
                 ].map(({ icon: Icon, color, title, desc }, i) => (
                   <Reveal key={title} delay={i * 0.08}>
                     <div className="flex gap-4 p-4 rounded-2xl"
@@ -777,7 +789,7 @@ export default function Landing() {
                     </div>
                   </div>
                   <div className="space-y-2 mb-5">
-                    {["Email verified", "ICP match: SaaS CEO, 50-200 emp.", "Signal: Visited pricing page 3×", "LinkedIn profile active", "Decision-maker authority"].map(label => (
+                    {[t("landing.enrichLabel1") || "Email verified", t("landing.enrichLabel2") || "ICP match: SaaS CEO, 50-200 emp.", t("landing.enrichLabel3") || "Signal: Visited pricing page 3×", t("landing.enrichLabel4") || "LinkedIn profile active", t("landing.enrichLabel5") || "Decision-maker authority"].map(label => (
                       <div key={label} className="flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: C.green }} />
                         <span className="text-xs" style={{ color: C.textMuted }}>{label}</span>
@@ -1058,9 +1070,9 @@ export default function Landing() {
               <div className="mt-8 flex justify-center">
                 <FunnelProgressIndicator
                   steps={[
-                    { id: 1, label: "Choose Plan", sublabel: "Pick your tier" },
-                    { id: 2, label: "Create Account", sublabel: "30 seconds" },
-                    { id: 3, label: "Start Free Trial", sublabel: "No card needed" },
+                    { id: 1, label: t("landing.funnelStep1") || "Choose Plan", sublabel: t("landing.funnelStep1Sub") || "Pick your tier" },
+                    { id: 2, label: t("landing.funnelStep2") || "Create Account", sublabel: t("landing.funnelStep2Sub") || "30 seconds" },
+                    { id: 3, label: t("landing.funnelStep3") || "Start Free Trial", sublabel: t("landing.funnelStep3Sub") || "No card needed" },
                   ]}
                   currentStep={1}
                   className="max-w-sm"
@@ -1121,14 +1133,14 @@ export default function Landing() {
           <Reveal>
             <div className="mt-20">
               <div className="text-center mb-10">
-                <h3 className="text-2xl font-black mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>How LeadOS Compares</h3>
-                <p className="text-sm" style={{ color: C.textMuted }}>vs. HubSpot, Apollo.io &amp; Salesforce</p>
+                <h3 className="text-2xl font-black mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>{t("landing.comparisonTitle")}</h3>
+                <p className="text-sm" style={{ color: C.textMuted }}>{t("landing.comparisonSubtitle")}</p>
               </div>
               <div className="overflow-x-auto rounded-2xl" style={{ border: `1px solid ${C.border}`, boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
                 <table className="w-full text-sm">
                   <thead>
                     <tr style={{ background: `${C.indigo}08`, borderBottom: `1px solid ${C.border}` }}>
-                      <th className="text-left px-5 py-4 font-semibold" style={{ color: C.textMuted, width: "28%" }}>Feature</th>
+                      <th className="text-left px-5 py-4 font-semibold" style={{ color: C.textMuted, width: "28%" }}>{t("landing.compFeature")}</th>
                       <th className="px-5 py-4 font-bold text-center" style={{ background: `${C.indigo}06` }}>
                         <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Space Grotesk', sans-serif" }}>LeadOS</span>
                       </th>
@@ -1139,15 +1151,15 @@ export default function Landing() {
                   </thead>
                   <tbody>
                     {[
-                      ["AI Lead Generation", true, false, true, false],
-                      ["CRM Pipeline", true, true, false, true],
-                      ["Email Sequences", true, true, true, true],
-                      ["AI Follow-up Bot", true, false, false, false],
-                      ["33 AI Expert Advisors", true, false, false, false],
-                      ["Predictive Lead Scoring", true, false, true, true],
-                      ["Call Intelligence", true, false, false, true],
-                      ["LinkedIn Scraping", true, false, true, false],
-                      ["Starting Price", "Free", "€45/mo", "€39/mo", "€75/mo"],
+                      [t("landing.compAILeadGen"), true, false, true, false],
+                      [t("landing.compCRMPipeline"), true, true, false, true],
+                      [t("landing.compEmailSequences"), true, true, true, true],
+                      [t("landing.compAIFollowUp"), true, false, false, false],
+                      [t("landing.comp33Advisors"), true, false, false, false],
+                      [t("landing.compPredictiveScoring"), true, false, true, true],
+                      [t("landing.compCallIntelligence"), true, false, false, true],
+                      [t("landing.compLinkedInScraping"), true, false, true, false],
+                      [t("landing.compStartingPrice"), "Free", "€45/mo", "€39/mo", "€75/mo"],
                     ].map(([feature, leados, hubspot, apollo, salesforce], ri) => (
                       <tr key={String(feature)} style={{ borderBottom: `1px solid ${C.border}`, background: ri % 2 === 0 ? `${C.indigo}03` : "transparent" }}>
                         <td className="px-5 py-3.5 font-medium" style={{ color: C.text }}>{feature}</td>
@@ -1235,7 +1247,7 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-6 text-sm" style={{ color: C.textMuted }}>
             <a href="#features" className="hover:text-indigo-600 transition-colors">{t("nav.features")}</a>
-            <a href="#case-studies" className="hover:text-indigo-600 transition-colors">Results</a>
+            <a href="#case-studies" className="hover:text-indigo-600 transition-colors">{t("nav.results")}</a>
             <a href="#pricing" className="hover:text-indigo-600 transition-colors">{t("nav.pricing")}</a>
             <span>© 2026 LeadOS — crmleadsystem.com</span>
           </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, TrendingUp, ArrowRight, Star, ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // ── Color tokens (matching Landing.tsx) ──────────────────────────────────────
 const C = {
@@ -20,35 +21,38 @@ const C = {
 };
 
 // ── Case study highlights for the popup ──────────────────────────────────────
-const HIGHLIGHTS = [
-  {
-    company: "TechScale s.r.o.",
-    industry: "SaaS",
-    result: "47 qualified leads",
-    period: "in 3 days",
-    metric: "28%",
-    metricLabel: "Reply rate",
-    color: C.indigo,
-  },
-  {
-    company: "LogiCzech a.s.",
-    industry: "Logistics",
-    result: "€340K pipeline",
-    period: "in 6 months",
-    metric: "1,200+",
-    metricLabel: "New contacts",
-    color: C.teal,
-  },
-  {
-    company: "ShopBoost CZ",
-    industry: "E-commerce",
-    result: "3× pipeline growth",
-    period: "in 90 days",
-    metric: "80%",
-    metricLabel: "Less research",
-    color: C.amber,
-  },
-];
+function useHighlights() {
+  const { t } = useTranslation();
+  return [
+    {
+      company: "TechScale s.r.o.",
+      industry: "SaaS",
+      result: t("landing.popupResult1") || "47 qualified leads",
+      period: t("landing.popupPeriod1") || "in 3 days",
+      metric: "28%",
+      metricLabel: t("landing.popupMetricLabel1") || "Reply rate",
+      color: C.indigo,
+    },
+    {
+      company: "LogiCzech a.s.",
+      industry: "Logistics",
+      result: t("landing.popupResult2") || "€340K pipeline",
+      period: t("landing.popupPeriod2") || "in 6 months",
+      metric: "1,200+",
+      metricLabel: t("landing.popupMetricLabel2") || "New contacts",
+      color: C.teal,
+    },
+    {
+      company: "ShopBoost CZ",
+      industry: "E-commerce",
+      result: t("landing.popupResult3") || "3× pipeline growth",
+      period: t("landing.popupPeriod3") || "in 90 days",
+      metric: "80%",
+      metricLabel: t("landing.popupMetricLabel3") || "Less research",
+      color: C.amber,
+    },
+  ];
+}
 
 interface SmartPopupProps {
   /** Delay in milliseconds before showing the popup (default: 30000 = 30s) */
@@ -61,6 +65,8 @@ export default function SmartPopup({
   delay = 30000,
   caseStudiesSectionId = "case-studies",
 }: SmartPopupProps) {
+  const { t } = useTranslation();
+  const HIGHLIGHTS = useHighlights();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -151,7 +157,7 @@ export default function SmartPopup({
                     className="text-xs font-semibold text-white/90"
                     style={{ fontFamily: "'Space Grotesk', sans-serif" }}
                   >
-                    Real results from our clients
+                    {t("landing.popupTitle")}
                   </span>
                 </div>
                 <button
@@ -242,7 +248,7 @@ export default function SmartPopup({
                     />
                   ))}
                   <span className="text-xs ml-1" style={{ color: C.textMuted }}>
-                    Verified result
+                    {t("landing.popupVerified")}
                   </span>
                 </div>
 
@@ -278,7 +284,7 @@ export default function SmartPopup({
                     fontFamily: "'Space Grotesk', sans-serif",
                   }}
                 >
-                  See All Case Studies
+                  {t("landing.popupCTA")}
                   <ArrowRight className="w-4 h-4" />
                 </button>
                 <button
@@ -286,7 +292,7 @@ export default function SmartPopup({
                   className="w-full text-center text-xs mt-2 py-1.5 transition-colors"
                   style={{ color: C.textLight }}
                 >
-                  Maybe later
+                  {t("landing.popupDismiss")}
                 </button>
               </div>
             </div>
