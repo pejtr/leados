@@ -13,11 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import {
   CreditCard, Mail, BarChart2, Target, Music, Link2, Key, Copy,
   CheckCircle, XCircle, Clock, ExternalLink, ChevronRight, Zap,
-  RefreshCw, Plus, Eye, EyeOff, Trash2, Activity, Webhook,
+  RefreshCw, Plus, Eye, EyeOff, Trash2, Activity,
 } from "lucide-react";
 
 // ─── Integration Definitions ────────────────────────────────────────────────
@@ -146,22 +146,19 @@ function ConfigModal({
 }) {
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
-  const { toast } = useToast();
-
   const saveMutation = trpc.integrations.save.useMutation({
     onSuccess: (data) => {
-      toast({ title: data.action === "created" ? "Integrace uložena" : "Aktualizováno", description: `${integration?.name} nakonfigurován.` });
+      toast.success(data.action === "created" ? `${integration?.name} nakonfigurován.` : "Aktualizováno");
       setApiKey(""); onClose(); onSaved();
     },
-    onError: (err) => toast({ title: "Chyba", description: err.message, variant: "destructive" }),
+    onError: (err) => toast.error(err.message),
   });
-
   const testMutation = trpc.integrations.test.useMutation({
     onSuccess: (data) => {
-      if (data.success) toast({ title: "Test OK", description: (data as any).message });
-      else toast({ title: "Test selhal", description: (data as any).error, variant: "destructive" });
+      if (data.success) toast.success((data as any).message || "Test OK");
+      else toast.error((data as any).error || "Test selhal");
     },
-  });
+  });;
 
   if (!integration) return null;
   const hasKeyLabel = "keyLabel" in integration;
@@ -236,8 +233,6 @@ export default function AdminIntegrations() {
   const [newWebhookName, setNewWebhookName] = useState("");
   const [newWebhookUrl, setNewWebhookUrl] = useState("");
   const [newWebhookEvents, setNewWebhookEvents] = useState("new_lead,new_order");
-  const { toast } = useToast();
-
   const { data: integrationsList, refetch: refetchIntegrations } = trpc.integrations.list.useQuery();
   const { data: apiKeys, refetch: refetchKeys } = trpc.apiKeys.list.useQuery();
   const { data: webhooks, refetch: refetchWebhooks } = trpc.webhooks.list.useQuery();
@@ -246,23 +241,23 @@ export default function AdminIntegrations() {
     onSuccess: (data) => {
       setCreatedKey(data.key); setNewKeyName(""); setShowNewKey(false); refetchKeys();
     },
-    onError: (err) => toast({ title: "Chyba", description: err.message, variant: "destructive" }),
+    onError: (err) => toast.error(err.message),
   });
   const revokeKeyMutation = trpc.apiKeys.revoke.useMutation({
-    onSuccess: () => { toast({ title: "Klíč zrušen" }); refetchKeys(); },
+    onSuccess: () => { toast.success("Klíč zrušen"); refetchKeys(); },
   });
   const createWebhookMutation = trpc.webhooks.create.useMutation({
-    onSuccess: () => { toast({ title: "Webhook vytvořen" }); setNewWebhookName(""); setNewWebhookUrl(""); setShowNewWebhook(false); refetchWebhooks(); },
-    onError: (err) => toast({ title: "Chyba", description: err.message, variant: "destructive" }),
+    onSuccess: () => { toast.success("Webhook vytvořen"); setNewWebhookName(""); setNewWebhookUrl(""); setShowNewWebhook(false); refetchWebhooks(); },
+    onError: (err) => toast.error(err.message),
   });
   const testWebhookMutation = trpc.webhooks.test.useMutation({
     onSuccess: (data) => {
-      if (data.success) toast({ title: `Test OK (HTTP ${data.statusCode})` });
-      else toast({ title: "Test selhal", description: data.error, variant: "destructive" });
+      if (data.success) toast.success(`Test OK (HTTP ${data.statusCode})`);
+      else toast.error(data.error || "Test selhal");
     },
   });
   const deleteWebhookMutation = trpc.webhooks.delete.useMutation({
-    onSuccess: () => { toast({ title: "Webhook smazán" }); refetchWebhooks(); },
+    onSuccess: () => { toast.success("Webhook smazán"); refetchWebhooks(); },
   });
 
   const getStatus = (id: string) => {
