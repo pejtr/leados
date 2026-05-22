@@ -1364,3 +1364,19 @@ export const webhookConfigs = mysqlTable("webhook_configs_crm", {
 });
 export type WebhookConfig = typeof webhookConfigs.$inferSelect;
 export type InsertWebhookConfig = typeof webhookConfigs.$inferInsert;
+
+// ─── Integration Settings (Brevo, Reddit Ads, TikTok Ads, Meta Pixel) ─────────
+export const integrationSettings = mysqlTable("integration_settings", {
+  id: int("id").primaryKey().autoincrement(),
+  userId: int("user_id").notNull(),
+  integrationId: varchar("integration_id", { length: 64 }).notNull(), // e.g. "brevo", "reddit-ads", "tiktok-ads", "meta-pixel"
+  apiKey: text("api_key"),
+  apiSecret: text("api_secret"),
+  config: json("config").$type<Record<string, any>>().default({}),
+  status: mysqlEnum("status", ["active", "inactive", "error"]).default("inactive").notNull(),
+  lastTestedAt: bigint("last_tested_at", { mode: "number" }),
+  createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
+  updatedAt: bigint("updated_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
+});
+export type IntegrationSetting = typeof integrationSettings.$inferSelect;
+export type InsertIntegrationSetting = typeof integrationSettings.$inferInsert;

@@ -1,522 +1,550 @@
 /**
- * Admin Integrations Dashboard
- * Manage API keys, webhooks, and view delivery logs
+ * Admin Integrations Dashboard — Deep Sleep Admin style
+ * Integration cards, API key management, webhook config, REST API docs
  */
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Copy, Eye, EyeOff, Trash2, Plus, RefreshCw, Check, AlertCircle, 
-  Key, Webhook, Activity, ExternalLink, Shield, Clock,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import {
+  CreditCard, Mail, BarChart2, Target, Music, Link2, Key, Copy,
+  CheckCircle, XCircle, Clock, ExternalLink, ChevronRight, Zap,
+  RefreshCw, Plus, Eye, EyeOff, Trash2, Activity, Webhook,
 } from "lucide-react";
-import { toast } from "sonner";
 
+// ─── Integration Definitions ────────────────────────────────────────────────
+const INTEGRATIONS = [
+  {
+    id: "stripe",
+    name: "Stripe",
+    description: "Platební brána — live i test mode",
+    Icon: CreditCard,
+    iconColor: "text-[#635BFF]",
+    bgColor: "bg-[#635BFF]/10",
+    docsUrl: "https://dashboard.stripe.com",
+    isBuiltIn: true,
+    category: "Platby",
+  },
+  {
+    id: "brevo",
+    name: "Brevo",
+    description: "Email marketing a automatizace",
+    Icon: Mail,
+    iconColor: "text-[#0B996E]",
+    bgColor: "bg-[#0B996E]/10",
+    docsUrl: "https://app.brevo.com/settings/keys/api",
+    isBuiltIn: false,
+    category: "Email",
+    keyLabel: "API Key",
+    keyPlaceholder: "xkeysib-...",
+    keyHint: "Najdeš v Brevo → Settings → API Keys",
+  },
+  {
+    id: "meta-pixel",
+    name: "Meta Pixel",
+    description: "Conversion tracking + CAPI",
+    Icon: BarChart2,
+    iconColor: "text-[#1877F2]",
+    bgColor: "bg-[#1877F2]/10",
+    docsUrl: "https://business.facebook.com/events_manager",
+    isBuiltIn: false,
+    category: "Reklama",
+    keyLabel: "Pixel ID",
+    keyPlaceholder: "123456789012345",
+    keyHint: "Najdeš v Meta Events Manager → Pixel ID",
+  },
+  {
+    id: "reddit-ads",
+    name: "Reddit Ads",
+    description: "Reklamní platforma",
+    Icon: Target,
+    iconColor: "text-[#FF4500]",
+    bgColor: "bg-[#FF4500]/10",
+    docsUrl: "https://ads.reddit.com",
+    isBuiltIn: false,
+    category: "Reklama",
+    keyLabel: "Client ID",
+    keyPlaceholder: "reddit_client_id",
+    keyHint: "Najdeš v Reddit Ads → App Settings",
+  },
+  {
+    id: "tiktok-ads",
+    name: "TikTok Ads",
+    description: "Reklamní platforma",
+    Icon: Music,
+    iconColor: "text-[#69C9D0]",
+    bgColor: "bg-[#69C9D0]/10",
+    docsUrl: "https://ads.tiktok.com",
+    isBuiltIn: false,
+    category: "Reklama",
+    keyLabel: "Access Token",
+    keyPlaceholder: "tiktok_access_token",
+    keyHint: "Najdeš v TikTok Ads → Developer → Apps",
+  },
+  {
+    id: "leados-crm",
+    name: "LeadOS CRM",
+    description: "REST API pro CRM integraci",
+    Icon: Link2,
+    iconColor: "text-[#6366F1]",
+    bgColor: "bg-[#6366F1]/10",
+    docsUrl: "#docs",
+    isBuiltIn: true,
+    category: "CRM",
+  },
+] as const;
+
+type IntegrationId = typeof INTEGRATIONS[number]["id"];
+
+const API_ENDPOINTS = [
+  { method: "GET",  path: "/api/external/leads",           desc: "Seznam leadů" },
+  { method: "GET",  path: "/api/external/orders",          desc: "Seznam objednávek" },
+  { method: "GET",  path: "/api/external/analytics",       desc: "KPI metriky" },
+  { method: "POST", path: "/api/external/leads",           desc: "Vytvořit lead" },
+  { method: "POST", path: "/api/external/email/send",      desc: "Odeslat email" },
+  { method: "GET",  path: "/api/external/email-sequences", desc: "Email sekvence" },
+];
+
+// ─── Status Badge ────────────────────────────────────────────────────────────
+function StatusBadge({ status }: { status: "active" | "inactive" | "error" | "builtin" | "pending" | "configure" }) {
+  const map = {
+    active:    { icon: CheckCircle, label: "Aktivní",        cls: "text-emerald-400" },
+    builtin:   { icon: CheckCircle, label: "Aktivní",        cls: "text-emerald-400" },
+    error:     { icon: XCircle,     label: "Chyba",          cls: "text-red-400" },
+    pending:   { icon: Clock,       label: "Čeká na klíče",  cls: "text-amber-400" },
+    configure: { icon: Zap,         label: "Konfigurace",    cls: "text-sky-400" },
+    inactive:  { icon: Clock,       label: "Neaktivní",      cls: "text-zinc-500" },
+  };
+  const { icon: Icon, label, cls } = map[status];
+  return (
+    <span className={`flex items-center gap-1 text-xs font-medium ${cls}`}>
+      <Icon className="w-3.5 h-3.5" />
+      {label}
+    </span>
+  );
+}
+
+// ─── Config Modal ────────────────────────────────────────────────────────────
+function ConfigModal({
+  integration,
+  open,
+  onClose,
+  onSaved,
+}: {
+  integration: typeof INTEGRATIONS[number] | null;
+  open: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [apiKey, setApiKey] = useState("");
+  const [showKey, setShowKey] = useState(false);
+  const { toast } = useToast();
+
+  const saveMutation = trpc.integrations.save.useMutation({
+    onSuccess: (data) => {
+      toast({ title: data.action === "created" ? "Integrace uložena" : "Aktualizováno", description: `${integration?.name} nakonfigurován.` });
+      setApiKey(""); onClose(); onSaved();
+    },
+    onError: (err) => toast({ title: "Chyba", description: err.message, variant: "destructive" }),
+  });
+
+  const testMutation = trpc.integrations.test.useMutation({
+    onSuccess: (data) => {
+      if (data.success) toast({ title: "Test OK", description: (data as any).message });
+      else toast({ title: "Test selhal", description: (data as any).error, variant: "destructive" });
+    },
+  });
+
+  if (!integration) return null;
+  const hasKeyLabel = "keyLabel" in integration;
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="bg-[#0F1623] border border-white/10 text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2.5 text-white">
+            <div className={`w-8 h-8 rounded-lg ${integration.bgColor} flex items-center justify-center`}>
+              <integration.Icon className={`w-4 h-4 ${integration.iconColor}`} />
+            </div>
+            {integration.name} — Konfigurace
+          </DialogTitle>
+          <DialogDescription className="text-white/40">{integration.description}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 pt-1">
+          {hasKeyLabel && (
+            <div className="space-y-1.5">
+              <Label className="text-white/60 text-xs">{(integration as any).keyLabel}</Label>
+              <div className="relative">
+                <Input
+                  type={showKey ? "text" : "password"}
+                  placeholder={(integration as any).keyPlaceholder}
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="bg-white/5 border-white/10 text-white pr-10 text-sm"
+                />
+                <button type="button" onClick={() => setShowKey(!showKey)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60">
+                  {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {(integration as any).keyHint && (
+                <p className="text-xs text-white/25">{(integration as any).keyHint}</p>
+              )}
+            </div>
+          )}
+          <a href={integration.docsUrl} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300">
+            <ExternalLink className="w-3.5 h-3.5" />
+            Otevřít {integration.name} dashboard
+          </a>
+          <div className="flex gap-2 pt-1">
+            <Button variant="outline" size="sm"
+              onClick={() => testMutation.mutate({ integrationId: integration.id as any })}
+              disabled={testMutation.isPending || !apiKey}
+              className="border-white/10 text-white/60 hover:text-white bg-transparent">
+              <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${testMutation.isPending ? "animate-spin" : ""}`} />
+              Test
+            </Button>
+            <Button onClick={() => saveMutation.mutate({ integrationId: integration.id as any, apiKey: apiKey.trim() })}
+              disabled={saveMutation.isPending || !apiKey}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white">
+              {saveMutation.isPending ? "Ukládám..." : "Uložit"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ─── Main Page ───────────────────────────────────────────────────────────────
 export default function AdminIntegrations() {
-  const [showApiKey, setShowApiKey] = useState<Record<number, boolean>>({});
+  const [configTarget, setConfigTarget] = useState<IntegrationId | null>(null);
+  const [showNewKey, setShowNewKey] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
-  const [newKeyPermissions, setNewKeyPermissions] = useState("read");
+  const [newKeyPerms, setNewKeyPerms] = useState("read");
+  const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [showNewWebhook, setShowNewWebhook] = useState(false);
   const [newWebhookName, setNewWebhookName] = useState("");
   const [newWebhookUrl, setNewWebhookUrl] = useState("");
   const [newWebhookEvents, setNewWebhookEvents] = useState("new_lead,new_order");
+  const { toast } = useToast();
 
-  // API Keys
-  const apiKeysQuery = trpc.apiKeys.list.useQuery();
-  const createApiKeyMutation = trpc.apiKeys.create.useMutation();
-  const revokeApiKeyMutation = trpc.apiKeys.revoke.useMutation();
-  const deleteApiKeyMutation = trpc.apiKeys.delete.useMutation();
+  const { data: integrationsList, refetch: refetchIntegrations } = trpc.integrations.list.useQuery();
+  const { data: apiKeys, refetch: refetchKeys } = trpc.apiKeys.list.useQuery();
+  const { data: webhooks, refetch: refetchWebhooks } = trpc.webhooks.list.useQuery();
 
-  // Webhooks
-  const webhooksQuery = trpc.webhooks.list.useQuery();
-  const createWebhookMutation = trpc.webhooks.create.useMutation();
-  const testWebhookMutation = trpc.webhooks.test.useMutation();
-  const deleteWebhookMutation = trpc.webhooks.delete.useMutation();
-  const toggleWebhookMutation = trpc.webhooks.toggleStatus.useMutation();
+  const createKeyMutation = trpc.apiKeys.create.useMutation({
+    onSuccess: (data) => {
+      setCreatedKey(data.key); setNewKeyName(""); setShowNewKey(false); refetchKeys();
+    },
+    onError: (err) => toast({ title: "Chyba", description: err.message, variant: "destructive" }),
+  });
+  const revokeKeyMutation = trpc.apiKeys.revoke.useMutation({
+    onSuccess: () => { toast({ title: "Klíč zrušen" }); refetchKeys(); },
+  });
+  const createWebhookMutation = trpc.webhooks.create.useMutation({
+    onSuccess: () => { toast({ title: "Webhook vytvořen" }); setNewWebhookName(""); setNewWebhookUrl(""); setShowNewWebhook(false); refetchWebhooks(); },
+    onError: (err) => toast({ title: "Chyba", description: err.message, variant: "destructive" }),
+  });
+  const testWebhookMutation = trpc.webhooks.test.useMutation({
+    onSuccess: (data) => {
+      if (data.success) toast({ title: `Test OK (HTTP ${data.statusCode})` });
+      else toast({ title: "Test selhal", description: data.error, variant: "destructive" });
+    },
+  });
+  const deleteWebhookMutation = trpc.webhooks.delete.useMutation({
+    onSuccess: () => { toast({ title: "Webhook smazán" }); refetchWebhooks(); },
+  });
 
-  const handleCreateApiKey = async () => {
-    if (!newKeyName.trim()) {
-      toast.error("Please enter a key name");
-      return;
-    }
-
-    try {
-      const result = await createApiKeyMutation.mutateAsync({
-        name: newKeyName,
-        permissions: newKeyPermissions,
-      });
-
-      toast.success(result.message);
-      setNewKeyName("");
-      setNewKeyPermissions("read");
-      apiKeysQuery.refetch();
-
-      // Copy to clipboard
-      navigator.clipboard.writeText(result.key);
-      toast.success("API key copied to clipboard");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create API key");
-    }
+  const getStatus = (id: string) => {
+    if (!integrationsList) return null;
+    return integrationsList.find((s) => s.integrationId === id)?.status as "active" | "inactive" | "error" | null;
   };
 
-  const handleCreateWebhook = async () => {
-    if (!newWebhookName.trim() || !newWebhookUrl.trim()) {
-      toast.error("Please fill in all fields");
-      return;
-    }
-
-    try {
-      const result = await createWebhookMutation.mutateAsync({
-        name: newWebhookName,
-        url: newWebhookUrl,
-        events: newWebhookEvents,
-      });
-
-      toast.success("Webhook created successfully");
-      setNewWebhookName("");
-      setNewWebhookUrl("");
-      setNewWebhookEvents("new_lead,new_order");
-      webhooksQuery.refetch();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to create webhook");
-    }
+  const copyToClipboard = (text: string, label = "Zkopírováno") => {
+    navigator.clipboard.writeText(text);
+    toast({ title: label });
   };
 
-  const handleTestWebhook = async (webhookId: number) => {
-    try {
-      const result = await testWebhookMutation.mutateAsync({ id: webhookId });
-
-      if (result.success) {
-        toast.success(`Webhook test successful (HTTP ${result.statusCode})`);
-      } else {
-        toast.error(`Webhook test failed: ${result.error}`);
-      }
-    } catch (error) {
-      toast.error("Failed to test webhook");
-    }
-  };
-
-  const handleCopyApiKey = (key: string) => {
-    navigator.clipboard.writeText(key);
-    toast.success("API key copied to clipboard");
-  };
-
-  const handleRevokeApiKey = async (keyId: number) => {
-    if (!confirm("Are you sure? This will revoke the API key immediately.")) return;
-
-    try {
-      await revokeApiKeyMutation.mutateAsync({ keyId });
-      toast.success("API key revoked");
-      apiKeysQuery.refetch();
-    } catch (error) {
-      toast.error("Failed to revoke API key");
-    }
-  };
-
-  const handleDeleteApiKey = async (keyId: number) => {
-    if (!confirm("Are you sure? This will permanently delete the API key.")) return;
-
-    try {
-      await deleteApiKeyMutation.mutateAsync({ keyId });
-      toast.success("API key deleted");
-      apiKeysQuery.refetch();
-    } catch (error) {
-      toast.error("Failed to delete API key");
-    }
-  };
-
-  const handleDeleteWebhook = async (webhookId: number) => {
-    if (!confirm("Are you sure? This will permanently delete the webhook.")) return;
-
-    try {
-      await deleteWebhookMutation.mutateAsync({ id: webhookId });
-      toast.success("Webhook deleted");
-      webhooksQuery.refetch();
-    } catch (error) {
-      toast.error("Failed to delete webhook");
-    }
-  };
-
-  const handleToggleWebhook = async (webhookId: number) => {
-    try {
-      await toggleWebhookMutation.mutateAsync({ id: webhookId });
-      webhooksQuery.refetch();
-    } catch (error) {
-      toast.error("Failed to toggle webhook status");
-    }
-  };
+  const activeIntegration = INTEGRATIONS.find((i) => i.id === configTarget) || null;
+  const categories = ["Platby", "Email", "Reklama", "CRM"] as const;
 
   return (
     <DashboardLayout>
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Shield className="w-8 h-8 text-teal-600" />
-              Integrations & API
-            </h1>
-            <p className="text-muted-foreground mt-1">Manage API keys, webhooks, and external integrations</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Integrace &amp; API</h1>
+          <p className="text-white/40 mt-1 text-sm">Propoj LeadOS s externími nástroji a platformami.</p>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="api-keys" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="api-keys" className="flex items-center gap-2">
-              <Key className="w-4 h-4" />
-              API Keys
-            </TabsTrigger>
-            <TabsTrigger value="webhooks" className="flex items-center gap-2">
-              <Webhook className="w-4 h-4" />
-              Webhooks
-            </TabsTrigger>
-            <TabsTrigger value="documentation" className="flex items-center gap-2">
-              <ExternalLink className="w-4 h-4" />
-              Documentation
-            </TabsTrigger>
+        <Tabs defaultValue="integrations">
+          <TabsList className="bg-white/5 border border-white/10">
+            <TabsTrigger value="integrations">Integrace</TabsTrigger>
+            <TabsTrigger value="api-keys">API Klíče</TabsTrigger>
+            <TabsTrigger value="webhooks">Webhooky</TabsTrigger>
+            <TabsTrigger value="docs">REST API Docs</TabsTrigger>
           </TabsList>
 
-          {/* API Keys Tab */}
-          <TabsContent value="api-keys" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>API Keys</CardTitle>
-                    <CardDescription>Create and manage API keys for external integrations</CardDescription>
-                  </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="gap-2">
-                        <Plus className="w-4 h-4" />
-                        Create API Key
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create New API Key</DialogTitle>
-                        <DialogDescription>
-                          Generate a new API key for external integrations. You'll only see it once.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="key-name">Key Name</Label>
-                          <Input
-                            id="key-name"
-                            placeholder="e.g., Zapier Integration"
-                            value={newKeyName}
-                            onChange={(e) => setNewKeyName(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="permissions">Permissions</Label>
-                          <select
-                            id="permissions"
-                            className="w-full px-3 py-2 border rounded-md"
-                            value={newKeyPermissions}
-                            onChange={(e) => setNewKeyPermissions(e.target.value)}
-                          >
-                            <option value="read">Read Only</option>
-                            <option value="read,write">Read & Write</option>
-                            <option value="read,write,email">Full Access</option>
-                          </select>
-                        </div>
-                        <Button onClick={handleCreateApiKey} className="w-full">
-                          Create Key
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {apiKeysQuery.isLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">Loading API keys...</div>
-                ) : apiKeysQuery.data && apiKeysQuery.data.length > 0 ? (
-                  <div className="space-y-3">
-                    {apiKeysQuery.data.map((key) => (
-                      <div key={key.id} className="flex items-center justify-between p-4 border rounded-lg bg-slate-50">
-                        <div className="flex-1">
-                          <p className="font-medium">{key.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-xs">
-                              {key.permissions}
-                            </Badge>
-                            <Badge
-                              variant={key.status === "active" ? "default" : "secondary"}
-                              className="text-xs"
-                            >
-                              {key.status}
-                            </Badge>
-                            {key.lastUsedAt && (
-                              <span className="text-xs text-muted-foreground">
-                                Last used: {new Date(key.lastUsedAt).toLocaleDateString()}
-                              </span>
-                            )}
+          {/* ── INTEGRATIONS ── */}
+          <TabsContent value="integrations" className="mt-6 space-y-6">
+            {categories.map((cat) => {
+              const items = INTEGRATIONS.filter((i) => i.category === cat);
+              if (!items.length) return null;
+              return (
+                <div key={cat}>
+                  <h2 className="text-xs font-semibold text-white/25 uppercase tracking-widest mb-3">{cat}</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {items.map((intg) => {
+                      const savedStatus = getStatus(intg.id);
+                      let displayStatus: any = intg.isBuiltIn ? "builtin" : savedStatus === "active" ? "active" : savedStatus === "error" ? "error" : savedStatus === null ? "pending" : "configure";
+                      return (
+                        <div key={intg.id}
+                          className={`flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/[0.03] transition-colors ${!intg.isBuiltIn ? "hover:bg-white/[0.06] cursor-pointer" : ""}`}
+                          onClick={!intg.isBuiltIn ? () => setConfigTarget(intg.id as IntegrationId) : undefined}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-lg ${intg.bgColor} flex items-center justify-center flex-shrink-0`}>
+                              <intg.Icon className={`w-5 h-5 ${intg.iconColor}`} />
+                            </div>
+                            <div>
+                              <div className="font-medium text-sm text-white">{intg.name}</div>
+                              <div className="text-xs text-white/35 mt-0.5">{intg.description}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <StatusBadge status={displayStatus} />
+                            {!intg.isBuiltIn && <ChevronRight className="w-4 h-4 text-white/15" />}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRevokeApiKey(key.id)}
-                            className="text-amber-600 hover:text-amber-700"
-                          >
-                            Revoke
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteApiKey(key.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No API keys yet. Create one to get started.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              );
+            })}
           </TabsContent>
 
-          {/* Webhooks Tab */}
-          <TabsContent value="webhooks" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Webhooks</CardTitle>
-                    <CardDescription>Configure webhooks for real-time event notifications</CardDescription>
+          {/* ── API KEYS ── */}
+          <TabsContent value="api-keys" className="mt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-white/50">Bearer token autentizace pro REST API přístup.</p>
+              <Button size="sm" onClick={() => setShowNewKey(!showNewKey)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white h-8 text-xs">
+                <Plus className="w-3.5 h-3.5 mr-1" /> Nový klíč
+              </Button>
+            </div>
+
+            {showNewKey && (
+              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.03] space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-white/50">Název</Label>
+                    <Input placeholder="Např. DSR Integration" value={newKeyName}
+                      onChange={(e) => setNewKeyName(e.target.value)}
+                      className="bg-white/5 border-white/10 text-white h-8 text-sm" />
                   </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button className="gap-2">
-                        <Plus className="w-4 h-4" />
-                        Create Webhook
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create New Webhook</DialogTitle>
-                        <DialogDescription>
-                          Set up a webhook to receive real-time notifications for events.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label htmlFor="webhook-name">Webhook Name</Label>
-                          <Input
-                            id="webhook-name"
-                            placeholder="e.g., Affiliate Sync"
-                            value={newWebhookName}
-                            onChange={(e) => setNewWebhookName(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="webhook-url">Webhook URL</Label>
-                          <Input
-                            id="webhook-url"
-                            placeholder="https://example.com/webhooks/leadgen"
-                            value={newWebhookUrl}
-                            onChange={(e) => setNewWebhookUrl(e.target.value)}
-                          />
-                        </div>
-                        <div>
-                          <Label htmlFor="webhook-events">Events</Label>
-                          <div className="space-y-2 mt-2">
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={newWebhookEvents.includes("new_lead")}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setNewWebhookEvents((prev) => prev + ",new_lead");
-                                  } else {
-                                    setNewWebhookEvents((prev) => prev.replace(",new_lead", ""));
-                                  }
-                                }}
-                              />
-                              <span className="text-sm">New Lead</span>
-                            </label>
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={newWebhookEvents.includes("new_order")}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setNewWebhookEvents((prev) => prev + ",new_order");
-                                  } else {
-                                    setNewWebhookEvents((prev) => prev.replace(",new_order", ""));
-                                  }
-                                }}
-                              />
-                              <span className="text-sm">New Order</span>
-                            </label>
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={newWebhookEvents.includes("quiz_completed")}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setNewWebhookEvents((prev) => prev + ",quiz_completed");
-                                  } else {
-                                    setNewWebhookEvents((prev) => prev.replace(",quiz_completed", ""));
-                                  }
-                                }}
-                              />
-                              <span className="text-sm">Quiz Completed</span>
-                            </label>
-                          </div>
-                        </div>
-                        <Button onClick={handleCreateWebhook} className="w-full">
-                          Create Webhook
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-white/50">Oprávnění</Label>
+                    <select value={newKeyPerms} onChange={(e) => setNewKeyPerms(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 text-white rounded-md h-8 text-sm px-2">
+                      <option value="read">read</option>
+                      <option value="write">write</option>
+                      <option value="email">email</option>
+                      <option value="admin">admin</option>
+                    </select>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {webhooksQuery.isLoading ? (
-                  <div className="text-center py-8 text-muted-foreground">Loading webhooks...</div>
-                ) : webhooksQuery.data && webhooksQuery.data.length > 0 ? (
-                  <div className="space-y-3">
-                    {webhooksQuery.data.map((webhook) => (
-                      <div key={webhook.id} className="p-4 border rounded-lg bg-slate-50">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <p className="font-medium">{webhook.name}</p>
-                            <p className="text-sm text-muted-foreground break-all">{webhook.url}</p>
-                          </div>
-                          <Badge
-                            variant={webhook.status === "active" ? "default" : "secondary"}
-                            className="ml-2"
-                          >
-                            {webhook.status}
-                          </Badge>
-                        </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setShowNewKey(false)}
+                    className="border-white/10 text-white/50 bg-transparent h-8 text-xs">Zrušit</Button>
+                  <Button size="sm" onClick={() => createKeyMutation.mutate({ name: newKeyName, permissions: newKeyPerms })}
+                    disabled={!newKeyName || createKeyMutation.isPending}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white h-8 text-xs">
+                    {createKeyMutation.isPending ? "Vytvářím..." : "Vytvořit"}
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                        <div className="flex items-center gap-2 text-sm mb-3">
-                          <span className="text-muted-foreground">Events:</span>
-                          <span className="font-mono text-xs bg-white px-2 py-1 rounded">
-                            {webhook.events}
-                          </span>
-                        </div>
+            {createdKey && (
+              <div className="p-3 rounded-xl border border-emerald-500/30 bg-emerald-500/5">
+                <p className="text-xs text-emerald-400 mb-2 font-medium">✓ Klíč vytvořen — zkopíruj ho hned!</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-xs bg-black/30 rounded px-2 py-1.5 text-emerald-300 break-all font-mono">{createdKey}</code>
+                  <Button size="sm" variant="ghost" onClick={() => copyToClipboard(createdKey, "Klíč zkopírován")}
+                    className="text-emerald-400 h-8 w-8 p-0">
+                    <Copy className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+                <button onClick={() => setCreatedKey(null)} className="text-xs text-white/25 mt-2 hover:text-white/50">Zavřít</button>
+              </div>
+            )}
 
-                        {webhook.failureCount > 0 && (
-                          <div className="flex items-center gap-2 text-sm text-amber-600 mb-3">
-                            <AlertCircle className="w-4 h-4" />
-                            {webhook.failureCount} failed attempts
-                          </div>
-                        )}
-
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleTestWebhook(webhook.id)}
-                            disabled={testWebhookMutation.isPending}
-                            className="gap-1"
-                          >
-                            <RefreshCw className={`w-4 h-4 ${testWebhookMutation.isPending ? "animate-spin" : ""}`} />
-                            Test
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleToggleWebhook(webhook.id)}
-                          >
-                            {webhook.status === "active" ? "Pause" : "Resume"}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteWebhook(webhook.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
+            <div className="space-y-2">
+              {!apiKeys || (apiKeys as any[]).length === 0 ? (
+                <div className="text-center py-10 text-white/25 text-sm">
+                  <Key className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  Žádné API klíče. Vytvoř první klíč výše.
+                </div>
+              ) : (
+                (apiKeys as any[]).map((key) => (
+                  <div key={key.id} className="flex items-center justify-between p-3 rounded-lg border border-white/5 bg-white/[0.02]">
+                    <div>
+                      <div className="text-sm font-medium text-white">{key.name}</div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Badge variant="outline" className="text-xs border-white/10 text-white/35 py-0">{key.permissions}</Badge>
+                        <span className={`text-xs ${key.status === "active" ? "text-emerald-400" : "text-zinc-500"}`}>
+                          {key.status === "active" ? "Aktivní" : key.status === "revoked" ? "Zrušen" : "Vypršel"}
+                        </span>
                       </div>
-                    ))}
+                    </div>
+                    {key.status === "active" && (
+                      <Button size="sm" variant="ghost"
+                        onClick={() => revokeKeyMutation.mutate({ keyId: key.id })}
+                        className="text-red-400/50 hover:text-red-400 h-7 text-xs">
+                        Zrušit
+                      </Button>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No webhooks yet. Create one to get started.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                ))
+              )}
+            </div>
           </TabsContent>
 
-          {/* Documentation Tab */}
-          <TabsContent value="documentation" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>API Documentation</CardTitle>
-                <CardDescription>Integration guide for external systems</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h3 className="font-semibold mb-2">Authentication</h3>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    All API requests require Bearer token authentication:
-                  </p>
-                  <div className="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                    Authorization: Bearer leadOS_your_api_key_here
-                  </div>
-                </div>
+          {/* ── WEBHOOKS ── */}
+          <TabsContent value="webhooks" className="mt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-white/50">Real-time notifikace s HMAC-SHA256 podpisem.</p>
+              <Button size="sm" onClick={() => setShowNewWebhook(!showNewWebhook)}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white h-8 text-xs">
+                <Plus className="w-3.5 h-3.5 mr-1" /> Nový webhook
+              </Button>
+            </div>
 
-                <div>
-                  <h3 className="font-semibold mb-2">Available Endpoints</h3>
-                  <div className="space-y-3">
-                    <div className="border rounded-lg p-3">
-                      <p className="font-mono text-sm text-teal-600">GET /api/external/leads</p>
-                      <p className="text-sm text-muted-foreground">Fetch all leads for authenticated user</p>
-                    </div>
-                    <div className="border rounded-lg p-3">
-                      <p className="font-mono text-sm text-teal-600">GET /api/external/leads/:id</p>
-                      <p className="text-sm text-muted-foreground">Fetch specific lead by ID</p>
-                    </div>
-                    <div className="border rounded-lg p-3">
-                      <p className="font-mono text-sm text-teal-600">PUT /api/external/leads/:id</p>
-                      <p className="text-sm text-muted-foreground">Update lead status, notes, or deal value</p>
-                    </div>
-                    <div className="border rounded-lg p-3">
-                      <p className="font-mono text-sm text-teal-600">GET /api/external/analytics</p>
-                      <p className="text-sm text-muted-foreground">Get aggregated analytics and KPIs</p>
-                    </div>
+            {showNewWebhook && (
+              <div className="p-4 rounded-xl border border-white/10 bg-white/[0.03] space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-white/50">Název</Label>
+                    <Input placeholder="Např. DSR Orders" value={newWebhookName}
+                      onChange={(e) => setNewWebhookName(e.target.value)}
+                      className="bg-white/5 border-white/10 text-white h-8 text-sm" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-white/50">URL</Label>
+                    <Input placeholder="https://example.com/webhook" value={newWebhookUrl}
+                      onChange={(e) => setNewWebhookUrl(e.target.value)}
+                      className="bg-white/5 border-white/10 text-white h-8 text-sm" />
                   </div>
                 </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-white/50">Události (comma-separated)</Label>
+                  <Input value={newWebhookEvents} onChange={(e) => setNewWebhookEvents(e.target.value)}
+                    className="bg-white/5 border-white/10 text-white h-8 text-sm font-mono" />
+                  <p className="text-xs text-white/25">Dostupné: new_lead, new_order, quiz_completed, status_change</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setShowNewWebhook(false)}
+                    className="border-white/10 text-white/50 bg-transparent h-8 text-xs">Zrušit</Button>
+                  <Button size="sm"
+                    onClick={() => createWebhookMutation.mutate({ name: newWebhookName, url: newWebhookUrl, events: newWebhookEvents })}
+                    disabled={!newWebhookName || !newWebhookUrl || createWebhookMutation.isPending}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white h-8 text-xs">
+                    {createWebhookMutation.isPending ? "Vytvářím..." : "Vytvořit"}
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                <div>
-                  <h3 className="font-semibold mb-2">Webhook Events</h3>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Webhooks are signed with HMAC-SHA256. Verify the signature using the secret provided:
-                  </p>
-                  <div className="bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-sm overflow-x-auto">
-                    X-LeadOS-Signature: sha256=...
-                  </div>
+            <div className="space-y-2">
+              {!webhooks || (webhooks as any[]).length === 0 ? (
+                <div className="text-center py-10 text-white/25 text-sm">
+                  <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                  Žádné webhooky. Vytvoř první webhook výše.
                 </div>
-              </CardContent>
-            </Card>
+              ) : (
+                (webhooks as any[]).map((wh) => (
+                  <div key={wh.id} className="flex items-center justify-between p-3 rounded-lg border border-white/5 bg-white/[0.02]">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-white">{wh.name}</div>
+                      <div className="text-xs text-white/30 truncate font-mono mt-0.5">{wh.url}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className={`text-xs py-0 border-white/10 ${wh.status === "active" ? "text-emerald-400" : "text-zinc-500"}`}>
+                          {wh.status}
+                        </Badge>
+                        <span className="text-xs text-white/25 font-mono">{wh.events}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 ml-3">
+                      <Button size="sm" variant="ghost"
+                        onClick={() => testWebhookMutation.mutate({ id: wh.id })}
+                        disabled={testWebhookMutation.isPending}
+                        className="text-blue-400/60 hover:text-blue-400 h-7 w-7 p-0">
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button size="sm" variant="ghost"
+                        onClick={() => deleteWebhookMutation.mutate({ id: wh.id })}
+                        className="text-red-400/40 hover:text-red-400 h-7 w-7 p-0">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* ── REST API DOCS ── */}
+          <TabsContent value="docs" className="mt-6 space-y-4">
+            <div className="rounded-xl border border-white/5 bg-white/[0.02] p-5 space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold text-white mb-1">LeadOS REST API</h3>
+                <p className="text-xs text-white/40">Přístup k datům přes REST API s Bearer token autentizací.</p>
+              </div>
+              <div className="space-y-2">
+                {API_ENDPOINTS.map((ep) => (
+                  <div key={ep.path + ep.method}
+                    className="flex items-center justify-between py-2.5 px-3 rounded-lg bg-black/20 border border-white/5">
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs font-bold font-mono w-10 ${ep.method === "GET" ? "text-emerald-400" : "text-blue-400"}`}>
+                        {ep.method}
+                      </span>
+                      <code className="text-xs text-white/60 font-mono">{ep.path}</code>
+                    </div>
+                    <span className="text-xs text-white/25">{ep.desc}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-lg bg-black/40 border border-white/5 p-3 space-y-2">
+                <p className="text-xs text-white/25 font-mono">Authorization header:</p>
+                <code className="text-xs text-indigo-300 font-mono">Authorization: Bearer YOUR_API_KEY</code>
+              </div>
+              <div className="rounded-lg bg-black/40 border border-white/5 p-3 space-y-2">
+                <p className="text-xs text-white/25 font-mono">Webhook signature verification:</p>
+                <code className="text-xs text-purple-300 font-mono">X-LeadOS-Signature: sha256=HMAC_SHA256(secret, body)</code>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Config Modal */}
+      <ConfigModal
+        integration={activeIntegration}
+        open={!!configTarget && !activeIntegration?.isBuiltIn}
+        onClose={() => setConfigTarget(null)}
+        onSaved={refetchIntegrations}
+      />
     </DashboardLayout>
   );
 }

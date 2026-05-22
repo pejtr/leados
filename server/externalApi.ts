@@ -205,17 +205,96 @@ export function registerExternalApi(app: Express) {
   });
 
   // ──── GET /api/external/orders ───────────────────────────────────────────
-  // Fetch orders (for future Stripe integration)
+  // Fetch orders from Stripe (live charges)
   app.get("/api/external/orders", authMiddleware, requirePermission("read"), async (req: Request, res: Response) => {
     try {
-      // Placeholder for future Stripe orders integration
-      res.json({
-        success: true,
-        data: [],
-        message: "Orders endpoint — Stripe integration coming soon",
-      });
+      const stripeKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeKey) {
+        return res.json({ success: true, data: [], message: "Stripe not configured" });
+      }
+      const Stripe = (await import("stripe")).default;
+      const stripe = new Stripe(stripeKey, { apiVersion: "2024-12-18.acacia" as any });
+      const charges = await stripe.charges.list({ limit: 50 });
+      const orders = charges.data.map(c => ({
+        id: c.id,
+        amount: c.amount,
+        currency: c.currency,
+        status: c.status,
+        description: c.description,
+        email: c.billing_details?.email,
+        createdAt: new Date(c.created * 1000).toISOString(),
+        receiptUrl: c.receipt_url,
+      }));
+      res.json({ success: true, data: orders, total: charges.data.length });
     } catch (error) {
       console.error("[ExternalAPI] GET /orders error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // ──── POST /api/external/email/send ──────────────────────────────────────
+  // Send transactional email via Brevo
+  app.post("/api/external/email/send", authMiddleware, requirePermission("write"), async (req: Request, res: Response) => {
+    try {
+      const { to, subject, htmlContent, textContent, senderName, senderEmail } = req.body;
+      if (!to || !subject || (!htmlContent && !textContent)) {
+        return res.status(400).json({ error: "Missing required fields: to, subject, htmlContent or textContent" });
+      }
+      const brevoKey = process.env.BREVO_API_KEY;
+      if (!brevoKey) {
+        return res.status(503).json({ error: "Brevo API key not configured", code: "BREVO_NOT_CONFIGURED" });
+      }
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: { "api-key": brevoKey, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender: { name: senderName || "LeadOS", email: senderEmail || "noreply@leados.com" },
+          to: Array.isArray(to) ? to : [{ email: to }],
+          subject,
+          htmlContent: htmlContent || undefined,
+          textContent: textContent || undefined,
+        }),
+      });
+      if (!response.ok) {
+        const errBody = await response.text();
+        return res.status(502).json({ error: "Brevo API error", details: errBody });
+      }
+      const result = await response.json();
+      res.json({ success: true, messageId: result.messageId });
+    } catch (error) {
+      console.error("[ExternalAPI] POST /email/send error:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // ──── POST /api/external/leads ───────────────────────────────────────────
+  // Create a new lead via external API
+  app.post("/api/external/leads", authMiddleware, requirePermission("write"), async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const { firstName, lastName, email, company, position, linkedinUrl, source } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: "email is required" });
+      }
+      const db = await getDb();
+      if (!db) return res.status(500).json({ error: "Database unavailable" });
+      const now = new Date();
+      const [inserted] = await db.insert(leads).values({
+        userId,
+        firstName: firstName || "",
+        lastName: lastName || "",
+        email,
+        company: company || "",
+        position: position || "",
+        linkedinUrl: linkedinUrl || "",
+        source: source || "external_api",
+        status: "new",
+        createdAt: now,
+        updatedAt: now,
+      });
+      res.status(201).json({ success: true, id: (inserted as any).insertId });
+    } catch (error) {
+      console.error("[ExternalAPI] POST /leads error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
   });

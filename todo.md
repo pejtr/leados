@@ -778,3 +778,12 @@
 - [x] Create Factorio-style Tech Stack section on Landing page
 - [x] Add i18n translations for Tech Stack section (en, cs, de)
 - [x] Integrate industrial/automation visual style (conveyor belts, pipeline nodes, neon indicators)
+
+## Deep Sleep Admin Integration (May 2026)
+- [ ] Add /api/external/orders endpoint
+- [ ] Add /api/external/email/send endpoint
+- [ ] Build integration cards UI (Stripe, Brevo, Meta Pixel, Reddit Ads, TikTok Ads, LeadOS CRM)
+- [ ] Update DashboardLayout sidebar sections (ANALYTICS, MARKETING, OBSAH, AUTOMATIZACE, SYSTÉM)
+- [ ] Add Brevo API key management
+- [ ] Add Reddit Ads API key management
+- [ ] Add TikTok Ads API key management

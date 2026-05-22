@@ -124,12 +124,12 @@ const allMenuItems = [
 ];
 
 const groupLabels: Record<string, string> = {
-  revenue:      "💰 Revenue & Pipeline",
-  intelligence: "🎯 Intelligence",
-  analytics:    "📊 Analytics & ROI",
-  ai:           "🧠 AI & Knowledge",
-  outreach:     "📧 Outreach",
-  settings:     "⚙️ System",
+  revenue:      "REVENUE & PIPELINE",
+  intelligence: "MARKETING",
+  analytics:    "ANALYTICS",
+  ai:           "AI & ZNALOSTI",
+  outreach:     "AUTOMATIZACE",
+  settings:     "SYSTÉM",
 };
 
 // ─── macOS MenuBar ─────────────────────────────────────────────────────────

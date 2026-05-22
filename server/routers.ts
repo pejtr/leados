@@ -121,6 +121,7 @@ import { webhooksRouter } from "./routers/webhooksRouter";
 import { ingestedLeadsRouter } from "./routers/ingestedLeads";
 import { aiSkillsRouter } from "./routers/aiSkills";
 import { roiAuditRouter } from "./routers/roiAudit";
+import { integrationsRouter } from "./routers/integrationsRouter";
 import {
   createTrackingPixel, getTrackingPixelsByUser, deleteTrackingPixel, updateTrackingPixel,
   getVisitorSessionsByPixel, getVisitorSessionsByUser, createVisitorSession,
@@ -2818,5 +2819,6 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
   roiAudit: roiAuditRouter,
   apiKeys: apiKeysRouter,
   webhooks: webhooksRouter,
+  integrations: integrationsRouter,
 });
 export type AppRouter = typeof appRouter;
