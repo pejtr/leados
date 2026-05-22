@@ -373,15 +373,18 @@ export async function getWebhookConfigs(userId: number): Promise<WebhookConfig[]
   return db.select().from(webhookConfigs).where(eq(webhookConfigs.userId, userId)).orderBy(desc(webhookConfigs.createdAt));
 }
 
-export async function getActiveWebhookConfigs(userId: number, eventType: "generate" | "status_change" | "deal_close"): Promise<WebhookConfig[]> {
+export async function getActiveWebhookConfigs(userId: number, eventType: "new_lead" | "new_order" | "quiz_completed"): Promise<WebhookConfig[]> {
   const db = await getDb();
   if (!db) return [];
-  const triggerCol = eventType === "generate" ? webhookConfigs.triggerOnGenerate
-    : eventType === "status_change" ? webhookConfigs.triggerOnStatusChange
-    : webhookConfigs.triggerOnDealClose;
-  return db.select().from(webhookConfigs).where(
-    and(eq(webhookConfigs.userId, userId), eq(webhookConfigs.isActive, true), eq(triggerCol, true))
+  // New schema uses events comma-separated string + status enum
+  const allConfigs = await db.select().from(webhookConfigs).where(
+    and(eq(webhookConfigs.userId, userId), eq(webhookConfigs.status, "active"))
   );
+  // Filter by event type in the events comma-separated field
+  return allConfigs.filter(config => {
+    const events = config.events.split(",").map(e => e.trim());
+    return events.includes(eventType);
+  });
 }
 
 export async function getWebhookConfigById(id: number, userId: number): Promise<WebhookConfig | undefined> {

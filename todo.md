@@ -763,3 +763,13 @@
 - [ ] Create Professional Analytics Dashboard (KPI metrics, waterfall funnel, date range picker, revenue timeline)
 - [ ] Create Webhook Activity page (delivery logs, retry attempts, manual retry button)
 - [ ] Write integration tests for webhook dispatcher
+
+### Phase 4: Webhook Pipeline Integration & Scheduler (Complete)
+- [x] Integrate webhook calls into lead generation tRPC mutations (leads.create, leads.updateStatus, closeDeal)
+- [x] Add Webhook Activity nav item to DashboardLayout sidebar
+- [x] Add Professional Analytics nav item to DashboardLayout sidebar
+- [x] Implement background scheduler for automatic webhook retry every 5 minutes (webhookRetryScheduler.ts)
+- [x] Fix build errors (webhookConfigs import, DashboardLayout export, externalApi registration)
+- [x] Mount /api/scheduled/webhook-retry endpoint in server/_core/index.ts
+- [x] Mount /api/external/* endpoints via registerExternalApi
+- [x] All 20 vitest tests passing

@@ -244,15 +244,22 @@ async function dispatchSingle(
  */
 export async function dispatchWebhooks(
   userId: number,
-  eventType: "generate" | "status_change" | "deal_close" | "test",
+  eventType: "generate" | "status_change" | "deal_close" | "new_lead" | "new_order" | "quiz_completed" | "test",
   leads: Lead[],
   metadata?: Record<string, unknown>
 ): Promise<void> {
   // Import here to avoid circular deps
   const { getActiveWebhookConfigs } = await import("./db");
 
-  const dbEventType = eventType === "test" ? "generate" : eventType;
-  const configs = await getActiveWebhookConfigs(userId, dbEventType as any);
+  // Map old event types to new ones for webhook_configs_crm table
+  const eventMapping: Record<string, string> = {
+    "generate": "new_lead",
+    "status_change": "new_lead",
+    "deal_close": "new_order",
+    "test": "new_lead",
+  };
+  const mappedEvent = eventMapping[eventType] || eventType;
+  const configs = await getActiveWebhookConfigs(userId, mappedEvent as any);
 
   if (configs.length === 0) return;
 

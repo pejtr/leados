@@ -86,6 +86,7 @@ const allMenuItems = [
   { icon: Trophy,       labelKey: "sidebar.portfolioROAS",    path: "/portfolio-roas",  group: "analytics" },
   { icon: Link2,        labelKey: "sidebar.projectsHub",      path: "/projects",        group: "analytics" },
   { icon: DollarSign,   labelKey: "sidebar.globalEarnings",   path: "/global-earnings", group: "analytics" },
+  { icon: Activity,     labelKey: "sidebar.proAnalytics",     path: "/analytics/professional", group: "analytics" },
   { icon: History,      labelKey: "sidebar.leadHistory",      path: "/history",         group: "analytics" },
   // TIER 4 — AI & Knowledge
   { icon: Cpu,          labelKey: "sidebar.computerFlow",    path: "/computer-flow",  group: "ai" },
@@ -109,6 +110,8 @@ const allMenuItems = [
   // TIER 6 — System & Settings
   { icon: LayoutDashboard, labelKey: "sidebar.dashboard",     path: "/dashboard",       group: "settings" },
   { icon: Webhook,      labelKey: "sidebar.integrations",     path: "/integrations",    group: "settings" },
+  { icon: Webhook,      labelKey: "sidebar.webhookActivity",  path: "/webhooks/activity", group: "settings" },
+  { icon: Code,         labelKey: "sidebar.apiKeys",          path: "/admin/integrations", group: "settings" },
   { icon: Users,        labelKey: "sidebar.team",             path: "/team",            group: "settings" },
   { icon: Building,     labelKey: "sidebar.agencyPanel",      path: "/agency",          group: "settings" },
   { icon: DollarSign,   labelKey: "sidebar.billingPlans",     path: "/billing",         group: "settings" },

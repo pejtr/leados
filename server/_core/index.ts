@@ -47,6 +47,16 @@ async function startServer() {
   registerIngestRoute(app);
   // Google OAuth routes
   registerGoogleOAuthRoutes(app);
+  // Webhook retry scheduler (Heartbeat cron endpoint)
+  app.post("/api/scheduled/webhook-retry", async (req, res) => {
+    const { webhookRetryHandler } = await import("../webhookRetryScheduler");
+    return webhookRetryHandler(req, res);
+  });
+
+  // External API endpoints (Bearer token auth)
+  const { registerExternalApi } = await import("../externalApi");
+  registerExternalApi(app);
+
   // tRPC API
   app.use(
     "/api/trpc",

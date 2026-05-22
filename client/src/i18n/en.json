@@ -345,6 +345,9 @@
       "deepSleep": "DeepSleepReset",
     "externalLeads": "External Leads",
     "aiSkills": "AI Skills Library",
-    "roiAudit": "ROI Audit Wizard"
+    "roiAudit": "ROI Audit Wizard",
+    "proAnalytics": "Pro Analytics",
+    "webhookActivity": "Webhook Activity",
+    "apiKeys": "API Keys & CRM"
   }
 }

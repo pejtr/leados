@@ -82,7 +82,10 @@
     "deepSleep": "DeepSleepReset",
     "externalLeads": "Externí leady",
     "aiSkills": "Knihovna AI Skills",
-    "roiAudit": "ROI Audit Wizard"
+    "roiAudit": "ROI Audit Wizard",
+    "proAnalytics": "Pro Analytika",
+    "webhookActivity": "Webhook Aktivita",
+    "apiKeys": "API Klíče & CRM"
   },
   "home": {
     "aiSystemsActive": "AI systémy aktivní",
