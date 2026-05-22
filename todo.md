@@ -773,3 +773,8 @@
 - [x] Mount /api/scheduled/webhook-retry endpoint in server/_core/index.ts
 - [x] Mount /api/external/* endpoints via registerExternalApi
 - [x] All 20 vitest tests passing
+
+### Tech Stack Section (Factorio-inspired)
+- [x] Create Factorio-style Tech Stack section on Landing page
+- [x] Add i18n translations for Tech Stack section (en, cs, de)
+- [x] Integrate industrial/automation visual style (conveyor belts, pipeline nodes, neon indicators)

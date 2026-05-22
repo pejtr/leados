@@ -1052,6 +1052,124 @@ export default function Landing() {
             </div>
           </Reveal>
         </div>
+       </section>
+
+      {/* ── Tech Stack (Factorio-inspired) ─────────────────────────────────── */}
+      <section id="tech-stack" className="py-24 px-4 sm:px-6 relative overflow-hidden" style={{ background: "#0D1B2A", borderTop: `1px solid ${C.border}` }}>
+        {/* Factorio grid background */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{
+          backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(0,212,200,0.3) 59px, rgba(0,212,200,0.3) 60px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(0,212,200,0.3) 59px, rgba(0,212,200,0.3) 60px)`,
+        }} />
+        {/* Animated conveyor belt lines */}
+        <div className="absolute top-1/4 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${C.teal}40, transparent)` }} />
+        <div className="absolute top-2/4 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${C.indigo}30, transparent)` }} />
+        <div className="absolute top-3/4 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${C.teal}20, transparent)` }} />
+
+        <div className="max-w-6xl mx-auto relative z-10">
+          <Reveal>
+            <div className="text-center mb-16">
+              <Badge className="mb-4 text-xs px-3 py-1"
+                style={{ background: "rgba(0,212,200,0.1)", border: "1px solid rgba(0,212,200,0.3)", color: "#00D4C8" }}>
+                ⚙️ {t("landing.techStackBadge") || "Technology Pipeline"}
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#ffffff" }}>
+                {t("landing.techStackTitle") || "The Factory Behind Your Leads"}
+              </h2>
+              <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.6)" }}>
+                {t("landing.techStackSubtitle") || "Every lead passes through 7 automated stations — from raw data to qualified pipeline. Zero manual work."}
+              </p>
+            </div>
+          </Reveal>
+
+          {/* Pipeline Conveyor Belt */}
+          <div className="relative">
+            {/* Main conveyor line */}
+            <div className="absolute top-1/2 left-0 right-0 h-1 -translate-y-1/2 hidden lg:block" style={{
+              background: `linear-gradient(90deg, ${C.teal}00, ${C.teal}60 10%, ${C.teal}60 90%, ${C.teal}00)`,
+              boxShadow: `0 0 20px ${C.teal}30`,
+            }} />
+            {/* Animated dots on conveyor */}
+            <div className="absolute top-1/2 left-0 right-0 h-1 -translate-y-1/2 hidden lg:block overflow-hidden">
+              <div className="flex gap-8 animate-pulse">
+                {Array.from({length: 12}).map((_, i) => (
+                  <div key={i} className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: C.teal, boxShadow: `0 0 8px ${C.teal}`, marginLeft: i === 0 ? '5%' : '0' }} />
+                ))}
+              </div>
+            </div>
+
+            {/* Tech Stations */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
+              {[
+                { icon: "🎯", titleKey: "landing.techStation1Title", descKey: "landing.techStation1Desc", fallbackTitle: "ICP Targeting", fallbackDesc: "AI defines your ideal customer profile from industry, size, tech stack, and buying signals.", glow: C.indigo },
+                { icon: "⛏️", titleKey: "landing.techStation2Title", descKey: "landing.techStation2Desc", fallbackTitle: "LinkedIn Mining", fallbackDesc: "Apify scrapers extract decision-makers matching your ICP. 50+ data points per lead.", glow: C.teal },
+                { icon: "🔬", titleKey: "landing.techStation3Title", descKey: "landing.techStation3Desc", fallbackTitle: "Email Enrichment", fallbackDesc: "Real-time verification via Bouncer API. Only verified emails enter the pipeline.", glow: "#10b981" },
+                { icon: "🧠", titleKey: "landing.techStation4Title", descKey: "landing.techStation4Desc", fallbackTitle: "AI Scoring", fallbackDesc: "GPT-4o analyzes fit, intent signals, and engagement probability. Score 0-100.", glow: "#f59e0b" },
+                { icon: "✉️", titleKey: "landing.techStation5Title", descKey: "landing.techStation5Desc", fallbackTitle: "Icebreaker Gen", fallbackDesc: "Personalized first sentence using company news, mutual connections, and tech stack.", glow: C.indigo },
+                { icon: "🚀", titleKey: "landing.techStation6Title", descKey: "landing.techStation6Desc", fallbackTitle: "Auto-Sequence", fallbackDesc: "Multi-step email campaigns with conditional logic. If/then branching per response.", glow: C.teal },
+                { icon: "📊", titleKey: "landing.techStation7Title", descKey: "landing.techStation7Desc", fallbackTitle: "Pipeline CRM", fallbackDesc: "Kanban board, deal tracking, webhook dispatch to Zapier/Make/ClickUp.", glow: "#10b981" },
+                { icon: "🔄", titleKey: "landing.techStation8Title", descKey: "landing.techStation8Desc", fallbackTitle: "Webhook API", fallbackDesc: "HMAC-SHA256 signed events. Real-time dispatch to any endpoint. Exponential retry.", glow: "#f59e0b" },
+              ].map((station, i) => (
+                <Reveal key={i} delay={i * 0.08}>
+                  <div className="relative group">
+                    {/* Station connector node */}
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 rounded-full hidden lg:flex items-center justify-center z-20" style={{
+                      background: "#0D1B2A",
+                      border: `2px solid ${station.glow}`,
+                      boxShadow: `0 0 12px ${station.glow}50`,
+                    }}>
+                      <div className="w-2 h-2 rounded-full" style={{ background: station.glow }} />
+                    </div>
+                    {/* Station card */}
+                    <div className="p-5 rounded-xl h-full" style={{
+                      background: "rgba(255,255,255,0.03)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      backdropFilter: "blur(8px)",
+                    }}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg" style={{
+                          background: `${station.glow}15`,
+                          border: `1px solid ${station.glow}30`,
+                          boxShadow: `0 0 16px ${station.glow}20`,
+                        }}>
+                          {station.icon}
+                        </div>
+                        <div className="text-xs font-mono uppercase tracking-wider" style={{ color: station.glow }}>
+                          {String(i + 1).padStart(2, '0')}
+                        </div>
+                      </div>
+                      <h3 className="font-bold text-sm mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#ffffff" }}>
+                        {t(station.titleKey) || station.fallbackTitle}
+                      </h3>
+                      <p className="text-xs leading-relaxed" style={{ color: "rgba(255,255,255,0.5)" }}>
+                        {t(station.descKey) || station.fallbackDesc}
+                      </p>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom stats bar */}
+          <Reveal delay={0.4}>
+            <div className="mt-12 p-5 rounded-xl flex flex-wrap justify-center gap-8" style={{
+              background: "rgba(0,212,200,0.04)",
+              border: "1px solid rgba(0,212,200,0.15)",
+            }}>
+              {[
+                { value: "7", label: t("landing.techStat1") || "Automated Stations" },
+                { value: "<2min", label: t("landing.techStat2") || "Per Lead Processing" },
+                { value: "99.2%", label: t("landing.techStat3") || "Email Deliverability" },
+                { value: "0", label: t("landing.techStat4") || "Manual Steps Required" },
+              ].map((stat, i) => (
+                <div key={i} className="text-center">
+                  <div className="text-2xl font-black font-mono" style={{ color: C.teal, textShadow: `0 0 20px ${C.teal}40` }}>{stat.value}</div>
+                  <div className="text-xs mt-1" style={{ color: "rgba(255,255,255,0.4)" }}>{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+        </div>
       </section>
 
       {/* ── Pricing ──────────────────────────────────────────────────────────── */}
