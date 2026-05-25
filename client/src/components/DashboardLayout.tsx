@@ -176,9 +176,10 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
       <div className="flex items-center gap-1">
         <button
           onClick={onAppsClick}
-          className="flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all text-xs font-semibol              style={{ color: "oklch(0.82 0.012 240)" }}>fontFamily: "'Space Grotesk', sans-serif" }}
+          className="flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all text-xs font-semibold"
+          style={{ color: "oklch(0.82 0.012 240)", fontFamily: "'Space Grotesk', sans-serif" }}
           onMouseEnter={e => (e.currentTarget.style.background = "oklch(0.55 0.20 192 / 10%)")}
-          onMouseLeave={e => (e.currentTarget.style.background = "")}>       >
+          onMouseLeave={e => (e.currentTarget.style.background = "")}>
           <div className="h-4 w-4 rounded flex items-center justify-center"
             style={{ background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220))" }}>
             <Zap className="h-2.5 w-2.5 text-white" />
