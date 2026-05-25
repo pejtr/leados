@@ -163,10 +163,10 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
     <div
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 select-none"
       style={{
-        background: "oklch(0.97 0.006 240 / 88%)",
+        background: "oklch(0.085 0.04 248 / 92%)",
         backdropFilter: "blur(20px) saturate(180%)",
         WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        borderBottom: "1px solid oklch(0.88 0.010 240 / 60%)",
+        borderBottom: "1px solid oklch(1 0 0 / 8%)",
         boxShadow: "0 1px 0 oklch(0 0 0 / 6%), 0 2px 8px oklch(0 0 0 / 4%)",
         paddingTop: "env(safe-area-inset-top, 0px)",
         height: "calc(2rem + env(safe-area-inset-top, 0px))",
@@ -176,11 +176,9 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
       <div className="flex items-center gap-1">
         <button
           onClick={onAppsClick}
-          className="flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all text-xs font-semibold"
-          style={{ color: "oklch(0.25 0.04 250)", fontFamily: "'Space Grotesk', sans-serif" }}
+          className="flex items-center gap-1.5 px-2 py-0.5 rounded-md transition-all text-xs font-semibol              style={{ color: "oklch(0.82 0.012 240)" }}>fontFamily: "'Space Grotesk', sans-serif" }}
           onMouseEnter={e => (e.currentTarget.style.background = "oklch(0.55 0.20 192 / 10%)")}
-          onMouseLeave={e => (e.currentTarget.style.background = "")}
-        >
+          onMouseLeave={e => (e.currentTarget.style.background = "")}>       >
           <div className="h-4 w-4 rounded flex items-center justify-center"
             style={{ background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220))" }}>
             <Zap className="h-2.5 w-2.5 text-white" />
@@ -207,19 +205,19 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
       </div>
 
       {/* Center: date */}
-      <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5">
-        <span className="text-[11px] font-medium" style={{ color: "oklch(0.42 0.04 250)", fontFamily: "'Space Grotesk', sans-serif" }}>
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+        <span className="text-[11px] font-medium" style={{ color: "oklch(0.65 0.04 250)", fontFamily: "'Space Grotesk', sans-serif" }}>
           {dateStr}
         </span>
       </div>
 
       {/* Right: status icons + time + user */}
       <div className="flex items-center gap-2">
-        <Wifi className="h-3 w-3" style={{ color: "oklch(0.50 0.04 250)" }} />
-        <Battery className="h-3 w-3" style={{ color: "oklch(0.50 0.04 250)" }} />
-        <Volume2 className="h-3 w-3" style={{ color: "oklch(0.50 0.04 250)" }} />
+        <Wifi className="h-3 w-3" style={{ color: "oklch(0.65 0.04 250)" }} />
+        <Battery className="h-3 w-3" style={{ color: "oklch(0.65 0.04 250)" }} />
+        <Volume2 className="h-3 w-3" style={{ color: "oklch(0.65 0.04 250)" }} />
 
-        <span className="text-[11px] font-semibold tabular-nums" style={{ color: "oklch(0.25 0.04 250)", fontFamily: "'Space Grotesk', sans-serif" }}>
+        <span className="text-[11px] font-semibold tabular-nums" style={{ color: "oklch(0.82 0.012 240)", fontFamily: "'Space Grotesk', sans-serif" }}>
           {timeStr}
         </span>
 
@@ -240,10 +238,10 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44 mt-1"
-            style={{ background: "oklch(0.98 0.004 240 / 95%)", backdropFilter: "blur(20px)", border: "1px solid oklch(0.88 0.012 240)", boxShadow: "0 8px 32px oklch(0 0 0 / 12%)" }}>
-            <div className="px-3 py-2 border-b" style={{ borderColor: "oklch(0.90 0.010 240)" }}>
-              <p className="text-xs font-semibold truncate" style={{ color: "oklch(0.25 0.04 250)" }}>{user?.name}</p>
-              <p className="text-[10px] truncate mt-0.5" style={{ color: "oklch(0.55 0.04 250)" }}>{user?.email}</p>
+            style={{ background: "oklch(0.13 0.04 248 / 97%)", backdropFilter: "blur(20px)", border: "1px solid oklch(1 0 0 / 10%)", boxShadow: "0 8px 32px oklch(0 0 0 / 40%)" }}>
+            <div className="px-3 py-2 border-b" style={{ borderColor: "oklch(1 0 0 / 8%)" }}>
+              <p className="text-xs font-semibold truncate" style={{ color: "oklch(0.93 0.008 240)" }}>{user?.name}</p>
+              <p className="text-[10px] truncate mt-0.5" style={{ color: "oklch(0.65 0.04 250)" }}>{user?.email}</p>
             </div>
             <DropdownMenuItem onClick={logout} className="cursor-pointer mt-1 text-red-600 focus:text-red-600 focus:bg-red-50">
               <LogOut className="mr-2 h-3.5 w-3.5" />
@@ -277,11 +275,11 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
       style={{
         top: "calc(2rem + env(safe-area-inset-top, 0px))",
         width: 56,
-        background: "oklch(0.97 0.006 240 / 92%)",
+        background: "oklch(0.085 0.04 248 / 95%)",
         backdropFilter: "blur(24px) saturate(200%)",
         WebkitBackdropFilter: "blur(24px) saturate(200%)",
-        borderRight: "1px solid oklch(0.88 0.012 240 / 70%)",
-        boxShadow: "2px 0 16px oklch(0 0 0 / 6%)",
+        borderRight: "1px solid oklch(1 0 0 / 8%)",
+        boxShadow: "2px 0 16px oklch(0 0 0 / 30%)",
         scrollbarWidth: "none",
       }}
     >
@@ -312,16 +310,16 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
                 height: 40,
                 background: isActive
                   ? `linear-gradient(135deg, ${item.color}22, ${item.color}15)`
-                  : "oklch(0.94 0.008 240)",
+                  : "oklch(0.15 0.04 248)",
                 border: isActive
                   ? `1.5px solid ${item.color}44`
-                  : "1.5px solid oklch(0.88 0.010 240 / 50%)",
+                  : "1.5px solid oklch(1 0 0 / 10%)",
                 boxShadow: isActive
                   ? `0 0 12px ${item.color}30, 0 2px 8px oklch(0 0 0 / 8%)`
                   : "0 2px 6px oklch(0 0 0 / 6%)",
               }}
             >
-              <Icon className="h-[18px] w-[18px]" style={{ color: isActive ? item.color : "oklch(0.45 0.06 250)" }} />
+              <Icon className="h-[18px] w-[18px]" style={{ color: isActive ? item.color : "oklch(0.55 0.06 250)" }} />
             </button>
 
             {/* Active dot */}
@@ -334,7 +332,7 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
       })}
 
       {/* Separator */}
-      <div className="w-6 h-px my-1 rounded-full" style={{ background: "oklch(0.80 0.012 240)" }} />
+      <div className="w-6 h-px my-1 rounded-full" style={{ background: "oklch(1 0 0 / 12%)" }} />
 
       {/* All Apps button */}
       <div className="relative flex flex-col items-center"
@@ -396,22 +394,22 @@ function AppsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
         className="fixed left-0 bottom-0 z-40 w-72 overflow-y-auto"
         style={{
           top: "calc(2rem + env(safe-area-inset-top, 0px))",
-          background: "oklch(0.97 0.006 240 / 95%)",
+          background: "oklch(0.085 0.04 248 / 97%)",
           backdropFilter: "blur(24px) saturate(180%)",
           WebkitBackdropFilter: "blur(24px) saturate(180%)",
-          borderRight: "1px solid oklch(0.88 0.012 240 / 70%)",
-          boxShadow: "4px 0 24px oklch(0 0 0 / 10%)",
+          borderRight: "1px solid oklch(1 0 0 / 8%)",
+          boxShadow: "4px 0 24px oklch(0 0 0 / 40%)",
           transform: open ? "translateX(0)" : "translateX(-100%)",
           transition: "transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)",
         }}
       >
         {/* Search bar */}
         <div className="sticky top-0 px-4 py-3 border-b"
-          style={{ borderColor: "oklch(0.88 0.012 240 / 60%)", background: "oklch(0.97 0.006 240 / 95%)", backdropFilter: "blur(20px)" }}>
+          style={{ borderColor: "oklch(1 0 0 / 8%)", background: "oklch(0.085 0.04 248 / 97%)", backdropFilter: "blur(20px)" }}>
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-            style={{ background: "oklch(0.92 0.008 240)", border: "1px solid oklch(0.86 0.010 240)" }}>
-            <Search className="h-3.5 w-3.5" style={{ color: "oklch(0.55 0.04 250)" }} />
-            <span className="text-xs" style={{ color: "oklch(0.60 0.04 250)" }}>Hledat aplikaci…</span>
+            style={{ background: "oklch(0.15 0.04 248)", border: "1px solid oklch(1 0 0 / 10%)" }}>
+            <Search className="h-3.5 w-3.5" style={{ color: "oklch(0.52 0.04 250)" }} />
+            <span className="text-xs" style={{ color: "oklch(0.52 0.04 250)" }}>Hledat aplikaci…</span>
           </div>
         </div>
 
@@ -440,16 +438,16 @@ function AppsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
                         background: "oklch(0.55 0.20 192 / 10%)",
                         border: "1px solid oklch(0.55 0.20 192 / 20%)",
                       } : {}}
-                      onMouseEnter={e => !isActive && (e.currentTarget.style.background = "oklch(0.90 0.008 240)")}
+                      onMouseEnter={e => !isActive && (e.currentTarget.style.background = "oklch(0.17 0.04 248)")}
                       onMouseLeave={e => !isActive && (e.currentTarget.style.background = "")}
                     >
                       <div className="h-7 w-7 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ background: isActive ? "oklch(0.55 0.20 192 / 15%)" : "oklch(0.92 0.008 240)" }}>
+                        style={{ background: isActive ? "oklch(0.55 0.20 192 / 15%)" : "oklch(0.17 0.04 248)" }}>
                         <item.icon className="h-3.5 w-3.5"
-                          style={{ color: isActive ? "oklch(0.50 0.20 192)" : "oklch(0.50 0.06 250)" }} />
+                          style={{ color: isActive ? "oklch(0.65 0.20 192)" : "oklch(0.55 0.06 250)" }} />
                       </div>
                       <span className="text-xs font-medium truncate"
-                        style={{ color: isActive ? "oklch(0.40 0.20 192)" : "oklch(0.35 0.04 250)" }}>
+                        style={{ color: isActive ? "oklch(0.75 0.20 192)" : "oklch(0.82 0.012 240)" }}>
                         {item.label}
                       </span>
                       {isActive && <ChevronRight className="h-3 w-3 ml-auto shrink-0" style={{ color: "oklch(0.55 0.20 192)" }} />}
@@ -494,7 +492,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               style={{ background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220))", boxShadow: "0 0 30px oklch(0.55 0.20 192 / 35%)" }}>
               <Zap className="h-5 w-5 text-white" />
             </div>
-            <span className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "oklch(0.18 0.04 250)" }}>
+            <span className="text-xl font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "oklch(0.93 0.008 240)" }}>
               Lead<span style={{ color: "oklch(0.50 0.22 192)" }}>OS</span>
             </span>
           </div>
@@ -514,7 +512,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: "oklch(0.965 0.008 240)" }}>
+    <div className="flex flex-col min-h-screen bg-background">
       {/* macOS top menubar */}
       <MacMenuBar user={user} logout={logout} onAppsClick={() => setAppsOpen(v => !v)} />
 

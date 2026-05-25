@@ -1,0 +1,90 @@
+{
+  "query": "DESCRIBE api_keys;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute DESCRIBE api_keys;",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment"
+    },
+    {
+      "Field": "user_id",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "name",
+      "Type": "varchar(256)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "key_hash",
+      "Type": "varchar(256)",
+      "Null": "NO",
+      "Key": "UNI",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "permissions",
+      "Type": "varchar(512)",
+      "Null": "NO",
+      "Key": "",
+      "Default": "read",
+      "Extra": ""
+    },
+    {
+      "Field": "status",
+      "Type": "enum('active','revoked','expired')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "active",
+      "Extra": ""
+    },
+    {
+      "Field": "last_used_at",
+      "Type": "bigint",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "expires_at",
+      "Type": "bigint",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "created_at",
+      "Type": "bigint",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "revoked_at",
+      "Type": "bigint",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint\tNO\tPRI\tNULL\tauto_increment\nuser_id\tint\tNO\t\tNULL\t\nname\tvarchar(256)\tNO\t\tNULL\t\nkey_hash\tvarchar(256)\tNO\tUNI\tNULL\t\npermissions\tvarchar(512)\tNO\t\tread\t\nstatus\tenum('active','revoked','expired')\tNO\t\tactive\t\nlast_used_at\tbigint\tYES\t\tNULL\t\nexpires_at\tbigint\tYES\t\tNULL\t\ncreated_at\tbigint\tNO\t\tNULL\t\nrevoked_at\tbigint\tYES\t\tNULL\t\n",
+  "stderr": "",
+  "execution_time_ms": 256
+}

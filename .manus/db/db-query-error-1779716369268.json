@@ -1,0 +1,8 @@
+{
+  "query": "\nINSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, status, created_at)\nVALUES (\n  1,\n  'Human Design App Integration',\n  'c450871c7fc5247023ccbde54fb00cb9c07d87af8eeb91a35d8c48c008f813a3',\n  'lsk_a6693862',\n  'read,write,email',\n  'active',\n  NOW()\n);\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute \nINSERT INTO api_keys (user_id, name, key_hash, key_prefix, permissions, status, created_at)\nVALUES (\n  1,\n  'Human Design App Integration',\n  'c450871c7fc5247023ccbde54fb00cb9c07d87af8eeb91a35d8c48c008f813a3',\n  'lsk_a6693862',\n  'read,write,email',\n  'active',\n  NOW()\n);\n",
+  "returncode": 1,
+  "logs": [
+    "ERROR 1054 (42S22) at line 2: Unknown column 'key_prefix' in 'field list'"
+  ]
+}

@@ -1979,9 +1979,9 @@ Be concise: max 3-4 sentences unless asked for more. Use numbers from stats abov
       if (db) {
         const { icpProfiles, emailSequences, webhookConfigs } = await import("../drizzle/schema");
         const [icpResult, seqResult, webhookResult] = await Promise.all([
-          db.select({ count: eq(icpProfiles.userId, userId) }).from(icpProfiles).where(eq(icpProfiles.userId, userId)).limit(1),
-          db.select({ count: eq(emailSequences.userId, userId) }).from(emailSequences).where(eq(emailSequences.userId, userId)).limit(1),
-          db.select({ count: eq(webhookConfigs.userId, userId) }).from(webhookConfigs).where(eq(webhookConfigs.userId, userId)).limit(1),
+          db.select({ id: icpProfiles.id }).from(icpProfiles).where(eq(icpProfiles.userId, userId)).limit(1),
+          db.select({ id: emailSequences.id }).from(emailSequences).where(eq(emailSequences.userId, userId)).limit(1),
+          db.select({ id: webhookConfigs.id }).from(webhookConfigs).where(eq(webhookConfigs.userId, userId)).limit(1),
         ]);
         if (icpResult.length > 0) steps[1].done = true;
         if (seqResult.length > 0) steps[3].done = true;

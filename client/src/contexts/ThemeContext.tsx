@@ -18,13 +18,19 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({
   children,
-  defaultTheme = "light",
+  defaultTheme = "dark",
   switchable = false,
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(() => {
     if (switchable) {
-      const stored = localStorage.getItem("theme");
-      return (stored as Theme) || defaultTheme;
+      const stored = localStorage.getItem("theme") as Theme | null;
+      // If the app default is dark, never restore a stale "light" preference
+      // (this handles the migration from the old light-default build)
+      if (defaultTheme === "dark" && stored === "light") {
+        localStorage.setItem("theme", "dark");
+        return "dark";
+      }
+      return stored || defaultTheme;
     }
     return defaultTheme;
   });
@@ -36,7 +42,6 @@ export function ThemeProvider({
     } else {
       root.classList.remove("dark");
     }
-
     if (switchable) {
       localStorage.setItem("theme", theme);
     }

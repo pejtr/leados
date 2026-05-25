@@ -1,0 +1,250 @@
+{
+  "query": "SHOW TABLES;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute SHOW TABLES;",
+  "rows": [
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "__drizzle_migrations"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ad_campaign_snapshots"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ad_campaigns"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "agency_clients"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_agent_logs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_agent_memory"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_agents"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_chat_history"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_constitutions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_performance_log"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ai_skills"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "alert_rules"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "api_keys"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "autopilot_configs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "autopilot_runs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "benchmark_runs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "brain_analyses"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "call_recordings"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "campaign_rules"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "capture_plans"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "captured_leads"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "commissions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "competitive_maps"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "computer_flow_runs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "connected_projects"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "daily_report_configs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "deal_activities"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "deals"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "dsr_snapshots"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_sequence_enrollments"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_sequence_steps"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_sequences"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_templates"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "email_verifications"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "follow_up_sessions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "hermes_messages"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "hermes_missions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "hermes_sessions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "icp_profiles"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "ingested_leads"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "integration_logs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "integration_settings"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "knowledge_articles"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "lead_sessions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "leads"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "linkedin_connections"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "listings"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "market_intel_reports"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "match_profiles"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "meeting_links"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "morning_briefings"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "nba_recommendations"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "persona_ratings"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "portfolio_share_tokens"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "predictive_scores"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "project_events"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "property_transactions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "quotas"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "referral_codes"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "referral_conversions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "revenue_snapshots"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "roi_audit_sessions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "sales_playbooks"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "sdr_activities"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "sdr_campaigns"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "smart_lists"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "social_monitors"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "social_signals"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "speed_to_lead_configs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "tasks"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "team_members"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "tech_stack_detections"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "tracking_pixels"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "user_persona_favorites"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "users"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "visitor_page_views"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "visitor_sessions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "webhook_configs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "webhook_configs_crm"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7": "webhook_logs"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_KYtwaRBAJcsE9tGSZfVrb7\n__drizzle_migrations\nad_campaign_snapshots\nad_campaigns\nagency_clients\nai_agent_logs\nai_agent_memory\nai_agents\nai_chat_history\nai_constitutions\nai_performance_log\nai_skills\nalert_rules\napi_keys\nautopilot_configs\nautopilot_runs\nbenchmark_runs\nbrain_analyses\ncall_recordings\ncampaign_rules\ncapture_plans\ncaptured_leads\ncommissions\ncompetitive_maps\ncomputer_flow_runs\nconnected_projects\ndaily_report_configs\ndeal_activities\ndeals\ndsr_snapshots\nemail_sequence_enrollments\nemail_sequence_steps\nemail_sequences\nemail_templates\nemail_verifications\nfollow_up_sessions\nhermes_messages\nhermes_missions\nhermes_sessions\nicp_profiles\ningested_leads\nintegration_logs\nintegration_settings\nknowledge_articles\nlead_sessions\nleads\nlinkedin_connections\nlistings\nmarket_intel_reports\nmatch_profiles\nmeeting_links\nmorning_briefings\nnba_recommendations\npersona_ratings\nportfolio_share_tokens\npredictive_scores\nproject_events\nproperty_transactions\nquotas\nreferral_codes\nreferral_conversions\nrevenue_snapshots\nroi_audit_sessions\nsales_playbooks\nsdr_activities\nsdr_campaigns\nsmart_lists\nsocial_monitors\nsocial_signals\nspeed_to_lead_configs\ntasks\nteam_members\ntech_stack_detections\ntracking_pixels\nuser_persona_favorites\nusers\nvisitor_page_views\nvisitor_sessions\nwebhook_configs\nwebhook_configs_crm\nwebhook_logs\n",
+  "stderr": "",
+  "execution_time_ms": 270
+}

@@ -1,10 +1,39 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
-import { X, Zap, TrendingUp, Lock, ArrowRight, Star, Timer } from "lucide-react";
+import { X, Zap, TrendingUp, Lock, ArrowRight, Star, Timer, BarChart2, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+// ─── A/B Test Utilities ───────────────────────────────────────────────────────
+type ABVariant = "A" | "B";
+
+function getOrAssignVariant(): ABVariant {
+  const stored = localStorage.getItem("upgrade_nudge_ab_variant") as ABVariant | null;
+  if (stored === "A" || stored === "B") return stored;
+  const assigned: ABVariant = Math.random() < 0.5 ? "A" : "B";
+  localStorage.setItem("upgrade_nudge_ab_variant", assigned);
+  return assigned;
+}
+
+function trackConversion(variant: ABVariant, action: "shown" | "clicked" | "dismissed") {
+  try {
+    const key = `upgrade_nudge_ab_${variant}_${action}`;
+    const current = parseInt(localStorage.getItem(key) ?? "0", 10);
+    localStorage.setItem(key, String(current + 1));
+  } catch {}
+}
+
+export function getABTestStats() {
+  const variants: ABVariant[] = ["A", "B"];
+  return variants.map(v => ({
+    variant: v,
+    shown: parseInt(localStorage.getItem(`upgrade_nudge_ab_${v}_shown`) ?? "0", 10),
+    clicked: parseInt(localStorage.getItem(`upgrade_nudge_ab_${v}_clicked`) ?? "0", 10),
+    dismissed: parseInt(localStorage.getItem(`upgrade_nudge_ab_${v}_dismissed`) ?? "0", 10),
+  }));
+}
 
 // ─── Feature Gate Wrapper ────────────────────────────────────────────────────
 interface FeatureGateProps {
@@ -204,38 +233,15 @@ export function UsageLimitIndicator({ used, limit, label, upgradeMessage }: Usag
   );
 }
 
-// ─── Floating Upgrade Nudge (appears after X seconds for free users) ──────────
-export function FloatingUpgradeNudge() {
-  const { user } = useAuth();
-  const [, navigate] = useLocation();
-  const [visible, setVisible] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+// ─── Variant A: Floating Popup (original, after 45s) ─────────────────────────
+function VariantANudge({ onDismiss, onConvert }: { onDismiss: () => void; onConvert: () => void }) {
   const [countdown, setCountdown] = useState(15);
 
-  const isFree = !user || user.subscriptionPlan === "free" || !user.subscriptionPlan;
-
   useEffect(() => {
-    if (!isFree) return;
-    const dismissed = sessionStorage.getItem("upgrade_nudge_dismissed");
-    if (dismissed) return;
-
-    const timer = setTimeout(() => setVisible(true), 45_000); // show after 45s
-    return () => clearTimeout(timer);
-  }, [isFree]);
-
-  useEffect(() => {
-    if (!visible) return;
     if (countdown <= 0) return;
     const t = setInterval(() => setCountdown(c => c - 1), 1000);
     return () => clearInterval(t);
-  }, [visible, countdown]);
-
-  const handleDismiss = () => {
-    sessionStorage.setItem("upgrade_nudge_dismissed", "1");
-    setDismissed(true);
-  };
-
-  if (!isFree || !visible || dismissed) return null;
+  }, [countdown]);
 
   return (
     <div className="fixed bottom-6 right-6 z-50 w-80 rounded-2xl border border-violet-500/30 bg-[#0D1B2A]/95 backdrop-blur-xl shadow-2xl shadow-violet-500/20 p-4 animate-in slide-in-from-bottom-4 duration-500">
@@ -249,7 +255,7 @@ export function FloatingUpgradeNudge() {
             <p className="text-xs text-white/50">LeadOS Pro</p>
           </div>
         </div>
-        <button onClick={handleDismiss} className="text-white/30 hover:text-white/60">
+        <button onClick={onDismiss} className="text-white/30 hover:text-white/60">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -270,7 +276,7 @@ export function FloatingUpgradeNudge() {
 
       <Button
         className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-semibold text-sm"
-        onClick={() => { navigate("/billing"); handleDismiss(); }}
+        onClick={onConvert}
       >
         <Zap className="w-3.5 h-3.5 mr-2" />
         Začít zdarma — 14 dní trial
@@ -284,6 +290,126 @@ export function FloatingUpgradeNudge() {
       )}
     </div>
   );
+}
+
+// ─── Variant B: Inline ROI-focused sticky banner ──────────────────────────────
+function VariantBNudge({ onDismiss, onConvert }: { onDismiss: () => void; onConvert: () => void }) {
+  const [roiValue, setRoiValue] = useState(0);
+
+  // Animate ROI number up
+  useEffect(() => {
+    let frame: number;
+    const target = 888;
+    const duration = 1500;
+    const start = performance.now();
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setRoiValue(Math.round(eased * target));
+      if (progress < 1) frame = requestAnimationFrame(animate);
+    };
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  return (
+    <div className="fixed bottom-6 right-6 z-50 w-96 rounded-2xl border border-emerald-500/30 bg-[#0D1B2A]/95 backdrop-blur-xl shadow-2xl shadow-emerald-500/10 p-5 animate-in slide-in-from-bottom-4 duration-500">
+      <button
+        onClick={onDismiss}
+        className="absolute top-3 right-3 text-white/30 hover:text-white/60"
+      >
+        <X className="w-4 h-4" />
+      </button>
+
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+          <BarChart2 className="w-5 h-5 text-emerald-400" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-white">Tvoji konkurenti generují leady 24/7</p>
+          <p className="text-xs text-white/50">Průměrný ROI zákazníků LeadOS</p>
+        </div>
+      </div>
+
+      {/* Animated ROI metric */}
+      <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-3 mb-4 text-center">
+        <div className="text-3xl font-black text-emerald-400 tabular-nums">
+          +{roiValue}%
+        </div>
+        <div className="text-xs text-white/50 mt-0.5">průměrný ROI za 90 dní</div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        {[
+          { label: "Leadů/měsíc", value: "2 400+" },
+          { label: "Konverze", value: "23%" },
+          { label: "Ušetřeno", value: "40h" },
+        ].map(stat => (
+          <div key={stat.label} className="text-center bg-white/5 rounded-lg p-2">
+            <div className="text-sm font-bold text-white">{stat.value}</div>
+            <div className="text-xs text-white/40">{stat.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <Button
+        className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-sm"
+        onClick={onConvert}
+      >
+        <Rocket className="w-3.5 h-3.5 mr-2" />
+        Spustit LeadOS Pro — 14 dní zdarma
+        <ArrowRight className="w-3.5 h-3.5 ml-2" />
+      </Button>
+      <p className="text-center text-xs text-white/30 mt-2">Bez kreditní karty · Zrušit kdykoliv</p>
+    </div>
+  );
+}
+
+// ─── Floating Upgrade Nudge (A/B tested) ─────────────────────────────────────
+export function FloatingUpgradeNudge() {
+  const { user } = useAuth();
+  const [, navigate] = useLocation();
+  const [visible, setVisible] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const variantRef = useRef<ABVariant>(getOrAssignVariant());
+  const trackedShown = useRef(false);
+
+  const isFree = !user || user.subscriptionPlan === "free" || !user.subscriptionPlan;
+
+  useEffect(() => {
+    if (!isFree) return;
+    const wasDismissed = sessionStorage.getItem("upgrade_nudge_dismissed");
+    if (wasDismissed) return;
+
+    const timer = setTimeout(() => setVisible(true), 45_000);
+    return () => clearTimeout(timer);
+  }, [isFree]);
+
+  useEffect(() => {
+    if (visible && !trackedShown.current) {
+      trackedShown.current = true;
+      trackConversion(variantRef.current, "shown");
+    }
+  }, [visible]);
+
+  const handleDismiss = () => {
+    trackConversion(variantRef.current, "dismissed");
+    sessionStorage.setItem("upgrade_nudge_dismissed", "1");
+    setDismissed(true);
+  };
+
+  const handleConvert = () => {
+    trackConversion(variantRef.current, "clicked");
+    navigate("/billing");
+    handleDismiss();
+  };
+
+  if (!isFree || !visible || dismissed) return null;
+
+  return variantRef.current === "A"
+    ? <VariantANudge onDismiss={handleDismiss} onConvert={handleConvert} />
+    : <VariantBNudge onDismiss={handleDismiss} onConvert={handleConvert} />;
 }
 
 // ─── Plan Badge ───────────────────────────────────────────────────────────────

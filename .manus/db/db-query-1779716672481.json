@@ -1,0 +1,25 @@
+{
+  "query": "SHOW TABLES LIKE 'referral%'; SHOW TABLES LIKE 'integration%';",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute SHOW TABLES LIKE 'referral%'; SHOW TABLES LIKE 'integration%';",
+  "rows": [
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (referral%)": "referral_codes"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (referral%)": "referral_conversions"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (referral%)": "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (integration%)"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (referral%)": "integration_logs"
+    },
+    {
+      "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (referral%)": "integration_settings"
+    }
+  ],
+  "messages": [],
+  "stdout": "Tables_in_KYtwaRBAJcsE9tGSZfVrb7 (referral%)\nreferral_codes\nreferral_conversions\nTables_in_KYtwaRBAJcsE9tGSZfVrb7 (integration%)\nintegration_logs\nintegration_settings\n",
+  "stderr": "",
+  "execution_time_ms": 265
+}

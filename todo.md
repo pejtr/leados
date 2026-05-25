@@ -820,3 +820,9 @@
 - [ ] Add trial-to-paid conversion email sequence trigger
 - [ ] Add "Invite a colleague" viral loop mechanic
 - [ ] Add social proof counter (live user count on landing page)
+
+## Phase 6 — A/B Testing + ROI Animator + Affiliate Leaderboard
+
+- [ ] A/B testing for UpgradeNudge: variant assignment (localStorage), Variant A (floating after 45s), Variant B (inline banner with different copy), conversion tracking per variant
+- [ ] Enhanced ROI Calculator: animated count-up numbers, slider inputs (leads/month, close rate, deal value), projection chart (Chart.js line), smooth transitions
+- [ ] Detailed Affiliate leaderboard: historical earnings chart (recharts), monthly breakdown table, rank badges, commission history timeline
