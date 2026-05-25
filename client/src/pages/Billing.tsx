@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Check, Zap, Star, Building2, CreditCard, ExternalLink, Phone, ArrowRight } from "lucide-react";
+import { Check, Zap, Star, Building2, CreditCard, ExternalLink, Phone, ArrowRight, TrendingUp, Calculator, Clock, Flame } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useLocation } from "wouter";
 import { useGoogleAds } from "@/hooks/useGoogleAds";
@@ -76,6 +76,80 @@ const COMPETITOR_TABLE = [
   { feature: "billing.cmpCzechSlovak", leados: true, hubspot: false, apollo: false, salesforce: false },
   { feature: "billing.cmpPriceFrom", leados: "€149", hubspot: "€800+", apollo: "€99", salesforce: "€1200+" },
 ];
+
+// ─── ROI Calculator Component ─────────────────────────────────────────────
+function ROICalculator({ interval }: { interval: "monthly" | "yearly" }) {
+  const [leadsPerMonth, setLeadsPerMonth] = useState(50);
+  const [conversionRate, setConversionRate] = useState(5);
+  const [dealSize, setDealSize] = useState(2000);
+  const [plan, setPlan] = useState<"starter" | "growth" | "pro">("growth");
+
+  const planCost = {
+    starter: interval === "monthly" ? 149 : Math.round(1190 / 12),
+    growth: interval === "monthly" ? 399 : Math.round(3190 / 12),
+    pro: interval === "monthly" ? 799 : Math.round(6390 / 12),
+  }[plan];
+
+  const closedDeals = Math.round(leadsPerMonth * (conversionRate / 100));
+  const monthlyRevenue = closedDeals * dealSize;
+  const roi = planCost > 0 ? Math.round(((monthlyRevenue - planCost) / planCost) * 100) : 0;
+  const roiLabel = roi >= 888 ? "🔥 888%+ ROI" : roi >= 500 ? "🚀 Výborné" : roi >= 200 ? "✅ Dobré" : roi >= 100 ? "👍 Pozitivní" : "⚠️ Nízké";
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-4">
+        <div>
+          <label className="text-xs text-zinc-400 mb-1 block">Leady za měsíc: <span className="text-white font-semibold">{leadsPerMonth}</span></label>
+          <input type="range" min="10" max="500" step="10" value={leadsPerMonth} onChange={e => setLeadsPerMonth(+e.target.value)}
+            className="w-full accent-violet-500" />
+        </div>
+        <div>
+          <label className="text-xs text-zinc-400 mb-1 block">Konverzní poměr: <span className="text-white font-semibold">{conversionRate}%</span></label>
+          <input type="range" min="1" max="30" step="1" value={conversionRate} onChange={e => setConversionRate(+e.target.value)}
+            className="w-full accent-violet-500" />
+        </div>
+        <div>
+          <label className="text-xs text-zinc-400 mb-1 block">Průměrná hodnota obchodu: <span className="text-white font-semibold">€{dealSize.toLocaleString()}</span></label>
+          <input type="range" min="500" max="50000" step="500" value={dealSize} onChange={e => setDealSize(+e.target.value)}
+            className="w-full accent-violet-500" />
+        </div>
+        <div className="flex gap-2">
+          {(["starter", "growth", "pro"] as const).map(p => (
+            <button key={p} onClick={() => setPlan(p)}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-colors capitalize ${
+                plan === p ? "bg-violet-600 text-white" : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+              }`}>{p}</button>
+          ))}
+        </div>
+      </div>
+      <div className="bg-zinc-800/60 rounded-xl p-5 flex flex-col justify-between">
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-zinc-400">Uzavřené obchody/měsíc</span>
+            <span className="text-white font-semibold">{closedDeals}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-zinc-400">Měsíční příjmy</span>
+            <span className="text-emerald-400 font-semibold">€{monthlyRevenue.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-zinc-400">Náklady na LeadOS</span>
+            <span className="text-zinc-300">€{planCost}/měs</span>
+          </div>
+          <div className="h-px bg-zinc-700" />
+          <div className="flex justify-between">
+            <span className="text-zinc-300 font-medium">Čistý zisk</span>
+            <span className="text-emerald-400 font-bold text-lg">€{(monthlyRevenue - planCost).toLocaleString()}</span>
+          </div>
+        </div>
+        <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-violet-600/20 to-emerald-600/10 border border-violet-500/20 text-center">
+          <div className="text-2xl font-black text-white">{roi.toLocaleString()}% ROI</div>
+          <div className="text-sm text-zinc-300 mt-0.5">{roiLabel}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Billing() {
   const { t } = useTranslation();
@@ -271,6 +345,34 @@ export default function Billing() {
             </Button>
           </div>
         </div>
+
+        {/* ROI Calculator */}
+        <div className="p-6 rounded-2xl bg-gradient-to-br from-zinc-900 to-zinc-900/80 border border-violet-500/20">
+          <div className="flex items-center gap-2 mb-4">
+            <Calculator className="w-5 h-5 text-violet-400" />
+            <h2 className="text-lg font-semibold text-white">ROI Kalkulátor — Kolik vyděláš?</h2>
+          </div>
+          <ROICalculator interval={interval} />
+        </div>
+
+        {/* Annual Urgency Banner */}
+        {interval === "monthly" && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-amber-500/30 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <Flame className="w-5 h-5 text-amber-400 flex-shrink-0" />
+              <div>
+                <p className="text-white font-semibold text-sm">Přejdi na roční plán a ušetři až €3,204 ročně</p>
+                <p className="text-zinc-400 text-xs mt-0.5">Roční fakturace = 4 měsíce zdarma. Nabídka platí jen tento měsíc.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setInterval("yearly")}
+              className="shrink-0 px-4 py-2 rounded-lg bg-amber-500 hover:bg-amber-400 text-black text-sm font-bold transition-colors"
+            >
+              Přejít na roční →
+            </button>
+          </div>
+        )}
 
         {/* Competitor Comparison Table */}
         <div>

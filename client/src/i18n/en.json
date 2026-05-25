@@ -463,6 +463,8 @@
     "roiAudit": "ROI Audit Wizard",
     "proAnalytics": "Pro Analytics",
     "webhookActivity": "Webhook Activity",
-    "apiKeys": "API Keys & CRM"
+    "apiKeys": "API Keys & CRM",
+    "affiliate": "Affiliate Program",
+    "revenueIntelligence": "Revenue Intelligence"
   }
 }

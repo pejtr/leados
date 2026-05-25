@@ -61,6 +61,9 @@ import RoiAudit from "./pages/RoiAudit";
 import ComputerFlow from "./pages/ComputerFlow";
 import { GlobalEarnings } from "./pages/GlobalEarnings";
 import AdminIntegrations from "./pages/AdminIntegrations";
+import AffiliateDashboard from "./pages/AffiliateDashboard";
+import RevenueIntelligence from "./pages/RevenueIntelligence";
+import { FloatingUpgradeNudge } from "./components/UpgradeNudge";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import WebhookActivity from "./pages/WebhookActivity";
 
@@ -131,6 +134,8 @@ function Router() {
       <Route path="/computer-flow" component={ComputerFlow} />
         <Route path="/global-earnings" component={GlobalEarnings} />
       <Route path="/admin/integrations" component={AdminIntegrations} />
+      <Route path="/affiliate" component={AffiliateDashboard} />
+      <Route path="/revenue-intelligence" component={RevenueIntelligence} />
       <Route path="/analytics/professional" component={ProfessionalDashboard} />
       <Route path="/webhooks/activity" component={WebhookActivity} />
       <Route path="*" component={NotFound} />
@@ -145,6 +150,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <ScrollToTop />
+          <FloatingUpgradeNudge />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

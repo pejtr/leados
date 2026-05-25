@@ -15,7 +15,7 @@ import {
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, Calendar, Phone,
   TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical, Sparkles, Moon,
   CircleDollarSign, TrendingUp as TrendUp, Activity, Inbox, ChevronRight, Wifi, Battery,
-  Volume2, Search, Settings,
+  Volume2, Search, Settings, Gift,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -121,6 +121,8 @@ const allMenuItems = [
   { icon: FlaskConical, labelKey: "sidebar.agentBenchmark",   path: "/agent-benchmark", group: "settings" },
   { icon: Moon,         labelKey: "sidebar.deepSleep",        path: "/deep-sleep",      group: "settings" },
   { icon: Moon,         labelKey: "sidebar.dsrHub",            path: "/dsr",             group: "settings" },
+  { icon: Gift,         labelKey: "sidebar.affiliate",        path: "/affiliate",       group: "settings" },
+  { icon: TrendingUp,   labelKey: "sidebar.revenueIntelligence", path: "/revenue-intelligence", group: "settings" },
 ];
 
 const groupLabels: Record<string, string> = {

@@ -787,3 +787,36 @@
 - [ ] Add Brevo API key management
 - [ ] Add Reddit Ads API key management
 - [ ] Add TikTok Ads API key management
+
+## /goal ROI 888% — Revenue Acceleration System (May 2026)
+
+### Phase 1: Affiliate & Referral Program
+- [ ] Add referral_codes and referral_conversions tables to DB schema
+- [ ] Create affiliateRouter with tRPC procedures (generate code, track clicks, get earnings)
+- [ ] Add UTM/referral tracking to landing page (localStorage + cookie)
+- [ ] Build Affiliate Dashboard page (/affiliate)
+- [ ] Add sidebar nav item for Affiliate program
+
+### Phase 2: Annual Billing Upsell + ROI Calculator
+- [ ] Add ROI calculator widget to Billing page (deal size × close rate × leads)
+- [ ] Add urgency mechanics (countdown timer, "X people upgraded today")
+- [ ] Add annual vs monthly toggle with prominent savings badge
+- [ ] Add "Most Popular" and "Best Value" badges with social proof
+
+### Phase 3: In-App Upgrade Nudges
+- [ ] Add usage limit bars (leads used / monthly limit)
+- [ ] Add feature gate modals for locked Pro features
+- [ ] Add contextual upgrade CTAs in Generate, Sequences, Analytics pages
+- [ ] Add onboarding checklist with upgrade trigger at completion
+
+### Phase 4: Revenue Intelligence Dashboard
+- [ ] Create RevenueIntelligence.tsx page with MRR/ARR/LTV/CAC metrics
+- [ ] Add cohort analysis chart (monthly retention by signup cohort)
+- [ ] Add churn prediction indicators
+- [ ] Add revenue forecast chart (3-month projection)
+
+### Phase 5: Lead Magnet Funnel Optimization
+- [ ] Optimize ExitIntentPopup with A/B test variant
+- [ ] Add trial-to-paid conversion email sequence trigger
+- [ ] Add "Invite a colleague" viral loop mechanic
+- [ ] Add social proof counter (live user count on landing page)
