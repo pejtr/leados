@@ -15,7 +15,7 @@ import {
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, Calendar, Phone,
   TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical, Sparkles, Moon,
   CircleDollarSign, TrendingUp as TrendUp, Activity, Inbox, ChevronRight, Wifi, Battery,
-  Volume2, Search, Settings, Gift,
+  Volume2, Search, Settings, Gift, MapPin,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -73,6 +73,8 @@ const allMenuItems = [
   { icon: Target,       labelKey: "sidebar.icpBuilder",       path: "/icp",             group: "intelligence" },
   { icon: ListFilter,   labelKey: "sidebar.smartLists",       path: "/smart-lists",     group: "intelligence" },
   { icon: Inbox,        labelKey: "sidebar.externalLeads",    path: "/external-leads",  group: "intelligence" },
+  { icon: MapPin,       labelKey: "sidebar.googleMapsScraper", path: "/google-maps-scraper", group: "intelligence" },
+  { icon: Globe,        labelKey: "sidebar.webAudit",          path: "/web-audit",       group: "intelligence" },
   { icon: ShieldCheck,  labelKey: "sidebar.emailVerify",      path: "/email-verify",    group: "intelligence" },
   { icon: Code,         labelKey: "sidebar.trackingPixel",    path: "/tracking",        group: "intelligence" },
   { icon: Cpu,          labelKey: "sidebar.techStack",        path: "/tech-stack",      group: "intelligence" },

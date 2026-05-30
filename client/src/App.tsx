@@ -66,6 +66,8 @@ import RevenueIntelligence from "./pages/RevenueIntelligence";
 import { FloatingUpgradeNudge } from "./components/UpgradeNudge";
 import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import WebhookActivity from "./pages/WebhookActivity";
+import GoogleMapsScraper from "./pages/GoogleMapsScraper";
+import WebAudit from "./pages/WebAudit";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -138,6 +140,8 @@ function Router() {
       <Route path="/revenue-intelligence" component={RevenueIntelligence} />
       <Route path="/analytics/professional" component={ProfessionalDashboard} />
       <Route path="/webhooks/activity" component={WebhookActivity} />
+      <Route path="/google-maps-scraper" component={GoogleMapsScraper} />
+      <Route path="/web-audit" component={WebAudit} />
       <Route path="*" component={NotFound} />
     </Switch>
   );

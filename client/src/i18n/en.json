@@ -465,6 +465,8 @@
     "webhookActivity": "Webhook Activity",
     "apiKeys": "API Keys & CRM",
     "affiliate": "Affiliate Program",
-    "revenueIntelligence": "Revenue Intelligence"
+    "revenueIntelligence": "Revenue Intelligence",
+    "googleMapsScraper": "Google Maps Scraper",
+    "webAudit": "Web Audit"
   }
 }

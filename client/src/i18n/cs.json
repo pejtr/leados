@@ -88,7 +88,9 @@
     "webhookActivity": "Webhook Aktivita",
     "apiKeys": "API Klíče & CRM",
     "affiliate": "Affiliate Program",
-    "revenueIntelligence": "Revenue Intelligence"
+    "revenueIntelligence": "Revenue Intelligence",
+    "googleMapsScraper": "Google Maps Scraper",
+    "webAudit": "Web Audit"
   },
   "home": {
     "aiSystemsActive": "AI systémy aktivní",
