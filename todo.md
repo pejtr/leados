@@ -826,3 +826,38 @@
 - [ ] A/B testing for UpgradeNudge: variant assignment (localStorage), Variant A (floating after 45s), Variant B (inline banner with different copy), conversion tracking per variant
 - [ ] Enhanced ROI Calculator: animated count-up numbers, slider inputs (leads/month, close rate, deal value), projection chart (Chart.js line), smooth transitions
 - [ ] Detailed Affiliate leaderboard: historical earnings chart (recharts), monthly breakdown table, rank badges, commission history timeline
+
+## Phase 7 — HDM CRM Obousměrné propojení
+
+- [ ] LeadOS: POST /api/webhook/hdm endpoint pro příjem eventů z HDM (new_user, new_order, chart_created, subscription_upgraded)
+- [ ] LeadOS: Uložit HDM eventy do ingested_leads a project_events tabulek s HMAC-SHA256 ověřením
+- [x] LeadOS: Human Design Chart přidán do connected_projects v DB (id=2, apiKey=lsk_a669...)
+- [ ] HDM Manus vlákno: Odeslat event do LeadOS při registraci nového uživatele
+- [ ] HDM Manus vlákno: Odeslat event do LeadOS při Stripe platbě (subscription_upgraded)
+- [ ] HDM Manus vlákno: Odeslat event do LeadOS při vytvoření chartu (chart_created)
+- [ ] HDM Manus vlákno: Příjem LeadOS webhooků (new_lead, lead_status_changed) pro CRM sync
+
+## Phase 8 — Google Maps Scraper + Web Audit Tool (Webové zakázky)
+
+### Google Maps Scraper
+- [ ] DB schema: google_maps_leads tabulka (name, address, phone, website, rating, reviews_count, category, has_website, web_quality_score, place_id, lat, lng, status, userId)
+- [ ] Migration SQL pro google_maps_leads
+- [ ] Backend: googleMaps.scrape tRPC procedure (Apify actor: compass/crawler-google-places)
+- [ ] Backend: googleMaps.list, googleMaps.getStats, googleMaps.convertToLead procedures
+- [ ] Backend: AI hodnocení kvality webu (0-100 score) pro každý výsledek
+- [ ] Frontend: GoogleMapsScraper.tsx stránka s formulářem (keyword, location, radius, max results)
+- [ ] Frontend: Výsledky jako tabulka s filtry (bez webu, slabý web, rating < 4)
+- [ ] Frontend: "Přidat do CRM" tlačítko pro konverzi na lead
+- [ ] Nav item + route v App.tsx
+
+### Web Audit Tool
+- [ ] DB schema: web_audits tabulka (url, userId, score, performance, seo, mobile, design, speed_ms, issues JSON, recommendations JSON, createdAt)
+- [ ] Migration SQL pro web_audits
+- [ ] Backend: webAudit.analyze tRPC procedure (fetch URL → AI analýza → score 0-100)
+- [ ] Backend: webAudit.list, webAudit.getReport procedures
+- [ ] Backend: Generování PDF reportu jako lead magnet
+- [ ] Frontend: WebAudit.tsx stránka s URL inputem a výsledky
+- [ ] Frontend: Vizuální score karty (Performance, SEO, Mobile, Design)
+- [ ] Frontend: "Stáhnout PDF report" tlačítko
+- [ ] Frontend: "Nabídnout nový web" CTA tlačítko → přidá do CRM jako lead
+- [ ] Nav item + route v App.tsx

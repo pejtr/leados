@@ -4,21 +4,37 @@
 
   <!-- Homepage -->
   <url>
-    <loc>https://crmleadsystem.com/</loc>
-    <lastmod>2026-03-20</lastmod>
+    <loc>https://crmleadsystem.cz/</loc>
+    <lastmod>2026-05-31</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://crmleadsystem.com/"/>
     <xhtml:link rel="alternate" hreflang="cs" href="https://crmleadsystem.cz/"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://crmleadsystem.com/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://crmleadsystem.com/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://crmleadsystem.cz/"/>
   </url>
 
   <!-- Login / Auth -->
   <url>
-    <loc>https://crmleadsystem.com/login</loc>
-    <lastmod>2026-03-14</lastmod>
+    <loc>https://crmleadsystem.cz/login</loc>
+    <lastmod>2026-05-31</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+  </url>
+
+  <!-- Dashboard -->
+  <url>
+    <loc>https://crmleadsystem.cz/dashboard</loc>
+    <lastmod>2026-05-31</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Billing / Pricing -->
+  <url>
+    <loc>https://crmleadsystem.cz/billing</loc>
+    <lastmod>2026-05-31</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
 </urlset>

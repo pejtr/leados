@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO connected_projects (userId, name, description, url, category, apiKey, isActive, currency)\nVALUES (\n  1,\n  'Human Design Chart',\n  'Prémiová Human Design aplikace - výpočet a vizualizace Bodygraph chartů, AI výklady, blog, denní tranzity',\n  'https://humandesignchart.manus.space',\n  'saas',\n  'lsk_a6693862a39e1f1b4b109a1f4d44fe407e10dfc8dd787e02',\n  1,\n  'CZK'\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway03.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 4VFjuiBDjCy66KV.61cc06ae086a --database KYtwaRBAJcsE9tGSZfVrb7 --execute INSERT INTO connected_projects (userId, name, description, url, category, apiKey, isActive, currency)\nVALUES (\n  1,\n  'Human Design Chart',\n  'Prémiová Human Design aplikace - výpočet a vizualizace Bodygraph chartů, AI výklady, blog, denní tranzity',\n  'https://humandesignchart.manus.space',\n  'saas',\n  'lsk_a6693862a39e1f1b4b109a1f4d44fe407e10dfc8dd787e02',\n  1,\n  'CZK'\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 282
+}
