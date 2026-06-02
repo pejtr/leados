@@ -15,7 +15,7 @@ import {
   CheckSquare, Crosshair, Globe, BookOpen, Map, Brain, Calendar, Phone,
   TrendingUp, Trophy, Link2, Megaphone, FileBarChart, Scroll, FlaskConical, Sparkles, Moon,
   CircleDollarSign, TrendingUp as TrendUp, Activity, Inbox, ChevronRight, Wifi, Battery,
-  Volume2, Search, Settings, Gift, MapPin,
+  Volume2, Search, Settings, Gift, MapPin, Layers, Building2,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +28,9 @@ import { trpc } from "@/lib/trpc";
 
 // ─── Dock item definitions (ordered by business impact DESC) ─────────────────
 const dockItems = [
+  // TIER 0 — Services overview
+  { icon: Layers,       path: "/sluzby",          label: "Služby & ROI",     color: "oklch(0.68 0.18 162)" },
+  { icon: Building2,    path: "/ares",            label: "ARES Rejstřík",    color: "oklch(0.60 0.18 220)" },
   // TIER 1 — Revenue & Pipeline (přímý dopad na příjmy)
   { icon: Zap,          path: "/generate",        label: "Generovat leady",  color: "oklch(0.65 0.20 150)" },
   { icon: Kanban,       path: "/kanban",          label: "Pipeline",         color: "oklch(0.58 0.18 200)" },
@@ -61,6 +64,9 @@ const dockItems = [
 
 // Full sidebar items (ordered by business impact DESC within groups)
 const allMenuItems = [
+  // TIER 0 — Services
+  { icon: Layers,       labelKey: "sidebar.sluzby",           path: "/sluzby",          group: "revenue" },
+  { icon: Building2,    labelKey: "sidebar.aresSearch",       path: "/ares",            group: "intelligence" },
   // TIER 1 — Revenue & Pipeline
   { icon: Zap,          labelKey: "sidebar.generateLeads",    path: "/generate",        group: "revenue" },
   { icon: Kanban,       labelKey: "sidebar.pipelineBoard",    path: "/kanban",          group: "revenue" },

@@ -68,6 +68,8 @@ import ProfessionalDashboard from "./pages/ProfessionalDashboard";
 import WebhookActivity from "./pages/WebhookActivity";
 import GoogleMapsScraper from "./pages/GoogleMapsScraper";
 import WebAudit from "./pages/WebAudit";
+import Sluzby from "./pages/Sluzby";
+import AresSearch from "./pages/AresSearch";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -143,6 +145,8 @@ function Router() {
       <Route path="/webhooks/activity" component={WebhookActivity} />
       <Route path="/google-maps-scraper" component={GoogleMapsScraper} />
       <Route path="/web-audit" component={WebAudit} />
+      <Route path="/sluzby" component={Sluzby} />
+      <Route path="/ares" component={AresSearch} />
       <Route path="*" component={NotFound} />
     </Switch>
   );
