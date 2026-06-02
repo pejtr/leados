@@ -166,7 +166,7 @@ export default function Sequences() {
                   {selectedSequence.description && <p className="text-white/40 text-sm">{selectedSequence.description}</p>}
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={startEditing} className="border-white/20 text-white/70 hover:bg-white/10">
+                  <Button size="sm" variant="outline" onClick={startEditing} className="border-white/20 text-white/70 hover:bg-card/10">
                     <Edit2 className="w-3.5 h-3.5 mr-1.5" /> Upravit kroky
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => deleteMut.mutate({ id: selectedSequence.id })} className="border-red-500/30 text-red-400 hover:bg-red-500/10">
@@ -188,7 +188,7 @@ export default function Sequences() {
                   const cfg = STEP_TYPE_CONFIG[sType] ?? STEP_TYPE_CONFIG.email;
                   return (
                     <div key={step.id} className={`flex gap-3 p-3 bg-white/5 rounded-lg border ${cfg.borderColor}`}>
-                      <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-sm flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-card/10 flex items-center justify-center text-sm flex-shrink-0">
                         {STEP_ICONS[sType] ?? "📧"}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -218,7 +218,7 @@ export default function Sequences() {
                         <span className="text-white/70">Lead #{e.leadId}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-white/40 text-xs">Krok {e.currentStep}</span>
-                          <Badge variant="outline" className={`text-xs border-0 ${e.status === "active" ? "bg-emerald-500/20 text-emerald-400" : e.status === "completed" ? "bg-blue-500/20 text-blue-400" : "bg-white/10 text-white/40"}`}>
+                          <Badge variant="outline" className={`text-xs border-0 ${e.status === "active" ? "bg-emerald-500/20 text-emerald-400" : e.status === "completed" ? "bg-blue-500/20 text-blue-400" : "bg-card/10 text-white/40"}`}>
                             {e.status}
                           </Badge>
                         </div>
@@ -291,7 +291,7 @@ export default function Sequences() {
                         onClick={() => setSteps(steps.map((s, j) => j === i ? { ...s, stepType: type } : s))}
                         className={`text-[10px] px-2 py-1 rounded-full border transition-colors ${
                           step.stepType === type
-                            ? `bg-white/10 ${tcfg.borderColor} ${tcfg.color}`
+                            ? `bg-card/10 ${tcfg.borderColor} ${tcfg.color}`
                             : "border-white/10 text-white/30 hover:border-white/20 hover:text-white/50"
                         }`}
                       >

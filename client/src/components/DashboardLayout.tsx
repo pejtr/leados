@@ -149,10 +149,9 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
     return () => clearInterval(t);
   }, []);
 
-  // 1 USD ≈ 25 CZK — earnings stored in USD cents, displayed in CZK
-  const USD_TO_CZK = 25;
+  // Values are stored in CZK haléře (cents) — divide by 100 to get Kč, no USD conversion needed
   const fmtCZK = (cents: number) =>
-    new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format((cents / 100) * USD_TO_CZK);
+    new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(cents / 100);
 
   const timeStr = time.toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" });
   const dateStr = time.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "short" });

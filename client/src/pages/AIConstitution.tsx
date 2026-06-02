@@ -56,7 +56,7 @@ function Section({
   };
 
   return (
-    <div className="rounded-2xl border border-[#E2E8F0] bg-white/80 backdrop-blur-sm p-6 shadow-sm">
+    <div className="rounded-2xl border border-[#E2E8F0] bg-card/80 backdrop-blur-sm p-6 shadow-sm">
       <div className="flex items-start gap-4 mb-6">
         <div className={`p-2.5 rounded-xl border ${accentMap[accent]}`}>
           <Icon className={`w-5 h-5 ${iconColor[accent]}`} />
@@ -290,7 +290,7 @@ export default function AIConstitution() {
       </div>
 
       {/* ── Completeness bar ── */}
-      <div className="rounded-xl border border-[#E2E8F0] bg-white/80 p-4 flex items-center gap-4">
+      <div className="rounded-xl border border-[#E2E8F0] bg-card/80 p-4 flex items-center gap-4">
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-sm font-medium text-[#334155]">Constitution completeness</span>

@@ -74,7 +74,7 @@ function LockedFeatureCard({ feature, requiredPlan }: { feature: string; require
       planColors[requiredPlan] ?? planColors.starter
     )}>
       <div className="flex flex-col items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full bg-card/10 flex items-center justify-center">
           <Lock className="w-6 h-6 text-white/60" />
         </div>
         <div>
@@ -85,7 +85,7 @@ function LockedFeatureCard({ feature, requiredPlan }: { feature: string; require
         </div>
         <Button
           size="sm"
-          className="bg-white/20 hover:bg-white/30 text-white border-white/20"
+          className="bg-card/20 hover:bg-card/30 text-white border-white/20"
           onClick={() => navigate("/billing")}
         >
           <Zap className="w-3 h-3 mr-1" />
@@ -155,7 +155,7 @@ export function UpgradeBanner({
       <Button
         size="sm"
         variant="ghost"
-        className="shrink-0 text-current hover:bg-white/10 h-7 px-3 text-xs font-semibold"
+        className="shrink-0 text-current hover:bg-card/10 h-7 px-3 text-xs font-semibold"
         onClick={() => navigate("/billing")}
       >
         {ctaLabel}
@@ -208,7 +208,7 @@ export function UsageLimitIndicator({ used, limit, label, upgradeMessage }: Usag
           {used} / {limit}
         </span>
       </div>
-      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+      <div className="h-1.5 rounded-full bg-card/10 overflow-hidden">
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500",
@@ -415,7 +415,7 @@ export function FloatingUpgradeNudge() {
 // ─── Plan Badge ───────────────────────────────────────────────────────────────
 export function PlanBadge({ plan }: { plan: string }) {
   const config: Record<string, { label: string; className: string }> = {
-    free: { label: "Free", className: "bg-white/10 text-white/50" },
+    free: { label: "Free", className: "bg-card/10 text-white/50" },
     starter: { label: "Starter", className: "bg-blue-500/20 text-blue-300" },
     growth: { label: "Growth", className: "bg-violet-500/20 text-violet-300" },
     pro: { label: "Pro", className: "bg-amber-500/20 text-amber-300" },

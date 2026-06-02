@@ -24,7 +24,7 @@ const TYPE_COLORS: Record<string, string> = {
   email: "text-purple-400 bg-purple-500/20",
   meeting: "text-amber-400 bg-amber-500/20",
   follow_up: "text-emerald-400 bg-emerald-500/20",
-  other: "text-white/50 bg-white/10",
+  other: "text-white/50 bg-card/10",
 };
 
 export default function Tasks() {
@@ -78,7 +78,7 @@ export default function Tasks() {
       {/* Filter Tabs */}
       <div className="flex gap-2 mb-4">
         {(["all", "pending", "done"] as const).map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize ${filter === f ? "bg-emerald-500 text-black" : "bg-white/5 text-white/50 hover:bg-white/10"}`}>
+          <button key={f} onClick={() => setFilter(f)} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize ${filter === f ? "bg-emerald-500 text-black" : "bg-white/5 text-white/50 hover:bg-card/10"}`}>
             {f}
           </button>
         ))}

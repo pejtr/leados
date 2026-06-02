@@ -59,7 +59,7 @@ export function ManusDialog({
       <DialogContent className="py-5 bg-[#f8f8f7] rounded-[20px] w-[400px] shadow-[0px_4px_11px_0px_rgba(0,0,0,0.08)] border border-[rgba(0,0,0,0.08)] backdrop-blur-2xl p-0 gap-0 text-center">
         <div className="flex flex-col items-center gap-2 p-5 pt-12">
           {logo ? (
-            <div className="w-16 h-16 bg-white rounded-xl border border-[rgba(0,0,0,0.08)] flex items-center justify-center">
+            <div className="w-16 h-16 bg-card rounded-xl border border-[rgba(0,0,0,0.08)] flex items-center justify-center">
               <img
                 src={logo}
                 alt="Dialog graphic"
@@ -84,7 +84,7 @@ export function ManusDialog({
           <Button
             onClick={handleGoogleLogin}
             variant="outline"
-            className="w-full h-10 bg-white hover:bg-gray-50 text-[#3c4043] border border-[#dadce0] rounded-[10px] text-sm font-medium leading-5 tracking-[-0.154px] flex items-center justify-center gap-2"
+            className="w-full h-10 bg-card hover:bg-gray-50 text-[#3c4043] border border-[#dadce0] rounded-[10px] text-sm font-medium leading-5 tracking-[-0.154px] flex items-center justify-center gap-2"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
               <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>

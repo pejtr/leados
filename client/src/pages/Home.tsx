@@ -59,7 +59,7 @@ function AnimatedStatCard({
   const c = colorMap[color];
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border ${c.border} bg-white shadow-sm hover:shadow-md transition-all duration-300 p-5 group`}>
+    <div className={`relative overflow-hidden rounded-2xl border ${c.border} bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 group`}>
       {/* Top accent line */}
       <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${c.top} to-transparent`} />
       {/* Subtle glow orb */}
@@ -169,9 +169,9 @@ export default function Home() {
   const { data: insights, isLoading: insightsLoading } = trpc.aiChat.insights.useQuery();
   const { data: briefing, refetch: refetchBriefing, isLoading: briefingLoading } = trpc.morningBriefing.getLatest.useQuery();
   const { data: earningsData } = trpc.globalEarnings.summary.useQuery(undefined, { refetchInterval: 60_000, staleTime: 30_000 });
-  const USD_TO_CZK = 25;
+  // Values are in CZK haléře — divide by 100 only, no USD conversion
   const fmtCZK = (cents: number) =>
-    new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format((cents / 100) * USD_TO_CZK);
+    new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(cents / 100);
   const generateBriefingMutation = trpc.morningBriefing.generate.useMutation({
     onSuccess: () => { refetchBriefing(); toast.success("Morning briefing generated!"); },
     onError: () => toast.error("Failed to generate briefing"),
@@ -188,7 +188,7 @@ export default function Home() {
       <div className="space-y-6 max-w-7xl">
 
         {/* -- Hero Header — Atlantis Command Center ----------- */}
-        <div className="relative overflow-hidden rounded-2xl border border-[oklch(0.55_0.20_192_/_20%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] via-white to-[oklch(0.55_0.24_278_/_5%)] p-6 shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-[oklch(0.55_0.20_192_/_20%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] via-card to-[oklch(0.55_0.24_278_/_5%)] p-6 shadow-sm">
           {/* Ambient orbs */}
           <div className="absolute top-0 right-0 w-72 h-72 bg-[oklch(0.55_0.20_192_/_8%)] rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-[oklch(0.55_0.24_278_/_6%)] rounded-full blur-3xl pointer-events-none" />
@@ -276,7 +276,7 @@ export default function Home() {
         {/* -- CZK Earnings KPI Bar ----------------------- */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* Dnes */}
-          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.68_0.18_162_/_25%)] bg-gradient-to-br from-[oklch(0.68_0.18_162_/_8%)] to-white p-4">
+          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.68_0.18_162_/_25%)] bg-gradient-to-br from-[oklch(0.68_0.18_162_/_8%)] to-card p-4">
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.68_0.18_162)]" />
             <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.50_0.18_162)] mb-1">💰 Dnes</p>
             <p className="text-2xl font-black text-foreground tabular-nums">
@@ -285,7 +285,7 @@ export default function Home() {
             <p className="text-[10px] text-muted-foreground mt-0.5">tržby za dnešek</p>
           </div>
           {/* Posledních 30 dní */}
-          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.55_0.20_192_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] to-white p-4">
+          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.55_0.20_192_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] to-card p-4">
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.55_0.20_192)]" />
             <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.45_0.20_192)] mb-1">📈 30 dní</p>
             <p className="text-2xl font-black text-foreground tabular-nums">
@@ -294,7 +294,7 @@ export default function Home() {
             <p className="text-[10px] text-muted-foreground mt-0.5">posledních 30 dní</p>
           </div>
           {/* Celkem */}
-          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.72_0.18_60_/_25%)] bg-gradient-to-br from-[oklch(0.72_0.18_60_/_8%)] to-white p-4">
+          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.72_0.18_60_/_25%)] bg-gradient-to-br from-[oklch(0.72_0.18_60_/_8%)] to-card p-4">
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.72_0.18_60)]" />
             <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.55_0.18_60)] mb-1">🏆 Celkem</p>
             <p className="text-2xl font-black text-foreground tabular-nums">
@@ -303,7 +303,7 @@ export default function Home() {
             <p className="text-[10px] text-muted-foreground mt-0.5">výdělek celkem</p>
           </div>
           {/* Projekty */}
-          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.55_0.24_278_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.24_278_/_8%)] to-white p-4">
+          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.55_0.24_278_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.24_278_/_8%)] to-card p-4">
             <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.55_0.24_278)]" />
             <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.45_0.24_278)] mb-1">🔗 Projekty</p>
             <p className="text-2xl font-black text-foreground tabular-nums">
@@ -336,7 +336,7 @@ export default function Home() {
                 </Button>
               </div>
             ) : (
-              <div className="relative overflow-hidden rounded-2xl border border-[oklch(0.72_0.18_60_/_20%)] bg-gradient-to-br from-[oklch(0.72_0.18_60_/_6%)] to-white p-5 shadow-sm">
+              <div className="relative overflow-hidden rounded-2xl border border-[oklch(0.72_0.18_60_/_20%)] bg-gradient-to-br from-[oklch(0.72_0.18_60_/_6%)] to-card p-5 shadow-sm">
                 <div className="absolute top-0 right-0 w-48 h-48 bg-[oklch(0.72_0.18_60_/_6%)] rounded-full blur-3xl pointer-events-none" />
                 <div className="relative">
                   <div className="flex items-center justify-between mb-4">
@@ -426,7 +426,7 @@ export default function Home() {
         {/* -- Pipeline + Activity ---------------------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Pipeline Flow — large light card */}
-          <div className="lg:col-span-2 rounded-2xl border border-border bg-white shadow-sm p-5">
+          <div className="lg:col-span-2 rounded-2xl border border-border bg-card shadow-sm p-5">
             <div className="flex items-center justify-between mb-5">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.20_192_/_10%)]">
@@ -472,7 +472,7 @@ export default function Home() {
         {/* -- NBA + Speed-to-Lead ---------------------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* NBA — violet Atlantis card */}
-          <div className="lg:col-span-2 rounded-2xl border border-[oklch(0.55_0.24_278_/_20%)] bg-[oklch(0.88_0.06_278_/_30%)] p-5">
+          <div className="lg:col-span-2 rounded-2xl border border-[oklch(0.55_0.24_278_/_20%)] bg-card p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.24_278_/_12%)]">
@@ -523,11 +523,11 @@ export default function Home() {
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2.5 rounded-xl bg-white/60 text-center border border-border">
+                  <div className="p-2.5 rounded-xl bg-card/60 text-center border border-border">
                     <p className="text-lg font-black text-foreground">{stlConfig.responseTimeMinutes ?? "—"}</p>
                     <p className="text-[10px] text-muted-foreground">{t('dashboard.minResponse')}</p>
                   </div>
-                  <div className="p-2.5 rounded-xl bg-white/60 text-center border border-border">
+                  <div className="p-2.5 rounded-xl bg-card/60 text-center border border-border">
                     <p className="text-lg font-black text-foreground">{stlConfig.maxFollowUps ?? "—"}</p>
                     <p className="text-[10px] text-muted-foreground">{t('dashboard.followUps')}</p>
                   </div>
@@ -546,7 +546,7 @@ export default function Home() {
         {/* -- Setup Progress + Quick Actions ---------------- */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {setupProgress && setupProgress.percentage < 100 && (
-            <div className="rounded-2xl border border-border bg-white shadow-sm p-5">
+            <div className="rounded-2xl border border-border bg-card shadow-sm p-5">
               <div className="flex items-center gap-2 mb-4">
                 <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.20_192_/_10%)]">
                   <CheckCircle2 className="h-4 w-4 text-[oklch(0.50_0.20_192)]" />
@@ -579,7 +579,7 @@ export default function Home() {
           )}
 
           {/* Quick Actions */}
-          <div className={`rounded-2xl border border-border bg-white shadow-sm p-5 ${setupProgress && setupProgress.percentage < 100 ? "lg:col-span-2" : "lg:col-span-3"}`}>
+          <div className={`rounded-2xl border border-border bg-card shadow-sm p-5 ${setupProgress && setupProgress.percentage < 100 ? "lg:col-span-2" : "lg:col-span-3"}`}>
             <h2 className="text-sm font-bold text-foreground mb-4">{t('dashboard.quickActions')}</h2>
             <div className="grid grid-cols-2 gap-3">
               <QuickAction icon={<Zap className="h-5 w-5" />} title={t('dashboard.generateLeads')} description={t('dashboard.generateLeadsDesc')} onClick={() => setLocation("/generate")} primary />
@@ -620,7 +620,7 @@ export default function Home() {
             ) : insights?.recentActions?.length > 0 ? (
               <div className="space-y-2">
                 {insights.recentActions.map((action: any, i: number) => (
-                  <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/60 border border-[oklch(0.55_0.20_192_/_10%)]">
+                  <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-card/60 border border-[oklch(0.55_0.20_192_/_10%)]">
                     <div className="h-5 w-5 rounded-full bg-[oklch(0.55_0.20_192_/_15%)] flex items-center justify-center shrink-0 mt-0.5">
                       <Cpu className="h-2.5 w-2.5 text-[oklch(0.50_0.20_192)]" />
                     </div>
@@ -653,7 +653,7 @@ export default function Home() {
             ) : insights?.learnings?.length > 0 ? (
               <div className="space-y-2">
                 {insights.learnings.map((item: any) => (
-                  <div key={item.id} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-white/60 border border-[oklch(0.72_0.18_60_/_10%)]">
+                  <div key={item.id} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-card/60 border border-[oklch(0.72_0.18_60_/_10%)]">
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold shrink-0 mt-0.5 ${
                       item.type === "preference" ? "bg-[oklch(0.55_0.20_192_/_12%)] text-[oklch(0.45_0.20_192)]" :
                       item.type === "learning" ? "bg-[oklch(0.68_0.18_162_/_12%)] text-[oklch(0.45_0.18_162)]" :
@@ -692,7 +692,7 @@ export default function Home() {
                     { label: "Questions", value: insights.stats.userMessages, color: "text-[oklch(0.50_0.24_278)]" },
                     { label: "Memories", value: insights.learnings?.length ?? 0, color: "text-[oklch(0.55_0.18_60)]" },
                   ].map(m => (
-                    <div key={m.label} className="p-2.5 rounded-xl bg-white/60 border border-[oklch(0.68_0.18_162_/_10%)] text-center">
+                    <div key={m.label} className="p-2.5 rounded-xl bg-card/60 border border-[oklch(0.68_0.18_162_/_10%)] text-center">
                       <p className={`text-xl font-black ${m.color}`}>{m.value}</p>
                       <p className="text-[10px] text-muted-foreground mt-0.5">{m.label}</p>
                     </div>
@@ -741,7 +741,7 @@ function NbaCard({ item }: { item: any }) {
   const priorityColor = item.priority >= 70 ? "text-[oklch(0.55_0.22_27)]" : item.priority >= 40 ? "text-[oklch(0.55_0.18_60)]" : "text-muted-foreground/40";
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/60 border border-border hover:border-[oklch(0.55_0.20_192_/_20%)] transition-colors">
+    <div className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border hover:border-[oklch(0.55_0.20_192_/_20%)] transition-colors">
       <div className={`p-2 rounded-lg border ${actionColors[item.action] ?? "bg-muted text-muted-foreground border-border"}`}>
         {actionIcons[item.action] ?? <Lightbulb className="h-3.5 w-3.5" />}
       </div>
@@ -775,7 +775,7 @@ function QuickAction({
       className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:scale-[1.02] ${
         primary
           ? "border-[oklch(0.55_0.20_192_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] to-[oklch(0.55_0.24_278_/_5%)] hover:border-[oklch(0.55_0.20_192_/_40%)] shadow-sm"
-          : "border-border bg-white hover:bg-muted/30 hover:border-[oklch(0.55_0.20_192_/_15%)] shadow-sm"
+          : "border-border bg-card hover:bg-muted/30 hover:border-[oklch(0.55_0.20_192_/_15%)] shadow-sm"
       }`}
     >
       <div className={`mt-0.5 ${primary ? "text-[oklch(0.50_0.20_192)]" : "text-muted-foreground/50"}`}>{icon}</div>
@@ -841,8 +841,8 @@ function ProjectCard({
 }) {
   const c = PROJECT_COLORS[project.id] ?? DEFAULT_COLOR;
   const route = PROJECT_ROUTES[project.id] ?? "/global-earnings";
-  const USD_TO_CZK = 25;
-  const toCZK = (usd: number) => usd * USD_TO_CZK;
+  // Values are already in CZK — no conversion needed
+  const toCZK = (czk: number) => czk;
 
   // Build sparkbar data: [last30d/4, last7d, today*3] — approximation for visual rhythm
   const sparkValues = [
@@ -870,7 +870,7 @@ function ProjectCard({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border ${c.border} bg-gradient-to-br ${c.bg} to-white p-5 cursor-pointer hover:shadow-md transition-all duration-200 group`}
+      className={`relative overflow-hidden rounded-2xl border ${c.border} bg-gradient-to-br ${c.bg} to-card p-5 cursor-pointer hover:shadow-md transition-all duration-200 group`}
       onClick={() => onNavigate(route)}
     >
       {/* Top accent */}
@@ -895,7 +895,7 @@ function ProjectCard({
             {project.url.replace(/^https?:\/\//, "")} <ExternalLink className="h-2.5 w-2.5" />
           </a>
         </div>
-        <div className={`p-1.5 rounded-lg bg-white/60 border ${c.border} group-hover:scale-110 transition-transform`}>
+        <div className={`p-1.5 rounded-lg bg-card/60 border ${c.border} group-hover:scale-110 transition-transform`}>
           <ArrowRight className={`h-3.5 w-3.5 ${c.accent}`} />
         </div>
       </div>
@@ -954,7 +954,7 @@ function ProjectsHub({
   });
 
   return (
-    <div className="rounded-2xl border border-border bg-white shadow-sm p-5">
+    <div className="rounded-2xl border border-border bg-card shadow-sm p-5">
       {/* Section header */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
@@ -980,9 +980,9 @@ function ProjectsHub({
       {snapshot && (
         <div className="grid grid-cols-4 gap-3 mb-5 p-3 rounded-xl bg-[oklch(0.55_0.20_192_/_5%)] border border-[oklch(0.55_0.20_192_/_15%)]">
           {[
-            { label: "Celkem dnes", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.todayRevenue * 25) },
-            { label: "Posledních 7 dní", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.last7dRevenue * 25) },
-            { label: "Posledních 30 dní", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.last30dRevenue * 25) },
+            { label: "Celkem dnes", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.todayRevenue) },
+            { label: "Posledních 7 dní", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.last7dRevenue) },
+            { label: "Posledních 30 dní", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.last30dRevenue) },
             { label: "Celkem objednávek", value: snapshot.totals.totalOrders.toString() },
           ].map(m => (
             <div key={m.label} className="text-center">

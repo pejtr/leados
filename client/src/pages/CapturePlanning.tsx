@@ -86,7 +86,7 @@ export default function CapturePlanning() {
                 <div className={`flex items-center gap-2 mb-2 px-3 py-2 rounded-lg border ${stage.light}`}>
                   <div className={`w-2 h-2 rounded-full ${stage.color}`} />
                   <span className="text-xs font-semibold">{stage.label}</span>
-                  <Badge variant="outline" className="ml-auto text-xs border-0 bg-white/10 text-white/60">{stagePlans.length}</Badge>
+                  <Badge variant="outline" className="ml-auto text-xs border-0 bg-card/10 text-white/60">{stagePlans.length}</Badge>
                 </div>
                 {stageValue > 0 && <p className="text-xs text-white/30 px-1 mb-2">${stageValue.toLocaleString()}</p>}
                 <div className="space-y-2">
@@ -141,7 +141,7 @@ export default function CapturePlanning() {
               const isPast = i <= currentIdx;
               return (
                 <div key={stage.key} className="flex items-center flex-1">
-                  <div className={`flex-1 h-1.5 rounded-full ${isPast ? stage.color : "bg-white/10"}`} />
+                  <div className={`flex-1 h-1.5 rounded-full ${isPast ? stage.color : "bg-card/10"}`} />
                   {i < STAGES.length - 1 && <div className="w-1" />}
                 </div>
               );

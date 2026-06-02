@@ -151,7 +151,7 @@ export default function SmartPopup({
                   <motion.div
                     animate={{ scale: [1, 1.3, 1] }}
                     transition={{ duration: 1.8, repeat: Infinity }}
-                    className="w-2 h-2 rounded-full bg-white/80"
+                    className="w-2 h-2 rounded-full bg-card/80"
                   />
                   <span
                     className="text-xs font-semibold text-white/90"

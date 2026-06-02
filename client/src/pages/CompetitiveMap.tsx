@@ -146,7 +146,7 @@ export default function CompetitiveMap() {
                                   <span className="text-white/40">Market Share</span>
                                   <span className="text-white/60">{comp.marketShare}%</span>
                                 </div>
-                                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                <div className="h-1.5 bg-card/10 rounded-full overflow-hidden">
                                   <div className="h-full bg-purple-500 rounded-full" style={{ width: `${Math.min(comp.marketShare, 100)}%` }} />
                                 </div>
                               </div>

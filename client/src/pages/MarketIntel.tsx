@@ -65,7 +65,7 @@ export default function MarketIntel() {
         </div>
         <div className="flex flex-wrap gap-2">
           {QUICK_INDUSTRIES.map(ind => (
-            <button key={ind} onClick={() => setIndustry(ind)} className="px-3 py-1 rounded-full text-xs bg-white/10 text-white/60 hover:bg-emerald-500/20 hover:text-emerald-400 transition-all border border-white/10 hover:border-emerald-500/30">
+            <button key={ind} onClick={() => setIndustry(ind)} className="px-3 py-1 rounded-full text-xs bg-card/10 text-white/60 hover:bg-emerald-500/20 hover:text-emerald-400 transition-all border border-white/10 hover:border-emerald-500/30">
               {ind}
             </button>
           ))}

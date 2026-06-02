@@ -326,14 +326,14 @@ export default function WebhookActivity() {
                     <div className="space-y-3">
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Response</p>
-                        <pre className="bg-white p-3 rounded border text-xs overflow-x-auto mt-1">
+                        <pre className="bg-card p-3 rounded border text-xs overflow-x-auto mt-1">
                           {log.response || "No response"}
                         </pre>
                       </div>
                       {log.error && (
                         <div>
                           <p className="text-sm font-medium text-red-600">Error</p>
-                          <p className="bg-white p-3 rounded border text-xs mt-1">{log.error}</p>
+                          <p className="bg-card p-3 rounded border text-xs mt-1">{log.error}</p>
                         </div>
                       )}
                       {log.nextRetryAt && (
