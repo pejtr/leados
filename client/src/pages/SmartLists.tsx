@@ -11,6 +11,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ListFilter, Plus, Trash2, Loader2, RefreshCw, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 export default function SmartLists() {
   const [open, setOpen] = useState(false);
@@ -30,7 +32,8 @@ export default function SmartLists() {
   });
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2"><ListFilter className="h-6 w-6 text-indigo-500" /> Smart Lists</h1>
@@ -104,5 +107,6 @@ export default function SmartLists() {
         </div>
       )}
     </div>
+    </DashboardLayout>
   );
 }

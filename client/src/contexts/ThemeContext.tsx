@@ -1,60 +1,61 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "light" | "dark";
+export type Theme = "dark-teal" | "light-classic" | "midnight-purple";
+
+export const THEMES: { id: Theme; label: string; icon: string; description: string }[] = [
+  {
+    id: "dark-teal",
+    label: "Dark Teal",
+    icon: "🌊",
+    description: "Atlantis — tmavé pozadí, tyrkysový akcent",
+  },
+  {
+    id: "light-classic",
+    label: "Light Classic",
+    icon: "☀️",
+    description: "Světlý klasický vzhled",
+  },
+  {
+    id: "midnight-purple",
+    label: "Midnight Purple",
+    icon: "🌌",
+    description: "Půlnoční fialová — hluboký vesmír",
+  },
+];
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme?: () => void;
-  switchable: boolean;
+  setTheme: (t: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-interface ThemeProviderProps {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
-  switchable?: boolean;
-}
-
-export function ThemeProvider({
-  children,
-  defaultTheme = "dark",
-  switchable = false,
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (switchable) {
-      const stored = localStorage.getItem("theme") as Theme | null;
-      // If the app default is dark, never restore a stale "light" preference
-      // (this handles the migration from the old light-default build)
-      if (defaultTheme === "dark" && stored === "light") {
-        localStorage.setItem("theme", "dark");
-        return "dark";
-      }
-      return stored || defaultTheme;
-    }
-    return defaultTheme;
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const stored = localStorage.getItem("leados-theme") as Theme | null;
+    if (stored && THEMES.find(t => t.id === stored)) return stored;
+    return "dark-teal";
   });
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else {
-      root.classList.remove("dark");
+    // Remove all theme classes
+    root.classList.remove("dark", "theme-light-classic", "theme-midnight-purple", "theme-dark-teal");
+    // Apply the correct class(es)
+    if (theme === "dark-teal") {
+      root.classList.add("dark", "theme-dark-teal");
+    } else if (theme === "light-classic") {
+      root.classList.add("theme-light-classic");
+    } else if (theme === "midnight-purple") {
+      root.classList.add("dark", "theme-midnight-purple");
     }
-    if (switchable) {
-      localStorage.setItem("theme", theme);
-    }
-  }, [theme, switchable]);
+    localStorage.setItem("leados-theme", theme);
+  }, [theme]);
 
-  const toggleTheme = switchable
-    ? () => {
-        setTheme(prev => (prev === "light" ? "dark" : "light"));
-      }
-    : undefined;
+  const setTheme = (t: Theme) => setThemeState(t);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, switchable }}>
+    <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );
@@ -62,8 +63,6 @@ export function ThemeProvider({
 
 export function useTheme() {
   const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error("useTheme must be used within ThemeProvider");
-  }
+  if (!context) throw new Error("useTheme must be used within ThemeProvider");
   return context;
 }

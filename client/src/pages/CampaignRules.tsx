@@ -10,6 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { GitBranch, Plus, Trash2, Loader2, ArrowRight, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 const TRIGGERS = [
   { value: "lead_created", label: "Lead Created" },
@@ -49,7 +51,8 @@ export default function CampaignRules() {
   });
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2"><GitBranch className="h-6 w-6 text-orange-500" /> Campaign Rules</h1>
@@ -133,5 +136,6 @@ export default function CampaignRules() {
         </div>
       )}
     </div>
+    </DashboardLayout>
   );
 }

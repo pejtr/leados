@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import DashboardLayout from "@/components/DashboardLayout";
+
 import {
   Calendar, Link2, Plus, Trash2, Copy, CheckCircle2, Clock,
   Users, Zap, Play, Pause, CheckCheck, XCircle, RefreshCw,
@@ -117,7 +119,8 @@ export default function MeetingScheduler() {
   const leadsData = (leadsResult as any)?.items ?? [];
 
   return (
-    <div className="min-h-screen bg-[#050510] text-white p-6 space-y-8">
+    <DashboardLayout>
+      <div className="min-h-screen bg-[#050510] text-white p-6 space-y-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -623,5 +626,6 @@ export default function MeetingScheduler() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

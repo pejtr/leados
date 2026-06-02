@@ -3,6 +3,8 @@ import { trpc } from "@/lib/trpc";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { BookOpen, Clock, Search, ChevronRight, X } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 const CATEGORY_COLORS: Record<string, string> = {
   "Pipeline Development": "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -29,7 +31,8 @@ export default function KnowledgeBase() {
   const article = articles.find(a => a.id === selectedArticle);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <DashboardLayout>
+      <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <BookOpen className="w-6 h-6 text-emerald-400" />
         <h1 className="text-2xl font-bold text-white">Knowledge Base</h1>
@@ -135,5 +138,6 @@ export default function KnowledgeBase() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   );
 }

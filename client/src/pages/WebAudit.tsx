@@ -3,6 +3,8 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 import {
   Globe, Search, Shield, ShieldAlert, Smartphone, BarChart2, Zap,
   CheckCircle, XCircle, AlertTriangle, Info, Loader2, Clock, History
@@ -82,7 +84,8 @@ export default function WebAudit() {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <DashboardLayout>
+      <div className="p-6 max-w-5xl mx-auto space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
@@ -283,5 +286,6 @@ export default function WebAudit() {
         </div>
       )}
     </div>
+    </DashboardLayout>
   );
 }

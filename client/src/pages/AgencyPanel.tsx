@@ -9,6 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Building, Plus, Trash2, Loader2, Users, BarChart3, Palette, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 export default function AgencyPanel() {
   const [open, setOpen] = useState(false);
@@ -28,7 +30,8 @@ export default function AgencyPanel() {
   });
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2"><Building className="h-6 w-6 text-violet-500" /> Agency Panel</h1>
@@ -96,5 +99,6 @@ export default function AgencyPanel() {
         </div>
       )}
     </div>
+    </DashboardLayout>
   );
 }

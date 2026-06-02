@@ -10,6 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Bell, Plus, Trash2, Loader2, Mail, MessageSquare, Webhook, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 const CONDITION_TYPES = [
   { value: "high_intent_visitor", label: "High Intent Visitor", icon: "🔥" },
@@ -44,7 +46,8 @@ export default function SmartAlerts() {
   });
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2"><Bell className="h-6 w-6 text-amber-500" /> Smart Alert Rules</h1>
@@ -124,5 +127,6 @@ export default function SmartAlerts() {
         </div>
       )}
     </div>
+    </DashboardLayout>
   );
 }

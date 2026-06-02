@@ -80,7 +80,8 @@ function ScrollToTop() {
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Landing} />
+      <Route path="/" component={Home} />
+      <Route path="/landing" component={Landing} />
       <Route path="/landing-b" component={LandingB} />
       <Route path="/dashboard" component={Home} />
       <Route path="/generate" component={Generate} />

@@ -306,7 +306,7 @@ export default function Templates() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">Cancel</AlertDialogCancel>
+              <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">Zrušit</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-red-600 hover:bg-red-700 text-white"
                 onClick={() => { if (deleteId) deleteMutation.mutate({ id: deleteId }); }}

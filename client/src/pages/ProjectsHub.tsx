@@ -23,6 +23,8 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Link } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 // ─── Types ────────────────────────────────────────────────────────
 type Project = {
@@ -447,7 +449,8 @@ export default function ProjectsHub() {
   const totalRoas = totals && totals.adspend > 0 ? totals.revenue / totals.adspend : null;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <DashboardLayout>
+      <div className="p-6 max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
@@ -599,5 +602,6 @@ export default function ProjectsHub() {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 }

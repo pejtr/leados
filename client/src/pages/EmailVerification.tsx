@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ShieldCheck, Loader2, CheckCircle2, XCircle, AlertTriangle, Mail } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 export default function EmailVerification() {
   const [singleEmail, setSingleEmail] = useState("");
@@ -42,7 +44,8 @@ export default function EmailVerification() {
   };
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2"><ShieldCheck className="h-6 w-6 text-green-500" /> Email Verification</h1>
         <p className="text-muted-foreground mt-1">Real-time email verification powered by Bouncer API</p>
@@ -110,5 +113,6 @@ export default function EmailVerification() {
         </Card>
       )}
     </div>
+    </DashboardLayout>
   );
 }

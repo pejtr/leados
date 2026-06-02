@@ -44,10 +44,10 @@ const C = {
 // ── Animated Lead Card Demo ──────────────────────────────────────────────────
 function AnimatedLeadCard() {
   const leads = [
-    { name: "Jan Novák", title: "CEO", company: "TechCorp s.r.o.", score: 94, industry: "SaaS", signal: "Visited pricing page 3x" },
-    { name: "Petra Dvořák", title: "Head of Sales", company: "Logistika CZ", score: 87, industry: "Logistics", signal: "Downloaded case study" },
-    { name: "Martin Kříž", title: "CTO", company: "FinTech Praha", score: 91, industry: "FinTech", signal: "LinkedIn profile viewed" },
-    { name: "Eva Horáčková", title: "VP Marketing", company: "E-shop Pro", score: 78, industry: "E-commerce", signal: "Opened email sequence" },
+    { name: "Jan Novák", title: "CEO", company: "TechCorp s.r.o.", score: 94, industry: "SaaS", signal: "Navštívil stránku ceníku 3×" },
+    { name: "Petra Dvořák", title: "Head of Sales", company: "Logistika CZ", score: 87, industry: "Logistika", signal: "Stáhl případovou studii" },
+    { name: "Martin Kříž", title: "CTO", company: "FinTech Praha", score: 91, industry: "FinTech", signal: "Zobrazil LinkedIn profil" },
+    { name: "Eva Horáčková", title: "VP Marketing", company: "E-shop Pro", score: 78, industry: "E-commerce", signal: "Otevřel e-mailovou sekvenci" },
   ];
   const [currentIdx, setCurrentIdx] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
@@ -77,7 +77,7 @@ function AnimatedLeadCard() {
         <div className="flex items-center gap-2">
           <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.5, repeat: Infinity }}
             className="w-2 h-2 rounded-full" style={{ background: C.green }} />
-          <span className="text-xs font-medium" style={{ color: C.textMuted }}>New Lead Detected</span>
+          <span className="text-xs font-medium" style={{ color: C.textMuted }}>Nový lead detekován</span>
         </div>
         <div className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: `${scoreColor}18`, color: scoreColor, border: `1px solid ${scoreColor}40` }}>
           AI {lead.score}
@@ -98,14 +98,14 @@ function AnimatedLeadCard() {
       </div>
       <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl" style={{ background: `${C.teal}0d`, border: `1px solid ${C.teal}25` }}>
         <Activity className="w-3.5 h-3.5 flex-shrink-0" style={{ color: C.teal }} />
-        <span className="text-xs" style={{ color: C.textMuted }}>Signal: <span style={{ color: C.tealDark }}>{lead.signal}</span></span>
+        <span className="text-xs" style={{ color: C.textMuted }}>Signál: <span style={{ color: C.tealDark }}>{lead.signal}</span></span>
       </div>
       <div className="text-xs leading-relaxed mb-3" style={{ color: C.textMuted }}>
-        <span style={{ color: C.indigo }}>✦ AI Icebreaker: </span>
-        "Hi {lead.name.split(" ")[0]}, I noticed {lead.company} is scaling fast in {lead.industry}. We helped similar companies 3x their pipeline — worth a quick call?"
+        <span style={{ color: C.indigo }}>❆ AI Icebreaker: </span>
+        {`Ahoj ${lead.name.split(" ")[0]}, všiml jsem si, že ${lead.company} rychle roste v oblasti ${lead.industry}. Pomohli jsme podobným firmám 3× zvýšit pipeline — stojí za rychlý hovor?`}
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-xs" style={{ color: C.textLight }}>Lead Score</span>
+        <span className="text-xs" style={{ color: C.textLight }}>Skóre leadu</span>
         <div className="flex-1 h-1.5 rounded-full" style={{ background: C.bgAlt }}>
           <motion.div className="h-full rounded-full"
             style={{ background: `linear-gradient(90deg, ${scoreColor}, ${scoreColor}99)` }}
@@ -504,7 +504,7 @@ export default function Landing() {
               <Badge className="mb-6 text-xs font-medium px-4 py-1.5"
                 style={{ background: `${C.teal}14`, border: `1px solid ${C.teal}35`, color: C.tealDark }}>
                 <Sparkles className="w-3 h-3 mr-1.5" />
-                AI-Powered B2B Lead Generation
+                AI platforma pro B2B generování leadů
               </Badge>
             </motion.div>
 
@@ -525,7 +525,7 @@ export default function Landing() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button onClick={handleCTA} size="lg" className="h-13 px-8 text-base font-bold text-white"
                   style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", boxShadow: `0 8px 30px ${C.indigo}40`, height: "52px" }}>
-                  {t("landing.ctaPrimary") || "Start Generating Leads"} <ArrowRight className="w-4 h-4 ml-2" />
+                  {t("landing.ctaPrimary") || "Začít generovat leady"} <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
                 <Button onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
                   variant="outline" size="lg" className="h-13 px-8 text-base"
@@ -574,17 +574,17 @@ export default function Landing() {
               style={{ background: `${C.green}12`, border: `1px solid ${C.green}28`, backdropFilter: "blur(12px)" }}>
               <Bell className="w-4 h-4 flex-shrink-0" style={{ color: C.green }} />
               <div>
-                <div className="text-xs font-semibold" style={{ color: C.green }}>New qualified lead!</div>
-                <div className="text-xs" style={{ color: C.textMuted }}>AI score 94 · SaaS · Prague</div>
+                <div className="text-xs font-semibold" style={{ color: C.green }}>Nový kvalifikovaný lead!</div>
+                <div className="text-xs" style={{ color: C.textMuted }}>AI skóre 94 · SaaS · Praha</div>
               </div>
             </motion.div>
             <AnimatedLeadCard />
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}
               className="grid grid-cols-3 gap-2 mt-3">
               {[
-                { label: "Leads today", value: "47", color: C.indigo },
-                { label: "Avg score", value: "87%", color: C.teal },
-                { label: "Replies", value: "23%", color: C.green },
+                { label: "Leady dnes", value: "47", color: C.indigo },
+                { label: "Prům. skóre", value: "87%", color: C.teal },
+                { label: "Odpovědi", value: "23%", color: C.green },
               ].map(({ label, value, color }) => (
                 <div key={label} className="text-center px-2 py-2 rounded-xl"
                   style={{ background: C.bgCard, border: `1px solid ${C.border}`, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
@@ -610,10 +610,10 @@ export default function Landing() {
       <section className="py-16 px-4 relative" style={{ background: C.bgCard, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}` }}>
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 relative">
           {[
-            { value: 32000, suffix: "+", label: t("landing.statsLeads") || "Leads Generated" },
-            { value: 94, suffix: "%", label: t("landing.statsEnrichment") || "Enrichment Rate" },
-            { value: 12, suffix: "+", label: t("landing.statsIndustries") || "Industries" },
-            { value: 5, suffix: "min", label: t("landing.statsTime") || "Avg. Setup Time" },
+            { value: 32000, suffix: "+", label: t("landing.statsLeads") || "Vygenerovaných leadů" },
+            { value: 94, suffix: "%", label: t("landing.statsEnrichment") || "Míra obohacení" },
+            { value: 12, suffix: "+", label: t("landing.statsIndustries") || "Odvětví" },
+            { value: 5, suffix: "min", label: t("landing.statsTime") || "Prům. čas nastavení" },
           ].map(({ value, suffix, label }, i) => (
             <Reveal key={label} delay={i * 0.1}>
               <div className="text-center">
@@ -907,20 +907,20 @@ export default function Landing() {
           <Reveal>
             <div className="text-center mb-10">
               <Badge className="mb-4 text-xs px-3 py-1" style={{ background: "#e0e7ff", border: "1px solid #c7d2fe", color: "#4338ca" }}>
-                DACH Enterprise Ready
+                Bezpečnost & GDPR soulad
               </Badge>
               <h2 className="text-2xl sm:text-3xl font-black mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
-                Vertrauen durch Transparenz
+                Důvěra skrze transparentnost
               </h2>
-              <p className="text-base" style={{ color: C.textMuted }}>Datenschutz nach DSGVO · EU-Rechenzentren · ISO 27001 ready</p>
+              <p className="text-base" style={{ color: C.textMuted }}>Ochrana dat dle GDPR · EU datová centra · ISO 27001 ready</p>
             </div>
           </Reveal>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {[
-              { icon: Shield, label: "DSGVO-konform", sub: "Art. 13 & 14 DSGVO", color: C.green },
-              { icon: Globe, label: "EU-Rechenzentren", sub: "Frankfurt · Amsterdam", color: C.indigo },
-              { icon: BadgeCheck, label: "ISO 27001 ready", sub: "Audit Q3 2026", color: C.teal },
-              { icon: Users, label: "EU VAT compliant", sub: "Reverse Charge DE/AT/CH", color: C.amber },
+              { icon: Shield, label: "GDPR soulad", sub: "Čl. 13 & 14 GDPR", color: C.green },
+              { icon: Globe, label: "EU datová centra", sub: "Frankfurt · Amsterdam", color: C.indigo },
+              { icon: BadgeCheck, label: "ISO 27001 ready", sub: "Audit Q4 2026", color: C.teal },
+              { icon: Users, label: "EU DPH soulad", sub: "Reverse Charge CZ/SK/DE", color: C.amber },
             ].map(({ icon: Icon, label, sub, color }) => (
               <Reveal key={label}>
                 <div className="flex flex-col items-center text-center p-5 rounded-2xl" style={{ background: C.bgCard, border: `1px solid ${C.border}`, boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
@@ -935,9 +935,9 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { name: "Klaus Bergmann", role: "VP Sales, Muenchner SaaS GmbH", flag: "DE", text: "LeadOS hat unsere Outbound-Pipeline in 3 Wochen verdreifacht. Die DSGVO-Konformitaet war entscheidend.", metric: "3x Pipeline", metricLabel: "in 3 Wochen" },
-              { name: "Sabine Mueller", role: "Head of BD, Wien Consulting AG", flag: "AT", text: "Xing-Integration ist Gold wert. 80% unserer Zielkunden sind auf Xing aktiver als auf LinkedIn.", metric: "80% DACH Leads", metricLabel: "via Xing" },
-              { name: "Markus Zimmermann", role: "CEO, Zuerich FinTech Startup", flag: "CH", text: "Wir haben 3 Enterprise-Deals in der Schweiz mit LeadOS abgeschlossen. ROI war im ersten Monat positiv.", metric: "3 Enterprise Deals", metricLabel: "Monat 1" },
+              { name: "Tomáš Novotný", role: "VP Sales, Pražský SaaS s.r.o.", flag: "CZ", text: "LeadOS ztrojnásobil naši outbound pipeline za 3 týdny. Soulad s GDPR byl klíčový pro naše enterprise klienty.", metric: "3× Pipeline", metricLabel: "za 3 týdny" },
+              { name: "Jana Horáková", role: "Head of BD, Brno Consulting s.r.o.", flag: "CZ", text: "Integrace s LinkedIn je zlatá. 80% našich cílových zákazníků je aktivnějších na LinkedIn než kdekoliv jinde.", metric: "80% leadů", metricLabel: "přes LinkedIn" },
+              { name: "Marek Zimmermann", role: "CEO, Praha FinTech Startup", flag: "CZ", text: "Uzavřeli jsme 3 enterprise obchody v prvním měsíci s LeadOS. ROI byl pozitivní hned od začátku.", metric: "3 Enterprise", metricLabel: "1. měsíc" },
             ].map(({ name, role, flag, text, metric, metricLabel }) => (
               <Reveal key={name}>
                 <div className="p-5 rounded-2xl h-full flex flex-col" style={{ background: C.bgCard, border: `1px solid ${C.border}`, boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
@@ -967,13 +967,13 @@ export default function Landing() {
                   <Mail className="w-5 h-5" style={{ color: C.indigo }} />
                 </div>
                 <div>
-                  <div className="font-bold text-sm" style={{ color: C.text }}>Deutschsprachiger Support</div>
-                  <div className="text-xs" style={{ color: C.textMuted }}>Antwort innerhalb von 24 Stunden · Mo-Fr 9-17 Uhr MEZ</div>
+                  <div className="font-bold text-sm" style={{ color: C.text }}>Česká podpora</div>
+                  <div className="text-xs" style={{ color: C.textMuted }}>Odpověď do 24 hodin · Po-Pá 9-17 hod</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 text-sm">
-                <a href="mailto:support-de@crmleadsystem.com" className="font-medium hover:underline" style={{ color: C.indigo }}>support-de@crmleadsystem.com</a>
-                <a href="/datenschutz" className="hover:underline" style={{ color: C.textMuted }}>Datenschutzerklaerung</a>
+                <a href="mailto:support@leados.cz" className="font-medium hover:underline" style={{ color: C.indigo }}>support@leados.cz</a>
+                <a href="/gdpr" className="hover:underline" style={{ color: C.textMuted }}>Zásady ochrany osobních údajů</a>
               </div>
             </div>
           </Reveal>
@@ -985,9 +985,9 @@ export default function Landing() {
         <div className="max-w-5xl mx-auto">
           <Reveal>
             <div className="text-center mb-12">
-              <Badge className="mb-4 text-xs px-3 py-1" style={{ background: `${C.amber}12`, border: `1px solid ${C.amber}30`, color: "#d97706" }}>Before / After</Badge>
-              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>From Excel Chaos to AI Pipeline</h2>
-              <p className="text-lg" style={{ color: C.textMuted }}>See exactly what changes when you replace manual prospecting with LeadOS automation.</p>
+              <Badge className="mb-4 text-xs px-3 py-1" style={{ background: `${C.amber}12`, border: `1px solid ${C.amber}30`, color: "#d97706" }}>Před / Po</Badge>
+              <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>Od chaosu v Excelu k AI pipeline</h2>
+              <p className="text-lg" style={{ color: C.textMuted }}>Podívejte se, co přesně se změní, když nahradíte ruční vyhledávání automatizací LeadOS.</p>
             </div>
           </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -998,16 +998,16 @@ export default function Landing() {
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: "#fee2e2" }}>
                     <TrendingDown className="w-4 h-4" style={{ color: "#ef4444" }} />
                   </div>
-                  <span className="font-bold text-sm" style={{ color: "#dc2626" }}>BEFORE — Excel + Manual Research</span>
+                  <span className="font-bold text-sm" style={{ color: "#dc2626" }}>PŘED — Excel + ruční průzkum</span>
                 </div>
                 <ul className="space-y-3">
                   {[
-                    "📋 Copy-paste leads from LinkedIn manually — 2h/day",
-                    "📊 Excel sheets with stale data, duplicates, no scoring",
-                    "✉️ Generic cold emails with 2% reply rate",
-                    "🔍 No signal detection — cold outreach to cold leads",
-                    "⏳ 80% of sales time on research, 20% on selling",
-                    "💸 €0 tooling cost but €50K+ in wasted salesperson time",
+                    "📋 Copy-paste leadů z LinkedIn ručně — 2h/den",
+                    "📊 Excel tabulky se zastaralými daty, duplikáty, bez skórování",
+                    "✉️ Generické studené e-maily s 2% mírou odpovědí",
+                    "🔍 Žádná detekce signálů — studený oslovení studených leadů",
+                    "⏳ 80% obchodního času na průzkum, 20% na prodej",
+                    "💸 0 Kč za nástroje, ale 1,2M Kč+ ztracených v čase obchodníků",
                   ].map(item => (
                     <li key={item} className="flex items-start gap-2 text-sm" style={{ color: "#7f1d1d" }}>
                       <span className="mt-0.5 flex-shrink-0">✗</span>
@@ -1024,16 +1024,16 @@ export default function Landing() {
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${C.teal}20` }}>
                     <Rocket className="w-4 h-4" style={{ color: C.teal }} />
                   </div>
-                  <span className="font-bold text-sm" style={{ color: C.tealDark }}>AFTER — LeadOS AI Automation</span>
+                  <span className="font-bold text-sm" style={{ color: C.tealDark }}>PO — LeadOS AI automatizace</span>
                 </div>
                 <ul className="space-y-3">
                   {[
-                    "🤖 AI scrapes & enriches 2,000 leads/month automatically",
-                    "🎯 Real-time intent signals: pricing page visits, job changes",
-                    "✉️ Personalized icebreakers with 28% reply rate",
-                    "📈 AI lead scoring — only talk to 90+ score prospects",
-                    "⚡ 80% less research time — focus on closing",
-                    "💰 ROI: 1 closed deal pays for 12 months of LeadOS",
+                    "🤖 AI automaticky scrapuje a obohacuje 2 000 leadů/měsíc",
+                    "🎯 Signály záměru v reálném čase: návštěvy ceníku, změny práce",
+                    "✉️ Personalizované icebreakery s 28% mírou odpovědí",
+                    "📈 AI skórování leadů — oslovujte jen zájemce se skóre 90+",
+                    "⚡ O 80% méně času na průzkum — soustřeďte se na uzavírání",
+                    "💰 ROI: 1 uzavřený obchod zaplatí 12 měsíců LeadOS",
                   ].map(item => (
                     <li key={item} className="flex items-start gap-2 text-sm" style={{ color: C.text }}>
                       <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: C.teal }} />
@@ -1047,8 +1047,8 @@ export default function Landing() {
           {/* ROI Calculator teaser */}
           <Reveal delay={0.2}>
             <div className="mt-8 p-5 rounded-2xl text-center" style={{ background: `linear-gradient(135deg, ${C.indigo}08, ${C.teal}06)`, border: `1px solid ${C.indigo}20` }}>
-              <p className="text-sm font-medium mb-1" style={{ color: C.text }}>💡 Quick ROI: If your average deal is <strong>€5,000</strong> and LeadOS helps you close just <strong>1 extra deal/month</strong></p>
-              <p className="text-2xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>That's €60,000/year ROI on a €149/mo tool.</p>
+              <p className="text-sm font-medium mb-1" style={{ color: C.text }}>💡 Rychlý ROI: Pokud je vaše průměrná zakázka <strong>150 000 Kč</strong> a LeadOS vám pomůže uzavřít jen <strong>1 obchod navíc/měsíc</strong></p>
+              <p className="text-2xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>To je 1 800 000 Kč/rok ROI za nástroj za 3 700 Kč/měsíc.</p>
             </div>
           </Reveal>
         </div>
@@ -1296,7 +1296,7 @@ export default function Landing() {
                   </tbody>
                 </table>
               </div>
-              <p className="text-center text-xs mt-4" style={{ color: C.textLight }}>Prices as of Q1 2026. Feature availability based on publicly available information.</p>
+              <p className="text-center text-xs mt-4" style={{ color: C.textLight }}>Ceny k Q1 2026. Dostupnost funkcí vychází z veřejně dostupných informací.</p>
             </div>
           </Reveal>
         </div>
@@ -1321,25 +1321,25 @@ export default function Landing() {
               <Rocket className="w-8 h-8 text-white" />
             </motion.div>
             <h2 className="text-4xl sm:text-5xl font-black mb-6 leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
-              Ready to{" "}
-              <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal}, ${C.green})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>10x Your Pipeline?</span>
+              Připraveni{" "}
+              <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal}, ${C.green})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>10× zvýšit pipeline?</span>
             </h2>
             <p className="text-lg mb-10 max-w-xl mx-auto" style={{ color: C.textMuted }}>
-              Join thousands of sales teams who generate qualified B2B leads in minutes, not weeks.
+              Přidejte se k obchodním týmům, které generují kvalifikované B2B leady za minuty, ne týdny.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button onClick={handleCTA} size="lg" className="h-14 px-10 text-base font-bold text-white"
                 style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", boxShadow: `0 8px 40px ${C.indigo}40` }}>
-                {t("landing.ctaPrimary") || "Start Free Today"} <ArrowRight className="w-5 h-5 ml-2" />
+                {t("landing.ctaPrimary") || "Začít zdarma"} <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
                 variant="outline" size="lg" className="h-14 px-8 text-base"
                 style={{ background: C.bgCard, border: `1px solid ${C.border}`, color: C.text, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                See All Features <ChevronRight className="w-4 h-4 ml-1" />
+                Zobrazit všechny funkce <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
             <p className="mt-6 text-sm" style={{ color: C.textLight }}>
-              No credit card required · GDPR compliant · Cancel anytime
+              Bez kreditní karty · GDPR soulad · Zrušení kdykoliv
             </p>
           </Reveal>
         </div>
@@ -1349,10 +1349,10 @@ export default function Landing() {
       <footer className="pt-16 pb-10 px-4 sm:px-6" style={{ borderTop: `1px solid ${C.border}`, background: C.bgCard }}>
         <div className="max-w-6xl mx-auto text-center mb-12">
           <h3 className="text-3xl sm:text-4xl font-black mb-3" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
-            Build trust.{" "}
-            <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Close deals.</span>
+            Budujte důvěru.{" "}
+            <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Uzavírejte obchody.</span>
           </h3>
-          <p className="text-sm" style={{ color: C.textMuted }}>The AI-powered platform that turns cold prospects into warm conversations.</p>
+          <p className="text-sm" style={{ color: C.textMuted }}>AI platforma, která mění studené kontakty na teplé konverzace.</p>
         </div>
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6"
           style={{ borderTop: `1px solid ${C.border}`, paddingTop: "2rem" }}>
@@ -1367,11 +1367,11 @@ export default function Landing() {
             <a href="#features" className="hover:text-indigo-600 transition-colors">{t("nav.features")}</a>
             <a href="#case-studies" className="hover:text-indigo-600 transition-colors">{t("nav.results")}</a>
             <a href="#pricing" className="hover:text-indigo-600 transition-colors">{t("nav.pricing")}</a>
-            <span>© 2026 LeadOS — crmleadsystem.com</span>
+            <span>© 2026 LeadOS</span>
           </div>
           <div className="flex items-center gap-3 text-xs" style={{ color: C.textLight }}>
             <Shield className="w-3.5 h-3.5" style={{ color: C.green }} />
-            <span>GDPR Compliant</span>
+            <span>GDPR soulad</span>
             <Globe className="w-3.5 h-3.5 ml-2" style={{ color: C.indigo }} />
             <span>SOC 2 Ready</span>
           </div>

@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { toast } from "sonner";
 import { Plus, Trash2, Mail, ChevronRight, Users, Edit2, Save, Linkedin, Sparkles, Loader2, Phone } from "lucide-react";
 import { useGoogleAds } from "@/hooks/useGoogleAds";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 const STEP_ICONS: Record<string, string> = {
   email: "📧",
@@ -48,7 +50,7 @@ export default function Sequences() {
     onSuccess: () => {
       refetchSteps();
       setEditingSteps(false);
-      toast.success("Steps saved successfully.");
+      toast.success("Kroky úspěšně uloženy.");
       track('sequence_steps_saved', { step_count: steps.length });
     },
   });
@@ -97,25 +99,26 @@ export default function Sequences() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
+    <DashboardLayout>
+      <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Outreach Sequences</h1>
-          <p className="text-white/50 text-sm mt-1">Multi-channel automated outreach — Email, LinkedIn, and Calls</p>
+          <h1 className="text-2xl font-bold text-white">Outreach sekvence</h1>
+          <p className="text-white/50 text-sm mt-1">Vícekanalový automatizovaný outreach — E-mail, LinkedIn a telefonické hovory</p>
         </div>
         <Button onClick={() => setCreating(true)} className="bg-emerald-500 hover:bg-emerald-600 text-black font-semibold">
-          <Plus className="w-4 h-4 mr-2" /> New Sequence
+          <Plus className="w-4 h-4 mr-2" /> Nová sekvence
         </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Sequence List */}
         <div className="space-y-3">
-          <h2 className="text-xs font-semibold text-white/40 uppercase tracking-wider">Your Sequences</h2>
+          <h2 className="text-xs font-semibold text-white/40 uppercase tracking-wider">Vaše sekvence</h2>
           {sequences.length === 0 && (
             <div className="text-center py-12 text-white/30 border border-white/10 rounded-xl">
               <Mail className="w-8 h-8 mx-auto mb-2 opacity-40" />
-              <p className="text-sm">No sequences yet</p>
+              <p className="text-sm">Zatím žádné sekvence</p>
             </div>
           )}
           {sequences.map(seq => {
@@ -152,7 +155,7 @@ export default function Sequences() {
             <div className="flex items-center justify-center h-64 border border-white/10 rounded-xl text-white/30">
               <div className="text-center">
                 <Mail className="w-10 h-10 mx-auto mb-2 opacity-30" />
-                <p>Select a sequence to view details</p>
+                <p>Vyberte sekvenci pro zobrazení detailů</p>
               </div>
             </div>
           ) : (
@@ -164,7 +167,7 @@ export default function Sequences() {
                 </div>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={startEditing} className="border-white/20 text-white/70 hover:bg-white/10">
-                    <Edit2 className="w-3.5 h-3.5 mr-1.5" /> Edit Steps
+                    <Edit2 className="w-3.5 h-3.5 mr-1.5" /> Upravit kroky
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => deleteMut.mutate({ id: selectedSequence.id })} className="border-red-500/30 text-red-400 hover:bg-red-500/10">
                     <Trash2 className="w-3.5 h-3.5" />
@@ -174,10 +177,10 @@ export default function Sequences() {
 
               {/* Steps display */}
               <div className="space-y-3 mb-6">
-                <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">Steps ({stepsData.length})</h3>
+                <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider">Kroky ({stepsData.length})</h3>
                 {stepsData.length === 0 && (
                   <p className="text-white/30 text-sm py-4 text-center border border-dashed border-white/10 rounded-lg">
-                    No steps yet — click "Edit Steps" to add email or LinkedIn steps
+                    Zatím žádné kroky — klikněte "Upravit kroky" pro přidání e-mail nebo LinkedIn kroků
                   </p>
                 )}
                 {stepsData.map((step, i) => {
@@ -190,7 +193,7 @@ export default function Sequences() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-white/40">Day {step.delayDays}</span>
+                          <span className="text-xs text-white/40">Den {step.delayDays}</span>
                           <span className={`text-[10px] font-medium ${cfg.color}`}>{cfg.label}</span>
                           <span className="text-white text-sm font-medium truncate">{step.subject}</span>
                         </div>
@@ -203,10 +206,10 @@ export default function Sequences() {
 
               {/* Enrollments */}
               <div>
-                <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Enrolled Leads ({seqEnrollments.length})</h3>
+                <h3 className="text-xs font-semibold text-white/40 uppercase tracking-wider mb-2">Zapsáné leady ({seqEnrollments.length})</h3>
                 {seqEnrollments.length === 0 ? (
                   <p className="text-white/30 text-sm py-3 text-center border border-dashed border-white/10 rounded-lg">
-                    No leads enrolled — enroll leads from the History page
+                    Žádné leady — zapište leady ze stránky Historie
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -214,7 +217,7 @@ export default function Sequences() {
                       <div key={e.id} className="flex items-center justify-between p-2 bg-white/5 rounded-lg text-sm">
                         <span className="text-white/70">Lead #{e.leadId}</span>
                         <div className="flex items-center gap-2">
-                          <span className="text-white/40 text-xs">Step {e.currentStep}</span>
+                          <span className="text-white/40 text-xs">Krok {e.currentStep}</span>
                           <Badge variant="outline" className={`text-xs border-0 ${e.status === "active" ? "bg-emerald-500/20 text-emerald-400" : e.status === "completed" ? "bg-blue-500/20 text-blue-400" : "bg-white/10 text-white/40"}`}>
                             {e.status}
                           </Badge>
@@ -244,7 +247,7 @@ export default function Sequences() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreating(false)} className="border-white/20 text-white/70">Cancel</Button>
+            <Button variant="outline" onClick={() => setCreating(false)} className="border-white/20 text-white/70">Zrušit</Button>
             <Button onClick={() => createMut.mutate({ name: newName, description: newDesc })} disabled={!newName || createMut.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-black">
               Create Sequence
             </Button>
@@ -363,7 +366,7 @@ export default function Sequences() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingSteps(false)} className="border-white/20 text-white/70">Cancel</Button>
+            <Button variant="outline" onClick={() => setEditingSteps(false)} className="border-white/20 text-white/70">Zrušit</Button>
             <Button onClick={() => saveStepsMut.mutate({ sequenceId: selectedSeq!, steps })} disabled={saveStepsMut.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-black">
               <Save className="w-4 h-4 mr-2" /> Save Steps
             </Button>
@@ -371,5 +374,6 @@ export default function Sequences() {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 }

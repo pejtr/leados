@@ -8,6 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 import {
   Mail,
   Clock,
@@ -106,10 +108,12 @@ export default function DailyReport() {
 
   if (isLoading) {
     return (
+    <DashboardLayout>
       <div className="flex items-center justify-center h-64">
         <RefreshCw className="w-6 h-6 animate-spin text-cyan-400" />
       </div>
-    );
+    </DashboardLayout>
+  );
   }
 
   return (

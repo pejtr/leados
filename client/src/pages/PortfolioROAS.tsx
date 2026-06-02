@@ -16,6 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 // ─── Helpers ─────────────────────────────────────────────────────
 function fmt(n: number, currency = "Kč", decimals = 0) {
@@ -323,7 +325,8 @@ export default function PortfolioROAS() {
   const periodLabel = PERIODS.find((p) => p.days === days)?.label ?? `${days} dní`;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-8">
+    <DashboardLayout>
+      <div className="p-6 max-w-7xl mx-auto space-y-8">
       {/* ── Header ─────────────────────────────────────────────── */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
@@ -898,6 +901,7 @@ export default function PortfolioROAS() {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 }
 // force

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 import {
   Cpu,
   Play,
@@ -337,7 +339,8 @@ export default function AgentBenchmark() {
   const selectedAgentInfo = AGENT_OPTIONS.find((a) => a.id === selectedAgent);
 
   return (
-    <div style={{ padding: "32px 40px", background: C.bgLight, minHeight: "100vh" }}>
+    <DashboardLayout>
+      <div style={{ padding: "32px 40px", background: C.bgLight, minHeight: "100vh" }}>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
@@ -751,5 +754,6 @@ export default function AgentBenchmark() {
         }
       `}</style>
     </div>
+    </DashboardLayout>
   );
 }

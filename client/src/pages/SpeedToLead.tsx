@@ -9,6 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Zap, Loader2, Clock, Mail, MessageSquare, Timer } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 export default function SpeedToLead() {
   const { data: config, isLoading } = trpc.speedToLead.get.useQuery();
@@ -42,7 +44,8 @@ export default function SpeedToLead() {
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2"><Zap className="h-6 w-6 text-yellow-500" /> Speed-to-Lead</h1>
         <p className="text-muted-foreground mt-1">Instant follow-up automation — respond to new leads in seconds</p>
@@ -108,5 +111,6 @@ export default function SpeedToLead() {
         </CardContent>
       </Card>
     </div>
+    </DashboardLayout>
   );
 }

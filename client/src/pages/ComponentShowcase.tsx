@@ -1051,7 +1051,7 @@ export default function ComponentsShowcase() {
                         >
                           Cancel
                         </Button>
-                        <Button onClick={handleDialogSubmit}>Submit</Button>
+                        <Button onClick={handleDialogSubmit}>Odeslat</Button>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -1083,9 +1083,9 @@ export default function ComponentsShowcase() {
                         </DrawerDescription>
                       </DrawerHeader>
                       <DrawerFooter>
-                        <Button>Submit</Button>
+                        <Button>Odeslat</Button>
                         <DrawerClose asChild>
-                          <Button variant="outline">Cancel</Button>
+                          <Button variant="outline">Zrušit</Button>
                         </DrawerClose>
                       </DrawerFooter>
                     </DrawerContent>

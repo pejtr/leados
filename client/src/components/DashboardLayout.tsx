@@ -248,7 +248,7 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
             </div>
             <DropdownMenuItem onClick={logout} className="cursor-pointer mt-1 text-red-600 focus:text-red-600 focus:bg-red-50">
               <LogOut className="mr-2 h-3.5 w-3.5" />
-              <span className="text-xs">Sign out</span>
+              <span className="text-xs">Odhlásit se</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -286,6 +286,39 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
         scrollbarWidth: "none",
       }}
     >
+      {/* All Apps button — TOP */}
+      <div className="relative flex flex-col items-center"
+        style={{ transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: `scale(${hoveredIdx === -1 ? 1.55 : 1})`, transformOrigin: "center left" }}
+        onMouseEnter={() => setHoveredIdx(-1)}
+        onMouseLeave={() => setHoveredIdx(null)}
+      >
+        {hoveredIdx === -1 && (
+          <div className="absolute left-12 z-50 px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap pointer-events-none"
+            style={{ background: "oklch(0.20 0.04 250 / 90%)", color: "white", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px oklch(0 0 0 / 20%)" }}>
+            Všechny aplikace
+          </div>
+        )}
+        <button
+          onClick={onAppsClick}
+          className="flex items-center justify-center rounded-xl focus:outline-none"
+          style={{
+            width: 40,
+            height: 40,
+            background: "linear-gradient(135deg, oklch(0.55 0.20 192 / 12%), oklch(0.55 0.24 278 / 10%))",
+            border: "1.5px solid oklch(0.55 0.20 192 / 25%)",
+          }}
+        >
+          <div className="grid grid-cols-2 gap-0.5">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="w-1.5 h-1.5 rounded-sm" style={{ background: "oklch(0.55 0.20 192)" }} />
+            ))}
+          </div>
+        </button>
+      </div>
+
+      {/* Separator */}
+      <div className="w-6 h-px my-1 rounded-full" style={{ background: "oklch(1 0 0 / 12%)" }} />
+
       {dockItems.map((item, idx) => {
         const isActive = location === item.path;
         const scale = getScale(idx);
@@ -334,38 +367,6 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
         );
       })}
 
-      {/* Separator */}
-      <div className="w-6 h-px my-1 rounded-full" style={{ background: "oklch(1 0 0 / 12%)" }} />
-
-      {/* All Apps button */}
-      <div className="relative flex flex-col items-center"
-        style={{ transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)", transform: `scale(${hoveredIdx === dockItems.length ? 1.55 : 1})`, transformOrigin: "bottom center" }}
-        onMouseEnter={() => setHoveredIdx(dockItems.length)}
-        onMouseLeave={() => setHoveredIdx(null)}
-      >
-        {hoveredIdx === dockItems.length && (
-          <div className="absolute left-12 z-50 px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap pointer-events-none"
-            style={{ background: "oklch(0.20 0.04 250 / 90%)", color: "white" }}>
-            All Apps
-          </div>
-        )}
-        <button
-          onClick={onAppsClick}
-          className="flex items-center justify-center rounded-xl focus:outline-none"
-          style={{
-            width: 40,
-            height: 40,
-            background: "linear-gradient(135deg, oklch(0.55 0.20 192 / 12%), oklch(0.55 0.24 278 / 10%))",
-            border: "1.5px solid oklch(0.55 0.20 192 / 25%)",
-          }}
-        >
-          <div className="grid grid-cols-2 gap-0.5">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="w-1.5 h-1.5 rounded-sm" style={{ background: "oklch(0.55 0.20 192)" }} />
-            ))}
-          </div>
-        </button>
-      </div>
     </div>
   );
 }

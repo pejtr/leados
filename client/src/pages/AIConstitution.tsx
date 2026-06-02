@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 import {
   Select,
   SelectContent,
@@ -248,10 +250,12 @@ export default function AIConstitution() {
 
   if (isLoading) {
     return (
+    <DashboardLayout>
       <div className="flex items-center justify-center h-64">
         <div className="w-8 h-8 border-2 border-[#00D4C8] border-t-transparent rounded-full animate-spin" />
       </div>
-    );
+    </DashboardLayout>
+  );
   }
 
   return (

@@ -11,6 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { Bot, Plus, Trash2, Loader2, Play, History, Sparkles, Settings, CheckCircle2, XCircle } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 const AGENT_TYPES = [
   { value: "lead_qualifier", label: "Lead Qualifier", desc: "Automatically qualify leads based on criteria" },
@@ -48,7 +50,8 @@ export default function AiAgentBuilder() {
   });
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2"><Bot className="h-6 w-6 text-emerald-500" /> AI Agent Builder</h1>
@@ -165,5 +168,6 @@ export default function AiAgentBuilder() {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 }

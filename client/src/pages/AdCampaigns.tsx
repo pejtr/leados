@@ -580,7 +580,7 @@ export default function AdCampaigns() {
               </div>
             )}
             <DialogFooter>
-              <Button variant="outline" onClick={() => setModal(null)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setModal(null)}>Zrušit</Button>
               <Button onClick={handleSubmit} disabled={!form.name || isMutating}>
                 {isMutating && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                 {modal === "add" ? "Add Campaign" : "Save Changes"}

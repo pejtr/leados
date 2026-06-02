@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 import {
   MapPin, Search, Globe, Phone, Star, TrendingUp, CheckCircle, XCircle, ArrowRight, Loader2, Building2, Filter
 } from "lucide-react";
@@ -72,7 +74,8 @@ export default function GoogleMapsScraper() {
   const lowScoreCount = results?.filter(r => (r.webQualityScore ?? 0) < 40).length ?? 0;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <DashboardLayout>
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -326,5 +329,6 @@ export default function GoogleMapsScraper() {
         </div>
       )}
     </div>
+    </DashboardLayout>
   );
 }

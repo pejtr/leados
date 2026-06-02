@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, Sparkles, Target, ChevronDown, ChevronUp, Shield, AlertTriangle, Zap } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 interface MapData {
   competitors?: Array<{
@@ -54,7 +56,8 @@ export default function CompetitiveMap() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <DashboardLayout>
+      <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <Target className="w-6 h-6 text-emerald-400" />
         <h1 className="text-2xl font-bold text-white">Competitive Landscape</h1>
@@ -216,5 +219,6 @@ export default function CompetitiveMap() {
         })}
       </div>
     </div>
+    </DashboardLayout>
   );
 }

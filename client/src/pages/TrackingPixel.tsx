@@ -9,6 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Code, Plus, Trash2, Eye, Copy, Globe, Activity, Building2, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 export default function TrackingPixel() {
   const [open, setOpen] = useState(false);
@@ -30,7 +32,8 @@ export default function TrackingPixel() {
   });
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2"><Code className="h-6 w-6 text-purple-500" /> Website Tracking Pixel</h1>
@@ -122,5 +125,6 @@ export default function TrackingPixel() {
         </Card>
       )}
     </div>
+    </DashboardLayout>
   );
 }

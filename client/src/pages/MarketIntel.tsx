@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { BarChart2, Loader2, ChevronDown, ChevronUp, Sparkles, Users, TrendingUp, Target, Zap, Globe } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 interface ReportData {
   overview?: { size?: string; growth?: string; trends?: string[] };
@@ -38,7 +40,8 @@ export default function MarketIntel() {
   const QUICK_INDUSTRIES = ["SaaS", "Real Estate", "Insurance", "Healthcare", "Finance", "E-commerce", "Manufacturing", "Logistics"];
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <DashboardLayout>
+      <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-2">
         <BarChart2 className="w-6 h-6 text-emerald-400" />
         <h1 className="text-2xl font-bold text-white">Market Intelligence</h1>
@@ -199,5 +202,6 @@ export default function MarketIntel() {
         })}
       </div>
     </div>
+    </DashboardLayout>
   );
 }

@@ -120,7 +120,7 @@ export default function SocialListening() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setOpen(false)}>Zrušit</Button>
                 <Button
                   disabled={!form.name || !form.keywords || createMut.isPending}
                   onClick={() => createMut.mutate(form)}

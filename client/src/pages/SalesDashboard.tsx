@@ -12,6 +12,8 @@ import {
   CheckCircle2, Clock, XCircle, BarChart3, Percent
 } from "lucide-react";
 import { Link } from "wouter";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 const STAGE_LABELS: Record<string, string> = {
   new: "Nový",
@@ -90,7 +92,8 @@ export default function SalesDashboard() {
   const totalCommissions = commissions.reduce((s: number, c: any) => s + parseFloat(c.amount ?? "0"), 0);
 
   return (
-    <div className="min-h-screen bg-[#0a0f1e] text-white p-6">
+    <DashboardLayout>
+      <div className="min-h-screen bg-[#0a0f1e] text-white p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -421,5 +424,6 @@ export default function SalesDashboard() {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 }

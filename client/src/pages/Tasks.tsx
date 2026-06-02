@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, CheckCircle2, Circle, Phone, Mail, Users, Calendar, Bell, Trash2, Clock } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
   call: <Phone className="w-3.5 h-3.5" />,
@@ -47,7 +49,8 @@ export default function Tasks() {
   }
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <DashboardLayout>
+      <div className="p-6 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Activity Tracker</h1>
@@ -165,7 +168,7 @@ export default function Tasks() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreating(false)} className="border-white/20 text-white/70">Cancel</Button>
+            <Button variant="outline" onClick={() => setCreating(false)} className="border-white/20 text-white/70">Zrušit</Button>
             <Button onClick={() => createMut.mutate({ title: form.title, description: form.description || undefined, type: form.type, dueAt: form.dueAt ? new Date(form.dueAt) : undefined, reminderAt: form.reminderAt ? new Date(form.reminderAt) : undefined })} disabled={!form.title || createMut.isPending} className="bg-emerald-500 hover:bg-emerald-600 text-black">
               Create Task
             </Button>
@@ -173,5 +176,6 @@ export default function Tasks() {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 }

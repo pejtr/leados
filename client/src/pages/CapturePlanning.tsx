@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Plus, Target, ChevronRight, DollarSign, TrendingUp, Trash2 } from "lucide-react";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 const STAGES = [
   { key: "identify", label: "Identify", color: "bg-slate-500", light: "bg-slate-500/20 text-slate-300 border-slate-500/30", desc: "Opportunity discovered" },
@@ -45,7 +47,8 @@ export default function CapturePlanning() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <DashboardLayout>
+      <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-white">Capture Planning</h1>
@@ -226,7 +229,7 @@ export default function CapturePlanning() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreating(false)} className="border-white/20 text-white/70">Cancel</Button>
+            <Button variant="outline" onClick={() => setCreating(false)} className="border-white/20 text-white/70">Zrušit</Button>
             <Button
               onClick={() => createMut.mutate({ title: form.title, companyName: form.companyName || undefined, stage: form.stage, notes: form.notes || undefined, estimatedValue: form.estimatedValue || undefined, probability: parseInt(form.probability) || 10, expectedCloseAt: form.expectedCloseAt ? new Date(form.expectedCloseAt) : undefined })}
               disabled={!form.title || createMut.isPending}
@@ -238,5 +241,6 @@ export default function CapturePlanning() {
         </DialogContent>
       </Dialog>
     </div>
+    </DashboardLayout>
   );
 }

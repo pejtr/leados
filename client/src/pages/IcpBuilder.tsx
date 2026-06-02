@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Target, Plus, Trash2, Loader2, Sparkles, Building2, MapPin, Cpu, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import DashboardLayout from "@/components/DashboardLayout";
+
 
 export default function IcpBuilder() {
   const [open, setOpen] = useState(false);
@@ -36,7 +38,8 @@ export default function IcpBuilder() {
   });
 
   return (
-    <div className="space-y-6">
+    <DashboardLayout>
+      <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2"><Target className="h-6 w-6 text-rose-500" /> ICP Builder</h1>
@@ -124,5 +127,6 @@ export default function IcpBuilder() {
         </div>
       )}
     </div>
+    </DashboardLayout>
   );
 }

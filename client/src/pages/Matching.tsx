@@ -136,7 +136,7 @@ export default function Matching() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setOpen(false)}>Zrušit</Button>
                 <Button
                   disabled={!form.name || !form.industries || !form.locations || createMut.isPending}
                   onClick={() => createMut.mutate(form)}

@@ -201,7 +201,7 @@ export default function SdrAgent() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+                <Button variant="outline" onClick={() => setOpen(false)}>Zrušit</Button>
                 <Button
                   disabled={!form.name || !form.industry || !form.location || createMut.isPending}
                   onClick={() => createMut.mutate(form)}
