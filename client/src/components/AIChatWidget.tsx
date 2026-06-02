@@ -517,11 +517,14 @@ export default function AIChatWidget() {
                         onClick={() => handleSelectPersona(persona as Persona)}
                         className="relative flex flex-col items-start gap-1.5 p-3 rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-primary/30 transition-all text-left group"
                       >
-                        {/* Favorite toggle */}
-                        <button
+                        {/* Favorite toggle — div to avoid nested button HTML violation */}
+                        <div
+                          role="button"
+                          tabIndex={0}
                           onClick={(e) => handleToggleFavorite(e, persona.id)}
+                          onKeyDown={(e) => e.key === "Enter" && handleToggleFavorite(e as unknown as React.MouseEvent, persona.id)}
                           className={cn(
-                            "absolute top-2 right-2 p-0.5 rounded-full transition-colors z-10",
+                            "absolute top-2 right-2 p-0.5 rounded-full transition-colors z-10 cursor-pointer",
                             isFav
                               ? "text-rose-400 hover:text-rose-300"
                               : "text-muted-foreground/30 hover:text-rose-400 opacity-0 group-hover:opacity-100"
@@ -530,7 +533,7 @@ export default function AIChatWidget() {
                           title={isFav ? "Remove from favorites" : "Add to favorites"}
                         >
                           <Heart className={cn("h-3 w-3", isFav && "fill-current")} />
-                        </button>
+                        </div>
 
                         <div className="flex items-center gap-2 w-full pr-4">
                           <span className="text-2xl">{persona.emoji}</span>
