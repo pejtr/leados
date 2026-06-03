@@ -4,6 +4,7 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
+import { registerStorageProxy } from "./storageProxy";
 import { registerStripeWebhook } from "../stripeWebhook";
 import { registerCallsUploadRoute } from "../callsUploadRoute";
 import { registerIngestRoute } from "../ingestRoute";
@@ -39,6 +40,8 @@ async function startServer() {
   registerStripeWebhook(app);
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  // Storage proxy for webdev static assets
+  registerStorageProxy(app);
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // Calls upload route
@@ -87,12 +90,12 @@ async function startServer() {
     import("../sequenceScheduler").then(m => m.startSequenceScheduler()).catch(console.error);
     // Start daily report scheduler (sends email digest at configured hour)
     import("../dailyReportScheduler").then(m => m.startDailyReportScheduler()).catch(console.error);
-    // Start HERMES Daily Digest scheduler (08:00 CET)
+    // Start HERA Daily Digest scheduler (08:00 CET)
     import("node-cron").then((cron: any) => {
       cron.schedule("0 8 * * *", () => {
         import("../hermesDigest").then((m: any) => m.sendDailyDigest()).catch(console.error);
       }, { timezone: "Europe/Prague" });
-      console.log("[HERMES Digest] Scheduler registered — fires daily at 08:00 CET");
+      console.log("[HERA Digest] Scheduler registered — fires daily at 08:00 CET");
     }).catch(console.error);
   });
 }

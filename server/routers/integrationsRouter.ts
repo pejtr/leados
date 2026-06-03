@@ -22,7 +22,7 @@ export const integrationsRouter = router({
   /**
    * Get all integration settings for the current user
    */
-  list: protectedProcedure.query(async ({ ctx }) => {
+  list: protectedProcedure.query(async (_ctx) => {
     const db = await getDb();
     if (!db) throw new Error("Database unavailable");
 
@@ -196,6 +196,23 @@ export const integrationsRouter = router({
       } catch (err: any) {
         return { success: false, error: err.message };
       }
+    }),
+
+  /**
+   * Get recent integration activity logs (stub — returns empty list if no log table exists)
+   */
+  logs: protectedProcedure
+    .input(z.object({ limit: z.number().min(1).max(200).default(50) }))
+    .query(async (_ctx) => {
+      // Stub: returns empty array — extend with a real log table when needed
+      return [] as Array<{
+        id: number;
+        integrationId: string;
+        event: string;
+        status: string;
+        message: string | null;
+        createdAt: number;
+      }>;
     }),
 
   /**

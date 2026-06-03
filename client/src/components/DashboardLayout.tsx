@@ -50,7 +50,7 @@ const dockItems = [
   { icon: Link2,        path: "/projects",        label: "Projekty",         color: "oklch(0.58 0.16 200)" },
   // TIER 4 — AI & Knowledge
   { icon: Cpu,          path: "/computer-flow",  label: "Computer Flow",   color: "oklch(0.62 0.22 190)" },
-  { icon: Sparkles,     path: "/hermes",          label: "HERMES",           color: "oklch(0.65 0.22 280)" },
+  { icon: Sparkles,     path: "/hermes",          label: "HERA",             color: "oklch(0.65 0.22 280)" },
   { icon: Brain,        path: "/chat-agent",      label: "AI Poradce",       color: "oklch(0.60 0.22 260)" },
   { icon: BookOpen,     path: "/ai-skills",       label: "AI Skills",        color: "oklch(0.62 0.22 300)" },
   { icon: History,      path: "/history",         label: "Historie",         color: "oklch(0.60 0.15 220)" },
@@ -98,7 +98,7 @@ const allMenuItems = [
   { icon: History,      labelKey: "sidebar.leadHistory",      path: "/history",         group: "analytics" },
   // TIER 4 — AI & Knowledge
   { icon: Cpu,          labelKey: "sidebar.computerFlow",    path: "/computer-flow",  group: "ai" },
-  { icon: Sparkles,     labelKey: "sidebar.hermes",           path: "/hermes",          group: "ai" },
+  { icon: Sparkles,     labelKey: "sidebar.hera",             path: "/hermes",          group: "ai" },
   { icon: Brain,        labelKey: "sidebar.aiAdvisor",        path: "/chat-agent",      group: "ai" },
   { icon: BookOpen,     labelKey: "sidebar.aiSkills",         path: "/ai-skills",       group: "ai" },
   { icon: Brain,        labelKey: "sidebar.fiveBrains",       path: "/five-brains",     group: "ai" },
@@ -279,7 +279,7 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
 
   return (
     <div
-      className="fixed left-0 bottom-0 z-40 flex flex-col items-center py-3 gap-1 overflow-y-auto"
+      className="fixed left-0 bottom-0 z-[9999] flex flex-col items-center py-3 gap-1 overflow-y-auto"
       style={{
         top: "calc(2rem + env(safe-area-inset-top, 0px))",
         width: 56,
@@ -298,7 +298,7 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
         onMouseLeave={() => setHoveredIdx(null)}
       >
         {hoveredIdx === -1 && (
-          <div className="absolute left-12 z-50 px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap pointer-events-none"
+          <div className="absolute left-12 z-[99999] px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap pointer-events-none"
             style={{ background: "oklch(0.20 0.04 250 / 90%)", color: "white", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px oklch(0 0 0 / 20%)" }}>
             Všechny aplikace
           </div>
@@ -337,7 +337,7 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
           >
             {/* Tooltip */}
             {hoveredIdx === idx && (
-              <div className="absolute left-12 z-50 px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap pointer-events-none"
+              <div className="absolute left-12 z-[99999] px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap pointer-events-none"
                 style={{ background: "oklch(0.20 0.04 250 / 90%)", color: "white", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px oklch(0 0 0 / 20%)" }}>
                 {item.label}
               </div>
@@ -400,7 +400,7 @@ function AppsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
 
       {/* Panel */}
       <div
-        className="fixed left-0 bottom-0 z-40 w-72 overflow-y-auto"
+        className="fixed left-0 bottom-0 z-[9998] w-72 overflow-y-auto"
         style={{
           top: "calc(2rem + env(safe-area-inset-top, 0px))",
           background: "oklch(0.085 0.04 248 / 97%)",

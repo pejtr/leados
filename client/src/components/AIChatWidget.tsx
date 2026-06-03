@@ -84,7 +84,7 @@ export default function AIChatWidget() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [hermesMode, setHermesMode] = useState(true); // HERMES orchestration ON by default
+  const [hermesMode, setHermesMode] = useState(true); // HERA orchestration ON by default
   const [lastHermesAgent, setLastHermesAgent] = useState<{ name: string; emoji: string; color: string } | null>(null);
   const [lastIntent, setLastIntent] = useState<string>("general");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -102,9 +102,9 @@ export default function AIChatWidget() {
     staleTime: 30_000,
   });
 
-  // HERMES-powered chat mutation (primary path)
+  // HERA-powered chat mutation (primary path)
   const hermesChatMutation = trpc.hermes.aiChat.useMutation();
-  // Legacy direct mutation (fallback when HERMES mode is off)
+  // Legacy direct mutation (fallback when HERA mode is off)
   const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
   const clearHistoryMutation = trpc.aiChat.clear.useMutation();
   const toggleFavoriteMutation = trpc.aiChat.toggleFavorite.useMutation();
@@ -164,7 +164,7 @@ export default function AIChatWidget() {
 
     try {
       if (hermesMode) {
-        // ── HERMES orchestration path ──────────────────────────────────────
+        // ── HERA orchestration path ──────────────────────────────────────
         const result = await hermesChatMutation.mutateAsync({
           message: userMessage,
           personaId: selectedPersona?.id,
@@ -302,7 +302,7 @@ export default function AIChatWidget() {
       >
         <Sparkles className="h-5 w-5" />
         <span className="text-sm font-semibold hidden sm:block">
-          {hermesMode ? "HERMES" : "Chat Agent"}
+          {hermesMode ? "HERA" : "Chat Agent"}
         </span>
       </button>
     );
@@ -341,7 +341,7 @@ export default function AIChatWidget() {
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold text-foreground">HERMES</p>
+                      <p className="text-sm font-semibold text-foreground">HERA</p>
                       <Badge className="text-[9px] px-1 py-0 h-3.5 bg-primary/20 text-primary border-0 font-medium">
                         CORE AI
                       </Badge>
@@ -399,14 +399,14 @@ export default function AIChatWidget() {
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {/* HERMES mode toggle */}
-          <div className="flex items-center gap-1 mr-1" title={hermesMode ? "HERMES mode ON" : "HERMES mode OFF"}>
+          {/* HERA mode toggle */}
+          <div className="flex items-center gap-1 mr-1" title={hermesMode ? "HERA mode ON" : "HERA mode OFF"}>
             <Shield className={cn("h-3 w-3", hermesMode ? "text-primary" : "text-muted-foreground/40")} />
             <Switch
               checked={hermesMode}
               onCheckedChange={(v) => {
                 setHermesMode(v);
-                toast.success(v ? "HERMES orchestration enabled ⚡" : "Direct mode enabled");
+                toast.success(v ? "HERA orchestration enabled ⚡" : "Direct mode enabled");
               }}
               className="h-4 w-7 data-[state=checked]:bg-primary"
             />
@@ -594,7 +594,7 @@ export default function AIChatWidget() {
                     <div className="h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3 border border-primary/20">
                       <Zap className="h-7 w-7 text-primary" />
                     </div>
-                    <p className="text-sm font-semibold text-foreground">HERMES</p>
+                    <p className="text-sm font-semibold text-foreground">HERA</p>
                     <p className="text-xs text-muted-foreground mt-0.5">Core AI Orchestration</p>
                     <div className="flex flex-wrap gap-1 justify-center mt-2">
                       {["🔍 Prospector", "✍️ Copywriter", "📊 Analyst", "🤝 SDR", "⚡ NINJA BOT"].map((a) => (
@@ -732,7 +732,7 @@ export default function AIChatWidget() {
                 <div className="rounded-xl rounded-tl-sm bg-muted px-3 py-2.5 border border-primary/10">
                   <div className="flex gap-1 items-center">
                     {hermesMode && (
-                      <span className="text-[9px] text-primary/60 mr-1">HERMES routing…</span>
+                      <span className="text-[9px] text-primary/60 mr-1">HERA routing…</span>
                     )}
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />

@@ -1,5 +1,5 @@
 /**
- * HERMES Command Center — Core AI Orchestration Interface
+ * HERA Command Center — Core AI Orchestration Interface
  * Aesthetic: Stargate Atlantis / Návštěvníci — deep space command center,
  * circular HUD elements, teal/cyan energy lines, dark void background
  */
@@ -166,7 +166,7 @@ function MessageBubble({ msg }: { msg: Message }) {
             : "bg-slate-900/80 border-cyan-500/30 text-cyan-400"
         )}
       >
-        {isUser ? "U" : <Zap className="h-4 w-4" />}
+        {isUser ? "U" : <img src="/manus-storage/hera-avatar-small_f7206405.png" alt="HERA" className="w-full h-full object-cover object-top rounded-full" />}
       </div>
 
       {/* Content */}
@@ -174,7 +174,7 @@ function MessageBubble({ msg }: { msg: Message }) {
         {/* Header */}
         {!isUser && (
           <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span className="text-xs font-semibold text-cyan-400 tracking-wider">HERMES</span>
+            <span className="text-xs font-semibold text-cyan-400 tracking-wider">HERA</span>
             {msg.metadata?.routingDecision && (
               <span className="text-xs text-slate-500 italic">
                 {msg.metadata.routingDecision}
@@ -384,7 +384,7 @@ function DigestPanel({ sessionId, onMissionStart, onMissionComplete }: {
   const [isOptimizing, setIsOptimizing] = useState(false);
 
   const triggerDigest = trpc.hermes.triggerDigest.useMutation({
-    onSuccess: () => toast.success("⚡ HERMES Digest odeslán!"),
+    onSuccess: () => toast.success("⚡ HERA Digest odeslán!"),
     onError: (err) => toast.error("Chyba při generování digestu", { description: err.message }),
   });
 
@@ -401,7 +401,7 @@ function DigestPanel({ sessionId, onMissionStart, onMissionComplete }: {
     if (!sessionId || isOptimizing) return;
     setIsOptimizing(true);
     onMissionStart();
-    toast.info("🚀 Spouštím optimalizaci...", { description: "HERMES analyzuje všechny projekty a navrhuje akce" });
+    toast.info("🚀 Spouštím optimalizaci...", { description: "HERA analyzuje všechny projekty a navrhuje akce" });
     try {
       const result = await executeMission.mutateAsync({
         missionType: "full_analysis",
@@ -469,7 +469,7 @@ function DigestPanel({ sessionId, onMissionStart, onMissionComplete }: {
         className="w-full mt-2 text-xs bg-gradient-to-r from-emerald-700 to-cyan-700 hover:from-emerald-600 hover:to-cyan-600 text-white border-0 font-semibold"
         onClick={handleOptimize}
         disabled={isOptimizing || triggerDigest.isPending || !sessionId}
-        title="Spustí HERMES Full Analysis misi — realizuje optimalizační kroky z přehledu"
+        title="Spustí HERA Full Analysis misi — realizuje optimalizační kroky z přehledu"
       >
         {isOptimizing ? (
           <><Loader2 className="h-3 w-3 mr-1.5 animate-spin" /> Optimalizuji...</>
@@ -583,7 +583,7 @@ export default function Hermes() {
 
   // Set page title
   useEffect(() => {
-    document.title = "HERMES — Core AI | LeadOS";
+    document.title = "HERA — Core AI | LeadOS";
     return () => { document.title = "LeadOS — AI Lead Generation Platform"; };
   }, []);
 
@@ -628,7 +628,7 @@ export default function Hermes() {
 
       setMessages((prev) => [...prev, hermesMsg]);
 
-      // If HERMES suggests a mission, show the missions panel
+      // If HERA suggests a mission, show the missions panel
       if (result.suggestedMission) {
         setShowMissions(true);
         toast.info(`Mission suggested: ${result.suggestedMission.title}`, {
@@ -636,7 +636,7 @@ export default function Hermes() {
         });
       }
     } catch (err: any) {
-      toast.error("HERMES communication error", { description: err.message });
+      toast.error("HERA communication error", { description: err.message });
     } finally {
       setIsSending(false);
       inputRef.current?.focus();
@@ -709,7 +709,7 @@ export default function Hermes() {
     setSessionId(session.id);
     setMessages([]);
     setMissionResult(null);
-    toast.success("New HERMES session started");
+    toast.success("New HERA session started");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -727,16 +727,16 @@ export default function Hermes() {
         {/* ── Header ── */}
         <div className="relative z-10 flex items-center justify-between px-6 py-3 border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-sm shrink-0">
           <div className="flex items-center gap-3">
-            {/* HERMES logo */}
+            {/* HERA logo */}
             <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/40 flex items-center justify-center">
-                <Zap className="h-5 w-5 text-cyan-400" />
+              <div className="w-10 h-10 rounded-full border border-cyan-500/40 overflow-hidden">
+                <img src="/manus-storage/hera-avatar-small_f7206405.png" alt="HERA" className="w-full h-full object-cover object-top" />
               </div>
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-slate-950" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-white tracking-wide">HERMES</h1>
+                <h1 className="text-lg font-bold text-white tracking-wide">HERA</h1>
                 <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400 px-1.5 py-0">
                   CORE AI
                 </Badge>
@@ -757,7 +757,7 @@ export default function Hermes() {
                 className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all",
                   activeView === "chat" ? "bg-cyan-600 text-white" : "text-slate-400 hover:text-slate-200")}
               >
-                <Zap className="h-3 w-3 inline mr-1" />HERMES
+                <Zap className="h-3 w-3 inline mr-1" />HERA
               </button>
               <button
                 onClick={() => setActiveView("mastermind")}
@@ -855,7 +855,7 @@ export default function Hermes() {
                     <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30 flex items-center justify-center mx-auto mb-4">
                       <Brain className="h-8 w-8 text-violet-400" />
                     </div>
-                    <h2 className="text-xl font-bold text-white mb-2">HERMES Mastermind</h2>
+                    <h2 className="text-xl font-bold text-white mb-2">HERA Mastermind</h2>
                     <p className="text-slate-400 text-sm max-w-md mx-auto mb-4">
                       Virtuální poradní sbor světových business expertů. Vyber experty vlevo a zeptej se na cokoliv.
                     </p>
@@ -1002,10 +1002,10 @@ export default function Hermes() {
                 {/* Welcome message */}
                 {messages.length === 0 && (
                   <div className="text-center py-12">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500/20 to-teal-500/20 border border-cyan-500/30 flex items-center justify-center mx-auto mb-4">
-                      <Zap className="h-8 w-8 text-cyan-400" />
+                    <div className="w-16 h-16 rounded-full border border-cyan-500/30 overflow-hidden mx-auto mb-4">
+                      <img src="/manus-storage/hera-avatar-small_f7206405.png" alt="HERA" className="w-full h-full object-cover object-top" />
                     </div>
-                    <h2 className="text-xl font-bold text-white mb-2">HERMES Online</h2>
+                    <h2 className="text-xl font-bold text-white mb-2">HERA Online</h2>
                     <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
                       Core AI Orchestration Agent ready. I coordinate all sub-agents, route your requests to the optimal expert, and execute autonomous missions.
                     </p>
@@ -1081,7 +1081,7 @@ export default function Hermes() {
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Command HERMES — route to any agent, run missions, analyze pipeline..."
+                      placeholder="Command HERA — route to any agent, run missions, analyze pipeline..."
                       disabled={isSending || isMissionRunning || !sessionId}
                       className="bg-slate-900/80 border-slate-700 text-slate-200 placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 pr-4 py-2.5 text-sm"
                     />
@@ -1100,7 +1100,7 @@ export default function Hermes() {
                   </Button>
                 </div>
                 <p className="text-xs text-slate-600 mt-1.5 text-center">
-                  HERMES routes to optimal sub-agent · Enter to send · Shift+Enter for newline
+                  HERA routes to optimal sub-agent · Enter to send · Shift+Enter for newline
                 </p>
               </div>
             </div>
