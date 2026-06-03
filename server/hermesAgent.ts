@@ -206,71 +206,84 @@ export interface MissionTemplate {
 export const MISSION_TEMPLATES: MissionTemplate[] = [
   {
     type: "full_analysis",
-    title: "Full Platform Analysis",
-    description: "Complete 360° analysis of your pipeline, leads, and strategy",
+    title: "Analýza celé platformy",
+    description: "Kompletní 360° analýza pipeline, leadů a strategie",
     emoji: "🔭",
     steps: [
-      { step: "Analyze pipeline health and lead quality", agent: "analyst" },
-      { step: "Identify top 5 highest-value opportunities", agent: "prospector" },
-      { step: "Evaluate GTM strategy and ICP fit", agent: "strategist" },
-      { step: "Assess outreach effectiveness", agent: "copywriter" },
-      { step: "Synthesize into executive summary with action plan", agent: "synthesizer" },
+      { step: "Analyzuj zdraví pipeline a kvalitu leadů", agent: "analyst" },
+      { step: "Identifikuj 5 nejvýnosnějších příležitostí", agent: "prospector" },
+      { step: "Vyhodnoť GTM strategii a shodu s ICP", agent: "strategist" },
+      { step: "Posouď efektivitu outreachu", agent: "copywriter" },
+      { step: "Syntetizuj do executive summary s akčním plánem", agent: "synthesizer" },
     ],
     estimatedMinutes: 3,
   },
   {
     type: "lead_sprint",
-    title: "Lead Generation Sprint",
-    description: "Rapid qualification and enrichment of your best leads",
+    title: "Sprint generování leadů",
+    description: "Rychlá kvalifikace a obohacení nejlepších leadů",
     emoji: "🚀",
     steps: [
-      { step: "Score and rank all unqualified leads by ICP fit", agent: "analyst" },
-      { step: "Identify top 10 leads for immediate outreach", agent: "prospector" },
-      { step: "Generate personalized icebreakers for top leads", agent: "copywriter" },
-      { step: "Create follow-up sequence strategy", agent: "advisor" },
+      { step: "Ohodnoť a seřaď nekvalifikované leady podle ICP shody", agent: "analyst" },
+      { step: "Identifikuj top 10 leadů pro okamžitý outreach", agent: "prospector" },
+      { step: "Vygeneruj personalizované icebreakery pro top leady", agent: "copywriter" },
+      { step: "Vytvoř strategii follow-up sekvence", agent: "advisor" },
     ],
     estimatedMinutes: 2,
   },
   {
     type: "strategy_synthesis",
-    title: "Strategy Synthesis",
-    description: "Multi-expert strategic analysis using 5 Brains methodology",
+    title: "Syntéza strategie",
+    description: "Multi-expertní strategická analýza metodou 5 Mozků",
     emoji: "🧬",
     steps: [
-      { step: "Architectural analysis — systems and scalability", agent: "strategist" },
-      { step: "Growth analysis — GTM, acquisition, retention", agent: "analyst" },
-      { step: "Investment analysis — ROI, unit economics, risk", agent: "advisor" },
-      { step: "Synthesize into unified strategic recommendation", agent: "synthesizer" },
+      { step: "Architektonická analýza — systémy a škálovatelnost", agent: "strategist" },
+      { step: "Růstová analýza — GTM, akvizice, retence", agent: "analyst" },
+      { step: "Investiční analýza — ROI, unit economics, riziko", agent: "advisor" },
+      { step: "Syntetizuj do jednotného strategického doporučení", agent: "synthesizer" },
     ],
     estimatedMinutes: 4,
   },
   {
     type: "pentest",
-    title: "NINJA BOT Penetration Test",
-    description: "Adversarial testing of your AI agents and data quality",
+    title: "NINJA BOT Penetrační test",
+    description: "Adversariální testování AI agentů a kvality dat",
     emoji: "⚡",
     steps: [
-      { step: "Probe lead data for inconsistencies and poisoning", agent: "ninja" },
-      { step: "Test ICP definition for cognitive biases", agent: "ninja" },
-      { step: "Identify hallucination risks in AI outputs", agent: "ninja" },
-      { step: "Generate hardening recommendations", agent: "strategist" },
+      { step: "Prohledej data leadů na nekonzistence a otrávení", agent: "ninja" },
+      { step: "Testuj definici ICP na kognitivní zkreslení", agent: "ninja" },
+      { step: "Identifikuj rizika halucinací v AI výstupech", agent: "ninja" },
+      { step: "Vygeneruj doporučení pro hardening systému", agent: "strategist" },
     ],
     estimatedMinutes: 3,
   },
   {
     type: "outreach_blitz",
     title: "Outreach Blitz",
-    description: "Generate high-converting outreach for your entire pipeline",
+    description: "Vygeneruj vysoce konverzní outreach pro celou pipeline",
     emoji: "📧",
     steps: [
-      { step: "Segment leads by industry and seniority", agent: "analyst" },
-      { step: "Generate personalized subject lines for each segment", agent: "copywriter" },
-      { step: "Write icebreakers for top 10 leads", agent: "copywriter" },
-      { step: "Design follow-up sequence with timing strategy", agent: "advisor" },
+      { step: "Segmentuj leady podle odvětví a seniority", agent: "analyst" },
+      { step: "Vygeneruj personalizované předměty emailů pro každý segment", agent: "copywriter" },
+      { step: "Napiš icebreakery pro top 10 leadů", agent: "copywriter" },
+      { step: "Navrhni follow-up sekvenci s časovací strategií", agent: "advisor" },
     ],
     estimatedMinutes: 2,
   },
 ];
+
+// ─── Czech intent label map ─────────────────────────────────────────────────
+const INTENT_LABELS_CZ: Record<string, string> = {
+  lead_gen: "leady",
+  outreach: "outreach",
+  analysis: "analýza",
+  strategy: "strategie",
+  deal_coaching: "deal coaching",
+  pentest: "pentest",
+  synthesis: "syntéza",
+  mission: "mise",
+  general: "obecné",
+};
 
 // ─── Core HERMES Chat Function ────────────────────────────────────────────────
 
@@ -279,6 +292,7 @@ export interface HermesChatInput {
   conversationHistory: Array<{ role: string; content: string }>;
   platformContext: string;
   userId: number;
+  compactMode?: boolean; // Compact: bullet-dense, no prose, max 5 lines
 }
 
 export interface HermesChatOutput {
@@ -299,14 +313,18 @@ export async function hermesChat(input: HermesChatInput): Promise<HermesChatOutp
   const classification = await classifyIntent(userMessage, conversationHistory);
 
   // 3. Build HERMES system prompt
-  const systemPrompt = HERMES_SYSTEM_PROMPT(platformContext, constitutionContext);
+  const basePrompt = HERMES_SYSTEM_PROMPT(platformContext, constitutionContext);
+  const compactInstruction = input.compactMode
+    ? `\n\n## KOMPAKTNÍ MÓD — AKTIVNÍ\nOdpovídej VÝHRADNĚ ve formátu:\n- Max 5 odrážek nebo 3 věty\n- Žádné úvody, žádné závěry, žádné opakování\n- Každá odrážka = 1 konkrétní sdělení s číslem nebo akcí\n- Pokud je odpověď delší, zkrať ji na podstatu\n- Formát: ⚡ [akce/číslo/insight] — [1 věta důvod]`
+    : "";
+  const systemPrompt = basePrompt + compactInstruction;
 
   // 4. Determine if we should invoke a sub-agent first
   const primaryAgent = classification.suggestedAgents[0];
   const agentPersona = primaryAgent && SUB_AGENT_PERSONAS[primaryAgent];
 
   let agentsUsed: string[] = ["hermes"];
-  let routingDecision = `Direct HERMES response (intent: ${classification.intent})`;
+  let routingDecision = `Přímá odpověď HERMES (záměr: ${INTENT_LABELS_CZ[classification.intent] ?? classification.intent})`;
 
   // 5. For specialized intents, inject sub-agent context
   let enhancedSystemPrompt = systemPrompt;
@@ -318,7 +336,7 @@ ${agentPersona.systemPrompt}
 
 You are currently operating as HERMES channeling the ${agentPersona.name} sub-agent. Respond with the expertise and style of this agent, but maintain HERMES's strategic overview.`;
     agentsUsed = ["hermes", primaryAgent];
-    routingDecision = `Routed to ${agentPersona.emoji} ${agentPersona.name} (confidence: ${Math.round(classification.confidence * 100)}%)`;
+    routingDecision = `Přesměrováno na ${agentPersona.emoji} ${agentPersona.name} (jistota: ${Math.round(classification.confidence * 100)}%)`;
   }
 
   // 6. Build messages

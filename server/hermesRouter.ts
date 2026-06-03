@@ -163,6 +163,7 @@ export const hermesRouter = router({
         conversationHistory: z
           .array(z.object({ role: z.string(), content: z.string() }))
           .default([]),
+        compactMode: z.boolean().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -186,6 +187,7 @@ export const hermesRouter = router({
         conversationHistory: input.conversationHistory,
         platformContext,
         userId: ctx.user.id,
+        compactMode: input.compactMode,
       });
 
       // Save HERMES response
@@ -353,6 +355,7 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
           .array(z.object({ role: z.string(), content: z.string() }))
           .default([]),
         hermesMode: z.boolean().default(true),
+        compactMode: z.boolean().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -391,6 +394,7 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
         conversationHistory: input.conversationHistory,
         platformContext,
         userId: ctx.user.id,
+        compactMode: input.compactMode,
       });
 
       // Resolve active sub-agent info for UI

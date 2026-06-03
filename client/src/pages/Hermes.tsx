@@ -78,6 +78,18 @@ const INTENT_COLORS: Record<string, string> = {
   general: "text-slate-400",
 };
 
+const INTENT_LABELS: Record<string, string> = {
+  lead_gen: "leady",
+  outreach: "outreach",
+  analysis: "analýza",
+  strategy: "strategie",
+  deal_coaching: "deal coaching",
+  pentest: "pentest",
+  synthesis: "syntéza",
+  mission: "mise",
+  general: "obecné",
+};
+
 // ─── Circular HUD Background ──────────────────────────────────────────────────
 
 function HermesHUD() {
@@ -137,7 +149,7 @@ function MissionCard({
             </span>
             <span className="text-xs text-slate-600 flex items-center gap-1">
               <Layers className="h-3 w-3" />
-              {mission.stepCount} steps
+              {mission.stepCount} kroků
             </span>
           </div>
         </div>
@@ -188,7 +200,7 @@ function MessageBubble({ msg }: { msg: Message }) {
                   INTENT_COLORS[msg.metadata.intent] ?? "text-slate-400"
                 )}
               >
-                {msg.metadata.intent.replace("_", " ")}
+                {INTENT_LABELS[msg.metadata.intent] ?? msg.metadata.intent.replace("_", " ")}
               </Badge>
             )}
             {msg.metadata?.agentsUsed && msg.metadata.agentsUsed.length > 0 && (
@@ -679,8 +691,8 @@ export default function Hermes() {
     setMissionResult(null);
 
     const template = identity?.missionTemplates.find((m) => m.type === missionType);
-    toast.info(`🚀 Launching mission: ${template?.title ?? missionType}`, {
-      description: `Estimated time: ~${template?.estimatedMinutes ?? 3} minutes`,
+    toast.info(`🚀 Spouštím misi: ${template?.title ?? missionType}`, {
+      description: `Odhadovaný čas: ~${template?.estimatedMinutes ?? 3} minuty`,
     });
 
     // Add a "launching" message
@@ -1014,7 +1026,7 @@ export default function Hermes() {
               {/* Sub-agents legend */}
               <div className="mt-3 pt-3 border-t border-slate-800">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                  Sub-Agents
+                  Sub-Agenti
                 </p>
                 <div className="space-y-1">
                   {identity?.subAgents?.map((agent) => (
@@ -1103,8 +1115,8 @@ export default function Hermes() {
                   <div className="flex items-center gap-3 p-4 border border-orange-500/30 rounded-xl bg-orange-950/20">
                     <Loader2 className="h-5 w-5 text-orange-400 animate-spin shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-orange-300">Mission in progress...</p>
-                      <p className="text-xs text-slate-500">Sub-agents are executing. This may take 1-4 minutes.</p>
+                      <p className="text-sm font-medium text-orange-300">Mise probíhá...</p>
+                      <p className="text-xs text-slate-500">Sub-agenti pracují. Může to trvat 1–4 minuty.</p>
                     </div>
                   </div>
                 )}
