@@ -297,7 +297,7 @@ function MissionResultPanel({
         className="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-300 transition-colors"
       >
         {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-        {expanded ? "Hide" : "Show"} step details ({result.steps?.length} steps)
+        {expanded ? "Skrýt" : "Zobrazit"} kroky ({result.steps?.length} kroků)
       </button>
 
       {expanded && result.steps && (
@@ -492,7 +492,7 @@ export default function Hermes() {
   const [isMissionRunning, setIsMissionRunning] = useState(false);
   const [missionResult, setMissionResult] = useState<any | null>(null);
   const [showMissions, setShowMissions] = useState(true);
-  const [activeView, setActiveView] = useState<"chat" | "mastermind">("chat");
+  const [activeView, setActiveView] = useState<"chat" | "mastermind" | "hermes">("chat");
   // Mastermind state
   const [selectedExperts, setSelectedExperts] = useState<string[]>(DEFAULT_MASTERMIND_IDS);
   const [mastermindInput, setMastermindInput] = useState("");
@@ -631,12 +631,12 @@ export default function Hermes() {
       // If HERA suggests a mission, show the missions panel
       if (result.suggestedMission) {
         setShowMissions(true);
-        toast.info(`Mission suggested: ${result.suggestedMission.title}`, {
-          description: "Click a mission below to launch it",
+        toast.info(`Navrhovaná mise: ${result.suggestedMission.title}`, {
+          description: "Vyber misi níže pro spuštění",
         });
       }
     } catch (err: any) {
-      toast.error("HERA communication error", { description: err.message });
+      toast.error("Chyba komunikace s HEROU", { description: err.message });
     } finally {
       setIsSending(false);
       inputRef.current?.focus();
@@ -660,7 +660,7 @@ export default function Hermes() {
       });
       setMastermindMessages(prev => [...prev, { role: "ai", content: result.content }]);
     } catch (err: any) {
-      toast.error("Mastermind error", { description: err.message });
+      toast.error("Chyba Mastermind", { description: err.message });
     } finally {
       setIsMastermindSending(false);
     }
@@ -687,7 +687,7 @@ export default function Hermes() {
     const launchMsg: Message = {
       id: Date.now(),
       role: "hermes",
-      content: `## 🚀 Mission Initiated: ${template?.title ?? missionType}\n\nExecuting ${template?.stepCount ?? "?"} steps across ${template?.stepCount ?? "?"} sub-agents. Please wait...`,
+      content: `## 🚀 Mise zahájena: ${template?.title ?? missionType}\n\nSpouštím ${template?.stepCount ?? "?"} kroků přes ${template?.stepCount ?? "?"} sub-agentů. Čekejte prosím...`,
       createdAt: Date.now(),
     };
     setMessages((prev) => [...prev, launchMsg]);
@@ -696,9 +696,9 @@ export default function Hermes() {
       const result = await executeMission.mutateAsync({ missionType, sessionId });
       setMissionResult(result);
       refetchStatus();
-      toast.success(`✅ Mission complete: ${result.title}`);
+      toast.success(`✅ Mise dokončena: ${result.title}`);
     } catch (err: any) {
-      toast.error("Mission failed", { description: err.message });
+      toast.error("Mise selhala", { description: err.message });
     } finally {
       setIsMissionRunning(false);
     }
@@ -709,7 +709,7 @@ export default function Hermes() {
     setSessionId(session.id);
     setMessages([]);
     setMissionResult(null);
-    toast.success("New HERA session started");
+    toast.success("Nová HERA relace zahájena");
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -721,7 +721,7 @@ export default function Hermes() {
 
   return (
     <DashboardLayout>
-      <div className="relative flex flex-col h-[calc(100vh-4rem)] bg-slate-950 overflow-hidden">
+      <div className="relative flex flex-col bg-slate-950 overflow-hidden" style={{height: 'calc(100vh - 2.5rem)'}}>
         <HermesHUD />
 
         {/* ── Header ── */}
@@ -738,13 +738,13 @@ export default function Hermes() {
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-bold text-white tracking-wide">HERA</h1>
                 <Badge variant="outline" className="text-xs border-cyan-500/30 text-cyan-400 px-1.5 py-0">
-                  CORE AI
+                  CORE AI CTO
                 </Badge>
               </div>
               <p className="text-xs text-slate-500">
-                {identity?.subAgents?.length ?? 7} sub-agents ·{" "}
-                {identity?.missionTemplates?.length ?? 5} missions ·{" "}
-                {status?.completedMissions ?? 0} completed
+                {identity?.subAgents?.length ?? 7} sub-agentů ·{" "}
+                {identity?.missionTemplates?.length ?? 5} misí ·{" "}
+                {status?.completedMissions ?? 0} dokončeno
               </p>
             </div>
           </div>
@@ -758,6 +758,13 @@ export default function Hermes() {
                   activeView === "chat" ? "bg-cyan-600 text-white" : "text-slate-400 hover:text-slate-200")}
               >
                 <Zap className="h-3 w-3 inline mr-1" />HERA
+              </button>
+              <button
+                onClick={() => setActiveView("hermes")}
+                className={cn("px-3 py-1 text-xs font-medium rounded-md transition-all",
+                  activeView === "hermes" ? "bg-amber-600 text-white" : "text-slate-400 hover:text-slate-200")}
+              >
+                <MessageSquare className="h-3 w-3 inline mr-1" />HERMES
               </button>
               <button
                 onClick={() => setActiveView("mastermind")}
@@ -785,7 +792,7 @@ export default function Hermes() {
               className="h-8 text-xs border-slate-700 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 bg-transparent"
             >
               <Plus className="h-3.5 w-3.5 mr-1" />
-              New Session
+              Nová Relace
             </Button>
             <Button
               variant="ghost"
@@ -799,7 +806,48 @@ export default function Hermes() {
         </div>
 
         {/* ── Main Layout ── */}
-        {activeView === "mastermind" ? (
+        {activeView === "hermes" ? (
+          /* ── HERMES WIDGET VIEW ── */
+          <div className="relative z-10 flex flex-1 min-h-0 overflow-hidden items-center justify-center bg-slate-950/60">
+            <div className="flex flex-col items-center gap-6 max-w-lg w-full px-6">
+              <div className="w-20 h-20 rounded-full border-2 border-amber-500/40 overflow-hidden">
+                <img src="/manus-storage/hermes-avatar-small_dbbdbf58.png" alt="HERMES" className="w-full h-full object-cover object-top"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display='none'; }}
+                />
+              </div>
+              <div className="text-center">
+                <h2 className="text-xl font-bold text-white mb-1">HERMES — Technický CEO</h2>
+                <p className="text-slate-400 text-sm">Moudrý boss. Strategické rozhodnutí, business architektura, long-term vision.</p>
+              </div>
+              <div className="w-full bg-slate-900/80 border border-amber-500/20 rounded-xl p-4 text-center">
+                <p className="text-slate-400 text-sm mb-3">HERMES běží jako globální chat widget — klikni na tlačítko vpravo dole pro otevření.</p>
+                <div className="flex items-center justify-center gap-2 text-amber-400 text-xs">
+                  <MessageSquare className="h-4 w-4" />
+                  <span>Oba kontexty sdílejí data — HERA a HERMES vědí o sobě navzájem</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 w-full">
+                {[
+                  { text: "Jaká je strategie na Q3?", icon: "🎯" },
+                  { text: "Analyzuj MAGS architekturu", icon: "🧠" },
+                  { text: "Prioritizuj projekty", icon: "⚡" },
+                  { text: "Business model review", icon: "📊" },
+                ].map(({ text, icon }) => (
+                  <button
+                    key={text}
+                    onClick={() => {
+                      setActiveView("chat");
+                      setInput(text);
+                    }}
+                    className="text-left p-2.5 rounded-lg border border-slate-800 bg-slate-900/40 hover:border-amber-500/40 hover:bg-amber-900/10 transition-all text-xs text-slate-400"
+                  >
+                    <span className="mr-1.5">{icon}</span>{text}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : activeView === "mastermind" ? (
           /* ── MASTERMIND VIEW ── */
           <div className="relative z-10 flex flex-1 min-h-0 overflow-hidden">
             {/* Expert selector sidebar */}
@@ -1007,14 +1055,14 @@ export default function Hermes() {
                     </div>
                     <h2 className="text-xl font-bold text-white mb-2">HERA Online</h2>
                     <p className="text-slate-400 text-sm max-w-md mx-auto mb-6">
-                      Core AI Orchestration Agent ready. I coordinate all sub-agents, route your requests to the optimal expert, and execute autonomous missions.
+                      Core AI Orchestrační Agent připraven. Koordinuji všechny sub-agenty, směruji požadavky k optimálnímu expertovi a spouštím autonomní mise.
                     </p>
                     <div className="grid grid-cols-2 gap-2 max-w-sm mx-auto">
                       {[
-                        { text: "Analyze my pipeline", icon: <BarChart3 className="h-3.5 w-3.5" /> },
-                        { text: "Generate outreach copy", icon: <MessageSquare className="h-3.5 w-3.5" /> },
-                        { text: "Run NINJA BOT pentest", icon: <Swords className="h-3.5 w-3.5" /> },
-                        { text: "Build GTM strategy", icon: <Brain className="h-3.5 w-3.5" /> },
+                        { text: "Analyzuj můj pipeline", icon: <BarChart3 className="h-3.5 w-3.5" /> },
+                        { text: "Generuj outreach texty", icon: <MessageSquare className="h-3.5 w-3.5" /> },
+                        { text: "Spusť NINJA BOT pentest", icon: <Swords className="h-3.5 w-3.5" /> },
+                        { text: "Vytvoř GTM strategii", icon: <Brain className="h-3.5 w-3.5" /> },
                       ].map((suggestion) => (
                         <button
                           key={suggestion.text}
@@ -1081,7 +1129,7 @@ export default function Hermes() {
                       value={input}
                       onChange={(e) => setInput(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Command HERA — route to any agent, run missions, analyze pipeline..."
+                      placeholder="Zadej příkaz HEŘE — přesměruj na agenta, spusť misi, analyzuj pipeline..."
                       disabled={isSending || isMissionRunning || !sessionId}
                       className="bg-slate-900/80 border-slate-700 text-slate-200 placeholder:text-slate-600 focus:border-cyan-500/50 focus:ring-cyan-500/20 pr-4 py-2.5 text-sm"
                     />
@@ -1100,7 +1148,7 @@ export default function Hermes() {
                   </Button>
                 </div>
                 <p className="text-xs text-slate-600 mt-1.5 text-center">
-                  HERA routes to optimal sub-agent · Enter to send · Shift+Enter for newline
+                  HERA přesměruje na optimálního sub-agenta · Enter pro odeslání · Shift+Enter pro nový řádek
                 </p>
               </div>
             </div>

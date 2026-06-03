@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-// ─── A/B Test Utilities ───────────────────────────────────────────────────────
+// ---
 type ABVariant = "A" | "B";
 
 function getOrAssignVariant(): ABVariant {
@@ -35,7 +35,7 @@ export function getABTestStats() {
   }));
 }
 
-// ─── Feature Gate Wrapper ────────────────────────────────────────────────────
+// ---
 interface FeatureGateProps {
   feature: string;
   requiredPlan: "starter" | "growth" | "pro";
@@ -59,7 +59,7 @@ export function FeatureGate({ feature, requiredPlan, children, fallback }: Featu
   );
 }
 
-// ─── Locked Feature Card ─────────────────────────────────────────────────────
+// ---
 function LockedFeatureCard({ feature, requiredPlan }: { feature: string; requiredPlan: string }) {
   const [, navigate] = useLocation();
   const planColors: Record<string, string> = {
@@ -96,7 +96,7 @@ function LockedFeatureCard({ feature, requiredPlan }: { feature: string; require
   );
 }
 
-// ─── Inline Upgrade Banner ────────────────────────────────────────────────────
+// ---
 interface UpgradeBannerProps {
   title: string;
   description: string;
@@ -173,7 +173,7 @@ export function UpgradeBanner({
   );
 }
 
-// ─── Usage Limit Indicator ────────────────────────────────────────────────────
+// ---
 interface UsageLimitProps {
   used: number;
   limit: number;
@@ -233,7 +233,7 @@ export function UsageLimitIndicator({ used, limit, label, upgradeMessage }: Usag
   );
 }
 
-// ─── Variant A: Floating Popup (original, after 45s) ─────────────────────────
+// ---
 function VariantANudge({ onDismiss, onConvert }: { onDismiss: () => void; onConvert: () => void }) {
   const [countdown, setCountdown] = useState(15);
 
@@ -244,7 +244,8 @@ function VariantANudge({ onDismiss, onConvert }: { onDismiss: () => void; onConv
   }, [countdown]);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-80 rounded-2xl border border-violet-500/30 bg-[#0D1B2A]/95 backdrop-blur-xl shadow-2xl shadow-violet-500/20 p-4 animate-in slide-in-from-bottom-4 duration-500">
+    <div className="fixed inset-0 z-[9990] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onDismiss}>
+    <div className="w-80 rounded-2xl border border-violet-500/30 bg-[#0D1B2A]/95 backdrop-blur-xl shadow-2xl shadow-violet-500/20 p-4 animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-violet-500/20 flex items-center justify-center">
@@ -289,10 +290,11 @@ function VariantANudge({ onDismiss, onConvert }: { onDismiss: () => void; onConv
         </p>
       )}
     </div>
+    </div>
   );
 }
 
-// ─── Variant B: Inline ROI-focused sticky banner ──────────────────────────────
+// ---
 function VariantBNudge({ onDismiss, onConvert }: { onDismiss: () => void; onConvert: () => void }) {
   const [roiValue, setRoiValue] = useState(0);
 
@@ -314,10 +316,11 @@ function VariantBNudge({ onDismiss, onConvert }: { onDismiss: () => void; onConv
   }, []);
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 w-96 rounded-2xl border border-emerald-500/30 bg-[#0D1B2A]/95 backdrop-blur-xl shadow-2xl shadow-emerald-500/10 p-5 animate-in slide-in-from-bottom-4 duration-500">
+    <div className="fixed inset-0 z-[9990] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={onDismiss}>
+    <div className="relative w-96 rounded-2xl border border-emerald-500/30 bg-[#0D1B2A]/95 backdrop-blur-xl shadow-2xl shadow-emerald-500/10 p-5 animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
       <button
         onClick={onDismiss}
-        className="absolute top-3 right-3 text-white/30 hover:text-white/60"
+        className="absolute top-3 right-3 text-white/30 hover:text-white/60 z-10"
       >
         <X className="w-4 h-4" />
       </button>
@@ -363,10 +366,11 @@ function VariantBNudge({ onDismiss, onConvert }: { onDismiss: () => void; onConv
       </Button>
       <p className="text-center text-xs text-white/30 mt-2">Bez kreditní karty · Zrušit kdykoliv</p>
     </div>
+    </div>
   );
 }
 
-// ─── Floating Upgrade Nudge (A/B tested) ─────────────────────────────────────
+// ---
 export function FloatingUpgradeNudge() {
   const { user } = useAuth();
   const [, navigate] = useLocation();
@@ -412,7 +416,7 @@ export function FloatingUpgradeNudge() {
     : <VariantBNudge onDismiss={handleDismiss} onConvert={handleConvert} />;
 }
 
-// ─── Plan Badge ───────────────────────────────────────────────────────────────
+// ---
 export function PlanBadge({ plan }: { plan: string }) {
   const config: Record<string, { label: string; className: string }> = {
     free: { label: "Free", className: "bg-card/10 text-white/50" },

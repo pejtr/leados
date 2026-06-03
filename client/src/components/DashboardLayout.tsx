@@ -28,6 +28,8 @@ import { trpc } from "@/lib/trpc";
 
 // ─── Dock item definitions (ordered by business impact DESC) ─────────────────
 const dockItems = [
+  // TIER 0 — HERA AI (always first)
+  { icon: Sparkles,     path: "/hermio",          label: "HERA",             color: "oklch(0.65 0.22 280)" },
   // TIER 0 — Services overview
   { icon: Layers,       path: "/sluzby",          label: "Služby & ROI",     color: "oklch(0.68 0.18 162)" },
   { icon: Building2,    path: "/ares",            label: "ARES Rejstřík",    color: "oklch(0.60 0.18 220)" },
@@ -50,7 +52,6 @@ const dockItems = [
   { icon: Link2,        path: "/projects",        label: "Projekty",         color: "oklch(0.58 0.16 200)" },
   // TIER 4 — AI & Knowledge
   { icon: Cpu,          path: "/computer-flow",  label: "Computer Flow",   color: "oklch(0.62 0.22 190)" },
-  { icon: Sparkles,     path: "/hermes",          label: "HERA",             color: "oklch(0.65 0.22 280)" },
   { icon: Brain,        path: "/chat-agent",      label: "AI Poradce",       color: "oklch(0.60 0.22 260)" },
   { icon: BookOpen,     path: "/ai-skills",       label: "AI Skills",        color: "oklch(0.62 0.22 300)" },
   { icon: History,      path: "/history",         label: "Historie",         color: "oklch(0.60 0.15 220)" },
@@ -64,6 +65,8 @@ const dockItems = [
 
 // Full sidebar items (ordered by business impact DESC within groups)
 const allMenuItems = [
+  // TIER 0 — HERA AI (always first)
+  { icon: Sparkles,     labelKey: "sidebar.hera",             path: "/hermio",          group: "ai" },
   // TIER 0 — Services
   { icon: Layers,       labelKey: "sidebar.sluzby",           path: "/sluzby",          group: "revenue" },
   { icon: Building2,    labelKey: "sidebar.aresSearch",       path: "/ares",            group: "intelligence" },
@@ -98,7 +101,6 @@ const allMenuItems = [
   { icon: History,      labelKey: "sidebar.leadHistory",      path: "/history",         group: "analytics" },
   // TIER 4 — AI & Knowledge
   { icon: Cpu,          labelKey: "sidebar.computerFlow",    path: "/computer-flow",  group: "ai" },
-  { icon: Sparkles,     labelKey: "sidebar.hera",             path: "/hermes",          group: "ai" },
   { icon: Brain,        labelKey: "sidebar.aiAdvisor",        path: "/chat-agent",      group: "ai" },
   { icon: BookOpen,     labelKey: "sidebar.aiSkills",         path: "/ai-skills",       group: "ai" },
   { icon: Brain,        labelKey: "sidebar.fiveBrains",       path: "/five-brains",     group: "ai" },

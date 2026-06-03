@@ -129,6 +129,7 @@ function Router() {
       <Route path="/daily-report" component={DailyReport} />
       <Route path="/ai-constitution" component={AIConstitution} />
       <Route path="/agent-benchmark" component={AgentBenchmark} />
+      <Route path="/hermio" component={Hermes} />
       <Route path="/hermes" component={Hermes} />
       <Route path="/deep-sleep" component={DeepSleepDashboard} />
       <Route path="/dsr" component={DeepSleepReset} />
