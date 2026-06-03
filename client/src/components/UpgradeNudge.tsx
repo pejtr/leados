@@ -47,10 +47,11 @@ const PLAN_HIERARCHY = { free: 0, starter: 1, growth: 2, pro: 3 };
 
 export function FeatureGate({ feature, requiredPlan, children, fallback }: FeatureGateProps) {
   const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const plan = (user?.subscriptionPlan ?? "free") as keyof typeof PLAN_HIERARCHY;
   const required = requiredPlan as keyof typeof PLAN_HIERARCHY;
 
-  if (PLAN_HIERARCHY[plan] >= PLAN_HIERARCHY[required]) {
+  if (isAdmin || PLAN_HIERARCHY[plan] >= PLAN_HIERARCHY[required]) {
     return <>{children}</>;
   }
 
@@ -379,7 +380,8 @@ export function FloatingUpgradeNudge() {
   const variantRef = useRef<ABVariant>(getOrAssignVariant());
   const trackedShown = useRef(false);
 
-  const isFree = !user || user.subscriptionPlan === "free" || !user.subscriptionPlan;
+  const isAdmin = user?.role === "admin";
+  const isFree = !isAdmin && (!user || user.subscriptionPlan === "free" || !user.subscriptionPlan);
 
   useEffect(() => {
     if (!isFree) return;
