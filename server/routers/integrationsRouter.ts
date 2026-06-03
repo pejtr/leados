@@ -22,7 +22,7 @@ export const integrationsRouter = router({
   /**
    * Get all integration settings for the current user
    */
-  list: protectedProcedure.query(async (_ctx) => {
+  list: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
     if (!db) throw new Error("Database unavailable");
 

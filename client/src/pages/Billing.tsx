@@ -16,8 +16,8 @@ const PLANS = [
     icon: Zap,
     color: "from-blue-500/20 to-blue-600/10 border-blue-500/30",
     badge: null,
-    priceMonthly: 149,
-    priceYearly: 1190,
+    priceMonthly: 3490,
+    priceYearly: 27900,
     featuresKey: [
       "billing.plan1f1",
       "billing.plan1f2",
@@ -32,8 +32,8 @@ const PLANS = [
     icon: Star,
     color: "from-violet-500/20 to-violet-600/10 border-violet-500/30",
     badge: "billing.mostPopular",
-    priceMonthly: 399,
-    priceYearly: 3190,
+    priceMonthly: 9490,
+    priceYearly: 75900,
     featuresKey: [
       "billing.plan2f1",
       "billing.plan2f2",
@@ -50,8 +50,8 @@ const PLANS = [
     icon: Building2,
     color: "from-amber-500/20 to-amber-600/10 border-amber-500/30",
     badge: "billing.bestValue",
-    priceMonthly: 799,
-    priceYearly: 6390,
+    priceMonthly: 18990,
+    priceYearly: 151900,
     featuresKey: [
       "billing.plan3f1",
       "billing.plan3f2",
@@ -74,7 +74,7 @@ const COMPETITOR_TABLE = [
   { feature: "billing.cmpSocialListening", leados: true, hubspot: false, apollo: false, salesforce: false },
   { feature: "billing.cmpAiAdvisors", leados: true, hubspot: false, apollo: false, salesforce: false },
   { feature: "billing.cmpCzechSlovak", leados: true, hubspot: false, apollo: false, salesforce: false },
-  { feature: "billing.cmpPriceFrom", leados: "€149", hubspot: "€800+", apollo: "€99", salesforce: "€1200+" },
+  { feature: "billing.cmpPriceFrom", leados: "3 490 Kč", hubspot: "19 000+ Kč", apollo: "2 400 Kč", salesforce: "28 000+ Kč" },
 ];
 
 // ─── ROI Calculator Component ─────────────────────────────────────────────
@@ -85,9 +85,9 @@ function ROICalculator({ interval }: { interval: "monthly" | "yearly" }) {
   const [plan, setPlan] = useState<"starter" | "growth" | "pro">("growth");
 
   const planCost = {
-    starter: interval === "monthly" ? 149 : Math.round(1190 / 12),
-    growth: interval === "monthly" ? 399 : Math.round(3190 / 12),
-    pro: interval === "monthly" ? 799 : Math.round(6390 / 12),
+    starter: interval === "monthly" ? 3490 : Math.round(27900 / 12),
+    growth: interval === "monthly" ? 9490 : Math.round(75900 / 12),
+    pro: interval === "monthly" ? 18990 : Math.round(151900 / 12),
   }[plan];
 
   const closedDeals = Math.round(leadsPerMonth * (conversionRate / 100));
@@ -109,7 +109,7 @@ function ROICalculator({ interval }: { interval: "monthly" | "yearly" }) {
             className="w-full accent-violet-500" />
         </div>
         <div>
-          <label className="text-xs text-zinc-400 mb-1 block">Průměrná hodnota obchodu: <span className="text-white font-semibold">€{dealSize.toLocaleString()}</span></label>
+          <label className="text-xs text-zinc-400 mb-1 block">Průměrná hodnota obchodu: <span className="text-white font-semibold">{dealSize.toLocaleString()} Kč</span></label>
           <input type="range" min="500" max="50000" step="500" value={dealSize} onChange={e => setDealSize(+e.target.value)}
             className="w-full accent-violet-500" />
         </div>
@@ -130,16 +130,16 @@ function ROICalculator({ interval }: { interval: "monthly" | "yearly" }) {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-zinc-400">Měsíční příjmy</span>
-            <span className="text-emerald-400 font-semibold">€{monthlyRevenue.toLocaleString()}</span>
+            <span className="text-emerald-400 font-semibold">{monthlyRevenue.toLocaleString()} Kč</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-zinc-400">Náklady na LeadOS</span>
-            <span className="text-zinc-300">€{planCost}/měs</span>
+            <span className="text-zinc-300">{planCost.toLocaleString()} Kč/měs</span>
           </div>
           <div className="h-px bg-zinc-700" />
           <div className="flex justify-between">
             <span className="text-zinc-300 font-medium">Čistý zisk</span>
-            <span className="text-emerald-400 font-bold text-lg">€{(monthlyRevenue - planCost).toLocaleString()}</span>
+            <span className="text-emerald-400 font-bold text-lg">{(monthlyRevenue - planCost).toLocaleString()} Kč</span>
           </div>
         </div>
         <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-violet-600/20 to-emerald-600/10 border border-violet-500/20 text-center">
@@ -183,9 +183,9 @@ export default function Billing() {
   const handleCheckout = async (plan: "starter" | "growth" | "pro") => {
     setLoadingPlan(plan);
     // Track checkout intent with plan value
-    const planValues = { starter: 149, growth: 399, pro: 799 };
-    const planValue = interval === 'yearly' ? planValues[plan] * 12 * 0.83 : planValues[plan];
-    track('subscription_checkout_started', { value: planValue, currency: 'EUR', plan, interval });
+    const planValues = { starter: 3490, growth: 9490, pro: 18990 };
+    const planValue = interval === 'yearly' ? planValues[plan] * 12 * 0.67 : planValues[plan];
+    track('subscription_checkout_started', { value: planValue, currency: 'CZK', plan, interval });
     try {
       toast.info(t("billing.redirectingCheckout", "Přesměrovávám na bezpečnou platbu..."));
       const result = await checkoutMut.mutateAsync({
@@ -287,10 +287,10 @@ export default function Billing() {
                 </div>
 
                 <div className="mb-5">
-                  <span className="text-3xl font-bold text-white">€{price}</span>
-                  <span className="text-zinc-400 text-sm">/mo</span>
+                  <span className="text-3xl font-bold text-white">{price.toLocaleString()} Kč</span>
+                  <span className="text-zinc-400 text-sm">/měs</span>
                   {interval === "yearly" && (
-                    <p className="text-xs text-zinc-500 mt-0.5">{t("billing.billedYearly", "Účtováno ročně")} €{plan.priceYearly}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">{t("billing.billedYearly", "Účtováno ročně")} {plan.priceYearly.toLocaleString()} Kč</p>
                   )}
                 </div>
 
@@ -361,7 +361,7 @@ export default function Billing() {
             <div className="flex items-center gap-3">
               <Flame className="w-5 h-5 text-amber-400 flex-shrink-0" />
               <div>
-                <p className="text-white font-semibold text-sm">Přejdi na roční plán a ušetři až €3,204 ročně</p>
+                <p className="text-white font-semibold text-sm">Přejdi na roční plán a ušetři až 76 000 Kč ročně</p>
                 <p className="text-zinc-400 text-xs mt-0.5">Roční fakturace = 4 měsíce zdarma. Nabídka platí jen tento měsíc.</p>
               </div>
             </div>
