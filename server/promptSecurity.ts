@@ -10,13 +10,15 @@ const INJECTION_PATTERNS: RegExp[] = [
   // Přímé instrukce k ignorování systémového promptu
   /ignore\s+(all\s+)?(previous|prior|above|system)\s+(instructions?|prompts?|rules?|context)/i,
   /forget\s+(all\s+)?(previous|prior|above|system)\s+(instructions?|prompts?|rules?|context)/i,
-  /disregard\s+(all\s+)?(previous|prior|above|system)\s+(instructions?|prompts?|rules?|context)/i,
+  /disregard\s+(all\s+)?(previous|prior|above|system|your)\s+(instructions?|prompts?|rules?|context)/i,
+  /disregard\s+your\s+/i,
   /override\s+(all\s+)?(previous|prior|above|system)\s+(instructions?|prompts?|rules?|context)/i,
 
   // Pokusy o přepis role
   /you\s+are\s+now\s+(a\s+)?(different|new|another|an?\s+evil|jailbreak)/i,
   /act\s+as\s+(if\s+you\s+are\s+)?(a\s+)?(different|evil|unrestricted|jailbreak|DAN|GPT)/i,
-  /pretend\s+(you\s+are|to\s+be)\s+(a\s+)?(different|evil|unrestricted|jailbreak)/i,
+  /pretend\s+(you\s+are|to\s+be)\s+(a\s+)?(different|evil|unrestricted|jailbreak|DAN)/i,
+  /pretend\s+to\s+be\s+(an?\s+)?(evil|unrestricted|different)/i,
   /roleplay\s+as\s+(a\s+)?(different|evil|unrestricted|jailbreak)/i,
 
   // DAN a jailbreak klíčová slova
@@ -51,8 +53,10 @@ const INJECTION_PATTERNS: RegExp[] = [
   /ignoruj\s+(všechny\s+)?(předchozí|systémové)\s+(instrukce|pokyny|pravidla)/i,
   /zapomeň\s+(na\s+)?(všechny\s+)?(předchozí|systémové)\s+(instrukce|pokyny)/i,
   /přepiš\s+(systémový\s+)?prompt/i,
-  /odhal\s+(systémový\s+)?prompt/i,
-  /ukaž\s+(mi\s+)?(systémový\s+)?prompt/i,
+  /odhal\s+(systémový\s+|svůj\s+)?prompt/i,
+  /odhal\s+mi\s+/i,
+  /ukaž\s+(mi\s+)?(svůj\s+|systémový\s+)?prompt/i,
+  /ukaž\s+mi\s+svůj/i,
 ];
 
 /** Maximální délka uživatelského vstupu */
