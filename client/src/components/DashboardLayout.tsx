@@ -29,38 +29,38 @@ import { trpc } from "@/lib/trpc";
 // ─── Dock item definitions (ordered by business impact DESC) ─────────────────
 const dockItems = [
   // TIER 0 — HERA AI (always first)
-  { icon: Sparkles,     path: "/hermio",          label: "HERA",             color: "oklch(0.65 0.22 280)" },
+  { icon: Sparkles,     path: "/hermio",          label: "HERA",             color: "oklch(0.65 0.22 280)", desc: "Tvůj AI mozek — zadáš cíl, HERA ho splní" },
   // TIER 0 — Services overview
-  { icon: Layers,       path: "/sluzby",          label: "Služby & ROI",     color: "oklch(0.68 0.18 162)" },
-  { icon: Building2,    path: "/ares",            label: "ARES Rejstřík",    color: "oklch(0.60 0.18 220)" },
+  { icon: Layers,       path: "/sluzby",          label: "Služby & ROI",     color: "oklch(0.68 0.18 162)", desc: "Co nabízíš a kolik ti to vydělá" },
+  { icon: Building2,    path: "/ares",            label: "ARES Rejstřík",    color: "oklch(0.60 0.18 220)", desc: "Hledej firmy v ČR podle IČO nebo oboru" },
   // TIER 1 — Revenue & Pipeline (přímý dopad na příjmy)
-  { icon: Zap,          path: "/generate",        label: "Generovat leady",  color: "oklch(0.65 0.20 150)" },
-  { icon: Kanban,       path: "/kanban",          label: "Pipeline",         color: "oklch(0.58 0.18 200)" },
-  { icon: TrendingUp,   path: "/deal-pipeline",   label: "Obchody",          color: "oklch(0.60 0.20 140)" },
-  { icon: UserCheck,    path: "/sdr",             label: "SDR Agent",        color: "oklch(0.62 0.22 192)" },
-  { icon: Bot,          path: "/autopilot",       label: "Autopilot",        color: "oklch(0.55 0.22 270)" },
+  { icon: Zap,          path: "/generate",        label: "Generovat leady",  color: "oklch(0.65 0.20 150)", desc: "AI vygeneruje seznam potenciálních zákazníků" },
+  { icon: Kanban,       path: "/kanban",          label: "Pipeline",         color: "oklch(0.58 0.18 200)", desc: "Přehled kde jsou tvoji zákazníci v procesu" },
+  { icon: TrendingUp,   path: "/deal-pipeline",   label: "Obchody",          color: "oklch(0.60 0.20 140)", desc: "Sleduj otevřené obchody a jejich hodnotu" },
+  { icon: UserCheck,    path: "/sdr",             label: "SDR Agent",        color: "oklch(0.62 0.22 192)", desc: "AI agent který oslovuje zákazníky za tebe" },
+  { icon: Bot,          path: "/autopilot",       label: "Autopilot",        color: "oklch(0.55 0.22 270)", desc: "Nastav a zapomeň — systém pracuje sám" },
   // TIER 2 — Intelligence & Targeting
-  { icon: Target,       path: "/icp",             label: "ICP Builder",      color: "oklch(0.60 0.20 20)" },
-  { icon: MailOpen,     path: "/sequences",       label: "E-mail sekvence",  color: "oklch(0.58 0.18 230)" },
-  { icon: Megaphone,    path: "/ad-campaigns",    label: "Reklamy",          color: "oklch(0.60 0.22 30)" },
-  { icon: ListFilter,   path: "/smart-lists",     label: "Smart Lists",      color: "oklch(0.58 0.16 180)" },
-  { icon: Inbox,        path: "/external-leads",  label: "Ext. Leady",       color: "oklch(0.60 0.18 160)" },
+  { icon: Target,       path: "/icp",             label: "ICP Builder",      color: "oklch(0.60 0.20 20)",  desc: "Definuj svého ideálního zákazníka" },
+  { icon: MailOpen,     path: "/sequences",       label: "E-mail sekvence",  color: "oklch(0.58 0.18 230)", desc: "Automatické e-maily které prodávají" },
+  { icon: Megaphone,    path: "/ad-campaigns",    label: "Reklamy",          color: "oklch(0.60 0.22 30)",  desc: "Spravuj reklamní kampaně na jednom místě" },
+  { icon: ListFilter,   path: "/smart-lists",     label: "Smart Lists",      color: "oklch(0.58 0.16 180)", desc: "Chytré segmenty zákazníků podle pravidel" },
+  { icon: Inbox,        path: "/external-leads",  label: "Ext. Leady",       color: "oklch(0.60 0.18 160)", desc: "Importuj leady z externích zdrojů" },
   // TIER 3 — Analytics & Insights
-  { icon: Trophy,       path: "/sales-dashboard", label: "Sales",            color: "oklch(0.65 0.20 60)" },
-  { icon: BarChart3,    path: "/stats",           label: "Statistiky",       color: "oklch(0.58 0.18 240)" },
-  { icon: TrendingUp,   path: "/roi-audit",       label: "ROI Audit",        color: "oklch(0.60 0.22 160)" },
-  { icon: Link2,        path: "/projects",        label: "Projekty",         color: "oklch(0.58 0.16 200)" },
+  { icon: Trophy,       path: "/sales-dashboard", label: "Sales",            color: "oklch(0.65 0.20 60)",  desc: "Celkový přehled prodejů a výkonu" },
+  { icon: BarChart3,    path: "/stats",           label: "Statistiky",       color: "oklch(0.58 0.18 240)", desc: "Grafy a čísla o tom jak ti jde byznys" },
+  { icon: TrendingUp,   path: "/roi-audit",       label: "ROI Audit",        color: "oklch(0.60 0.22 160)", desc: "Kolik vydáváš vs. kolik vyděláváš" },
+  { icon: Link2,        path: "/projects",        label: "Projekty",         color: "oklch(0.58 0.16 200)", desc: "Všechny tvoje projekty na jednom místě" },
   // TIER 4 — AI & Knowledge
-  { icon: Cpu,          path: "/computer-flow",  label: "Computer Flow",   color: "oklch(0.62 0.22 190)" },
-  { icon: Brain,        path: "/chat-agent",      label: "AI Poradce",       color: "oklch(0.60 0.22 260)" },
-  { icon: BookOpen,     path: "/ai-skills",       label: "AI Skills",        color: "oklch(0.62 0.22 300)" },
-  { icon: History,      path: "/history",         label: "Historie",         color: "oklch(0.60 0.15 220)" },
+  { icon: Cpu,          path: "/computer-flow",   label: "Computer Flow",    color: "oklch(0.62 0.22 190)", desc: "Vizuální editor AI workflow a automatizací" },
+  { icon: Brain,        path: "/chat-agent",      label: "AI Poradce",       color: "oklch(0.60 0.22 260)", desc: "Zeptej se na cokoliv — AI ti poradí" },
+  { icon: BookOpen,     path: "/ai-skills",       label: "AI Skills",        color: "oklch(0.62 0.22 300)", desc: "Nauč AI nové dovednosti a znalosti" },
+  { icon: History,      path: "/history",         label: "Historie",         color: "oklch(0.60 0.15 220)", desc: "Co se dělo — log všech akcí a událostí" },
   // TIER 5 — System & Settings
-  { icon: LayoutDashboard, path: "/dashboard",   label: "Dashboard",        color: "oklch(0.55 0.20 192)" },
-  { icon: Webhook,      path: "/integrations",    label: "Integrace",        color: "oklch(0.55 0.18 280)" },
-  { icon: Users,        path: "/team",            label: "Tým",              color: "oklch(0.58 0.16 220)" },
-  { icon: DollarSign,   path: "/billing",         label: "Billing",          color: "oklch(0.62 0.20 140)" },
-  { icon: Settings,     path: "/ai-constitution", label: "Nastavení",        color: "oklch(0.52 0.12 250)" },
+  { icon: LayoutDashboard, path: "/dashboard",    label: "Dashboard",        color: "oklch(0.55 0.20 192)", desc: "Hlavní řídicí panel s přehledem všeho" },
+  { icon: Webhook,      path: "/integrations",    label: "Integrace",        color: "oklch(0.55 0.18 280)", desc: "Propoj s externími nástroji (Slack, CRM…)" },
+  { icon: Users,        path: "/team",            label: "Tým",              color: "oklch(0.58 0.16 220)", desc: "Správa členů týmu a jejich oprávnění" },
+  { icon: DollarSign,   path: "/billing",         label: "Billing",          color: "oklch(0.62 0.20 140)", desc: "Předplatné, faktury a platební metody" },
+  { icon: Settings,     path: "/ai-constitution", label: "Nastavení",        color: "oklch(0.52 0.12 250)", desc: "Globální nastavení celé platformy" },
 ];
 
 // Full sidebar items (ordered by business impact DESC within groups)
@@ -339,9 +339,10 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
           >
             {/* Tooltip */}
             {hoveredIdx === idx && (
-              <div className="absolute left-12 z-[99999] px-2 py-1 rounded-md text-[11px] font-medium whitespace-nowrap pointer-events-none"
-                style={{ background: "oklch(0.20 0.04 250 / 90%)", color: "white", backdropFilter: "blur(8px)", boxShadow: "0 2px 8px oklch(0 0 0 / 20%)" }}>
-                {item.label}
+              <div className="absolute left-12 z-[99999] px-3 py-2 rounded-lg pointer-events-none flex flex-col gap-0.5"
+                style={{ background: "oklch(0.18 0.05 250 / 95%)", backdropFilter: "blur(12px)", boxShadow: "0 4px 16px oklch(0 0 0 / 30%)", border: `1px solid ${item.color}30`, minWidth: 180 }}>
+                <span className="text-[12px] font-semibold" style={{ color: item.color }}>{item.label}</span>
+                {'desc' in item && <span className="text-[11px]" style={{ color: "oklch(0.70 0.04 250)" }}>{(item as any).desc}</span>}
               </div>
             )}
 
@@ -402,8 +403,10 @@ function AppsPanel({ open, onClose }: { open: boolean; onClose: () => void }) {
 
       {/* Panel */}
       <div
-        className="fixed left-0 bottom-0 z-[9998] w-72 overflow-y-auto"
+        className="fixed bottom-0 z-[9998] overflow-y-auto"
         style={{
+          left: '56px',
+          width: 'min(288px, calc(100vw - 56px))',
           top: "calc(2rem + env(safe-area-inset-top, 0px))",
           background: "oklch(0.085 0.04 248 / 97%)",
           backdropFilter: "blur(24px) saturate(180%)",

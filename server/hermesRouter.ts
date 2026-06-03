@@ -576,6 +576,24 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
     return BRAIN_CONFIGS_PUBLIC;
   }),
 
+  /** Cancel a running mission */
+  cancelMission: protectedProcedure
+    .input(z.object({ missionId: z.number().int() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB unavailable");
+      await db
+        .update(hermesMissions)
+        .set({ status: "cancelled", completedAt: Date.now() })
+        .where(
+          and(
+            eq(hermesMissions.id, input.missionId),
+            eq(hermesMissions.userId, ctx.user.id)
+          )
+        );
+      return { ok: true };
+    }),
+
   /** Get digest history from hermes_messages (role: hermes, type: daily_digest) */
   getDigestHistory: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();

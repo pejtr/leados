@@ -16,6 +16,8 @@ import { Streamdown } from "streamdown";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
+// ─── Types ─────────────────────────────────────────────────────────────────
+
 type PersonaCategory = "Sales & Business" | "Wealth & Finance" | "Leadership" | "Favorites";
 
 interface Persona {
@@ -32,19 +34,50 @@ interface Persona {
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
-  // HERMES metadata (optional)
   hermesIntent?: string;
   hermesAgentsUsed?: string[];
   hermesActiveAgent?: { name: string; emoji: string; color: string } | null;
   hermesMode?: boolean;
 }
 
+// ─── Constants ─────────────────────────────────────────────────────────────
+
+const DOCK_WIDTH = 56;
+const MENUBAR_HEIGHT = 32;
+const BTN_SIZE = 56;
+const WIDGET_W_NORMAL = 380;
+const WIDGET_W_MAX = 600;
+const WIDGET_H_NORMAL = 520;
+const WIDGET_H_MAX = 680;
+const LS_POS_KEY = "chatwidget-pos";
+
 const SUGGESTED_PROMPTS = [
-  "Analyze my pipeline and tell me what to fix",
-  "What's my biggest bottleneck right now?",
-  "How can I improve my close rate?",
-  "Give me a 30-day growth plan",
+  "Analyzuj můj pipeline a řekni mi co opravit",
+  "Co je moje největší překážka teď?",
+  "Jak zlepšit míru uzavření obchodů?",
+  "Dej mi 30denní plán růstu",
 ];
+
+// Smart follow-up suggestions based on message content
+function getSmartSuggestions(lastMessage: string): string[] {
+  const msg = lastMessage.toLowerCase();
+  if (msg.includes("lead") || msg.includes("kontakt") || msg.includes("zákazník")) {
+    return ["Jak oslovit tyto leady?", "Napiš mi e-mail sekvenci", "Jaký je nejlepší timing?"];
+  }
+  if (msg.includes("revenue") || msg.includes("příjem") || msg.includes("tržby") || msg.includes("peníze")) {
+    return ["Jak zvýšit průměrnou hodnotu obchodu?", "Kde ztrácím nejvíce příjmů?", "Jaký je můj ROI?"];
+  }
+  if (msg.includes("pipeline") || msg.includes("obchod") || msg.includes("deal")) {
+    return ["Které obchody mám prioritizovat?", "Jak zrychlit sales cyklus?", "Analyzuj moje konverzní poměry"];
+  }
+  if (msg.includes("email") || msg.includes("zpráv") || msg.includes("oslovi")) {
+    return ["Napiš mi follow-up sekvenci", "Jak personalizovat zprávy?", "Jaký subject line funguje nejlépe?"];
+  }
+  if (msg.includes("strategi") || msg.includes("plán") || msg.includes("cíl")) {
+    return ["Jak implementovat tento plán?", "Jaké jsou klíčové metriky?", "Kde začít?"];
+  }
+  return ["Řekni mi víc", "Jak to implementovat?", "Jaké jsou další kroky?"];
+}
 
 const CATEGORY_LABELS: Record<PersonaCategory, string> = {
   "Sales & Business": "Sales",
@@ -60,7 +93,6 @@ const CATEGORY_EMOJIS: Record<PersonaCategory, string> = {
   "Favorites": "❤️",
 };
 
-// Intent → display label + color
 const INTENT_LABELS: Record<string, { label: string; color: string }> = {
   pipeline_analysis: { label: "Pipeline Analysis", color: "text-blue-400" },
   lead_generation: { label: "Lead Gen", color: "text-emerald-400" },
@@ -74,17 +106,57 @@ const INTENT_LABELS: Record<string, { label: string; color: string }> = {
   widget: { label: "Chat", color: "text-muted-foreground" },
 };
 
+// ─── Draggable position hook ────────────────────────────────────────────────
+
+function clampPosition(left: number, top: number, btnSize: number) {
+  const maxLeft = window.innerWidth - btnSize;
+  const maxTop = window.innerHeight - btnSize;
+  return {
+    left: Math.max(DOCK_WIDTH, Math.min(left, maxLeft)),
+    top: Math.max(MENUBAR_HEIGHT, Math.min(top, maxTop)),
+  };
+}
+
+function loadPosition(): { left: number; top: number } {
+  try {
+    const raw = localStorage.getItem(LS_POS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (typeof parsed.left === "number" && typeof parsed.top === "number") {
+        return clampPosition(parsed.left, parsed.top, BTN_SIZE);
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return clampPosition(
+    window.innerWidth - BTN_SIZE - 16,
+    window.innerHeight - BTN_SIZE - 16,
+    BTN_SIZE
+  );
+}
+
+function savePosition(pos: { left: number; top: number }) {
+  try {
+    localStorage.setItem(LS_POS_KEY, JSON.stringify(pos));
+  } catch {
+    // ignore
+  }
+}
+
+// ─── Main Component ─────────────────────────────────────────────────────────
+
 export default function AIChatWidget() {
   const [, setLocation] = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
-  const [view, setView] = useState<"personas" | "chat">("personas");
+  const [view, setView] = useState<"personas" | "chat">("chat"); // default to chat
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [activeCategory, setActiveCategory] = useState<PersonaCategory>("Sales & Business");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [hermesMode, setHermesMode] = useState(true); // HERA orchestration ON by default
+  const [hermesMode, setHermesMode] = useState(true);
   const [lastHermesAgent, setLastHermesAgent] = useState<{ name: string; emoji: string; color: string } | null>(null);
   const [lastIntent, setLastIntent] = useState<string>("general");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -94,6 +166,134 @@ export default function AIChatWidget() {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const [ratings, setRatings] = useState<Record<number, "up" | "down">>({});
 
+  // ── Drag & drop state ──────────────────────────────────────────────────
+  const [btnPos, setBtnPos] = useState<{ left: number; top: number }>(() => loadPosition());
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    startLeft: number;
+    startTop: number;
+    hasDragged: boolean;
+  } | null>(null);
+
+  // Clamp on window resize
+  useEffect(() => {
+    const onResize = () => {
+      setBtnPos(prev => clampPosition(prev.left, prev.top, BTN_SIZE));
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const handleBtnMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: btnPos.left,
+      startTop: btnPos.top,
+      hasDragged: false,
+    };
+
+    const onMouseMove = (ev: MouseEvent) => {
+      if (!dragRef.current) return;
+      const dx = ev.clientX - dragRef.current.startX;
+      const dy = ev.clientY - dragRef.current.startY;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        dragRef.current.hasDragged = true;
+      }
+      const newPos = clampPosition(
+        dragRef.current.startLeft + dx,
+        dragRef.current.startTop + dy,
+        BTN_SIZE
+      );
+      setBtnPos(newPos);
+    };
+
+    const onMouseUp = () => {
+      if (dragRef.current) {
+        if (!dragRef.current.hasDragged) {
+          setIsOpen(true);
+        } else {
+          // Save final position
+          setBtnPos(prev => {
+            savePosition(prev);
+            return prev;
+          });
+        }
+        dragRef.current = null;
+      }
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, [btnPos]);
+
+  // Touch support for mobile drag
+  const handleBtnTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    dragRef.current = {
+      startX: touch.clientX,
+      startY: touch.clientY,
+      startLeft: btnPos.left,
+      startTop: btnPos.top,
+      hasDragged: false,
+    };
+
+    const onTouchMove = (ev: TouchEvent) => {
+      if (!dragRef.current) return;
+      const t = ev.touches[0];
+      const dx = t.clientX - dragRef.current.startX;
+      const dy = t.clientY - dragRef.current.startY;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        dragRef.current.hasDragged = true;
+        ev.preventDefault();
+      }
+      const newPos = clampPosition(
+        dragRef.current.startLeft + dx,
+        dragRef.current.startTop + dy,
+        BTN_SIZE
+      );
+      setBtnPos(newPos);
+    };
+
+    const onTouchEnd = () => {
+      if (dragRef.current) {
+        if (!dragRef.current.hasDragged) {
+          setIsOpen(true);
+        } else {
+          setBtnPos(prev => {
+            savePosition(prev);
+            return prev;
+          });
+        }
+        dragRef.current = null;
+      }
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
+
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd);
+  }, [btnPos]);
+
+  // ── Widget open position ────────────────────────────────────────────────
+  const widgetW = isMaximized ? WIDGET_W_MAX : WIDGET_W_NORMAL;
+  const widgetH = isMaximized ? WIDGET_H_MAX : WIDGET_H_NORMAL;
+
+  // Position widget so it doesn't go off-screen, anchored near button
+  const widgetLeft = Math.max(
+    DOCK_WIDTH + 8,
+    Math.min(btnPos.left - widgetW + BTN_SIZE, window.innerWidth - widgetW - 8)
+  );
+  const widgetTop = Math.max(
+    MENUBAR_HEIGHT + 8,
+    Math.min(btnPos.top - widgetH + BTN_SIZE, window.innerHeight - widgetH - 8)
+  );
+
+  // ── Data queries ────────────────────────────────────────────────────────
   const { data: personas, isLoading: personasLoading } = trpc.aiChat.getPersonas.useQuery(undefined, {
     staleTime: Infinity,
   });
@@ -102,9 +302,7 @@ export default function AIChatWidget() {
     staleTime: 30_000,
   });
 
-  // HERA-powered chat mutation (primary path)
   const hermesChatMutation = trpc.hermes.aiChat.useMutation();
-  // Legacy direct mutation (fallback when HERA mode is off)
   const sendMessageMutation = trpc.aiChat.sendMessage.useMutation();
   const clearHistoryMutation = trpc.aiChat.clear.useMutation();
   const toggleFavoriteMutation = trpc.aiChat.toggleFavorite.useMutation();
@@ -127,13 +325,22 @@ export default function AIChatWidget() {
     }
   }, [messages, isLoading]);
 
+  // Smart suggestions from last assistant message
+  const smartSuggestions = useMemo(() => {
+    if (isLoading || messages.length === 0) return [];
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg.role !== "assistant") return [];
+    return getSmartSuggestions(lastMsg.content);
+  }, [messages, isLoading]);
+
+  // ── Handlers ────────────────────────────────────────────────────────────
+
   const handleSelectPersona = useCallback((persona: Persona) => {
     setSelectedPersona(persona);
     setMessages([]);
     setView("chat");
   }, []);
 
-  // Direct HERMES chat (no persona required) — opens chat directly
   const handleOpenHermesChat = useCallback(() => {
     setSelectedPersona(null);
     setMessages([]);
@@ -146,27 +353,26 @@ export default function AIChatWidget() {
       try {
         const result = await toggleFavoriteMutation.mutateAsync({ personaId });
         await refetchFavorites();
-        toast.success(result.favorited ? "Added to favorites" : "Removed from favorites");
+        toast.success(result.favorited ? "Přidáno do oblíbených" : "Odebráno z oblíbených");
       } catch {
-        toast.error("Failed to update favorites");
+        toast.error("Nepodařilo se aktualizovat oblíbené");
       }
     },
     [toggleFavoriteMutation, refetchFavorites]
   );
 
-  const handleSendMessage = useCallback(async () => {
-    if (!input.trim() || isLoading) return;
-    const userMessage = input.trim();
+  const handleSendMessage = useCallback(async (overrideInput?: string) => {
+    const text = (overrideInput ?? input).trim();
+    if (!text || isLoading) return;
     setInput("");
-    const newMessages: ChatMessage[] = [...messages, { role: "user", content: userMessage }];
+    const newMessages: ChatMessage[] = [...messages, { role: "user", content: text }];
     setMessages(newMessages);
     setIsLoading(true);
 
     try {
       if (hermesMode) {
-        // ── HERA orchestration path ──────────────────────────────────────
         const result = await hermesChatMutation.mutateAsync({
-          message: userMessage,
+          message: text,
           personaId: selectedPersona?.id,
           conversationHistory: newMessages.slice(-10).map((m) => ({
             role: m.role,
@@ -175,7 +381,6 @@ export default function AIChatWidget() {
           hermesMode: true,
         });
 
-        // Update HERMES state indicators
         if (result.activeAgent) setLastHermesAgent(result.activeAgent);
         if (result.intent) setLastIntent(result.intent);
 
@@ -191,9 +396,8 @@ export default function AIChatWidget() {
           },
         ]);
       } else {
-        // ── Legacy direct path ─────────────────────────────────────────────
         const result = await sendMessageMutation.mutateAsync({
-          message: userMessage,
+          message: text,
           personaId: selectedPersona?.id,
           conversationHistory: newMessages.slice(-10).map((m) => ({
             role: m.role,
@@ -206,7 +410,7 @@ export default function AIChatWidget() {
         ]);
       }
     } catch {
-      toast.error("Failed to get response. Please try again.");
+      toast.error("Nepodařilo se získat odpověď. Zkuste to znovu.");
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
@@ -240,7 +444,7 @@ export default function AIChatWidget() {
     if (selectedPersona) {
       try {
         await ratePersonaMutation.mutateAsync({ personaId: selectedPersona.id, rating, sessionId: `session-${Date.now()}` });
-        toast.success(rating === "up" ? "Thanks for the feedback! 👍" : "Got it, we'll improve 👎");
+        toast.success(rating === "up" ? "Díky za zpětnou vazbu! 👍" : "Rozumíme, zlepšíme se 👎");
       } catch {
         // silent
       }
@@ -249,7 +453,7 @@ export default function AIChatWidget() {
 
   const handleToggleVoice = useCallback(() => {
     if (!speechSupported) {
-      toast.error("Voice input is not supported in this browser.");
+      toast.error("Hlasový vstup není v tomto prohlížeči podporován.");
       return;
     }
     if (isRecording) {
@@ -259,7 +463,7 @@ export default function AIChatWidget() {
     }
     const SpeechRecognitionClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognitionClass();
-    recognition.lang = "en-US";
+    recognition.lang = "cs-CZ";
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
     recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -269,9 +473,9 @@ export default function AIChatWidget() {
     };
     recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       if (event.error === "not-allowed") {
-        toast.error("Microphone access denied. Please allow microphone access.");
+        toast.error("Přístup k mikrofonu zamítnut. Povolte přístup k mikrofonu.");
       } else if (event.error !== "aborted") {
-        toast.error("Voice input error: " + event.error);
+        toast.error("Chyba hlasového vstupu: " + event.error);
       }
       setIsRecording(false);
     };
@@ -281,41 +485,65 @@ export default function AIChatWidget() {
     setIsRecording(true);
   }, [speechSupported, isRecording]);
 
-  const handleSuggestedPrompt = useCallback((prompt: string) => {
-    setInput(prompt);
-    setTimeout(() => textareaRef.current?.focus(), 50);
-  }, []);
-
-  // Widget dimensions
-  const widgetWidth = isMaximized ? "w-[600px]" : "w-[380px]";
-  const widgetHeight = isMaximized ? "h-[680px]" : "h-[520px]";
-
-  // Intent display info
   const intentInfo = INTENT_LABELS[lastIntent] ?? INTENT_LABELS.general;
 
+  // ── Render: Floating Button (closed state) ──────────────────────────────
   if (!isOpen) {
     return (
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-primary-foreground shadow-lg hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 group"
-        aria-label="Open AI Assistant"
+      <div
+        style={{
+          position: "fixed",
+          left: btnPos.left,
+          top: btnPos.top,
+          zIndex: 9990,
+          width: BTN_SIZE,
+          height: BTN_SIZE,
+          cursor: "grab",
+          userSelect: "none",
+          touchAction: "none",
+        }}
+        onMouseDown={handleBtnMouseDown}
+        onTouchStart={handleBtnTouchStart}
       >
-        <Sparkles className="h-5 w-5" />
-        <span className="text-sm font-semibold hidden sm:block">
-          {hermesMode ? "HERMES" : "Chat Agent"}
-        </span>
-      </button>
+        <div
+          className="flex items-center justify-center rounded-full shadow-2xl transition-all hover:scale-110 active:scale-95"
+          style={{
+            width: BTN_SIZE,
+            height: BTN_SIZE,
+            background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 280))",
+            boxShadow: "0 4px 20px oklch(0.50 0.22 192 / 50%), 0 2px 8px oklch(0 0 0 / 30%)",
+            border: "2px solid oklch(1 0 0 / 15%)",
+          }}
+        >
+          <Sparkles className="h-6 w-6 text-white" />
+        </div>
+        {/* Pulse ring */}
+        <div
+          className="absolute inset-0 rounded-full animate-ping"
+          style={{
+            background: "oklch(0.50 0.22 192 / 20%)",
+            animationDuration: "2s",
+          }}
+        />
+      </div>
     );
   }
 
+  // ── Render: Open Widget ─────────────────────────────────────────────────
   return (
     <div
       className={cn(
-        "fixed bottom-6 right-6 z-50 flex flex-col rounded-2xl border border-border bg-background shadow-2xl overflow-hidden transition-all duration-200",
-        widgetWidth,
-        widgetHeight,
+        "fixed flex flex-col rounded-2xl border border-border bg-background shadow-2xl overflow-hidden",
         hermesMode && "border-primary/30"
       )}
+      style={{
+        left: widgetLeft,
+        top: widgetTop,
+        width: widgetW,
+        height: widgetH,
+        zIndex: 9990,
+        transition: "width 0.2s, height 0.2s",
+      }}
     >
       {/* Header */}
       <div className={cn(
@@ -327,7 +555,7 @@ export default function AIChatWidget() {
             <button
               onClick={() => setView("personas")}
               className="p-1 rounded-md hover:bg-accent transition-colors shrink-0"
-              aria-label="Back to personas"
+              aria-label="Zpět na výběr"
             >
               <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -346,7 +574,6 @@ export default function AIChatWidget() {
                         CORE AI
                       </Badge>
                     </div>
-                    {/* Active sub-agent + intent indicator */}
                     {lastHermesAgent ? (
                       <p className="text-[10px] text-muted-foreground truncate">
                         <span>{lastHermesAgent.emoji}</span>{" "}
@@ -358,7 +585,7 @@ export default function AIChatWidget() {
                         )}
                       </p>
                     ) : (
-                      <p className="text-[10px] text-muted-foreground">Orchestrating sub-agents</p>
+                      <p className="text-[10px] text-muted-foreground">Orchestrace sub-agentů</p>
                     )}
                   </div>
                 </>
@@ -393,20 +620,20 @@ export default function AIChatWidget() {
                 {hermesMode ? "HERMES Chat" : "Chat Agent"}
               </span>
               <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4">
-                {hermesMode ? "AI Orchestration" : `${personas?.length ?? 0} experts`}
+                {hermesMode ? "AI Orchestrace" : `${personas?.length ?? 0} expertů`}
               </Badge>
             </div>
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {/* HERA mode toggle */}
-          <div className="flex items-center gap-1 mr-1" title={hermesMode ? "HERMES mode ON" : "HERMES mode OFF"}>
+          {/* HERMES mode toggle */}
+          <div className="flex items-center gap-1 mr-1" title={hermesMode ? "HERMES mode ZAP" : "HERMES mode VYP"}>
             <Shield className={cn("h-3 w-3", hermesMode ? "text-primary" : "text-muted-foreground/40")} />
             <Switch
               checked={hermesMode}
               onCheckedChange={(v) => {
                 setHermesMode(v);
-                toast.success(v ? "HERMES orchestration enabled ⚡" : "Direct mode enabled");
+                toast.success(v ? "HERMES orchestrace zapnuta ⚡" : "Přímý mód zapnut");
               }}
               className="h-4 w-7 data-[state=checked]:bg-primary"
             />
@@ -415,8 +642,8 @@ export default function AIChatWidget() {
             <button
               onClick={handleClearChat}
               className="p-1.5 rounded-md hover:bg-accent transition-colors"
-              aria-label="Clear chat"
-              title="Clear conversation"
+              aria-label="Vymazat chat"
+              title="Vymazat konverzaci"
             >
               <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
@@ -425,8 +652,8 @@ export default function AIChatWidget() {
             <button
               onClick={() => { setIsOpen(false); setLocation("/chat-agent"); }}
               className="p-1.5 rounded-md hover:bg-accent transition-colors"
-              aria-label="Chat history"
-              title="View chat history"
+              aria-label="Historie chatu"
+              title="Zobrazit historii chatu"
             >
               <History className="h-3.5 w-3.5 text-muted-foreground" />
             </button>
@@ -434,7 +661,7 @@ export default function AIChatWidget() {
           <button
             onClick={() => setIsMaximized((v) => !v)}
             className="p-1.5 rounded-md hover:bg-accent transition-colors"
-            aria-label={isMaximized ? "Minimize" : "Maximize"}
+            aria-label={isMaximized ? "Zmenšit" : "Zvětšit"}
           >
             {isMaximized ? (
               <Minimize2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -445,7 +672,7 @@ export default function AIChatWidget() {
           <button
             onClick={() => setIsOpen(false)}
             className="p-1.5 rounded-md hover:bg-accent transition-colors"
-            aria-label="Close"
+            aria-label="Zavřít"
           >
             <X className="h-3.5 w-3.5 text-muted-foreground" />
           </button>
@@ -465,8 +692,8 @@ export default function AIChatWidget() {
                 <Zap className="h-5 w-5 text-primary" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-foreground">Chat with HERMES</p>
-                <p className="text-[10px] text-muted-foreground">Auto-routes to best sub-agent · Full orchestration</p>
+                <p className="text-xs font-semibold text-foreground">Chat s HERMES</p>
+                <p className="text-[10px] text-muted-foreground">Auto-routing na nejlepší sub-agent · Plná orchestrace</p>
               </div>
               <Sparkles className="h-4 w-4 text-primary/60 shrink-0 ml-auto" />
             </button>
@@ -475,7 +702,7 @@ export default function AIChatWidget() {
           {/* Category Tabs */}
           <div className="px-3 pt-3 pb-2 shrink-0">
             <p className="text-[10px] text-muted-foreground mb-2 font-medium uppercase tracking-wide">
-              {hermesMode ? "Or choose a specific expert persona:" : "Choose an expert:"}
+              {hermesMode ? "Nebo vyberte konkrétního experta:" : "Vyberte experta:"}
             </p>
             <Tabs
               value={activeCategory}
@@ -502,9 +729,9 @@ export default function AIChatWidget() {
               ) : categorizedPersonas.length === 0 && activeCategory === "Favorites" ? (
                 <div className="flex flex-col items-center justify-center h-40 gap-3 text-center">
                   <Heart className="h-10 w-10 text-muted-foreground/20" />
-                  <p className="text-xs text-muted-foreground">No favorites yet.</p>
+                  <p className="text-xs text-muted-foreground">Žádné oblíbené.</p>
                   <p className="text-[10px] text-muted-foreground/60">
-                    Click the ♡ on any expert to pin them here.
+                    Klikněte na ♡ u libovolného experta.
                   </p>
                 </div>
               ) : (
@@ -517,7 +744,6 @@ export default function AIChatWidget() {
                         onClick={() => handleSelectPersona(persona as Persona)}
                         className="relative flex flex-col items-start gap-1.5 p-3 rounded-xl border border-border bg-card hover:bg-accent/50 hover:border-primary/30 transition-all text-left group"
                       >
-                        {/* Favorite toggle — div to avoid nested button HTML violation */}
                         <div
                           role="button"
                           tabIndex={0}
@@ -529,8 +755,8 @@ export default function AIChatWidget() {
                               ? "text-rose-400 hover:text-rose-300"
                               : "text-muted-foreground/30 hover:text-rose-400 opacity-0 group-hover:opacity-100"
                           )}
-                          aria-label={isFav ? "Remove from favorites" : "Add to favorites"}
-                          title={isFav ? "Remove from favorites" : "Add to favorites"}
+                          aria-label={isFav ? "Odebrat z oblíbených" : "Přidat do oblíbených"}
+                          title={isFav ? "Odebrat z oblíbených" : "Přidat do oblíbených"}
                         >
                           <Heart className={cn("h-3 w-3", isFav && "fill-current")} />
                         </div>
@@ -571,9 +797,9 @@ export default function AIChatWidget() {
           <div className="px-3 py-2 border-t border-border shrink-0">
             <p className="text-[10px] text-muted-foreground text-center">
               {hermesMode
-                ? "⚡ HERMES routes to best sub-agent automatically"
-                : "Select an expert · ♡ to pin favorites"}{" "}
-              · <button onClick={() => { setIsOpen(false); setLocation("/chat-agent"); }} className="text-primary hover:underline">View history</button>
+                ? "⚡ HERMES automaticky routuje na nejlepší sub-agent"
+                : "Vyberte experta · ♡ pro oblíbené"}{" "}
+              · <button onClick={() => { setIsOpen(false); setLocation("/chat-agent"); }} className="text-primary hover:underline">Historie</button>
             </p>
           </div>
         </div>
@@ -595,7 +821,7 @@ export default function AIChatWidget() {
                       <Zap className="h-7 w-7 text-primary" />
                     </div>
                     <p className="text-sm font-semibold text-foreground">HERMES</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">Core AI Orchestration</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Core AI Orchestrace</p>
                     <div className="flex flex-wrap gap-1 justify-center mt-2">
                       {["🔍 Prospector", "✍️ Copywriter", "📊 Analyst", "🤝 SDR", "⚡ NINJA BOT"].map((a) => (
                         <span key={a} className="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary/80 font-medium">
@@ -613,14 +839,14 @@ export default function AIChatWidget() {
                 ) : null}
                 <p className="text-xs text-muted-foreground text-center px-4">
                   {hermesMode
-                    ? "HERMES will classify your intent and dispatch the best sub-agent"
-                    : "Ask me anything about your B2B lead generation strategy"}
+                    ? "HERMES klasifikuje váš záměr a odešle nejlepšího sub-agenta"
+                    : "Zeptejte se na cokoliv o B2B lead generation"}
                 </p>
                 <div className="flex flex-col gap-1.5 w-full">
                   {SUGGESTED_PROMPTS.map((prompt) => (
                     <button
                       key={prompt}
-                      onClick={() => handleSuggestedPrompt(prompt)}
+                      onClick={() => handleSendMessage(prompt)}
                       className="text-xs text-left px-3 py-2 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/60 hover:border-primary/30 transition-colors text-foreground"
                     >
                       {prompt}
@@ -650,7 +876,6 @@ export default function AIChatWidget() {
                   </div>
                 )}
                 <div className="flex flex-col gap-1 max-w-[85%]">
-                  {/* HERMES sub-agent badge */}
                   {msg.role === "assistant" && msg.hermesMode && msg.hermesActiveAgent && (
                     <div className="flex items-center gap-1 pl-0.5">
                       <span className="text-[9px] text-muted-foreground">
@@ -680,7 +905,7 @@ export default function AIChatWidget() {
                       <p className="text-xs leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                     )}
                   </div>
-                  {/* Rating buttons for assistant messages */}
+                  {/* Rating buttons for last assistant message */}
                   {msg.role === "assistant" && i === messages.length - 1 && !isLoading && (
                     <div className="flex items-center gap-1 pl-1">
                       <button
@@ -691,7 +916,7 @@ export default function AIChatWidget() {
                             ? "text-emerald-400 bg-emerald-500/10"
                             : "text-muted-foreground/40 hover:text-emerald-400 hover:bg-emerald-500/10"
                         )}
-                        title="Helpful"
+                        title="Užitečné"
                       >
                         <ThumbsUp className="h-3 w-3" />
                       </button>
@@ -703,7 +928,7 @@ export default function AIChatWidget() {
                             ? "text-rose-400 bg-rose-500/10"
                             : "text-muted-foreground/40 hover:text-rose-400 hover:bg-rose-500/10"
                         )}
-                        title="Not helpful"
+                        title="Neužitečné"
                       >
                         <ThumbsDown className="h-3 w-3" />
                       </button>
@@ -732,7 +957,7 @@ export default function AIChatWidget() {
                 <div className="rounded-xl rounded-tl-sm bg-muted px-3 py-2.5 border border-primary/10">
                   <div className="flex gap-1 items-center">
                     {hermesMode && (
-                      <span className="text-[9px] text-primary/60 mr-1">HERMES routing…</span>
+                      <span className="text-[9px] text-primary/60 mr-1">HERMES routuje…</span>
                     )}
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />
@@ -741,12 +966,29 @@ export default function AIChatWidget() {
                 </div>
               </div>
             )}
+
+            {/* Smart follow-up suggestions */}
+            {smartSuggestions.length > 0 && !isLoading && (
+              <div className="flex flex-col gap-1.5 pt-1">
+                <p className="text-[9px] text-muted-foreground/60 pl-8 font-medium uppercase tracking-wide">
+                  Navazující otázky
+                </p>
+                {smartSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    onClick={() => handleSendMessage(suggestion)}
+                    className="ml-8 text-[10px] text-left px-2.5 py-1.5 rounded-lg border border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-colors text-primary/80 hover:text-primary"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Input */}
           <div className="p-3 border-t border-border shrink-0">
             <div className="flex gap-2 items-end">
-              {/* Mic button */}
               {speechSupported && (
                 <button
                   onClick={handleToggleVoice}
@@ -757,7 +999,7 @@ export default function AIChatWidget() {
                       ? "bg-rose-500/10 border-rose-500/40 text-rose-400 animate-pulse"
                       : "bg-transparent border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                   )}
-                  title={isRecording ? "Stop recording" : "Voice input"}
+                  title={isRecording ? "Zastavit nahrávání" : "Hlasový vstup"}
                 >
                   {isRecording ? (
                     <MicOff className="h-3.5 w-3.5" />
@@ -773,10 +1015,10 @@ export default function AIChatWidget() {
                 onKeyDown={handleKeyDown}
                 placeholder={
                   isRecording
-                    ? "Listening..."
+                    ? "Poslouchám..."
                     : hermesMode
-                    ? "Ask HERMES anything — auto-routes to best agent…"
-                    : `Ask ${selectedPersona?.name ?? "AI"}...`
+                    ? "Zeptejte se HERMES — auto-routing na nejlepšího agenta…"
+                    : `Zeptejte se ${selectedPersona?.name ?? "AI"}...`
                 }
                 className="flex-1 min-h-[38px] max-h-24 resize-none text-xs"
                 rows={1}
@@ -784,7 +1026,7 @@ export default function AIChatWidget() {
               />
               <Button
                 size="icon"
-                onClick={handleSendMessage}
+                onClick={() => handleSendMessage()}
                 disabled={!input.trim() || isLoading}
                 className="h-[38px] w-[38px] shrink-0"
               >
@@ -797,10 +1039,10 @@ export default function AIChatWidget() {
             </div>
             <p className="text-[9px] text-muted-foreground mt-1.5 text-center">
               {isRecording
-                ? "🔴 Recording... click mic to stop"
+                ? "🔴 Nahrávám... klikněte na mikrofon pro zastavení"
                 : hermesMode
-                ? "⚡ HERMES active · Press Enter to send"
-                : "Press Enter to send · Shift+Enter for new line"}
+                ? "⚡ HERMES aktivní · Enter pro odeslání"
+                : "Enter pro odeslání · Shift+Enter pro nový řádek"}
             </p>
           </div>
         </div>

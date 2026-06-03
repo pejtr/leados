@@ -40,7 +40,7 @@ export const webhooksRouter = router({
         status: "active",
         maxRetries: input.maxRetries,
         retryDelaySeconds: input.retryDelaySeconds,
-        headers: input.headers || {},
+        headers: (input.headers || {}) as Record<string, string>,
         createdAt: Date.now(),
         updatedAt: Date.now(),
       });
@@ -133,16 +133,16 @@ export const webhooksRouter = router({
         throw new Error("Webhook not found");
       }
 
-      const updateData: Record<string, any> = { updatedAt: Date.now() };
+      const updateData: Partial<typeof webhookConfigs.$inferInsert> = { updatedAt: Date.now() };
       if (input.name) updateData.name = input.name;
       if (input.url) updateData.url = input.url;
       if (input.events) updateData.events = input.events;
       if (input.status) updateData.status = input.status;
-      if (input.maxRetries) updateData.maxRetries = input.maxRetries;
-      if (input.retryDelaySeconds) updateData.retryDelaySeconds = input.retryDelaySeconds;
-      if (input.headers) updateData.headers = input.headers;
+      if (input.maxRetries !== undefined) updateData.maxRetries = input.maxRetries;
+      if (input.retryDelaySeconds !== undefined) updateData.retryDelaySeconds = input.retryDelaySeconds;
+      if (input.headers) updateData.headers = input.headers as Record<string, string>;
 
-      await db.update(webhookConfigs).set(updateData).where(eq(webhookConfigs.id, input.id));
+      await db.update(webhookConfigs).set(updateData as any).where(eq(webhookConfigs.id, input.id));
 
       return { message: "Webhook updated successfully" };
     }),

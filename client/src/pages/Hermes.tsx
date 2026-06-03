@@ -521,6 +521,8 @@ export default function Hermes() {
   const getOrCreateSession = trpc.hermes.getOrCreateSession.useMutation();
   const sendMessage = trpc.hermes.sendMessage.useMutation();
   const executeMission = trpc.hermes.executeMission.useMutation();
+  const cancelMissionMutation = trpc.hermes.cancelMission.useMutation();
+  const [activeMissionId, setActiveMissionId] = useState<number | null>(null);
   const { data: dbMessages, refetch: refetchMessages } = trpc.hermes.getMessages.useQuery(
     { sessionId: sessionId! },
     { enabled: !!sessionId, staleTime: 5_000 }
@@ -706,10 +708,12 @@ export default function Hermes() {
 
     try {
       const result = await executeMission.mutateAsync({ missionType, sessionId });
+      setActiveMissionId(null);
       setMissionResult(result);
       refetchStatus();
       toast.success(`✅ Mise dokončena: ${result.title}`);
     } catch (err: any) {
+      setActiveMissionId(null);
       toast.error("Mise selhala", { description: err.message });
     } finally {
       setIsMissionRunning(false);
@@ -1114,10 +1118,27 @@ export default function Hermes() {
                 {isMissionRunning && (
                   <div className="flex items-center gap-3 p-4 border border-orange-500/30 rounded-xl bg-orange-950/20">
                     <Loader2 className="h-5 w-5 text-orange-400 animate-spin shrink-0" />
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium text-orange-300">Mise probíhá...</p>
                       <p className="text-xs text-slate-500">Sub-agenti pracují. Může to trvat 1–4 minuty.</p>
                     </div>
+                    {activeMissionId && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={async () => {
+                          try {
+                            await cancelMissionMutation.mutateAsync({ missionId: activeMissionId });
+                            setIsMissionRunning(false);
+                            setActiveMissionId(null);
+                            toast.info("Mise zrušena");
+                          } catch { toast.error("Nelze zrušit misi"); }
+                        }}
+                        className="h-7 px-2 text-xs text-orange-400 hover:text-orange-200 border border-orange-500/30 hover:bg-orange-900/30 shrink-0"
+                      >
+                        <X className="h-3 w-3 mr-1" />Zrušit
+                      </Button>
+                    )}
                   </div>
                 )}
 
