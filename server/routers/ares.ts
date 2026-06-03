@@ -108,10 +108,12 @@ export const aresRouter = router({
     .mutation(async ({ input, ctx }) => {
       // Import into leads table via existing lead creation
       const { getDb } = await import("../db");
-      const db = getDb();
+      const db = await getDb();
+      if (!db) throw new Error("Database unavailable");
       const { leads } = await import("../../drizzle/schema");
 
-      const [lead] = await db.insert(leads).values({
+      const now = Date.now();
+      await db.insert(leads).values({
         userId: ctx.user.id,
         companyName: input.obchodniJmeno,
         location: input.adresa ?? input.obec ?? null,
@@ -119,11 +121,11 @@ export const aresRouter = router({
         status: "new",
         score: 50,
         notes: `IČO: ${input.ico}`,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }).returning();
+        createdAt: now,
+        updatedAt: now,
+      });
 
-      return { success: true, leadId: lead.id };
+      return { success: true };
     }),
 });
 
