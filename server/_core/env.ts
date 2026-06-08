@@ -7,4 +7,6 @@ export const ENV = {
   isProduction: process.env.NODE_ENV === "production",
   forgeApiUrl: process.env.BUILT_IN_FORGE_API_URL ?? "",
   forgeApiKey: process.env.BUILT_IN_FORGE_API_KEY ?? "",
+  // Dev-only: set DEV_AUTO_LOGIN=true to bypass Manus OAuth in local development
+  devAutoLogin: process.env.DEV_AUTO_LOGIN === "true",
 };
