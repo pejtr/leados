@@ -281,7 +281,7 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
 
   return (
     <div
-      className="fixed left-0 bottom-0 z-[9999] flex flex-col items-center py-3 gap-1 overflow-y-auto"
+      className="fixed left-0 bottom-0 z-[9999] flex flex-col items-center py-3 gap-1"
       style={{
         top: "calc(2rem + env(safe-area-inset-top, 0px))",
         width: 56,
@@ -291,6 +291,8 @@ function MacDock({ onAppsClick }: { onAppsClick: () => void }) {
         borderRight: "1px solid oklch(1 0 0 / 8%)",
         boxShadow: "2px 0 16px oklch(0 0 0 / 30%)",
         scrollbarWidth: "none",
+        overflowY: "auto",
+        overflowX: "visible",
       }}
     >
       {/* All Apps button — TOP */}
