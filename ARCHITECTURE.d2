@@ -1,0 +1,155 @@
+# LeadOS Architecture Diagram
+
+direction: right
+
+# Frontend Layer
+frontend: {
+  label: "Frontend (React 19 + Tailwind)"
+  shape: box
+  style: {
+    fill: "#1e293b"
+    stroke: "#0ea5e9"
+    stroke-width: 2
+  }
+  
+  pages: {
+    label: "Pages"
+    Home: "Home / Dashboard"
+    Hermio: "HERA Command Center"
+    Generate: "Lead Generation"
+    Kanban: "Pipeline Board"
+    Billing: "Billing & Plans"
+    Integrations: "Webhooks (Czech)"
+  }
+  
+  components: {
+    label: "Components"
+    DashboardLayout: "Sidebar + Top Bar"
+    AIChatWidget: "Floating Chat"
+    AIChatBox: "Chat Interface"
+    Map: "Google Maps"
+  }
+}
+
+# API Layer (tRPC)
+api: {
+  label: "API Layer (tRPC 11 + Express 4)"
+  shape: box
+  style: {
+    fill: "#1e293b"
+    stroke: "#10b981"
+    stroke-width: 2
+  }
+  
+  routers: {
+    label: "tRPC Routers"
+    hermes: "hermesRouter (HERA/HERMES)"
+    leads: "leadsRouter (Lead CRUD)"
+    integrations: "integrationsRouter (Webhooks)"
+    billing: "billingRouter (Stripe)"
+  }
+  
+  core: {
+    label: "Core Services"
+    auth: "OAuth + JWT"
+    llm: "Gemini LLM"
+    security: "Prompt Security"
+    storage: "S3 Storage"
+  }
+}
+
+# Business Logic Layer
+logic: {
+  label: "Business Logic"
+  shape: box
+  style: {
+    fill: "#1e293b"
+    stroke: "#f59e0b"
+    stroke-width: 2
+  }
+  
+  agents: {
+    label: "AI Agents"
+    hera: "HERA (Orchestrator)"
+    hermes: "HERMES (Multi-step)"
+    prospector: "Lead Prospector"
+    copywriter: "Outreach Copywriter"
+    analyst: "Data Analyst"
+  }
+  
+  services: {
+    label: "Services"
+    leadGen: "Lead Generation"
+    pipeline: "Pipeline Management"
+    webhooks: "Webhook Dispatcher"
+    scheduler: "Retry Scheduler"
+  }
+}
+
+# Data Layer
+data: {
+  label: "Data Layer"
+  shape: box
+  style: {
+    fill: "#1e293b"
+    stroke: "#ec4899"
+    stroke-width: 2
+  }
+  
+  database: {
+    label: "MySQL/TiDB"
+    users: "users"
+    leads: "leads"
+    integrations: "webhook_configs"
+    logs: "integration_logs"
+    memory: "ai_agent_memory"
+  }
+  
+  storage: {
+    label: "S3 Storage"
+    exports: "CSV/JSON exports"
+    images: "Generated images"
+    documents: "Documents"
+  }
+}
+
+# External Integrations
+external: {
+  label: "External Services"
+  shape: box
+  style: {
+    fill: "#1e293b"
+    stroke: "#a78bfa"
+    stroke-width: 2
+  }
+  
+  apis: {
+    label: "APIs"
+    gemini: "Google Gemini"
+    stripe: "Stripe Payments"
+    ares: "ARES Registry"
+    apify: "Apify (LinkedIn)"
+  }
+  
+  webhooks: {
+    label: "Webhook Targets"
+    zapier: "Zapier"
+    make: "Make.com"
+    n8n: "n8n"
+    clickup: "ClickUp"
+    slack: "Slack"
+  }
+}
+
+# Connections
+frontend -> api: "tRPC calls"
+api -> logic: "Orchestration"
+logic -> data: "CRUD operations"
+data -> external: "API calls"
+external -> data: "Data sync"
+
+# Styling
+style: {
+  font-size: 12
+  font-family: "Courier New"
+}
