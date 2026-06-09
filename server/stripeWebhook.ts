@@ -6,11 +6,14 @@ import { users } from "../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { sendServerSideConversion } from "./googleAdsConversions";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  apiVersion: "2026-02-25.clover",
-});
+const stripeKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeKey ? new Stripe(stripeKey, { apiVersion: "2026-02-25.clover" }) : null;
 
 export function registerStripeWebhook(app: Express) {
+  if (!stripe) {
+    console.warn("[Stripe] STRIPE_SECRET_KEY not set — webhook disabled");
+    return;
+  }
   // Must be raw body BEFORE express.json() — registered separately in index.ts
   app.post(
     "/api/stripe/webhook",

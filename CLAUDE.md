@@ -146,6 +146,11 @@ DEEP_SLEEP_RESET_API_KEY=         # DSR project monitoring
 | `/global-earnings` | GlobalEarnings.tsx | Cross-project earnings dashboard |
 | `/admin/integrations` | AdminIntegrations.tsx | API keys + webhooks management |
 
+## Production Domains (Manus)
+- https://aileadgen-kytwarba.manus.space (default)
+- https://ai-lead-gen.com
+- https://crmleadsystem.com
+
 ## Manus-Specific Components (require attention for self-hosting)
 
 1. **`server/_core/sdk.ts`** — Manus OAuth client. Handles login, JWT sessions, user sync. Must be replaced or configured with valid `OAUTH_SERVER_URL`.
