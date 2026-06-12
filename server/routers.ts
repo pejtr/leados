@@ -115,6 +115,7 @@ import { leadsRouter as capturedLeadsRouter } from "./routers/leads";
 import { benchmarkRouter } from "./routers/benchmark";
 import { hermesRouter } from "./hermesRouter";
 import { deepSleepRouter } from "./routers/deepSleep";
+import { radarRouter } from "./radarRouter";
 import { globalEarningsRouter } from "./routers/globalEarnings";
 import { apiKeysRouter } from "./routers/apiKeysRouter";
 import { webhooksRouter } from "./routers/webhooksRouter";
@@ -2817,6 +2818,7 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
   benchmark: benchmarkRouter,
   hermes: hermesRouter,
   deepSleep: deepSleepRouter,
+  radar: radarRouter,
   globalEarnings: globalEarningsRouter,
   ingestedLeads: ingestedLeadsRouter,
   aiSkills: aiSkillsRouter,
