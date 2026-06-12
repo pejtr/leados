@@ -114,6 +114,7 @@ import { constitutionRouter } from "./routers/constitution";
 import { leadsRouter as capturedLeadsRouter } from "./routers/leads";
 import { benchmarkRouter } from "./routers/benchmark";
 import { hermesRouter } from "./hermesRouter";
+import { heraRouter } from "./heraRouter";
 import { deepSleepRouter } from "./routers/deepSleep";
 import { globalEarningsRouter } from "./routers/globalEarnings";
 import { apiKeysRouter } from "./routers/apiKeysRouter";
@@ -2816,6 +2817,7 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
   capturedLeads: capturedLeadsRouter,
   benchmark: benchmarkRouter,
   hermes: hermesRouter,
+  hera: heraRouter,
   deepSleep: deepSleepRouter,
   globalEarnings: globalEarningsRouter,
   ingestedLeads: ingestedLeadsRouter,

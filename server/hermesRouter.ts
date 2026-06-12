@@ -39,7 +39,7 @@ async function fetchDsrAnalytics(): Promise<string> {
   }
 }
 
-async function buildPlatformContext(userId: number): Promise<string> {
+export async function buildPlatformContext(userId: number): Promise<string> {
   try {
     const [stats, dsrContext] = await Promise.all([
       getLeadStats(userId),
