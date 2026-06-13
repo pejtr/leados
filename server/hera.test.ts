@@ -15,6 +15,9 @@ import {
   HERA_COACHES,
   HERA_COACH_IDS,
   getHeraCoaches,
+  HERA_MISSION_TEMPLATES,
+  executeHeraMission,
+  heraPanel,
 } from "./heraAgent";
 import { AI_PERSONAS, getPersonaById } from "./aiPersonas";
 
@@ -151,6 +154,117 @@ describe("heraChat", () => {
       platformContext: "",
     });
     expect(result.content).toContain("zkuste to prosím znovu");
+  });
+});
+
+describe("HERA missions (parity with HERMES)", () => {
+  it("every mission step coach exists in AI_PERSONAS and is HERA-routable", () => {
+    for (const mission of HERA_MISSION_TEMPLATES) {
+      expect(mission.type.startsWith("hera_"), `mission ${mission.type} must use hera_ prefix`).toBe(true);
+      for (const step of mission.steps) {
+        expect(getPersonaById(step.coach), `mission ${mission.type}: missing coach ${step.coach}`).toBeDefined();
+        expect(HERA_COACH_IDS, `mission ${mission.type}: coach ${step.coach} not in HERA roster`).toContain(step.coach);
+      }
+    }
+  });
+
+  it("executes all steps sequentially and synthesizes", async () => {
+    const template = HERA_MISSION_TEMPLATES.find((m) => m.type === "hera_pipeline_revival")!;
+    // one LLM call per step + one synthesis call
+    for (let i = 0; i < template.steps.length; i++) {
+      mockLLM.mockResolvedValueOnce(llmResponse(`Výstup kroku ${i + 1}`));
+    }
+    mockLLM.mockResolvedValueOnce(
+      llmResponse(
+        JSON.stringify({
+          synthesis: "Souhrn mise",
+          keyInsights: ["insight 1"],
+          nextActions: ["akce 1", "akce 2"],
+        })
+      )
+    );
+
+    const result = await executeHeraMission({
+      missionType: "hera_pipeline_revival",
+      platformContext: "Leady: 5",
+    });
+
+    expect(result.stepResults).toHaveLength(template.steps.length);
+    expect(result.stepResults[0].output).toBe("Výstup kroku 1");
+    expect(result.synthesis).toBe("Souhrn mise");
+    expect(result.nextActions).toHaveLength(2);
+    expect(mockLLM).toHaveBeenCalledTimes(template.steps.length + 1);
+  });
+
+  it("later steps receive earlier step outputs in the prompt", async () => {
+    const template = HERA_MISSION_TEMPLATES.find((m) => m.type === "hera_pipeline_revival")!;
+    for (let i = 0; i < template.steps.length; i++) {
+      mockLLM.mockResolvedValueOnce(llmResponse(`KROK_${i + 1}_VYSTUP`));
+    }
+    mockLLM.mockResolvedValueOnce(llmResponse(JSON.stringify({ synthesis: "s", keyInsights: [], nextActions: [] })));
+
+    await executeHeraMission({ missionType: "hera_pipeline_revival", platformContext: "" });
+
+    const secondStepCall = mockLLM.mock.calls[1][0];
+    const userMsg = String(secondStepCall.messages[1].content);
+    expect(userMsg).toContain("KROK_1_VYSTUP");
+  });
+
+  it("throws on unknown mission type", async () => {
+    await expect(
+      executeHeraMission({ missionType: "hera_nonexistent", platformContext: "" })
+    ).rejects.toThrow("Unknown HERA mission type");
+  });
+
+  it("survives broken synthesis JSON with a fallback", async () => {
+    const template = HERA_MISSION_TEMPLATES.find((m) => m.type === "hera_content_week")!;
+    for (let i = 0; i < template.steps.length; i++) {
+      mockLLM.mockResolvedValueOnce(llmResponse("ok"));
+    }
+    mockLLM.mockResolvedValueOnce(llmResponse("NOT JSON"));
+
+    const result = await executeHeraMission({ missionType: "hera_content_week", platformContext: "" });
+    expect(result.synthesis).toContain("Mise dokončena");
+  });
+});
+
+describe("heraPanel (mastermind parity)", () => {
+  it("collects responses from all coaches and synthesizes", async () => {
+    mockLLM
+      .mockResolvedValueOnce(llmResponse("Hormozi take"))
+      .mockResolvedValueOnce(llmResponse("Blount take"))
+      .mockResolvedValueOnce(llmResponse("Panel syntéza"));
+
+    const result = await heraPanel({
+      message: "Jak zvednout konverze?",
+      coachIds: ["alex_hormozi", "jeb_blount"],
+      platformContext: "Leady: 10",
+    });
+
+    expect(result.responses).toHaveLength(2);
+    expect(result.responses.map((r) => r.coachId)).toEqual(["alex_hormozi", "jeb_blount"]);
+    expect(result.synthesis).toBe("Panel syntéza");
+  });
+
+  it("throws when no valid coaches are selected", async () => {
+    await expect(
+      heraPanel({ message: "x", coachIds: ["nonexistent_coach"], platformContext: "" })
+    ).rejects.toThrow("No valid coaches");
+  });
+
+  it("a failing coach does not break the panel", async () => {
+    mockLLM
+      .mockRejectedValueOnce(new Error("coach down"))
+      .mockResolvedValueOnce(llmResponse("Blount take"))
+      .mockResolvedValueOnce(llmResponse("syntéza"));
+
+    const result = await heraPanel({
+      message: "x",
+      coachIds: ["alex_hormozi", "jeb_blount"],
+      platformContext: "",
+    });
+    expect(result.responses).toHaveLength(2);
+    expect(result.responses[0].content).toContain("není dostupný");
   });
 });
 

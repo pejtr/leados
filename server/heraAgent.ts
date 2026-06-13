@@ -171,6 +171,263 @@ export async function heraChat(input: HeraChatInput): Promise<HeraChatOutput> {
   };
 }
 
+// ─── HERA Missions — multi-step marketing playbooks (parity with HERMES) ───────
+
+export interface HeraMissionTemplate {
+  type: string;
+  title: string;
+  description: string;
+  emoji: string;
+  steps: Array<{ step: string; coach: string }>;
+  estimatedMinutes: number;
+}
+
+export const HERA_MISSION_TEMPLATES: HeraMissionTemplate[] = [
+  {
+    type: "hera_offer_sprint",
+    title: "Grand Slam Offer Sprint",
+    description: "Kompletní přestavba nabídky — Value Equation, důvěra, direct-response prezentace",
+    emoji: "🎁",
+    steps: [
+      { step: "Rozeber současnou nabídku přes Value Equation a najdi slabá místa", coach: "alex_hormozi" },
+      { step: "Navrhni etické prvky důvěry: social proof, autorita, garance, scarcity", coach: "robert_cialdini" },
+      { step: "Napiš direct-response prezentaci nabídky s CTA a deadlinem", coach: "dan_kennedy" },
+      { step: "Slož finální Grand Slam Offer stack (nabídka + bonusy + garance + urgence)", coach: "alex_hormozi" },
+    ],
+    estimatedMinutes: 3,
+  },
+  {
+    type: "hera_outbound_campaign",
+    title: "Outbound kampaň od nuly",
+    description: "ICP targeting → discovery otázky → cold e-maily → follow-up kadence",
+    emoji: "📬",
+    steps: [
+      { step: "Definuj ICP targeting a strukturu kampaně (seeds/nets/spears)", coach: "aaron_ross" },
+      { step: "Vytvoř SPIN discovery otázky pro první call s odpovědí na kampaň", coach: "neil_rackham" },
+      { step: "Napiš 3-krokovou cold email sekvenci (krátké, jeden jasný ask)", coach: "dan_kennedy" },
+      { step: "Sestav multichannel follow-up kadenci na 14 dní", coach: "jeb_blount" },
+    ],
+    estimatedMinutes: 3,
+  },
+  {
+    type: "hera_funnel_audit",
+    title: "Audit funnelu",
+    description: "Value ladder, přesvědčovací prvky, CTA — prioritizovaný plán oprav",
+    emoji: "🔬",
+    steps: [
+      { step: "Zmapuj value ladder a vyhodnoť hook-story-offer každého kroku", coach: "russell_brunson" },
+      { step: "Audituj přesvědčovací prvky (7 principů) na klíčových stránkách", coach: "robert_cialdini" },
+      { step: "Přepiš nejslabší headliny a CTA na direct-response", coach: "dan_kennedy" },
+      { step: "Syntetizuj do prioritizovaného plánu oprav podle dopadu na konverzi", coach: "russell_brunson" },
+    ],
+    estimatedMinutes: 3,
+  },
+  {
+    type: "hera_pipeline_revival",
+    title: "Oživení pipeline",
+    description: "Diagnóza mrtvé pipeline, re-engagement zprávy, skripty na námitky",
+    emoji: "🫀",
+    steps: [
+      { step: "Diagnostikuj pipeline a navrhni denní prospecting kadenci", coach: "jeb_blount" },
+      { step: "Napiš re-engagement zprávu postavenou na reciprocitě a jednotě", coach: "robert_cialdini" },
+      { step: "Připrav skripty na 3 nejčastější námitky oživených leadů", coach: "jordan_belfort" },
+    ],
+    estimatedMinutes: 2,
+  },
+  {
+    type: "hera_content_week",
+    title: "Týden obsahu",
+    description: "5 direct-response témat z pain pointů → osnovy → finální texty",
+    emoji: "✍️",
+    steps: [
+      { step: "Navrhni 5 direct-response témat vycházejících z pain pointů ICP", coach: "dan_kennedy" },
+      { step: "Rozpracuj témata do hook-story-offer osnov", coach: "russell_brunson" },
+      { step: "Napiš finální texty pro 2 nejsilnější témata včetně CTA", coach: "dan_kennedy" },
+    ],
+    estimatedMinutes: 2,
+  },
+];
+
+export interface HeraMissionStepResult {
+  step: string;
+  coach: string;
+  output: string;
+  duration: number;
+}
+
+export interface HeraMissionResult {
+  missionType: string;
+  title: string;
+  stepResults: HeraMissionStepResult[];
+  synthesis: string;
+  keyInsights: string[];
+  nextActions: string[];
+  totalDuration: number;
+}
+
+export async function executeHeraMission(input: {
+  missionType: string;
+  platformContext: string;
+  customContext?: string;
+}): Promise<HeraMissionResult> {
+  const template = HERA_MISSION_TEMPLATES.find((m) => m.type === input.missionType);
+  if (!template) throw new Error(`Unknown HERA mission type: ${input.missionType}`);
+
+  const missionStart = Date.now();
+  const stepResults: HeraMissionStepResult[] = [];
+
+  // Steps run sequentially — each coach sees the previous coaches' outputs
+  for (const step of template.steps) {
+    const stepStart = Date.now();
+    const coach = getPersonaById(step.coach);
+    const stepMessages: any[] = [
+      {
+        role: "system",
+        content: coach
+          ? `[HERA mise] ${coach.systemPrompt(input.platformContext)}`
+          : `You are a senior B2B marketing coach.\n${input.platformContext}`,
+      },
+      {
+        role: "user",
+        content: `## Mise: ${template.title}
+## Tvůj krok: ${step.step}
+${input.customContext ? `\n## Doplňující kontext:\n${input.customContext}` : ""}
+${stepResults.length > 0 ? `\n## Výstupy předchozích kroků:\n${stepResults.map((r, i) => `### ${i + 1}. ${r.step}\n${r.output}`).join("\n\n")}` : ""}
+
+Proveď přesně tento krok mise. Česky, konkrétně, max 400 slov.`,
+      },
+    ];
+
+    const response = await invokeLLM({ messages: stepMessages });
+    const raw = response.choices[0].message.content;
+    stepResults.push({
+      step: step.step,
+      coach: step.coach,
+      output: typeof raw === "string" && raw.length > 0 ? raw : "Krok dokončen.",
+      duration: Date.now() - stepStart,
+    });
+  }
+
+  // HERA synthesis of all step outputs
+  let synthesisData = { synthesis: "", keyInsights: [] as string[], nextActions: [] as string[] };
+  try {
+    const synthResponse = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are HERA — the marketing orchestration AI. Synthesize the mission step outputs into a unified, action-oriented summary in Czech. Extract the 3-5 most critical insights and 3-5 concrete next actions.",
+        },
+        {
+          role: "user",
+          content: `## Mise: ${template.title}\n## Výstupy kroků:\n${stepResults
+            .map((r, i) => `### Krok ${i + 1}: ${r.step} (${r.coach})\n${r.output}`)
+            .join("\n\n")}\n\nRespond as JSON.`,
+        },
+      ] as any[],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "hera_mission_synthesis",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              synthesis: { type: "string" },
+              keyInsights: { type: "array", items: { type: "string" } },
+              nextActions: { type: "array", items: { type: "string" } },
+            },
+            required: ["synthesis", "keyInsights", "nextActions"],
+            additionalProperties: false,
+          },
+        },
+      },
+    });
+    const raw = synthResponse.choices[0].message.content;
+    synthesisData = JSON.parse(typeof raw === "string" ? raw : "{}");
+  } catch {
+    synthesisData.synthesis = "Mise dokončena — viz výstupy jednotlivých kroků.";
+  }
+
+  return {
+    missionType: template.type,
+    title: template.title,
+    stepResults,
+    synthesis: synthesisData.synthesis ?? "",
+    keyInsights: synthesisData.keyInsights ?? [],
+    nextActions: synthesisData.nextActions ?? [],
+    totalDuration: Date.now() - missionStart,
+  };
+}
+
+// ─── HERA Panel — multi-coach perspectives + synthesis (mastermind parity) ──────
+
+export interface HeraPanelResult {
+  responses: Array<{ coachId: string; name: string; emoji: string; content: string }>;
+  synthesis: string;
+}
+
+export async function heraPanel(input: {
+  message: string;
+  coachIds: string[];
+  platformContext: string;
+}): Promise<HeraPanelResult> {
+  const coaches = input.coachIds
+    .map((id) => getPersonaById(id))
+    .filter((c): c is AiPersona => Boolean(c));
+  if (coaches.length === 0) throw new Error("No valid coaches selected");
+
+  const responses = await Promise.all(
+    coaches.map(async (coach) => {
+      try {
+        const response = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: `[HERA panel] ${coach.systemPrompt(input.platformContext)}\n\nAnswer in Czech, in character, max 250 words. Give YOUR distinct take — do not hedge.`,
+            },
+            { role: "user", content: input.message },
+          ] as any[],
+        });
+        const raw = response.choices[0].message.content;
+        return {
+          coachId: coach.id,
+          name: coach.name,
+          emoji: coach.emoji,
+          content: typeof raw === "string" && raw.length > 0 ? raw : "Bez odpovědi.",
+        };
+      } catch {
+        return { coachId: coach.id, name: coach.name, emoji: coach.emoji, content: "Kouč není dostupný." };
+      }
+    })
+  );
+
+  let synthesis = "";
+  try {
+    const synthResponse = await invokeLLM({
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are HERA — synthesize the coach panel responses in Czech: where they agree, where they differ, and ONE recommended course of action. Max 200 words.",
+        },
+        {
+          role: "user",
+          content: `## Otázka: ${input.message}\n\n${responses
+            .map((r) => `### ${r.emoji} ${r.name}\n${r.content}`)
+            .join("\n\n")}`,
+        },
+      ] as any[],
+    });
+    const raw = synthResponse.choices[0].message.content;
+    synthesis = typeof raw === "string" ? raw : "";
+  } catch {
+    synthesis = "";
+  }
+
+  return { responses, synthesis };
+}
+
 // ─── Autonomy: daily marketing action brief ─────────────────────────────────────
 // Designed to be invoked by a scheduler (set-once-and-it-runs): generates the
 // day's top marketing actions from live platform stats without being prompted.

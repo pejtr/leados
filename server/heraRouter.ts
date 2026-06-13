@@ -5,9 +5,17 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { hermesSessions, hermesMessages } from "../drizzle/schema";
-import { eq, desc, and } from "drizzle-orm";
-import { heraChat, generateHeraDailyBrief, getHeraCoaches, HERA_COACHES } from "./heraAgent";
+import { hermesSessions, hermesMessages, hermesMissions } from "../drizzle/schema";
+import { eq, desc, and, like } from "drizzle-orm";
+import {
+  heraChat,
+  generateHeraDailyBrief,
+  getHeraCoaches,
+  HERA_COACHES,
+  HERA_MISSION_TEMPLATES,
+  executeHeraMission,
+  heraPanel,
+} from "./heraAgent";
 import { buildPlatformContext } from "./hermesRouter";
 
 export const heraRouter = router({
@@ -28,6 +36,15 @@ export const heraRouter = router({
       tags: p.tags,
       category: p.category,
       tier: p.tier ?? "free",
+    })),
+    missionTemplates: HERA_MISSION_TEMPLATES.map((m) => ({
+      type: m.type,
+      title: m.title,
+      description: m.description,
+      emoji: m.emoji,
+      estimatedMinutes: m.estimatedMinutes,
+      stepCount: m.steps.length,
+      coaches: Array.from(new Set(m.steps.map((s) => s.coach))),
     })),
   })),
 
@@ -131,6 +148,124 @@ export const heraRouter = router({
         routingDecision: result.routingDecision,
         activeCoach: result.activeCoach,
       };
+    }),
+
+  // ── Missions: multi-step marketing playbooks (parity with HERMES) ───────────
+  executeMission: protectedProcedure
+    .input(
+      z.object({
+        missionType: z.string(),
+        customContext: z.string().max(4000).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const template = HERA_MISSION_TEMPLATES.find((m) => m.type === input.missionType);
+      if (!template) throw new Error("Unknown HERA mission type");
+
+      const platformContext = await buildPlatformContext(ctx.user.id);
+
+      // Persist mission start (best-effort)
+      const db = await getDb();
+      let missionId: number | null = null;
+      try {
+        if (db) {
+          await db.insert(hermesMissions).values({
+            userId: ctx.user.id,
+            missionType: template.type,
+            title: `HERA: ${template.title}`,
+            status: "running",
+            plan: template.steps.map((s) => ({ step: s.step, agent: `hera:${s.coach}`, status: "pending" })),
+            subAgentsInvolved: Array.from(new Set(template.steps.map((s) => s.coach))),
+          });
+          const created = await db
+            .select()
+            .from(hermesMissions)
+            .where(and(eq(hermesMissions.userId, ctx.user.id), eq(hermesMissions.missionType, template.type)))
+            .orderBy(desc(hermesMissions.id))
+            .limit(1);
+          missionId = created[0]?.id ?? null;
+        }
+      } catch {
+        // persistence is non-fatal
+      }
+
+      const result = await executeHeraMission({
+        missionType: input.missionType,
+        platformContext,
+        customContext: input.customContext,
+      });
+
+      try {
+        if (db && missionId) {
+          await db
+            .update(hermesMissions)
+            .set({
+              status: "completed",
+              plan: result.stepResults.map((r) => ({ step: r.step, agent: `hera:${r.coach}`, status: "completed" })),
+              result: {
+                synthesis: result.synthesis,
+                keyInsights: result.keyInsights,
+                nextActions: result.nextActions,
+                stepResults: result.stepResults,
+                totalDuration: result.totalDuration,
+              },
+            })
+            .where(eq(hermesMissions.id, missionId));
+        }
+      } catch {
+        // persistence is non-fatal
+      }
+
+      return result;
+    }),
+
+  listMissions: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) return [];
+    return db
+      .select()
+      .from(hermesMissions)
+      .where(and(eq(hermesMissions.userId, ctx.user.id), like(hermesMissions.missionType, "hera_%")))
+      .orderBy(desc(hermesMissions.id))
+      .limit(20);
+  }),
+
+  // ── Panel: multi-coach perspectives + HERA synthesis (mastermind parity) ────
+  panel: protectedProcedure
+    .input(
+      z.object({
+        message: z.string().min(1).max(4000),
+        coachIds: z.array(z.string()).min(1).max(5),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const platformContext = await buildPlatformContext(ctx.user.id);
+      return heraPanel({ message: input.message, coachIds: input.coachIds, platformContext });
+    }),
+
+  // ── Sessions: HERA conversation history (shared hermes tables, intent "hera") ─
+  sessions: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) return [];
+    return db
+      .select()
+      .from(hermesSessions)
+      .where(and(eq(hermesSessions.userId, ctx.user.id), eq(hermesSessions.intent, "hera")))
+      .orderBy(desc(hermesSessions.lastActivity))
+      .limit(20);
+  }),
+
+  getMessages: protectedProcedure
+    .input(z.object({ sessionId: z.number().int() }))
+    .query(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db) return [];
+      return db
+        .select()
+        .from(hermesMessages)
+        .where(and(eq(hermesMessages.sessionId, input.sessionId), eq(hermesMessages.userId, ctx.user.id)))
+        .orderBy(hermesMessages.createdAt)
+        .limit(100);
     }),
 
   // ── Autonomy: daily marketing action brief (scheduler-callable) ─────────────
