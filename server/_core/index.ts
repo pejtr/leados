@@ -90,12 +90,15 @@ async function startServer() {
     import("../sequenceScheduler").then(m => m.startSequenceScheduler()).catch(console.error);
     // Start daily report scheduler (sends email digest at configured hour)
     import("../dailyReportScheduler").then(m => m.startDailyReportScheduler()).catch(console.error);
-    // Start HERA Daily Digest scheduler (08:00 CET)
+    // Daily digests: HERMES (tech, 08:00 CET) + HERA (marketing, 08:10 CET)
     import("node-cron").then((cron: any) => {
       cron.schedule("0 8 * * *", () => {
         import("../hermesDigest").then((m: any) => m.sendDailyDigest()).catch(console.error);
       }, { timezone: "Europe/Prague" });
-      console.log("[HERA Digest] Scheduler registered — fires daily at 08:00 CET");
+      cron.schedule("10 8 * * *", () => {
+        import("../heraDigest").then((m: any) => m.sendHeraDailyBrief()).catch(console.error);
+      }, { timezone: "Europe/Prague" });
+      console.log("[Digests] HERMES 08:00 + HERA 08:10 CET schedulers registered");
     }).catch(console.error);
   });
 }
