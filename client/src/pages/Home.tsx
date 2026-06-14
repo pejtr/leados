@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket } from "lucide-react";
+import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket, Coffee, Scissors, Wrench, Dumbbell, Building2, Stethoscope, GraduationCap } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
@@ -14,14 +14,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const niches = [
-  { icon: "☕", label: "Kavárny & restaurace", desc: "Rezervace, menu online, věrnostní program", color: "from-amber-500/20 to-orange-500/10" },
-  { icon: "✂️", label: "Kadeřnictví & salony", desc: "Online booking, galerie prací, recenze", color: "from-pink-500/20 to-rose-500/10" },
-  { icon: "⚡", label: "Elektrikáři & řemeslníci", desc: "Poptávkový formulář, reference, ceník", color: "from-yellow-500/20 to-amber-500/10" },
-  { icon: "🏋️", label: "Fitness & wellness", desc: "Rozvrh hodin, členství, lektoři", color: "from-green-500/20 to-emerald-500/10" },
-  { icon: "🏠", label: "Reality & pronájmy", desc: "Katalog nemovitostí, kontaktní formulář", color: "from-blue-500/20 to-cyan-500/10" },
-  { icon: "🦷", label: "Lékaři & kliniky", desc: "Objednávkový systém, tým, ceník výkonů", color: "from-teal-500/20 to-cyan-500/10" },
-  { icon: "🎓", label: "Vzdělávání & kurzy", desc: "Přihlašování na kurzy, platby, certifikáty", color: "from-purple-500/20 to-violet-500/10" },
-  { icon: "🛒", label: "E-shopy & obchody", desc: "Produktový katalog, košík, platební brána", color: "from-indigo-500/20 to-blue-500/10" },
+  { icon: Coffee, label: "Kavárny & restaurace", desc: "Rezervace, menu online, věrnostní program", color: "from-amber-500/20 to-orange-500/10", iconColor: "text-amber-600" },
+  { icon: Scissors, label: "Kadeřnictví & salony", desc: "Online booking, galerie prací, recenze", color: "from-pink-500/20 to-rose-500/10", iconColor: "text-pink-600" },
+  { icon: Wrench, label: "Elektrikáři & řemeslníci", desc: "Poptávkový formulář, reference, ceník", color: "from-yellow-500/20 to-amber-500/10", iconColor: "text-amber-600" },
+  { icon: Dumbbell, label: "Fitness & wellness", desc: "Rozvrh hodin, členství, lektoři", color: "from-green-500/20 to-emerald-500/10", iconColor: "text-emerald-600" },
+  { icon: Building2, label: "Reality & pronájmy", desc: "Katalog nemovitostí, kontaktní formulář", color: "from-blue-500/20 to-cyan-500/10", iconColor: "text-blue-600" },
+  { icon: Stethoscope, label: "Lékaři & kliniky", desc: "Objednávkový systém, tým, ceník výkonů", color: "from-teal-500/20 to-cyan-500/10", iconColor: "text-teal-600" },
+  { icon: GraduationCap, label: "Vzdělávání & kurzy", desc: "Přihlašování na kurzy, platby, certifikáty", color: "from-purple-500/20 to-violet-500/10", iconColor: "text-violet-600" },
+  { icon: ShoppingBag, label: "E-shopy & obchody", desc: "Produktový katalog, košík, platební brána", color: "from-indigo-500/20 to-blue-500/10", iconColor: "text-indigo-600" },
 ];
 
 const services = [
@@ -344,7 +344,9 @@ export default function Home() {
             {niches.map(n => (
               <button key={n.label} onClick={scrollToContact}
                 className={`bg-gradient-to-br ${n.color} border border-slate-200 hover:border-violet-300 rounded-2xl p-5 text-left transition-all hover:shadow-md hover:-translate-y-0.5 group`}>
-                <div className="text-3xl mb-3">{n.icon}</div>
+                <div className={`w-12 h-12 mb-3 rounded-xl bg-white/70 backdrop-blur-sm border border-white/60 shadow-sm flex items-center justify-center ${n.iconColor} group-hover:scale-105 transition-transform`}>
+                  <n.icon className="w-6 h-6" strokeWidth={1.75} />
+                </div>
                 <div className="font-semibold text-slate-900 text-sm mb-1">{n.label}</div>
                 <div className="text-xs text-slate-500 leading-relaxed">{n.desc}</div>
                 <div className="mt-3 text-xs text-violet-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Zobrazit řešení →</div>
@@ -958,6 +960,7 @@ export default function Home() {
               { name: "OPTIVIO", repo: "optivio", desc: "Webová agentura s automatizovaným procesem od objednávky po nasazení. LeadOS backend, CRM, chatbot.", tags: ["Agentura", "CRM", "Chatbot"], color: "from-violet-600 to-indigo-700" },
               { name: "BotHub", repo: "bothub", desc: "Marketplace pro prodej chatbotů s affiliate programem. Premium landing page s pokročilými konverzními prvky.", tags: ["Marketplace", "Affiliate"], color: "from-emerald-500 to-teal-600" },
               { name: "Akční Letenky", repo: "akcni-letenky", desc: "Online travel agency s affiliate systémem pro vyhledávání a prodej leteckých spojení.", tags: ["OTA", "Affiliate", "Travel"], color: "from-sky-500 to-blue-600" },
+              { name: "VoxelCraft", repo: "voxelcraft", desc: "Voxelová hra ve stylu Minecraftu přímo v prohlížeči — bez instalace, 3D engine, generování světa, stavění v reálném čase.", tags: ["Hra", "WebGL", "Aplikace"], color: "from-green-600 to-lime-600" },
               { name: "StoryLiner", repo: "story_liner", desc: "Platforma pro tvorbu videí s inteligentním chatbot asistentem, RAG systémem a persistentní pamětí.", tags: ["Video", "Chatbot", "RAG"], color: "from-orange-500 to-red-600" },
               { name: "Amulets.cz", repo: "my.amulette", desc: "E-shop s ručně vyráběnými orgonitovými pyramidami, amulety a aromaterapeutickými produkty.", tags: ["E-shop", "Produkty"], color: "from-amber-500 to-orange-600" },
               { name: "Deep Sleep Reset", repo: "deep-sleep", desc: "Performance marketing funnel s chronotype kvízem, personalizovaným průvodcem a upsell sekvencí.", tags: ["Funnel", "Marketing", "Quiz"], color: "from-indigo-500 to-violet-600" },
