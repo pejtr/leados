@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, inquiries, portfolioProjects, testimonials, InsertInquiry, nichePackages, customerSubscriptions, InsertNichePackage, InsertCustomerSubscription, orders, payments, InsertOrder, InsertPayment } from "../drizzle/schema";
+import { InsertUser, users, inquiries, portfolioProjects, testimonials, InsertInquiry, nichePackages, customerSubscriptions, InsertNichePackage, InsertCustomerSubscription, orders, payments, InsertOrder, InsertPayment, brandMemories, BrandMemory, InsertBrandMemory, agentSessions, InsertAgentSession, agentMessages, InsertAgentMessage, projects, projectMilestones, InsertProject, InsertProjectMilestone, salesConversations, InsertSalesConversation, salesMessages, InsertSalesMessage } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -181,6 +181,18 @@ export async function getOrder(orderId: number) {
   return result.length > 0 ? result[0] : undefined;
 }
 
+export async function getAllOrders() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.select().from(orders).orderBy(desc(orders.createdAt));
+}
+
+export async function getAllPayments() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return await db.select().from(payments).orderBy(desc(payments.createdAt));
+}
+
 export async function updateOrder(orderId: number, data: Partial<InsertOrder>) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
@@ -212,4 +224,177 @@ export async function updatePayment(paymentId: number, data: Partial<InsertPayme
   return await db.update(payments).set(data).where(eq(payments.id, paymentId));
 }
 
+// Brand Memory helpers
+export async function getBrandMemory(userId: number): Promise<BrandMemory | undefined> {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(brandMemories).where(eq(brandMemories.userId, userId)).limit(1);
+  return rows[0];
+}
+
+export async function upsertBrandMemory(userId: number, data: Omit<InsertBrandMemory, 'userId'>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const existing = await getBrandMemory(userId);
+  if (existing) {
+    return db.update(brandMemories).set({ ...data, updatedAt: new Date() }).where(eq(brandMemories.userId, userId));
+  }
+  return db.insert(brandMemories).values({ ...data, userId });
+}
+
+// Agent Session helpers
+export async function createAgentSession(data: InsertAgentSession) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(agentSessions).values(data);
+}
+
+export async function getAgentSessions(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(agentSessions)
+    .where(eq(agentSessions.userId, userId))
+    .orderBy(desc(agentSessions.updatedAt));
+}
+
+export async function getAgentSession(sessionId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(agentSessions).where(eq(agentSessions.id, sessionId)).limit(1);
+  return rows[0];
+}
+
+export async function updateAgentSession(sessionId: number, data: Partial<InsertAgentSession>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(agentSessions).set({ ...data, updatedAt: new Date() }).where(eq(agentSessions.id, sessionId));
+}
+
+// Agent Message helpers
+export async function addAgentMessage(data: InsertAgentMessage) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(agentMessages).values(data);
+}
+
+export async function getAgentMessages(sessionId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(agentMessages)
+    .where(eq(agentMessages.sessionId, sessionId))
+    .orderBy(agentMessages.createdAt);
+}
+
+// ─── Projects ─────────────────────────────────────────────────────────────────
+
+export async function getAllProjects() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(projects).orderBy(desc(projects.createdAt));
+}
+
+export async function getProjectByOrderId(orderId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(projects).where(eq(projects.orderId, orderId)).limit(1);
+  return rows[0];
+}
+
+export async function getProjectsByOrderIds(orderIds: number[]) {
+  if (orderIds.length === 0) return [];
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(projects).where(inArray(projects.orderId, orderIds));
+}
+
+export async function createProject(data: InsertProject) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(projects).values(data);
+}
+
+export async function updateProject(projectId: string, data: Partial<InsertProject>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(projects).set({ ...data, updatedAt: new Date() }).where(eq(projects.id, projectId));
+}
+
+export async function getProjectMilestones(projectId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(projectMilestones)
+    .where(eq(projectMilestones.projectId, projectId))
+    .orderBy(projectMilestones.createdAt);
+}
+
+export async function createMilestone(data: InsertProjectMilestone) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.insert(projectMilestones).values(data);
+}
+
+export async function updateMilestone(milestoneId: string, data: Partial<InsertProjectMilestone>) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  return db.update(projectMilestones).set(data).where(eq(projectMilestones.id, milestoneId));
+}
+
+// ─── Sales Chat (customer-facing chatbot) ───────────────────────────────────────
+
+export async function getSalesConversation(id: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const rows = await db.select().from(salesConversations).where(eq(salesConversations.id, id)).limit(1);
+  return rows[0];
+}
+
+export async function upsertSalesConversation(data: InsertSalesConversation) {
+  const db = await getDb();
+  if (!db) return; // gracefully degrade — chat still works without persistence
+  const existing = await getSalesConversation(data.id);
+  if (existing) {
+    return db.update(salesConversations)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(salesConversations.id, data.id));
+  }
+  return db.insert(salesConversations).values(data);
+}
+
+export async function incrementSalesMessageCount(id: string, by: number = 1) {
+  const db = await getDb();
+  if (!db) return;
+  const conv = await getSalesConversation(id);
+  if (!conv) return;
+  return db.update(salesConversations)
+    .set({ messageCount: (conv.messageCount ?? 0) + by, updatedAt: new Date() })
+    .where(eq(salesConversations.id, id));
+}
+
+export async function addSalesMessage(data: InsertSalesMessage) {
+  const db = await getDb();
+  if (!db) return;
+  return db.insert(salesMessages).values(data);
+}
+
+export async function getSalesMessages(conversationId: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(salesMessages)
+    .where(eq(salesMessages.conversationId, conversationId))
+    .orderBy(salesMessages.createdAt);
+}
+
+export async function getAllSalesConversations() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(salesConversations).orderBy(desc(salesConversations.updatedAt));
+}
+
+export async function captureSalesLead(id: string, lead: { visitorEmail?: string; visitorName?: string; visitorPhone?: string; inquiryId?: number }) {
+  const db = await getDb();
+  if (!db) return;
+  return db.update(salesConversations)
+    .set({ ...lead, capturedLead: 1, updatedAt: new Date() })
+    .where(eq(salesConversations.id, id));
+}
 

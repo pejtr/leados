@@ -6,6 +6,7 @@
 dist/
 build/
 *.dist
+server/_core/public/assets/
 
 # Environment variables
 .env

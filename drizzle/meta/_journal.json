@@ -29,6 +29,13 @@
       "when": 1780838269466,
       "tag": "0003_tricky_zemo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1780998031493,
+      "tag": "0004_clever_kitty_pryde",
+      "breakpoints": true
     }
   ]
 }

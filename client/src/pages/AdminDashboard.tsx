@@ -3,11 +3,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Menu, X, LogOut, Package, Users, BarChart3 } from "lucide-react";
+import { Menu, X, LogOut, Package, Users, BarChart3, FolderKanban, CreditCard } from "lucide-react";
 import { useLocation } from "wouter";
 import AdminNichePackages from "./AdminNichePackages";
 import AdminSubscriptions from "./AdminSubscriptions";
 import AdminStats from "./AdminStats";
+import AdminProjects from "./AdminProjects";
+import AdminPayments from "./AdminPayments";
+import { OptivioLogo } from "@/components/OptivioLogo";
 
 export default function AdminDashboard() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -39,10 +42,8 @@ export default function AdminDashboard() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-              O
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900">OPTIVIO Admin</h1>
+            <OptivioLogo className="h-8" />
+            <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider mt-1">Admin</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -98,35 +99,45 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue="stats" className="w-full">
-          <TabsList className="grid w-full md:w-auto grid-cols-3 mb-8">
+          <TabsList className="grid w-full md:w-auto grid-cols-5 mb-8">
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 hidden sm:inline" />
-              <span className="hidden sm:inline">Přehled</span>
-              <span className="sm:hidden">Přehled</span>
+              Přehled
+            </TabsTrigger>
+            <TabsTrigger value="projects" className="flex items-center gap-2">
+              <FolderKanban className="w-4 h-4 hidden sm:inline" />
+              Projekty
+            </TabsTrigger>
+            <TabsTrigger value="payments" className="flex items-center gap-2">
+              <CreditCard className="w-4 h-4 hidden sm:inline" />
+              Platby
             </TabsTrigger>
             <TabsTrigger value="packages" className="flex items-center gap-2">
               <Package className="w-4 h-4 hidden sm:inline" />
-              <span className="hidden sm:inline">Balíčky</span>
-              <span className="sm:hidden">Balíčky</span>
+              Balíčky
             </TabsTrigger>
             <TabsTrigger value="subscriptions" className="flex items-center gap-2">
               <Users className="w-4 h-4 hidden sm:inline" />
-              <span className="hidden sm:inline">Předplatná</span>
-              <span className="sm:hidden">Předplatná</span>
+              Předplatná
             </TabsTrigger>
           </TabsList>
 
-          {/* Stats Tab */}
           <TabsContent value="stats">
             <AdminStats />
           </TabsContent>
 
-          {/* Packages Tab */}
+          <TabsContent value="projects">
+            <AdminProjects />
+          </TabsContent>
+
+          <TabsContent value="payments">
+            <AdminPayments />
+          </TabsContent>
+
           <TabsContent value="packages">
             <AdminNichePackages />
           </TabsContent>
 
-          {/* Subscriptions Tab */}
           <TabsContent value="subscriptions">
             <AdminSubscriptions />
           </TabsContent>

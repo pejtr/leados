@@ -9,11 +9,14 @@ import HomeVariantB from "./pages/HomeVariantB";
 import HomeVariantC from "./pages/HomeVariantC";
 import HomeVariantD from "./pages/HomeVariantD";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminProjects from "./pages/AdminProjects";
 import ClientDashboard from "./pages/ClientDashboard";
+import AgentsHub from "./pages/AgentsHub";
+import IBotsPage from "./pages/IBotsPage";
+import DemoPage from "./pages/DemoPage";
+import DotaznikPage from "./pages/DotaznikPage";
 import ABTestingDashboard from "./pages/ABTestingDashboard";
-
-// Add link to AB testing dashboard in admin nav (if available)
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { getVariant } from "./lib/ab-test";
 
 function Router() {
@@ -48,17 +51,18 @@ function Router() {
 
   if (loading) return <div className="min-h-screen bg-slate-900 flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div></div>;
 
-  const HomeComponent = 
-    variant === 'B' ? HomeVariantB : 
-    variant === 'C' ? HomeVariantC : 
-    variant === 'D' ? HomeVariantD : 
-    Home;
+  const HomeComponent = variant === 'B' ? HomeVariantB : variant === 'C' ? HomeVariantC : variant === 'D' ? HomeVariantD : Home;
 
   return (
     <Switch>
       <Route path="/" component={HomeComponent} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin/projects" component={AdminProjects} />
       <Route path="/dashboard" component={ClientDashboard} />
+      <Route path="/agents" component={AgentsHub} />
+      <Route path="/ibots" component={IBotsPage} />
+      <Route path="/demo" component={DemoPage} />
+      <Route path="/dotaznik" component={DotaznikPage} />
       <Route path="/ab-testing" component={ABTestingDashboard} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

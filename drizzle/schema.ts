@@ -32,6 +32,10 @@ export const inquiries = mysqlTable("inquiries", {
   phone: varchar("phone", { length: 20 }),
   businessDescription: text("businessDescription"),
   packageType: varchar("packageType", { length: 50 }),
+  /** Questionnaire answers beyond the core fields, stored as JSON (goals, pages, materials, budget, deadline…). */
+  details: text("details"),
+  /** Where the lead came from — e.g. "dotaznik", "demo:kavarna", "chat". */
+  source: varchar("source", { length: 100 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   status: mysqlEnum("status", ["new", "contacted", "converted"]).default("new").notNull(),
   notes: text("notes"),
@@ -196,3 +200,80 @@ export const heartbeatJobs = mysqlTable("heartbeat_jobs", {
 
 export type HeartbeatJob = typeof heartbeatJobs.$inferSelect;
 export type InsertHeartbeatJob = typeof heartbeatJobs.$inferInsert;
+
+// Brand Memory — stores brand knowledge per client for AI agents
+export const brandMemories = mysqlTable("brand_memories", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  companyName: varchar("companyName", { length: 255 }).notNull(),
+  tagline: varchar("tagline", { length: 500 }),
+  industry: varchar("industry", { length: 100 }),
+  targetAudience: text("targetAudience"),
+  brandVoice: text("brandVoice"),       // tone: formal, friendly, bold...
+  uniqueValue: text("uniqueValue"),      // USP / what makes them different
+  products: text("products"),           // JSON: list of products/services
+  painPoints: text("painPoints"),       // customer pain points solved
+  competitors: text("competitors"),     // JSON: competitor names
+  pastCampaigns: text("pastCampaigns"), // what worked, what didn't
+  website: varchar("website", { length: 500 }),
+  socialLinks: text("socialLinks"),     // JSON: { instagram, facebook, linkedin }
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type BrandMemory = typeof brandMemories.$inferSelect;
+export type InsertBrandMemory = typeof brandMemories.$inferInsert;
+
+// Agent Sessions — individual conversation sessions with AI agents
+export const agentSessions = mysqlTable("agent_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  agentType: varchar("agentType", { length: 50 }).notNull(), // cmo, copywriter, analyst, seo, ads
+  skillId: varchar("skillId", { length: 100 }),              // which skill is active
+  title: varchar("title", { length: 255 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type AgentSession = typeof agentSessions.$inferSelect;
+export type InsertAgentSession = typeof agentSessions.$inferInsert;
+
+// Agent Messages — messages within an agent session
+export const agentMessages = mysqlTable("agent_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: int("sessionId").notNull().references(() => agentSessions.id),
+  role: mysqlEnum("role", ["user", "assistant", "system"]).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AgentMessage = typeof agentMessages.$inferSelect;
+export type InsertAgentMessage = typeof agentMessages.$inferInsert;
+
+// Sales Chat Conversations — customer-facing chatbot na landing page (lead capture)
+export const salesConversations = mysqlTable("sales_conversations", {
+  id: varchar("id", { length: 64 }).primaryKey(),       // client-generated session id
+  personaId: varchar("personaId", { length: 64 }).notNull().default("optivio-sales"),
+  visitorEmail: varchar("visitorEmail", { length: 255 }), // captured lead email
+  visitorName: varchar("visitorName", { length: 255 }),
+  visitorPhone: varchar("visitorPhone", { length: 64 }),
+  capturedLead: int("capturedLead").default(0).notNull(), // 0/1 — became a lead
+  inquiryId: int("inquiryId"),                            // linked inquiry if converted
+  messageCount: int("messageCount").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type SalesConversation = typeof salesConversations.$inferSelect;
+export type InsertSalesConversation = typeof salesConversations.$inferInsert;
+
+export const salesMessages = mysqlTable("sales_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  conversationId: varchar("conversationId", { length: 64 }).notNull().references(() => salesConversations.id),
+  role: mysqlEnum("role", ["user", "assistant", "system"]).notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type SalesMessage = typeof salesMessages.$inferSelect;
+export type InsertSalesMessage = typeof salesMessages.$inferInsert;

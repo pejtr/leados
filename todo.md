@@ -175,6 +175,28 @@
 - [ ] Kontaktní údaje (tel, email) — doplnit reálnými hodnotami
 
 
+## AI Agents & Skills (Nové — implementováno)
+
+### Backend
+- [x] DB schema — brand_memories, agent_sessions, agent_messages tabulky
+- [x] DB helpery — getBrandMemory, upsertBrandMemory, createAgentSession, getAgentMessages, addAgentMessage
+- [x] agent-skills.ts — 8 skills s system prompty (CMO, Copywriter, Email, Webinar, SEO, Ads, Landing Page, Lead Magnet)
+- [x] brandMemory router — get, save (upsert)
+- [x] agents router — listSkills, createSession, listSessions, getSession, chat, deleteSession
+
+### Frontend
+- [x] /agents — AgentsHub.tsx (hub s přehledem skills, recent sessions, chat interface)
+- [x] BrandMemorySetup.tsx — 4-krokový wizard pro nastavení Brand Memory
+- [x] AI Agents promo sekce na landing page
+- [x] "✨ AI Agenti" odkaz v navigaci
+
+### TODO (pokračování)
+- [ ] Streaming odpovědí (SSE) pro real-time generaci
+- [ ] Export konverzace do PDF/Word
+- [ ] Sdílení konverzace (shareable link)
+- [ ] Admin přehled aktivit agentů
+- [ ] Měsíční usage limity per user
+
 ## AB Testing Framework (Nové)
 - [x] Implementovat AB testing backend router (getVariant, trackConversion)
 - [x] Vytvořit ab-test.ts utility (getVariant, trackEvent)
