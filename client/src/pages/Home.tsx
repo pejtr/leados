@@ -945,7 +945,11 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
+            {([
+              // Až budou screenshoty, doplň `image: "/portfolio/<soubor>.png"` k danému projektu.
+              { name: "KatastrOnline", repo: "katastr-online", desc: "Vyhledávání v katastru nemovitostí — oficiální data ČÚZK, 20M+ nemovitostí, AI cenový odhad, hypoteční kalkulačka a CRM pro makléře.", tags: ["Nástroj", "Data", "Reality"], color: "from-sky-600 to-blue-700" },
+              { name: "YouKeto", repo: "youketo", desc: "Infoprodukt funnel pro keto dietu — před/po vizuál, keto recepty PDF zdarma, online poradce a konverzní prodejní stránka.", tags: ["Infoprodukt", "Funnel", "Zdraví"], color: "from-cyan-500 to-emerald-500" },
+              { name: "Amarex", repo: "amarex", desc: "Konverzní e-shop s doplňky stravy — order bump, countdown akce, cenové balíčky, 30denní garance, social proof.", tags: ["E-shop", "Konverze", "Zdraví"], color: "from-amber-500 to-yellow-600" },
               { name: "Human Design Chart", repo: "humandesignchart", desc: "Prémiová webová aplikace pro výpočet a vizualizaci Human Design Bodygraph diagramů. Interaktivní SVG, registrace, platby.", tags: ["Web App", "SVG", "Stripe"], color: "from-violet-500 to-purple-600", stars: 1 },
               { name: "LeadOS", repo: "leados", desc: "B2B lead generation platforma s persistentním historickým přehledem, AI-powered icebreakers a dark-mode dashboardem.", tags: ["SaaS", "B2B", "Dashboard"], color: "from-blue-500 to-indigo-600", stars: 1 },
               { name: "OPTIVIO", repo: "optivio", desc: "Webová agentura s automatizovaným procesem od objednávky po nasazení. LeadOS backend, CRM, chatbot.", tags: ["Agentura", "CRM", "Chatbot"], color: "from-violet-600 to-indigo-700" },
@@ -958,19 +962,32 @@ export default function Home() {
               { name: "Influencer Generator", repo: "ai-influencer-generator", desc: "Platforma pro generování ultra-realistických virtuálních influencerů pro TikTok, Instagram a YouTube.", tags: ["Generátor", "Sociální sítě"], color: "from-pink-500 to-rose-600" },
               { name: "iBots", repo: "ibots", desc: "Premium landing page pro prodej chatbotů — katalog 77 botů v 7 kategoriích, cenové plány, dark theme se zlatými akcenty.", tags: ["Landing Page", "Katalog"], color: "from-yellow-500 to-amber-600" },
               { name: "Affiliate Network Builder", repo: "ai_affiliate_network_builder", desc: "Platforma pro automatizované budování sítě prodejců pro affiliate marketing.", tags: ["Affiliate", "Automatizace"], color: "from-cyan-500 to-teal-600" },
-            ].map((project) => (
+            ] as Array<{ name: string; repo: string; desc: string; tags: string[]; color: string; stars?: number; image?: string }>).map((project) => (
               <div
                 key={project.repo}
                 className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all duration-300"
               >
-                <div className={`h-2 bg-gradient-to-r ${project.color}`} />
+                {project.image ? (
+                  <div className="relative h-44 overflow-hidden bg-slate-100">
+                    <img
+                      src={project.image}
+                      alt={project.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500"
+                    />
+                    <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${project.color}`} />
+                  </div>
+                ) : (
+                  <div className={`h-2 bg-gradient-to-r ${project.color}`} />
+                )}
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-bold text-slate-900">{project.name}</h3>
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
-                      {project.stars ? <><Star className="w-3 h-3 fill-amber-400 text-amber-400" /><span>{project.stars}</span></> : null}
-                      <span className="ml-1 text-slate-300">TypeScript</span>
-                    </div>
+                    {project.stars ? (
+                      <div className="flex items-center gap-1 text-xs text-slate-400">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" /><span>{project.stars}</span>
+                      </div>
+                    ) : null}
                   </div>
                   <p className="text-sm text-slate-500 mb-4 leading-relaxed line-clamp-3">{project.desc}</p>
                   <div className="flex flex-wrap gap-1.5">
