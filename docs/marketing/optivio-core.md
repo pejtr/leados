@@ -20,7 +20,11 @@ Webová verze: sekce `#core` na landing page ([Home.tsx](../../client/src/pages/
 
 ## Napojené moduly
 
-Rezervace · Komunikace (e-maily, Telegram, WhatsApp) · Marketing (Meta/Google Ads, retargeting) · Prodej (e-shop, předplatné, upsell) · Reporting (dashboardy, LTV, insights) · Asistenti (obsah, doporučení, rutinní úkoly).
+Rezervace · Komunikace (e-maily, Telegram, WhatsApp) · Marketing (Meta/Google Ads, retargeting) · Prodej (e-shop, předplatné, upsell) · **Prodejní web** (infoprodukty a kurzy) · Reporting (dashboardy, LTV, insights) · Asistenti (obsah, doporučení, rutinní úkoly).
+
+### Prodejní web (infoprodukty & kurzy)
+
+Vysoce konverzní prodejní stránka (sales-letter / funnel) pro infoprodukty, kurzy a digitální produkty — VSL video, „co získáš" benefity, cenový box s urgencí, garance, reference, jedno jasné CTA. Konkurence: Konverzky.cz (DIY builder); naše výhoda = **done-for-you** funnel postavený na míru. **Prodáváno jako součást tarifu AI Core** (ne samostatný tarif). Demo šablona „Prodejní web" je v `/demo`; CTA vede na dotazník (`/dotaznik?obor=prodejni`).
 
 ## Enchanté One (ve vývoji)
 

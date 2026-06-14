@@ -209,6 +209,28 @@ const TEMPLATES: Template[] = [
       cta: "Začít zdarma",
     },
   },
+  {
+    id: "prodejni",
+    name: "Prodejní web",
+    emoji: "🚀",
+    niche: "Infoprodukt & Kurzy",
+    palette: "Tmavá / konverzní",
+    bg: "#0B0F1A",
+    accent: "#22C55E",
+    defaults: {
+      businessName: "Ticket Profit Systém",
+      tagline: "Vydělávej tisíce každý měsíc přeprodejem vstupenek — i bez zkušeností.",
+      phone: "",
+      email: "podpora@ticketprofit.cz",
+      address: "Přes 2 400 spokojených studentů",
+      description: "Krok-za-krokem systém, jak najít, koupit a se ziskem přeprodat vstupenky na vyprodané akce. Vše ve videích, šablonách a kalkulačce zisku.",
+      service1: "Kompletní video kurz — 8 modulů krok za krokem", price1: "2 490 Kč",
+      service2: "Hotové šablony + kalkulačka zisku", price2: "",
+      service3: "Soukromá komunita a osobní podpora", price3: "",
+      hours: "30denní garance — nebo peníze zpět",
+      cta: "Chci začít vydělávat",
+    },
+  },
 ];
 
 // ─── Template preview components ──────────────────────────────────────────────
@@ -523,6 +545,84 @@ function KurzymTemplate({ d }: { d: DemoData }) {
   );
 }
 
+// Infoprodukt / prodejní stránka — vysoce konverzní sales-letter layout
+// (hook na výsledek, VSL, co získáš, cenový box s urgencí, garance, reference).
+function ProdejniTemplate({ d }: { d: DemoData }) {
+  const benefits = [d.service1, d.service2, d.service3].filter(Boolean);
+  return (
+    <div className="bg-[#0B0F1A] min-h-screen font-sans text-white">
+      <nav className="px-7 py-4 flex justify-between items-center border-b border-white/8">
+        <Wordmark name={d.businessName} color="#22C55E" light />
+        <span className="text-[10px] text-emerald-400 font-semibold tracking-wide flex items-center gap-1.5">
+          <CheckCircle className="w-3.5 h-3.5" /> {d.hours}
+        </span>
+      </nav>
+
+      {/* Hero */}
+      <div className="px-7 pt-10 pb-9 text-center">
+        <div className="inline-flex items-center gap-2 bg-emerald-400/10 border border-emerald-400/25 rounded-full px-3.5 py-1.5 text-[10px] text-emerald-400 mb-5 font-semibold tracking-wide">
+          <Zap className="w-3 h-3 fill-emerald-400" /> OMEZENÁ NABÍDKA — JEN TENTO TÝDEN
+        </div>
+        <h1 className="text-[30px] leading-[1.12] font-extrabold mb-4 max-w-[320px] mx-auto">{d.tagline}</h1>
+        <p className="text-white/55 text-[14px] leading-relaxed max-w-[300px] mx-auto mb-6">{d.description}</p>
+
+        {/* VSL placeholder */}
+        <div className="relative mx-auto mb-6 max-w-[320px] aspect-video rounded-2xl border border-white/10 bg-gradient-to-br from-[#141B2E] to-[#0B0F1A] flex items-center justify-center">
+          <div className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center shadow-[0_0_30px_rgba(34,197,94,0.5)]">
+            <Play className="w-6 h-6 fill-white text-white ml-0.5" />
+          </div>
+          <span className="absolute bottom-3 left-0 right-0 text-[10px] text-white/40 tracking-wide">Přehrát video (4:32)</span>
+        </div>
+
+        <button className="bg-emerald-500 text-[#0B0F1A] rounded-xl px-8 py-3.5 font-extrabold text-[14px] hover:bg-emerald-400 transition-colors w-full max-w-[320px]">
+          {d.cta} →
+        </button>
+        <div className="flex justify-center items-center gap-1.5 mt-4">
+          <div className="flex gap-0.5">{[1,2,3,4,5].map(i => <Star key={i} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />)}</div>
+          <span className="text-[11px] text-white/45 ml-1">{d.address}</span>
+        </div>
+      </div>
+
+      {/* Co získáš */}
+      <div className="px-7 py-9 bg-[#0E1424]">
+        <p className="text-emerald-400 text-[10px] font-semibold tracking-[0.2em] uppercase mb-5 text-center">Co všechno získáš</p>
+        <div className="space-y-3 max-w-sm mx-auto">
+          {benefits.map((b) => (
+            <div key={b} className="flex items-start gap-3 bg-white/[0.03] border border-white/8 rounded-xl px-4 py-3.5">
+              <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+              <span className="text-[13.5px] text-white/85 leading-snug">{b}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Cenový box */}
+      <div className="px-7 py-10 text-center">
+        <div className="max-w-[320px] mx-auto rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-b from-[#101829] to-[#0B0F1A] p-7">
+          <p className="text-[11px] text-white/45 uppercase tracking-widest mb-2">Jednorázová platba</p>
+          <div className="flex items-end justify-center gap-2 mb-1">
+            <span className="text-[40px] font-extrabold leading-none text-white">{d.price1}</span>
+          </div>
+          <p className="text-[12px] text-white/40 line-through mb-5">Běžně 4 990 Kč</p>
+          <button className="bg-emerald-500 text-[#0B0F1A] rounded-xl px-6 py-3.5 font-extrabold text-[14px] hover:bg-emerald-400 transition-colors w-full">
+            {d.cta} →
+          </button>
+          <p className="flex items-center justify-center gap-1.5 text-[11px] text-emerald-400 mt-4">
+            <CheckCircle className="w-3.5 h-3.5" /> {d.hours}
+          </p>
+        </div>
+
+        {/* Reference */}
+        <div className="max-w-[320px] mx-auto mt-7 bg-white/[0.03] border border-white/8 rounded-xl px-5 py-4 text-left">
+          <div className="flex gap-0.5 mb-2">{[1,2,3,4,5].map(i => <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />)}</div>
+          <p className="text-[12.5px] text-white/70 leading-relaxed italic">„První vstupenky jsem se ziskem prodal už druhý týden. Vrátilo se mi to mnohonásobně."</p>
+          <p className="text-[11px] text-white/40 mt-2">— Martin K., student</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Renders the real template scaled down, so the gallery thumbnail always
 // matches exactly what opens in the customizer — no separate mini-mockups to drift.
 function TemplateThumbnail({ id, bg, d }: { id: string; bg: string; accent: string; d: DemoData }) {
@@ -548,6 +648,7 @@ const RENDERERS: Record<string, React.ComponentType<{ d: DemoData }>> = {
   lekar: LekarTemplate,
   eshop: EshopTemplate,
   kurzy: KurzymTemplate,
+  prodejni: ProdejniTemplate,
 };
 
 // ─── Form field ────────────────────────────────────────────────────────────────
@@ -602,9 +703,9 @@ export default function DemoPage() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400 hidden sm:block">Zadejte svá data — náhled se aktualizuje živě</span>
-            <a href="/#pricing">
+            <a href={`/dotaznik?obor=${selected.id}&firma=${encodeURIComponent(data.businessName)}`}>
               <Button size="sm" className="bg-violet-600 hover:bg-violet-700 text-white text-xs rounded-full px-4">
-                Objednat tento web <ArrowRight className="w-3 h-3 ml-1" />
+                Líbí? Doladíme na míru <ArrowRight className="w-3 h-3 ml-1" />
               </Button>
             </a>
           </div>
@@ -658,12 +759,12 @@ export default function DemoPage() {
               <Field label="Text tlačítka" value={data.cta} onChange={v => updateField("cta", v)} placeholder="Objednat" />
 
               <div className="pt-4 pb-2">
-                <a href="/#pricing" className="block w-full">
+                <a href={`/dotaznik?obor=${selected.id}&firma=${encodeURIComponent(data.businessName)}`} className="block w-full">
                   <Button className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl">
-                    Objednat tento web →
+                    Líbí? Doladíme na míru →
                   </Button>
                 </a>
-                <p className="text-[10px] text-slate-400 text-center mt-2">Hotovo do 5 pracovních dní · Záruka spokojenosti</p>
+                <p className="text-[10px] text-slate-400 text-center mt-2">Návrh zdarma · Platíte až po schválení</p>
               </div>
             </div>
           </div>
@@ -792,9 +893,9 @@ export default function DemoPage() {
             Vytvoříme vám web na míru pro jakýkoliv byznys. Stačí nám říct, co potřebujete.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="/#pricing">
+            <a href="/dotaznik">
               <Button className="bg-violet-600 hover:bg-violet-700 text-white font-bold px-8 py-3 rounded-full">
-                Objednat web na míru →
+                Vyplnit dotazník — návrh zdarma →
               </Button>
             </a>
             <a href="/agents">

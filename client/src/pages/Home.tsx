@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database } from "lucide-react";
+import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
@@ -478,12 +478,13 @@ export default function Home() {
           </div>
 
           {/* Connected modules */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-16">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-16">
             {[
               { icon: <Calendar className="w-5 h-5" />, title: "Rezervace", desc: "Online booking, připomínky, kalendáře, změny." },
               { icon: <MessageSquare className="w-5 h-5" />, title: "Komunikace", desc: "E-maily, newslettery, Telegram, WhatsApp scénáře." },
               { icon: <Megaphone className="w-5 h-5" />, title: "Marketing", desc: "Meta Ads, Google Ads, retargeting, optimalizace kampaní." },
               { icon: <ShoppingBag className="w-5 h-5" />, title: "Prodej", desc: "E-shop, produkty, dárkové sety, předplatné, upsell." },
+              { icon: <Rocket className="w-5 h-5" />, title: "Prodejní web", desc: "Infoprodukty a kurzy: VSL, upsell, order bump, garance — funnel na míru." },
               { icon: <TrendingUp className="w-5 h-5" />, title: "Reporting", desc: "Dashboardy, predikce, tržby, klienti, LTV, insights." },
               { icon: <Sparkles className="w-5 h-5" />, title: "AI Asistenti", desc: "Tvorba obsahu, doporučení, automatizace rutinních úkolů." },
             ].map((m) => (
@@ -516,9 +517,9 @@ export default function Home() {
                     "CRM s 360° pohledem na klienta",
                     "Data, reporting a chytré predikce",
                     "AI asistenti — obsah, kampaně, rutina",
+                    "Prodejní web pro infoprodukty a kurzy",
                     "MCP/API napojení na vaše nástroje",
-                    "2 napojené moduly dle výběru v ceně",
-                    "Další modul +290 Kč/měs",
+                    "2 moduly v ceně, další +290 Kč/měs",
                     "Provoz, zálohy a podpora v ceně",
                   ].map(f => (
                     <div key={f} className="flex items-start gap-2 text-sm text-white/70">

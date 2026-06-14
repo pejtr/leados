@@ -43,6 +43,7 @@ const OBOR_LABELS: Record<string, string> = {
   lekar: "Lékař / Zdravotnictví",
   eshop: "E-shop / E-commerce",
   kurzy: "Online kurzy / Vzdělávání",
+  prodejni: "Infoprodukt / Prodejní web",
 };
 
 const STEPS = ["O vás", "Váš web", "Podklady", "Detaily"];
