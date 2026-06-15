@@ -344,6 +344,9 @@ export default function Home() {
       <section id="niche" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-cyan-50 border border-cyan-200 rounded-full px-4 py-2 mb-5 text-sm text-cyan-700 font-medium">
+              📱 80% návštěv je z mobilů — navrhujeme primárně pro displeje
+            </div>
             <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">
               Řešení pro obory, kde web<br />
               <span className="text-violet-600">funguje nejlépe</span>
@@ -369,22 +372,22 @@ export default function Home() {
       {/* ── SERVICES ── */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">Naše hlavní služby</h2>
-            <p className="text-slate-500 max-w-xl mx-auto">Od jednoduchého webu až po plnou AI automatizaci vašeho obchodu.</p>
+          <div className="text-center mb-14">
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">Naše hlavní služby</h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto font-medium">Od jednoduchého webu až po plnou AI automatizaci vašeho obchodu. Každá služba je postavena na měřitelných výsledcích.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {services.map(s => (
-              <div key={s.title} className="border border-slate-100 hover:border-violet-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer" onClick={scrollToContact}>
-                <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-violet-100 transition-colors">
+              <div key={s.title} className="border border-slate-200 bg-white hover:border-violet-300 rounded-2xl p-7 hover:shadow-xl transition-all duration-300 group cursor-pointer hover:bg-slate-50" onClick={scrollToContact}>
+                <div className="w-14 h-14 bg-gradient-to-br from-violet-50 to-violet-100 text-violet-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                   {s.icon}
                 </div>
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-slate-900">{s.title}</h3>
-                  <span className="text-xs bg-violet-50 text-violet-700 px-2 py-1 rounded-full font-medium ml-2 flex-shrink-0">{s.badge}</span>
+                <div className="mb-3">
+                  <h3 className="font-bold text-lg text-slate-900 mb-2">{s.title}</h3>
+                  <span className="inline-block text-xs bg-violet-100 text-violet-700 px-3 py-1 rounded-full font-semibold">{s.badge}</span>
                 </div>
-                <p className="text-sm text-slate-500 leading-relaxed">{s.desc}</p>
-                <div className="mt-4 text-sm text-violet-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                <p className="text-slate-600 leading-relaxed mb-5">{s.desc}</p>
+                <div className="text-sm text-violet-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                   Zjistit více <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
