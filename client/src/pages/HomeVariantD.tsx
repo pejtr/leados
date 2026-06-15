@@ -40,6 +40,8 @@ export default function HomeVariantD() {
         phone,
         businessDescription,
         packageType: undefined,
+        details: undefined,
+        source: "web-variant-d",
       });
       toast.success("Poptávka odeslána! Brzy se vám ozveme.");
       form.reset();
@@ -112,7 +114,7 @@ export default function HomeVariantD() {
           {/* Stats with neon */}
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="p-4 rounded-lg bg-pink-500/10 border border-pink-500/30 backdrop-blur-sm">
-              <p className="text-3xl font-bold text-pink-400">150+</p>
+              <p className="text-3xl font-bold text-pink-400">50+</p>
               <p className="text-sm text-slate-400">projektů</p>
             </div>
             <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/30 backdrop-blur-sm">

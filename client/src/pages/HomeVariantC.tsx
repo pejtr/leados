@@ -40,6 +40,8 @@ export default function HomeVariantC() {
         phone,
         businessDescription,
         packageType: undefined,
+        details: undefined,
+        source: "web-variant-c",
       });
       toast.success("Poptávka odeslána! Brzy se vám ozveme.");
       form.reset();
@@ -95,7 +97,7 @@ export default function HomeVariantC() {
               <p className="text-sm text-slate-600">spokojenosti klientů</p>
             </div>
             <div>
-              <p className="text-3xl font-bold text-emerald-600">150+</p>
+              <p className="text-3xl font-bold text-emerald-600">50+</p>
               <p className="text-sm text-slate-600">projektů ukončeno</p>
             </div>
             <div>

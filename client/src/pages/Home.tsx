@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket, Coffee, Scissors, Wrench, Dumbbell, Building2, Stethoscope, GraduationCap } from "lucide-react";
+import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket, Coffee, Scissors, Wrench, Dumbbell, Building2, Stethoscope, GraduationCap, Palette } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
@@ -31,6 +31,7 @@ const services = [
   { icon: <TrendingUp className="w-6 h-6" />, title: "LeadOS SaaS", desc: "Kompletní AI orchestrace vašeho obchodu. Autonomní správa projektů.", badge: "na míru" },
   { icon: <MessageSquare className="w-6 h-6" />, title: "AI Chatbot", desc: "Inteligentní chatbot odpovídá zákazníkům 24/7 a sbírá kontakty.", badge: "addon" },
   { icon: <Shield className="w-6 h-6" />, title: "Správa & hosting", desc: "Hosting, SSL, zálohy, aktualizace. Staráme se o vše technické.", badge: "179 Kč/m" },
+  { icon: <Palette className="w-6 h-6" />, title: "Branding & logotypy", desc: "Logo, color palette, brand guidelines. Lite verze zdarma, premium designy na objednávku.", badge: "od 4 990 Kč" },
 ];
 
 const caseStudies = [
@@ -110,6 +111,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [activeCase, setActiveCase] = useState(0);
   const [billingAnnual, setBillingAnnual] = useState(true);
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const contactRef = useRef<HTMLElement>(null);
 
   const createInquiry = trpc.inquiries.create.useMutation();
@@ -156,6 +158,11 @@ export default function Home() {
             </a>
           </div>
           <div className="hidden md:flex items-center gap-3">
+            <button onClick={() => setViewportMode(viewportMode === 'desktop' ? 'mobile' : 'desktop')}
+              className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${viewportMode === 'mobile' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-slate-200 text-slate-700 border border-slate-300'}`}
+              title={`Přepnout na ${viewportMode === 'desktop' ? 'mobil' : 'desktop'}`}>
+              {viewportMode === 'desktop' ? '📱' : '🖥️'} {viewportMode === 'desktop' ? 'Desktop' : 'Mobil'}
+            </button>
             {isAuthenticated ? (
               <a href={user?.role === "admin" ? "/admin" : "/dashboard"}
                 className="flex items-center gap-1.5 text-sm font-semibold text-white bg-violet-600/80 hover:bg-violet-600 px-4 py-2 rounded-full transition-colors border border-violet-400/30">
@@ -196,6 +203,9 @@ export default function Home() {
           </div>
         )}
       </nav>
+
+      {/* ── VIEWPORT WRAPPER ── */}
+      <div className={viewportMode === 'mobile' ? "max-w-md mx-auto bg-slate-50 shadow-2xl overflow-hidden" : ""}>
 
       {/* ── HERO ── */}
       <section className="relative bg-[#0f0628] text-white overflow-hidden min-h-[90vh] flex items-center">
@@ -311,7 +321,7 @@ export default function Home() {
             </div>
             {/* Floating badge */}
             <div className="absolute -top-4 -right-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl px-4 py-3 shadow-xl text-center">
-              <div className="text-2xl font-extrabold text-white">150+</div>
+              <div className="text-2xl font-extrabold text-white">50+</div>
               <div className="text-xs text-white/80">projektů</div>
             </div>
           </div>
@@ -320,7 +330,7 @@ export default function Home() {
         {/* Stats bar */}
         <div className="absolute bottom-0 left-0 right-0 bg-white/5 backdrop-blur-sm border-t border-white/10">
           <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-3 gap-4 text-center">
-            {[["150+", "projektů dokončeno"], ["5 let", "zkušeností"], ["98%", "spokojenost klientů"]].map(([v, l]) => (
+            {[["50+", "projektů dokončeno"], ["5 let", "zkušeností"], ["98%", "spokojenost klientů"]].map(([v, l]) => (
               <div key={l}>
                 <div className="text-xl font-bold text-violet-300">{v}</div>
                 <div className="text-xs text-white/50">{l}</div>
@@ -398,7 +408,7 @@ export default function Home() {
               {[
                 ["Vlastní AI nástroje a automatizace", "LeadOS, chatbot, scoring leadů — vše pod jednou střechou."],
                 ["Silný důraz na výsledky", "Každý web měříme. Víme, co funguje a co ne."],
-                ["Zkušenosti z reálného prostředí", "150+ projektů pro české živnostníky a firmy."],
+                ["Zkušenosti z reálného prostředí", "50+ projektů pro české živnostníky a firmy."],
               ].map(([title, desc]) => (
                 <div key={title} className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-violet-500/20 border border-violet-400/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -417,7 +427,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { v: "150+", l: "dokončených projektů", icon: "🚀" },
+              { v: "50+", l: "dokončených projektů", icon: "🚀" },
               { v: "5 let", l: "na trhu", icon: "📅" },
               { v: "98%", l: "spokojených klientů", icon: "⭐" },
               { v: "24/7", l: "monitoring & podpora", icon: "🛡️" },
@@ -1279,6 +1289,8 @@ export default function Home() {
 
       {/* AI prodejní chatbot */}
       <SalesChatWidget />
+
+      </div>{/* END VIEWPORT WRAPPER */}
     </div>
   );
 }
