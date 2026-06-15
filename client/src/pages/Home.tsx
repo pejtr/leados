@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket } from "lucide-react";
+import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket, Coffee, Scissors, Wrench, Dumbbell, Building2, Stethoscope, GraduationCap, Palette } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
@@ -14,14 +14,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const niches = [
-  { icon: "☕", label: "Kavárny & restaurace", desc: "Rezervace, menu online, věrnostní program", color: "from-amber-500/20 to-orange-500/10" },
-  { icon: "✂️", label: "Kadeřnictví & salony", desc: "Online booking, galerie prací, recenze", color: "from-pink-500/20 to-rose-500/10" },
-  { icon: "⚡", label: "Elektrikáři & řemeslníci", desc: "Poptávkový formulář, reference, ceník", color: "from-yellow-500/20 to-amber-500/10" },
-  { icon: "🏋️", label: "Fitness & wellness", desc: "Rozvrh hodin, členství, lektoři", color: "from-green-500/20 to-emerald-500/10" },
-  { icon: "🏠", label: "Reality & pronájmy", desc: "Katalog nemovitostí, kontaktní formulář", color: "from-blue-500/20 to-cyan-500/10" },
-  { icon: "🦷", label: "Lékaři & kliniky", desc: "Objednávkový systém, tým, ceník výkonů", color: "from-teal-500/20 to-cyan-500/10" },
-  { icon: "🎓", label: "Vzdělávání & kurzy", desc: "Přihlašování na kurzy, platby, certifikáty", color: "from-purple-500/20 to-violet-500/10" },
-  { icon: "🛒", label: "E-shopy & obchody", desc: "Produktový katalog, košík, platební brána", color: "from-indigo-500/20 to-blue-500/10" },
+  { icon: Coffee, label: "Kavárny & restaurace", desc: "Rezervace, menu online, věrnostní program", color: "from-amber-500/20 to-orange-500/10", iconColor: "text-amber-600" },
+  { icon: Scissors, label: "Kadeřnictví & salony", desc: "Online booking, galerie prací, recenze", color: "from-pink-500/20 to-rose-500/10", iconColor: "text-pink-600" },
+  { icon: Wrench, label: "Elektrikáři & řemeslníci", desc: "Poptávkový formulář, reference, ceník", color: "from-yellow-500/20 to-amber-500/10", iconColor: "text-amber-600" },
+  { icon: Dumbbell, label: "Fitness & wellness", desc: "Rozvrh hodin, členství, lektoři", color: "from-green-500/20 to-emerald-500/10", iconColor: "text-emerald-600" },
+  { icon: Building2, label: "Reality & pronájmy", desc: "Katalog nemovitostí, kontaktní formulář", color: "from-blue-500/20 to-cyan-500/10", iconColor: "text-blue-600" },
+  { icon: Stethoscope, label: "Lékaři & kliniky", desc: "Objednávkový systém, tým, ceník výkonů", color: "from-teal-500/20 to-cyan-500/10", iconColor: "text-teal-600" },
+  { icon: GraduationCap, label: "Vzdělávání & kurzy", desc: "Přihlašování na kurzy, platby, certifikáty", color: "from-purple-500/20 to-violet-500/10", iconColor: "text-violet-600" },
+  { icon: ShoppingBag, label: "E-shopy & obchody", desc: "Produktový katalog, košík, platební brána", color: "from-indigo-500/20 to-blue-500/10", iconColor: "text-indigo-600" },
 ];
 
 const services = [
@@ -31,6 +31,7 @@ const services = [
   { icon: <TrendingUp className="w-6 h-6" />, title: "LeadOS SaaS", desc: "Kompletní AI orchestrace vašeho obchodu. Autonomní správa projektů.", badge: "na míru" },
   { icon: <MessageSquare className="w-6 h-6" />, title: "AI Chatbot", desc: "Inteligentní chatbot odpovídá zákazníkům 24/7 a sbírá kontakty.", badge: "addon" },
   { icon: <Shield className="w-6 h-6" />, title: "Správa & hosting", desc: "Hosting, SSL, zálohy, aktualizace. Staráme se o vše technické.", badge: "179 Kč/m" },
+  { icon: <Palette className="w-6 h-6" />, title: "Branding & logotypy", desc: "Logo, color palette, brand guidelines. Lite verze zdarma, premium designy na objednávku.", badge: "od 4 990 Kč" },
 ];
 
 const caseStudies = [
@@ -110,6 +111,7 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [activeCase, setActiveCase] = useState(0);
   const [billingAnnual, setBillingAnnual] = useState(true);
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const contactRef = useRef<HTMLElement>(null);
 
   const createInquiry = trpc.inquiries.create.useMutation();
@@ -156,6 +158,11 @@ export default function Home() {
             </a>
           </div>
           <div className="hidden md:flex items-center gap-3">
+            <button onClick={() => setViewportMode(viewportMode === 'desktop' ? 'mobile' : 'desktop')}
+              className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${viewportMode === 'mobile' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-slate-200 text-slate-700 border border-slate-300'}`}
+              title={`Přepnout na ${viewportMode === 'desktop' ? 'mobil' : 'desktop'}`}>
+              {viewportMode === 'desktop' ? '📱' : '🖥️'} {viewportMode === 'desktop' ? 'Desktop' : 'Mobil'}
+            </button>
             {isAuthenticated ? (
               <a href={user?.role === "admin" ? "/admin" : "/dashboard"}
                 className="flex items-center gap-1.5 text-sm font-semibold text-white bg-violet-600/80 hover:bg-violet-600 px-4 py-2 rounded-full transition-colors border border-violet-400/30">
@@ -196,6 +203,9 @@ export default function Home() {
           </div>
         )}
       </nav>
+
+      {/* ── VIEWPORT WRAPPER ── */}
+      <div className={viewportMode === 'mobile' ? "max-w-md mx-auto bg-slate-50 shadow-2xl overflow-hidden" : ""}>
 
       {/* ── HERO ── */}
       <section className="relative bg-[#0f0628] text-white overflow-hidden min-h-[90vh] flex items-center">
@@ -311,7 +321,7 @@ export default function Home() {
             </div>
             {/* Floating badge */}
             <div className="absolute -top-4 -right-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl px-4 py-3 shadow-xl text-center">
-              <div className="text-2xl font-extrabold text-white">150+</div>
+              <div className="text-2xl font-extrabold text-white">50+</div>
               <div className="text-xs text-white/80">projektů</div>
             </div>
           </div>
@@ -320,7 +330,7 @@ export default function Home() {
         {/* Stats bar */}
         <div className="absolute bottom-0 left-0 right-0 bg-white/5 backdrop-blur-sm border-t border-white/10">
           <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-3 gap-4 text-center">
-            {[["150+", "projektů dokončeno"], ["5 let", "zkušeností"], ["98%", "spokojenost klientů"]].map(([v, l]) => (
+            {[["50+", "projektů dokončeno"], ["5 let", "zkušeností"], ["98%", "spokojenost klientů"]].map(([v, l]) => (
               <div key={l}>
                 <div className="text-xl font-bold text-violet-300">{v}</div>
                 <div className="text-xs text-white/50">{l}</div>
@@ -334,6 +344,9 @@ export default function Home() {
       <section id="niche" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-cyan-50 border border-cyan-200 rounded-full px-4 py-2 mb-5 text-sm text-cyan-700 font-medium">
+              📱 80% návštěv je z mobilů — navrhujeme primárně pro displeje
+            </div>
             <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">
               Řešení pro obory, kde web<br />
               <span className="text-violet-600">funguje nejlépe</span>
@@ -344,7 +357,9 @@ export default function Home() {
             {niches.map(n => (
               <button key={n.label} onClick={scrollToContact}
                 className={`bg-gradient-to-br ${n.color} border border-slate-200 hover:border-violet-300 rounded-2xl p-5 text-left transition-all hover:shadow-md hover:-translate-y-0.5 group`}>
-                <div className="text-3xl mb-3">{n.icon}</div>
+                <div className={`w-12 h-12 mb-3 rounded-xl bg-white/70 backdrop-blur-sm border border-white/60 shadow-sm flex items-center justify-center ${n.iconColor} group-hover:scale-105 transition-transform`}>
+                  <n.icon className="w-6 h-6" strokeWidth={1.75} />
+                </div>
                 <div className="font-semibold text-slate-900 text-sm mb-1">{n.label}</div>
                 <div className="text-xs text-slate-500 leading-relaxed">{n.desc}</div>
                 <div className="mt-3 text-xs text-violet-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Zobrazit řešení →</div>
@@ -357,22 +372,22 @@ export default function Home() {
       {/* ── SERVICES ── */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">Naše hlavní služby</h2>
-            <p className="text-slate-500 max-w-xl mx-auto">Od jednoduchého webu až po plnou AI automatizaci vašeho obchodu.</p>
+          <div className="text-center mb-14">
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">Naše hlavní služby</h2>
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto font-medium">Od jednoduchého webu až po plnou AI automatizaci vašeho obchodu. Každá služba je postavena na měřitelných výsledcích.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {services.map(s => (
-              <div key={s.title} className="border border-slate-100 hover:border-violet-200 rounded-2xl p-6 hover:shadow-lg transition-all group cursor-pointer" onClick={scrollToContact}>
-                <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-violet-100 transition-colors">
+              <div key={s.title} className="border border-slate-200 bg-white hover:border-violet-300 rounded-2xl p-7 hover:shadow-xl transition-all duration-300 group cursor-pointer hover:bg-slate-50" onClick={scrollToContact}>
+                <div className="w-14 h-14 bg-gradient-to-br from-violet-50 to-violet-100 text-violet-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
                   {s.icon}
                 </div>
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-bold text-slate-900">{s.title}</h3>
-                  <span className="text-xs bg-violet-50 text-violet-700 px-2 py-1 rounded-full font-medium ml-2 flex-shrink-0">{s.badge}</span>
+                <div className="mb-3">
+                  <h3 className="font-bold text-lg text-slate-900 mb-2">{s.title}</h3>
+                  <span className="inline-block text-xs bg-violet-100 text-violet-700 px-3 py-1 rounded-full font-semibold">{s.badge}</span>
                 </div>
-                <p className="text-sm text-slate-500 leading-relaxed">{s.desc}</p>
-                <div className="mt-4 text-sm text-violet-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                <p className="text-slate-600 leading-relaxed mb-5">{s.desc}</p>
+                <div className="text-sm text-violet-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                   Zjistit více <ArrowRight className="w-4 h-4" />
                 </div>
               </div>
@@ -396,7 +411,7 @@ export default function Home() {
               {[
                 ["Vlastní AI nástroje a automatizace", "LeadOS, chatbot, scoring leadů — vše pod jednou střechou."],
                 ["Silný důraz na výsledky", "Každý web měříme. Víme, co funguje a co ne."],
-                ["Zkušenosti z reálného prostředí", "150+ projektů pro české živnostníky a firmy."],
+                ["Zkušenosti z reálného prostředí", "50+ projektů pro české živnostníky a firmy."],
               ].map(([title, desc]) => (
                 <div key={title} className="flex items-start gap-3">
                   <div className="w-6 h-6 bg-violet-500/20 border border-violet-400/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -415,7 +430,7 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {[
-              { v: "150+", l: "dokončených projektů", icon: "🚀" },
+              { v: "50+", l: "dokončených projektů", icon: "🚀" },
               { v: "5 let", l: "na trhu", icon: "📅" },
               { v: "98%", l: "spokojených klientů", icon: "⭐" },
               { v: "24/7", l: "monitoring & podpora", icon: "🛡️" },
@@ -945,12 +960,20 @@ export default function Home() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
+            {([
+              // Až budou screenshoty, doplň `image: "/portfolio/<soubor>.png"` k danému projektu.
+              { name: "KatastrOnline", repo: "katastr-online", desc: "Vyhledávání v katastru nemovitostí — oficiální data ČÚZK, 20M+ nemovitostí, AI cenový odhad, hypoteční kalkulačka a CRM pro makléře.", tags: ["Nástroj", "Data", "Reality"], color: "from-sky-600 to-blue-700" },
+              { name: "YouKeto", repo: "youketo", desc: "Infoprodukt funnel pro keto dietu — před/po vizuál, keto recepty PDF zdarma, online poradce a konverzní prodejní stránka.", tags: ["Infoprodukt", "Funnel", "Zdraví"], color: "from-cyan-500 to-emerald-500" },
+              { name: "Amarex Shop", repo: "amarex", desc: "Brandový e-shop doplňků stravy Amarex — produktové řady, výhodné balíčky, srovnávací tabulka, poradce v chatu, 4.7/5 od 10 000+ zákazníků.", tags: ["E-shop", "Brand", "Zdraví"], color: "from-orange-500 to-amber-600" },
+              { name: "Silné Libido", repo: "silnelibido", desc: "Konverzní prodejní stránka produktu (silnelibido.cz) — order bump, countdown akce, cenové balíčky, 30denní garance, social proof.", tags: ["Funnel", "Konverze", "Zdraví"], color: "from-rose-500 to-red-600" },
+              { name: "Aktivní Důchodce", repo: "aktivni-duchodce", desc: "Portál pro aktivní seniory (Pardubice a okolí) — aktivity, výlety, pobyty, doprava, seznamka a ergoterapeutický přístup. Vše na jednom místě.", tags: ["Portál", "Senioři", "Služby"], color: "from-teal-500 to-cyan-600" },
+              { name: "NomadWallet", repo: "nomadwallet", desc: "Finanční nástroje pro nomády (EN) — monitoring kreditního skóre, mezinárodní převody peněz, měnová kalkulačka a fintech průvodci.", tags: ["Fintech", "Nástroje", "EN"], color: "from-blue-500 to-blue-700" },
               { name: "Human Design Chart", repo: "humandesignchart", desc: "Prémiová webová aplikace pro výpočet a vizualizaci Human Design Bodygraph diagramů. Interaktivní SVG, registrace, platby.", tags: ["Web App", "SVG", "Stripe"], color: "from-violet-500 to-purple-600", stars: 1 },
               { name: "LeadOS", repo: "leados", desc: "B2B lead generation platforma s persistentním historickým přehledem, AI-powered icebreakers a dark-mode dashboardem.", tags: ["SaaS", "B2B", "Dashboard"], color: "from-blue-500 to-indigo-600", stars: 1 },
               { name: "OPTIVIO", repo: "optivio", desc: "Webová agentura s automatizovaným procesem od objednávky po nasazení. LeadOS backend, CRM, chatbot.", tags: ["Agentura", "CRM", "Chatbot"], color: "from-violet-600 to-indigo-700" },
               { name: "BotHub", repo: "bothub", desc: "Marketplace pro prodej chatbotů s affiliate programem. Premium landing page s pokročilými konverzními prvky.", tags: ["Marketplace", "Affiliate"], color: "from-emerald-500 to-teal-600" },
               { name: "Akční Letenky", repo: "akcni-letenky", desc: "Online travel agency s affiliate systémem pro vyhledávání a prodej leteckých spojení.", tags: ["OTA", "Affiliate", "Travel"], color: "from-sky-500 to-blue-600" },
+              { name: "VoxelCraft", repo: "voxelcraft", desc: "Voxelová hra ve stylu Minecraftu přímo v prohlížeči — bez instalace, 3D engine, generování světa, stavění v reálném čase.", tags: ["Hra", "WebGL", "Aplikace"], color: "from-green-600 to-lime-600" },
               { name: "StoryLiner", repo: "story_liner", desc: "Platforma pro tvorbu videí s inteligentním chatbot asistentem, RAG systémem a persistentní pamětí.", tags: ["Video", "Chatbot", "RAG"], color: "from-orange-500 to-red-600" },
               { name: "Amulets.cz", repo: "my.amulette", desc: "E-shop s ručně vyráběnými orgonitovými pyramidami, amulety a aromaterapeutickými produkty.", tags: ["E-shop", "Produkty"], color: "from-amber-500 to-orange-600" },
               { name: "Deep Sleep Reset", repo: "deep-sleep", desc: "Performance marketing funnel s chronotype kvízem, personalizovaným průvodcem a upsell sekvencí.", tags: ["Funnel", "Marketing", "Quiz"], color: "from-indigo-500 to-violet-600" },
@@ -958,19 +981,32 @@ export default function Home() {
               { name: "Influencer Generator", repo: "ai-influencer-generator", desc: "Platforma pro generování ultra-realistických virtuálních influencerů pro TikTok, Instagram a YouTube.", tags: ["Generátor", "Sociální sítě"], color: "from-pink-500 to-rose-600" },
               { name: "iBots", repo: "ibots", desc: "Premium landing page pro prodej chatbotů — katalog 77 botů v 7 kategoriích, cenové plány, dark theme se zlatými akcenty.", tags: ["Landing Page", "Katalog"], color: "from-yellow-500 to-amber-600" },
               { name: "Affiliate Network Builder", repo: "ai_affiliate_network_builder", desc: "Platforma pro automatizované budování sítě prodejců pro affiliate marketing.", tags: ["Affiliate", "Automatizace"], color: "from-cyan-500 to-teal-600" },
-            ].map((project) => (
+            ] as Array<{ name: string; repo: string; desc: string; tags: string[]; color: string; stars?: number; image?: string }>).map((project) => (
               <div
                 key={project.repo}
                 className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all duration-300"
               >
-                <div className={`h-2 bg-gradient-to-r ${project.color}`} />
+                {project.image ? (
+                  <div className="relative h-44 overflow-hidden bg-slate-100">
+                    <img
+                      src={project.image}
+                      alt={project.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover object-top group-hover:scale-[1.03] transition-transform duration-500"
+                    />
+                    <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${project.color}`} />
+                  </div>
+                ) : (
+                  <div className={`h-2 bg-gradient-to-r ${project.color}`} />
+                )}
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-bold text-slate-900">{project.name}</h3>
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
-                      {project.stars ? <><Star className="w-3 h-3 fill-amber-400 text-amber-400" /><span>{project.stars}</span></> : null}
-                      <span className="ml-1 text-slate-300">TypeScript</span>
-                    </div>
+                    {project.stars ? (
+                      <div className="flex items-center gap-1 text-xs text-slate-400">
+                        <Star className="w-3 h-3 fill-amber-400 text-amber-400" /><span>{project.stars}</span>
+                      </div>
+                    ) : null}
                   </div>
                   <p className="text-sm text-slate-500 mb-4 leading-relaxed line-clamp-3">{project.desc}</p>
                   <div className="flex flex-wrap gap-1.5">
@@ -1256,6 +1292,8 @@ export default function Home() {
 
       {/* AI prodejní chatbot */}
       <SalesChatWidget />
+
+      </div>{/* END VIEWPORT WRAPPER */}
     </div>
   );
 }
