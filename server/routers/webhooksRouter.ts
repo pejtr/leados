@@ -8,6 +8,20 @@ import { getDb } from "../db";
 import { webhookConfigs, webhookLogs } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { testWebhook } from "../webhookDispatcher";
+import { assertPublicHttpUrl, SsrfError } from "../_core/ssrfGuard";
+import { TRPCError } from "@trpc/server";
+
+/** Ověří, že URL webhooku nemíří na interní/privátní cíl (SSRF ochrana). */
+async function ensureSafeWebhookUrl(url: string): Promise<void> {
+  try {
+    await assertPublicHttpUrl(url);
+  } catch (err) {
+    if (err instanceof SsrfError) {
+      throw new TRPCError({ code: "BAD_REQUEST", message: `Nepovolená URL webhooku: ${err.message}` });
+    }
+    throw err;
+  }
+}
 
 export const webhooksRouter = router({
   /**
@@ -27,6 +41,9 @@ export const webhooksRouter = router({
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
       if (!db) throw new Error("Database unavailable");
+
+      // SSRF: reject internal / private / metadata targets before persisting
+      await ensureSafeWebhookUrl(input.url);
 
       // Generate a random secret for HMAC signing
       const secret = require("crypto").randomBytes(32).toString("hex");
@@ -132,6 +149,9 @@ export const webhooksRouter = router({
       if (existing.length === 0 || existing[0].userId !== ctx.user.id) {
         throw new Error("Webhook not found");
       }
+
+      // SSRF: re-validate when the URL is being changed
+      if (input.url) await ensureSafeWebhookUrl(input.url);
 
       const updateData: Partial<typeof webhookConfigs.$inferInsert> = { updatedAt: Date.now() };
       if (input.name) updateData.name = input.name;
