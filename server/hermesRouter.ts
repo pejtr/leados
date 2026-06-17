@@ -46,7 +46,7 @@ export async function buildPlatformContext(userId: number): Promise<string> {
       fetchDsrAnalytics(),
     ]);
     return `User ID: ${userId}
-## LeadOS — Live statistiky platformy
+## ONYX OS — Live statistiky platformy
 - Celkem leadů: ${stats.totalLeads} | Obohaceno: ${stats.enrichedLeads} | Sezení: ${stats.totalSessions}
 - Pipeline: ${stats.statusBreakdown?.map((s: any) => `${s.status}(${s.count})`).join(", ") || "prázdná"}
 - Top odvětví: ${stats.industryBreakdown?.slice(0, 3).map((i: any) => `${i.industry}(${i.count})`).join(", ") || "žádná"}

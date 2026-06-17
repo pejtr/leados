@@ -1,4 +1,4 @@
-// LeadOS Service Worker v1.0
+// ONYX OS Service Worker v1.0
 const CACHE_NAME = 'leados-v1';
 const STATIC_ASSETS = [
   '/',

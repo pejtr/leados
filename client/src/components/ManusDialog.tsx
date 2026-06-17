@@ -75,7 +75,7 @@ export function ManusDialog({
             </DialogTitle>
           ) : null}
           <DialogDescription className="text-sm text-[#858481] leading-5 tracking-[-0.154px]">
-            Přihlaste se pro pokračování do LeadOS
+            Přihlaste se pro pokračování do ONYX OS
           </DialogDescription>
         </div>
 

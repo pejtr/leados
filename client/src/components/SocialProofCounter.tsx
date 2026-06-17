@@ -102,7 +102,7 @@ export default function SocialProofCounter() {
           />
         </span>
         <span className="text-sm font-medium" style={{ color: "#4ECBA0" }}>
-          {liveCount.toLocaleString("cs-CZ")} firem právě používá LeadOS
+          {liveCount.toLocaleString("cs-CZ")} firem právě používá ONYX OS
         </span>
       </div>
 

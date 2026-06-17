@@ -68,7 +68,7 @@ async function sendGenericWebhook(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "User-Agent": "AI-LeadGen-Webhook/1.0",
+      "User-Agent": "ONYX-OS-Webhook/1.0",
     },
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(15000),
@@ -160,7 +160,7 @@ async function sendToSlack(
         type: "header",
         text: {
           type: "plain_text",
-          text: `🎯 LeadGen CRM Automation: ${payload.event}`,
+          text: `🎯 ONYX OS: ${payload.event}`,
         },
       },
       {

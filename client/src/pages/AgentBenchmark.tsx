@@ -359,7 +359,7 @@ export default function AgentBenchmark() {
           </div>
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 700, color: C.textPrimary, margin: 0 }}>Agent Benchmark</h1>
-            <p style={{ fontSize: 14, color: C.textSecondary, margin: 0 }}>ARC-AGI inspired evaluation framework for LeadOS agents</p>
+            <p style={{ fontSize: 14, color: C.textSecondary, margin: 0 }}>ARC-AGI inspired evaluation framework for ONYX OS agents</p>
           </div>
         </div>
       </div>

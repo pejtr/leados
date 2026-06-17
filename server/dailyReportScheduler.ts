@@ -125,7 +125,7 @@ async function getDailyStats(userId: string): Promise<DailyStats> {
 
 async function generateAISummary(stats: DailyStats): Promise<string> {
   try {
-    const prompt = `You are a concise business analyst. Based on these 24h LeadOS metrics, write a 2-3 sentence executive summary in Czech language. Be specific about numbers and give one actionable insight.
+    const prompt = `You are a concise business analyst. Based on these 24h ONYX OS metrics, write a 2-3 sentence executive summary in Czech language. Be specific about numbers and give one actionable insight.
 
 Metrics:
 - Sales: ${stats.totalSales} (Revenue: $${stats.totalRevenue.toFixed(2)})
@@ -230,7 +230,7 @@ async function sendDailyReport(config: typeof dailyReportConfigs.$inferSelect): 
   </div>
 
   <div class="footer">
-    LeadOS · crmleadsystem.com · Automatický denní report<br>
+    ONYX OS · crmleadsystem.com · Automatický denní report<br>
     Odesláno na ${config.email}
   </div>
 </div>
@@ -257,7 +257,7 @@ async function sendDailyReport(config: typeof dailyReportConfigs.$inferSelect): 
           },
           body: JSON.stringify({
             to: config.email,
-            subject: `LeadOS Denní Report — ${stats.totalSales} prodejů, $${stats.totalRevenue.toFixed(0)} revenue`,
+            subject: `ONYX OS Denní Report — ${stats.totalSales} prodejů, $${stats.totalRevenue.toFixed(0)} revenue`,
             html: emailHtml,
           }),
         });
@@ -276,7 +276,7 @@ async function sendDailyReport(config: typeof dailyReportConfigs.$inferSelect): 
 
     // Fallback: Manus push notification to owner
     if (!emailSent) {
-      const notifContent = `📊 Denní Report LeadOS\n\n` +
+      const notifContent = `📊 Denní Report ONYX OS\n\n` +
         `💰 Revenue: $${stats.totalRevenue.toFixed(2)} (${stats.totalSales} prodejů)\n` +
         `🎯 Nové leady: ${stats.totalLeads}\n` +
         `📈 ROAS: ${roasStr} | PNO: ${pnoStr}\n` +
@@ -286,7 +286,7 @@ async function sendDailyReport(config: typeof dailyReportConfigs.$inferSelect): 
         `\n\nZobrazte detail: https://crmleadsystem.com/portfolio-roas`;
 
       await notifyOwner({
-        title: `LeadOS Report — $${stats.totalRevenue.toFixed(0)} revenue dnes`,
+        title: `ONYX OS Report — $${stats.totalRevenue.toFixed(0)} revenue dnes`,
         content: notifContent,
       });
       console.log(`[DailyReport] Push notification sent (email fallback)`);

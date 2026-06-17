@@ -1,6 +1,6 @@
-# LeadOS — AI Lead Generation & CRM Automation Platform
+# ONYX OS — AI Lead Generation & CRM Automation Platform
 
-**LeadOS** je komplexní platforma pro automatizovanou generaci B2B leadů, jejich kvalifikaci a správu prodejního pipeline pomocí AI agentů. Kombinuje nejnovější technologie v oblasti AI orchestrace, real-time data processing a bezpečné integrace s externími systémy.
+**ONYX OS** je komplexní platforma pro automatizovanou generaci B2B leadů, jejich kvalifikaci a správu prodejního pipeline pomocí AI agentů. Kombinuje nejnovější technologie v oblasti AI orchestrace, real-time data processing a bezpečné integrace s externími systémy.
 
 ## 🎯 Klíčové Vlastnosti
 
@@ -238,7 +238,7 @@ Uzavřen (Automatická fakturace)
 
 ### Webhook Integrations
 ```
-LeadOS → n8n Security Gateway → Schválení → CRM/ERP/Slack
+ONYX OS → n8n Security Gateway → Schválení → CRM/ERP/Slack
 ```
 
 ## 🧪 Testing
@@ -357,7 +357,7 @@ curl -X POST https://hooks.zapier.com/... -H "Content-Type: application/json" -d
 
 ## 📄 License
 
-Proprietary — LeadOS Platform © 2026
+Proprietary — ONYX OS Platform © 2026
 
 ## 🚀 Roadmap
 

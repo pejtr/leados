@@ -91,7 +91,7 @@ const INTEGRATIONS = [
   },
   {
     id: "leados-crm",
-    name: "LeadOS CRM",
+    name: "ONYX OS CRM",
     description: "REST API pro CRM integraci",
     Icon: Link2,
     iconColor: "text-[#6366F1]",
@@ -279,7 +279,7 @@ export default function AdminIntegrations() {
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-white">Integrace &amp; API</h1>
-          <p className="text-white/40 mt-1 text-sm">Propoj LeadOS s externími nástroji a platformami.</p>
+          <p className="text-white/40 mt-1 text-sm">Propoj ONYX OS s externími nástroji a platformami.</p>
         </div>
 
         <Tabs defaultValue="integrations">
@@ -503,7 +503,7 @@ export default function AdminIntegrations() {
           <TabsContent value="docs" className="mt-6 space-y-4">
             <div className="rounded-xl border border-white/5 bg-white/[0.02] p-5 space-y-4">
               <div>
-                <h3 className="text-sm font-semibold text-white mb-1">LeadOS REST API</h3>
+                <h3 className="text-sm font-semibold text-white mb-1">ONYX OS REST API</h3>
                 <p className="text-xs text-white/40">Přístup k datům přes REST API s Bearer token autentizací.</p>
               </div>
               <div className="space-y-2">
@@ -526,7 +526,7 @@ export default function AdminIntegrations() {
               </div>
               <div className="rounded-lg bg-black/40 border border-white/5 p-3 space-y-2">
                 <p className="text-xs text-white/25 font-mono">Webhook signature verification:</p>
-                <code className="text-xs text-purple-300 font-mono">X-LeadOS-Signature: sha256=HMAC_SHA256(secret, body)</code>
+                <code className="text-xs text-purple-300 font-mono">X-ONYX OS-Signature: sha256=HMAC_SHA256(secret, body)</code>
               </div>
             </div>
           </TabsContent>

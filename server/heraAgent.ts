@@ -145,7 +145,7 @@ export async function heraChat(input: HeraChatInput): Promise<HeraChatOutput> {
   const coachId = HERA_COACHES[classification.intent] ?? HERA_COACHES.general_marketing;
   const coach = getPersonaById(coachId) ?? getPersonaById("alex_hormozi");
 
-  const heraFrame = `[HERA] You operate inside HERA — the marketing orchestration layer of LeadOS. HERA routed this conversation to you as the best-fit coach for the "${classification.intent}" intent. Stay in character. Respond in Czech unless the user writes in another language.${input.compactMode ? " Be compact: bullet-dense, max 5 lines." : ""}\n\n`;
+  const heraFrame = `[HERA] You operate inside HERA — the marketing orchestration layer of ONYX OS. HERA routed this conversation to you as the best-fit coach for the "${classification.intent}" intent. Stay in character. Respond in Czech unless the user writes in another language.${input.compactMode ? " Be compact: bullet-dense, max 5 lines." : ""}\n\n`;
 
   const systemPrompt = coach
     ? heraFrame + coach.systemPrompt(input.platformContext)
@@ -437,7 +437,7 @@ export async function generateHeraDailyBrief(platformContext: string): Promise<s
     messages: [
       {
         role: "system",
-        content: `You are HERA — the marketing orchestration AI of LeadOS. Each morning you produce a short actionable marketing brief for the owner based on live platform data.
+        content: `You are HERA — the marketing orchestration AI of ONYX OS. Each morning you produce a short actionable marketing brief for the owner based on live platform data.
 
 Format (Czech, markdown):
 ## 🎯 HERA — dnešní marketingové akce

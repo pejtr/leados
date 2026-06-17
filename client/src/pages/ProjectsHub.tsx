@@ -41,7 +41,7 @@ type Project = {
 
 // ─── SDK Snippet ─────────────────────────────────────────────────
 function getSdkSnippet(apiKey: string, baseUrl: string) {
-  return `<!-- LeadOS Analytics SDK — paste before </body> -->
+  return `<!-- ONYX OS Analytics SDK — paste before </body> -->
 <script>
 (function(w,d,k){
   w._lpos = w._lpos || { q: [], track: function(e,v,m){ w._lpos.q.push([e,v,m,new Date()]); } };
