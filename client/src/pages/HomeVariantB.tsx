@@ -59,7 +59,7 @@ export default function HomeVariantB() {
       }`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/manus-storage/optivio-logo_d4a4757c.png" alt="OPTIVIO" className="h-8" />
+            <img src="/manus-storage/optivio-logo_d4a4757c.png" alt="ONYXO" className="h-8" />
           </div>
           <div className="hidden md:flex gap-8">
             <a href="#benefits" className="text-sm font-medium hover:text-green-600 transition">Výhody</a>
@@ -131,13 +131,13 @@ export default function HomeVariantB() {
       {/* Comparison Table */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-12 text-center">Proč OPTIVIO?</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center">Proč ONYXO?</h2>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-2 border-green-200">
                   <th className="text-left py-4 px-4 font-bold">Kritérium</th>
-                  <th className="text-center py-4 px-4 font-bold text-green-600">OPTIVIO</th>
+                  <th className="text-center py-4 px-4 font-bold text-green-600">ONYXO</th>
                   <th className="text-center py-4 px-4 font-bold text-slate-400">Tradiční agentura</th>
                 </tr>
               </thead>
@@ -243,7 +243,7 @@ export default function HomeVariantB() {
       {/* Footer */}
       <footer className="bg-slate-900 text-white/60 py-12">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="mb-4">© 2026 OPTIVIO. Všechna práva vyhrazena.</p>
+          <p className="mb-4">© 2026 ONYXO. Všechna práva vyhrazena.</p>
           <div className="flex justify-center gap-6">
             <a href="#" className="hover:text-white transition">Zásady ochrany</a>
             <a href="#" className="hover:text-white transition">Obchodní podmínky</a>

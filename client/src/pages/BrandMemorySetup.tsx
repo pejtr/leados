@@ -122,7 +122,7 @@ export default function BrandMemorySetup({ onComplete, initialData }: Props) {
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="companyName">Název firmy *</Label>
-                    <Input id="companyName" placeholder="např. OPTIVIO" {...register("companyName", { required: true })} className="mt-1" />
+                    <Input id="companyName" placeholder="např. ONYXO" {...register("companyName", { required: true })} className="mt-1" />
                   </div>
                   <div>
                     <Label htmlFor="tagline">Slogan / Tagline</Label>

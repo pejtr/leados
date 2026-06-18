@@ -1,6 +1,6 @@
-# OPTIVIO AI Core — prezentační podklad
+# ONYXO AI Core — prezentační podklad
 
-Zdroj: infografika „OPTIVIO AI CORE" (zlato-modrý vizuál, egyptský motiv).
+Zdroj: infografika „ONYXO AI CORE" (zlato-modrý vizuál, egyptský motiv).
 Webová verze: sekce `#core` na landing page ([Home.tsx](../../client/src/pages/Home.tsx)).
 
 > Originální PNG infografiky ulož do `docs/marketing/assets/optivio-core.png`
@@ -8,7 +8,7 @@ Webová verze: sekce `#core` na landing page ([Home.tsx](../../client/src/pages/
 
 ## Klíčové sdělení
 
-**OPTIVIO Core** — jeden centrální systém: booking · CRM · data · automatizace · MCP/API.
+**ONYXO Core** — jeden centrální systém: booking · CRM · data · automatizace · MCP/API.
 
 | Pilíř | Popis |
 |---|---|
@@ -32,7 +32,7 @@ Vlastní aukční platforma pro galerie, aukce a distribuci uměleckých děl, n
 
 Pilíře: **Aukční engine** (příhozy, limity, dražby v reálném čase) · **Distribuce & marketplace** (jedno dílo na více trzích) · **Data & historie** (provenience, výsledky, cenové trendy) · **Důvěra & autenticita** (ověření děl, transparentní záznamy).
 
-Tagline use-case: „OPTIVIO propojuje salon s trhem umění."
+Tagline use-case: „ONYXO propojuje salon s trhem umění."
 
 ## Vizuální motivy infografik
 
@@ -44,8 +44,8 @@ Tagline use-case: „OPTIVIO propojuje salon s trhem umění."
 Dostupné domény: crmleadsystem.cz / .com (+www), ai-lead-generation.com, ai-lead-gen.com.
 
 **Pozicování dle kanálu:**
-- **Sklik/Seznam (čeští podnikatelé)** → vést na *crmleadsystem.cz*. Jazyk: „CRM systém", „přehled o zákaznících", „víc poptávek bez práce navíc". Bez tech žargonu — OPTIVIO jako expert, který dodává hotovou službu.
-- **LinkedIn (B2B, agentury, SaaS)** → *ai-lead-generation.com* nebo OPTIVIO AI Core. Jazyk: outcomes — „−70 % času na rutině", „LTV insights", „AI asistenti v platformě".
+- **Sklik/Seznam (čeští podnikatelé)** → vést na *crmleadsystem.cz*. Jazyk: „CRM systém", „přehled o zákaznících", „víc poptávek bez práce navíc". Bez tech žargonu — ONYXO jako expert, který dodává hotovou službu.
+- **LinkedIn (B2B, agentury, SaaS)** → *ai-lead-generation.com* nebo ONYXO AI Core. Jazyk: outcomes — „−70 % času na rutině", „LTV insights", „AI asistenti v platformě".
 - Silné slovo pro CZ trh: **„CRM systém"** (vyhledávané, srozumitelné). „Lead generation" funguje jen na LinkedIn/EN publikum.
 
 ## Slogany

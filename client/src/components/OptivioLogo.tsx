@@ -1,4 +1,4 @@
-// Hlavní logo OPTIVIO — modrý V-mark (vektorová rekonstrukce brand assetu).
+// Hlavní logo ONYXO — modrý V-mark (vektorová rekonstrukce brand assetu).
 // `light` přepíná wordmark do bílé pro tmavá pozadí.
 export function OptivioLogo({
   className = "h-8",
@@ -29,7 +29,7 @@ export function OptivioLogo({
       </svg>
       {withWordmark && (
         <span className={`font-extrabold tracking-tight leading-none text-[1.35em] ${light ? "text-white" : "text-slate-900"}`}>
-          OPTIVIO
+          ONYXO
         </span>
       )}
     </span>

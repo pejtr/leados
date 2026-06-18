@@ -74,7 +74,7 @@ export default function HomeVariantD() {
       }`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/manus-storage/optivio-logo_d4a4757c.png" alt="OPTIVIO" className="h-8" />
+            <img src="/manus-storage/optivio-logo_d4a4757c.png" alt="ONYXO" className="h-8" />
           </div>
           <div className="hidden md:flex gap-8">
             <a href="#features" className="text-sm font-medium hover:text-pink-400 transition">Funkce</a>
@@ -136,7 +136,7 @@ export default function HomeVariantD() {
       {/* Features Grid */}
       <section id="features" className="py-20 px-4 bg-slate-900/50 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-4xl font-bold mb-12 text-center glow-text">Proč OPTIVIO?</h2>
+          <h2 className="text-4xl font-bold mb-12 text-center glow-text">Proč ONYXO?</h2>
           <div className="grid md:grid-cols-2 gap-6">
             {[
               { title: "Rychlé spuštění", desc: "Váš web je hotov za 1–3 týdny. Bez dlouhého čekání." },
@@ -201,7 +201,7 @@ export default function HomeVariantD() {
       {/* Footer */}
       <footer className="bg-slate-950 text-slate-500 py-12 border-t border-pink-500/20">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="mb-4">© 2026 OPTIVIO. Všechna práva vyhrazena.</p>
+          <p className="mb-4">© 2026 ONYXO. Všechna práva vyhrazena.</p>
           <div className="flex justify-center gap-6">
             <a href="#" className="hover:text-pink-400 transition">Zásady ochrany</a>
             <a href="#" className="hover:text-pink-400 transition">Obchodní podmínky</a>

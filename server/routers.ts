@@ -11,7 +11,7 @@ import { SALES_PERSONAS, getPersona, listPersonas, personaPublicInfo, buildPerso
 import { getSalesConversation, upsertSalesConversation, addSalesMessage, getSalesMessages, incrementSalesMessageCount, captureSalesLead, getAllSalesConversations } from "./db";
 import Stripe from "stripe";
 import { z } from "zod";
-import { OPTIVIO_PRODUCTS, calculateDeposit, calculateRemaining } from "./stripe-products";
+import { ONYXO_PRODUCTS, calculateDeposit, calculateRemaining } from "./stripe-products";
 import { getABTestSummary, getABTestMetrics } from "./ab-analytics";
 
 export const appRouter = router({
@@ -197,8 +197,8 @@ export const appRouter = router({
       })
       .mutation(async ({ input, ctx }) => {
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
-        const packageKey = input.packageType.toUpperCase().replace(/-/g, "_") as keyof typeof OPTIVIO_PRODUCTS;
-        const product = OPTIVIO_PRODUCTS[packageKey];
+        const packageKey = input.packageType.toUpperCase().replace(/-/g, "_") as keyof typeof ONYXO_PRODUCTS;
+        const product = ONYXO_PRODUCTS[packageKey];
 
         if (!product) {
           throw new Error("Invalid package type");
@@ -658,7 +658,7 @@ export const appRouter = router({
 
   // ─── Sales Chat — customer-facing prodejní chatbot na landing page ─────────────
   salesChat: router({
-    // Send a message to the OPTIVIO sales bot. Public (visitors not logged in).
+    // Send a message to the ONYXO sales bot. Public (visitors not logged in).
     send: publicProcedure
       .input(z.object({
         conversationId: z.string().min(1),

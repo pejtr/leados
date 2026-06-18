@@ -66,7 +66,7 @@ export async function sendOrderConfirmationEmail(
       <p>Máte-li jakékoliv otázky, neváhejte nás kontaktovat.</p>
       
       <p style="color: #666; font-size: 12px; margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
-        OPTIVIO — Profesionální weby za rozumné ceny<br/>
+        ONYXO — Profesionální weby za rozumné ceny<br/>
         <a href="https://optivio.cz" style="color: #0066cc; text-decoration: none;">optivio.cz</a>
       </p>
     </div>
@@ -74,7 +74,7 @@ export async function sendOrderConfirmationEmail(
 
   return sendEmail({
     to: customerEmail,
-    subject: `Potvrzení objednávky #${orderId} — OPTIVIO`,
+    subject: `Potvrzení objednávky #${orderId} — ONYXO`,
     html,
   });
 }
@@ -114,7 +114,7 @@ export async function sendPaymentConfirmationEmail(
       <p>Sledujte svůj projekt v <a href="https://optivio.cz/dashboard" style="color: #0066cc; text-decoration: none;">osobním dashboardu</a>.</p>
       
       <p style="color: #666; font-size: 12px; margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
-        OPTIVIO — Profesionální weby za rozumné ceny<br/>
+        ONYXO — Profesionální weby za rozumné ceny<br/>
         <a href="https://optivio.cz" style="color: #0066cc; text-decoration: none;">optivio.cz</a>
       </p>
     </div>
@@ -158,7 +158,7 @@ export async function sendProjectCompletionEmail(
       <p>Pokud máte jakékoliv dotazy nebo chcete provést úpravy, kontaktujte nás prosím.</p>
       
       <p style="color: #666; font-size: 12px; margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
-        OPTIVIO — Profesionální weby za rozumné ceny<br/>
+        ONYXO — Profesionální weby za rozumné ceny<br/>
         <a href="https://optivio.cz" style="color: #0066cc; text-decoration: none;">optivio.cz</a>
       </p>
     </div>

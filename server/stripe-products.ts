@@ -1,9 +1,9 @@
 /**
  * Stripe Products Configuration
- * Define all products and prices for OPTIVIO services
+ * Define all products and prices for ONYXO services
  */
 
-export const OPTIVIO_PRODUCTS = {
+export const ONYXO_PRODUCTS = {
   // Web packages
   LITE_WEB: {
     name: "Lite Web",

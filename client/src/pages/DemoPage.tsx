@@ -908,7 +908,7 @@ export default function DemoPage() {
       </section>
 
       <footer className="py-8 text-center text-white/20 text-sm border-t border-white/5">
-        © {new Date().getFullYear()} OPTIVIO · <a href="/" className="hover:text-white/40">Domů</a> · <a href="/agents" className="text-violet-400 hover:text-violet-300">Asistenti</a>
+        © {new Date().getFullYear()} ONYXO · <a href="/" className="hover:text-white/40">Domů</a> · <a href="/agents" className="text-violet-400 hover:text-violet-300">Asistenti</a>
       </footer>
 
       {/* Online advisor — pomáhá vybrat šablonu a odpovídá na dotazy */}

@@ -7,7 +7,7 @@ Claude Code působí jako architekt a reviewer — finální slovo má review v 
 
 1. Pracuj **výhradně ve své feature větvi** (`feat/<nazev>`, `fix/<nazev>`, `chore/<nazev>`).
    Nikdy necommituj přímo do `main`.
-2. Ideálně pracuj ve vlastním **git worktree** (`git worktree add ../OPTIVIO-<ukol> -b feat/<ukol> origin/main`),
+2. Ideálně pracuj ve vlastním **git worktree** (`git worktree add ../ONYXO-<ukol> -b feat/<ukol> origin/main`),
    ať si agenti nepřepisují soubory.
 3. Drž se **scope zadání** — neměň soubory mimo zadaný úkol. Žádné "při té příležitosti jsem ještě…".
 4. Před commitem spusť `pnpm check` (TypeScript) a pokud se změnil server kód, `pnpm test`.

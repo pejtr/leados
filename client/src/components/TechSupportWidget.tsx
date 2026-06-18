@@ -108,7 +108,7 @@ export function TechSupportWidget() {
                   <div className="w-14 h-14 rounded-full bg-sky-50 flex items-center justify-center text-2xl">🛠️</div>
                   <div className="text-center">
                     <p className="text-sm font-medium text-slate-800 mb-1">Ahoj! 👋 Jsem Alex.</p>
-                    <p className="text-xs text-slate-500">Jsem tu pro technické dotazy ohledně vašeho webu a služeb OPTIVIO.</p>
+                    <p className="text-xs text-slate-500">Jsem tu pro technické dotazy ohledně vašeho webu a služeb ONYXO.</p>
                   </div>
                   <div className="flex flex-col gap-2 w-full max-w-[280px]">
                     {SUGGESTED.map((p) => (

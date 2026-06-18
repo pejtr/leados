@@ -129,7 +129,7 @@ export default function AiCorePage() {
             <span className="text-amber-300">běží sám.</span> Vy jen řídíte směr.
           </h1>
           <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-9 leading-relaxed">
-            OPTIVIO <span className="text-white font-semibold">AI Core</span> spojí rezervace, CRM, e-shop, kampaně a tým asistentů
+            ONYXO <span className="text-white font-semibold">AI Core</span> spojí rezervace, CRM, e-shop, kampaně a tým asistentů
             do jednoho systému — místo abyste platili a propojovali deset různých nástrojů.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
@@ -191,7 +191,7 @@ export default function AiCorePage() {
               Řešení
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">
-              OPTIVIO <span className="text-amber-300">AI Core</span> — vše v jednom
+              ONYXO <span className="text-amber-300">AI Core</span> — vše v jednom
             </h2>
             <p className="text-white/50 max-w-xl mx-auto">Pět pilířů, jedna platforma, jeden zdroj pravdy o vašem byznysu.</p>
           </div>
@@ -284,7 +284,7 @@ export default function AiCorePage() {
                 <tr>
                   <th className="text-left p-4 text-white/40 font-medium"></th>
                   <th className="p-4 text-center rounded-t-2xl bg-amber-400/10 border-x border-t border-amber-400/30">
-                    <span className="text-amber-300 font-extrabold text-base">OPTIVIO AI Core</span>
+                    <span className="text-amber-300 font-extrabold text-base">ONYXO AI Core</span>
                   </th>
                   <th className="p-4 text-center text-white/60 font-semibold">Krabicová platforma</th>
                   <th className="p-4 text-center text-white/60 font-semibold">Agentura / freelancer</th>
@@ -449,7 +449,7 @@ export default function AiCorePage() {
       {/* ── FOOTER ── */}
       <footer className="py-8 bg-[#060912] border-t border-white/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
-          <p>© 2026 OPTIVIO. Všechna práva vyhrazena.</p>
+          <p>© 2026 ONYXO. Všechna práva vyhrazena.</p>
           <div className="flex gap-5">
             <a href="/" className="hover:text-white transition-colors">Domů</a>
             <a href="/demo" className="hover:text-white transition-colors">Ukázky</a>
