@@ -658,7 +658,7 @@ export const appRouter = router({
 
   // ─── Sales Chat — customer-facing prodejní chatbot na landing page ─────────────
   salesChat: router({
-    // Send a message to the OPTIVIO sales bot. Public (visitors not logged in).
+    // Send a message to the ONYX WEB sales bot. Public (visitors not logged in).
     send: publicProcedure
       .input(z.object({
         conversationId: z.string().min(1),
@@ -684,7 +684,7 @@ export const appRouter = router({
           if (typeof raw === "string") content = raw;
         } catch (error) {
           console.error("[SalesChat] LLM error:", error);
-          content = "Momentálně mám technické potíže. Napište nám prosím e-mail na info@optivio.cz nebo vyplňte formulář — ozveme se do 48 hodin.";
+          content = "Momentálně mám technické potíže. Napište nám prosím e-mail na info@onyxweb.cz nebo vyplňte formulář — ozveme se do 48 hodin.";
         }
 
         // Persist conversation (best-effort, non-blocking on failure)

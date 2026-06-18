@@ -28,7 +28,7 @@ const services = [
   { icon: <Globe className="w-6 h-6" />, title: "Tvorba webu", desc: "Profesionální web na míru za 1–2 týdny. Responzivní design, SEO, rychlost.", badge: "od 3 490 Kč" },
   { icon: <Zap className="w-6 h-6" />, title: "Automatizace", desc: "Automatické emaily, CRM integrace, chatbot. Váš web pracuje i ve 3 ráno.", badge: "od 6 990 Kč" },
   { icon: <BarChart3 className="w-6 h-6" />, title: "Lead Generation", desc: "Systém na sběr kontaktů, scoring leadů, automatické follow-upy.", badge: "od 6 990 Kč" },
-  { icon: <TrendingUp className="w-6 h-6" />, title: "LeadOS SaaS", desc: "Kompletní AI orchestrace vašeho obchodu. Autonomní správa projektů.", badge: "na míru" },
+  { icon: <TrendingUp className="w-6 h-6" />, title: "ONYX OS SaaS", desc: "Kompletní AI orchestrace vašeho obchodu. Autonomní správa projektů.", badge: "na míru" },
   { icon: <MessageSquare className="w-6 h-6" />, title: "AI Chatbot", desc: "Inteligentní chatbot odpovídá zákazníkům 24/7 a sbírá kontakty.", badge: "addon" },
   { icon: <Shield className="w-6 h-6" />, title: "Správa & hosting", desc: "Hosting, SSL, zálohy, aktualizace. Staráme se o vše technické.", badge: "179 Kč/m" },
   { icon: <Palette className="w-6 h-6" />, title: "Branding & logotypy", desc: "Logo, color palette, brand guidelines. Lite verze zdarma, premium designy na objednávku.", badge: "od 4 990 Kč" },
@@ -73,7 +73,7 @@ const faqs = [
   { q: "Platím celou částku předem?", a: "Ne. Platíte pouze 30% zálohu po schválení návrhu. Zbývajících 70% hradíte až po spuštění webu, když jste spokojeni s výsledkem." },
   { q: "Co je zahrnuto v měsíčním poplatku 179 Kč?", a: "Hosting, SSL certifikát, zálohy, technická podpora a drobné úpravy obsahu. Žádné skryté poplatky." },
   { q: "Mohu web kdykoliv upravit?", a: "Ano. Máte přístup do administrace a můžete upravovat texty, fotky a obsah sami. Nebo nám napište — drobné úpravy jsou v ceně provozu." },
-  { q: "Co je LeadOS a potřebuji ho?", a: "LeadOS je naše AI platforma pro automatizaci obchodu — automatické emaily, scoring leadů, CRM integrace. Hodí se firmám, které chtějí růst bez přijímání dalších lidí." },
+  { q: "Co je ONYX OS a potřebuji ho?", a: "ONYX OS je naše AI platforma pro automatizaci obchodu — automatické emaily, scoring leadů, CRM integrace. Hodí se firmám, které chtějí růst bez přijímání dalších lidí." },
   { q: "Děláte weby i pro firmy mimo Prahu?", a: "Ano, pracujeme plně online. Máme klienty po celé ČR i v zahraničí. Vše řešíme přes video hovory a email." },
 ];
 
@@ -95,7 +95,7 @@ const packages = [
   },
   {
     name: "Web + Automatizace", price: "9 990", monthly: "499", color: "border-slate-200", badge: null,
-    features: ["Vše z Lead Gen", "AI chatbot 24/7", "Plná automatizace", "LeadOS dashboard", "Prioritní podpora", "Neomezené úpravy"],
+    features: ["Vše z Lead Gen", "AI chatbot 24/7", "Plná automatizace", "ONYX OS dashboard", "Prioritní podpora", "Neomezené úpravy"],
     cta: "Mám zájem",
   },
 ];
@@ -144,7 +144,7 @@ export default function Home() {
       {/* ── NAV ── */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#1a0a3c]/95 backdrop-blur-md shadow-lg" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a href="/" aria-label="OPTIVIO"><OptivioLogo className="h-9" light /></a>
+          <a href="/" aria-label="ONYX WEB"><OptivioLogo className="h-9" light /></a>
           <div className="hidden md:flex items-center gap-8">
             {["Řešení", "Ceny", "Případové studie", "O nás"].map(item => (
               <a key={item} href={`#${item === "Ceny" ? "pricing" : item === "Případové studie" ? "cases" : item === "Řešení" ? "niche" : "contact"}`}
@@ -300,7 +300,7 @@ export default function Home() {
                 <div className="w-3 h-3 rounded-full bg-red-400" />
                 <div className="w-3 h-3 rounded-full bg-yellow-400" />
                 <div className="w-3 h-3 rounded-full bg-green-400" />
-                <span className="ml-2 text-white/40 text-xs">optivio.cz/dashboard</span>
+                <span className="ml-2 text-white/40 text-xs">onyxweb.cz/dashboard</span>
               </div>
               <div className="grid grid-cols-3 gap-3 mb-4">
                 {[["89", "Nové leady"], ["3×", "Více poptávek"], ["47%", "Růst rezervací"]].map(([v, l]) => (
@@ -409,7 +409,7 @@ export default function Home() {
             </p>
             <div className="space-y-4 mb-8">
               {[
-                ["Vlastní AI nástroje a automatizace", "LeadOS, chatbot, scoring leadů — vše pod jednou střechou."],
+                ["Vlastní AI nástroje a automatizace", "ONYX OS, chatbot, scoring leadů — vše pod jednou střechou."],
                 ["Silný důraz na výsledky", "Každý web měříme. Víme, co funguje a co ne."],
                 ["Zkušenosti z reálného prostředí", "50+ projektů pro české živnostníky a firmy."],
               ].map(([title, desc]) => (
@@ -445,7 +445,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── OPTIVIO CORE — system architecture ── */}
+      {/* ── ONYX WEB CORE — system architecture ── */}
       <section id="core" className="py-20 bg-[#080d1f] text-white relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/3 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
@@ -457,7 +457,7 @@ export default function Home() {
               Jeden systém · vše propojené
             </div>
             <h2 className="text-3xl lg:text-5xl font-extrabold mb-3 tracking-tight">
-              OPTIVIO <span className="text-amber-300">AI Core</span>
+              ONYX WEB <span className="text-amber-300">AI Core</span>
             </h2>
             <p className="text-white/50 text-sm tracking-wide">booking · CRM · data · automatizace · MCP/API</p>
           </div>
@@ -487,7 +487,7 @@ export default function Home() {
           <div className="flex items-center justify-center mb-10">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-400/30" />
             <span className="px-5 py-1.5 border border-amber-400/40 rounded-full text-xs font-semibold tracking-widest uppercase text-amber-200 bg-[#0c1430]">
-              Napojení Optivio
+              Napojení ONYX WEB
             </span>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-400/30" />
           </div>
@@ -523,7 +523,7 @@ export default function Home() {
                 <p className="text-white/50 text-sm mb-1">Zavedení na míru</p>
                 <p className="text-4xl font-extrabold text-white mb-4">od 14 990 <span className="text-lg font-medium text-white/50">Kč</span></p>
                 <p className="text-white/50 text-sm mb-1">Provoz — vše v ceně</p>
-                <p className="text-3xl font-extrabold text-amber-300">990 <span className="text-base font-medium text-amber-300/60">Kč/měs</span></p>
+                <p className="text-3xl font-extrabold text-amber-300">999 <span className="text-base font-medium text-amber-300/60">Kč/měs</span></p>
               </div>
               <div className="md:col-span-2">
                 <div className="grid sm:grid-cols-2 gap-x-6 gap-y-2.5 mb-6">
@@ -553,7 +553,7 @@ export default function Home() {
               </div>
             </div>
             <p className="text-[11px] text-white/30 mt-6 text-center">
-              Funkce AI Core běží na platformě LeadOS. Krabicové platformy účtují za srovnatelné doplňky 800–1 500 Kč/měs — u nás je vše podstatné v jednom tarifu.
+              Funkce AI Core běží na platformě ONYX OS. Krabicové platformy účtují za srovnatelné doplňky 800–1 500 Kč/měs — u nás je vše podstatné v jednom tarifu.
             </p>
           </div>
 
@@ -862,14 +862,14 @@ export default function Home() {
               </ul>
             </div>
 
-            {/* OPTIVIO */}
+            {/* ONYX WEB */}
             <div className="bg-[#0f0628] border-2 border-violet-500 rounded-2xl p-6 relative shadow-xl shadow-violet-200">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-xs font-bold px-4 py-1 rounded-full">
                 Více za méně
               </div>
               <div className="flex items-center gap-2 mb-5">
                 <span className="text-2xl">⚡</span>
-                <h3 className="font-bold text-white">OPTIVIO</h3>
+                <h3 className="font-bold text-white">ONYX WEB</h3>
               </div>
               <ul className="space-y-3">
                 {[
@@ -932,7 +932,7 @@ export default function Home() {
                   <p className="text-amber-300/80 text-xs tracking-widest uppercase mb-5">Galleries · Auctions · Data</p>
                   <p className="text-white/60 leading-relaxed mb-6">
                     Vlastní aukční platforma pro galerie, aukce a distribuci uměleckých děl —
-                    napojená na světové marketplace. OPTIVIO propojuje salon s trhem umění.
+                    napojená na světové marketplace. ONYX WEB propojuje salon s trhem umění.
                   </p>
                   <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/40">
                     <span className="font-semibold text-orange-400">Aukro</span>
@@ -970,8 +970,8 @@ export default function Home() {
               { name: "FlyingRadar24", repo: "flyingradar24", desc: "Flight tracker s živou radarovou mapou a porovnáním cen letenek (KAYAK) — 500+ tras, 56 aerolinek, 172 letišť, live status letů v reálném čase.", tags: ["Travel", "Live data", "Flight"], color: "from-cyan-500 to-slate-700" },
               { name: "NomadWallet", repo: "nomadwallet", desc: "Finanční nástroje pro nomády (EN) — monitoring kreditního skóre, mezinárodní převody peněz, měnová kalkulačka a fintech průvodci.", tags: ["Fintech", "Nástroje", "EN"], color: "from-blue-500 to-blue-700" },
               { name: "Human Design Chart", repo: "humandesignchart", desc: "Prémiová webová aplikace pro výpočet a vizualizaci Human Design Bodygraph diagramů. Interaktivní SVG, registrace, platby.", tags: ["Web App", "SVG", "Stripe"], color: "from-violet-500 to-purple-600", stars: 1 },
-              { name: "LeadOS", repo: "leados", desc: "B2B lead generation platforma s persistentním historickým přehledem, AI-powered icebreakers a dark-mode dashboardem.", tags: ["SaaS", "B2B", "Dashboard"], color: "from-blue-500 to-indigo-600", stars: 1 },
-              { name: "OPTIVIO", repo: "optivio", desc: "Webová agentura s automatizovaným procesem od objednávky po nasazení. LeadOS backend, CRM, chatbot.", tags: ["Agentura", "CRM", "Chatbot"], color: "from-violet-600 to-indigo-700" },
+              { name: "ONYX OS", repo: "leados", desc: "B2B lead generation platforma s persistentním historickým přehledem, AI-powered icebreakers a dark-mode dashboardem.", tags: ["SaaS", "B2B", "Dashboard"], color: "from-blue-500 to-indigo-600", stars: 1 },
+              { name: "ONYX WEB", repo: "optivio", desc: "Webová agentura s automatizovaným procesem od objednávky po nasazení. ONYX OS backend, CRM, chatbot.", tags: ["Agentura", "CRM", "Chatbot"], color: "from-violet-600 to-indigo-700" },
               { name: "BotHub", repo: "bothub", desc: "Marketplace pro prodej chatbotů s affiliate programem. Premium landing page s pokročilými konverzními prvky.", tags: ["Marketplace", "Affiliate"], color: "from-emerald-500 to-teal-600" },
               { name: "Akční Letenky", repo: "akcni-letenky", desc: "Online travel agency s affiliate systémem pro vyhledávání a prodej leteckých spojení.", tags: ["OTA", "Affiliate", "Travel"], color: "from-sky-500 to-blue-600" },
               { name: "VoxelCraft", repo: "voxelcraft", desc: "Voxelová hra ve stylu Minecraftu přímo v prohlížeči — bez instalace, 3D engine, generování světa, stavění v reálném čase.", tags: ["Hra", "WebGL", "Aplikace"], color: "from-green-600 to-lime-600" },
@@ -1248,7 +1248,7 @@ export default function Home() {
               <div className="flex items-center gap-2 mb-3">
                 <OptivioLogo className="h-8" light />
               </div>
-              <p className="text-sm leading-relaxed">Webová agentura zaměřená na české firmy a živnostníky. Weby, automatizace, LeadOS.</p>
+              <p className="text-sm leading-relaxed">Webová agentura zaměřená na české firmy a živnostníky. Weby, automatizace, ONYX OS.</p>
               <div className="flex gap-3 mt-4">
                 {["LinkedIn", "Facebook", "Instagram"].map(s => (
                   <a key={s} href="#" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center text-xs transition-colors">{s[0]}</a>
@@ -1258,7 +1258,7 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold mb-4 text-sm">Produkty</h4>
               <ul className="space-y-2 text-sm">
-                {["Tvorba webu", "Lead Generation", "Automatizace", "LeadOS SaaS"].map(i => (
+                {["Tvorba webu", "Lead Generation", "Automatizace", "ONYX OS SaaS"].map(i => (
                   <li key={i}><a href="#" className="hover:text-white transition-colors">{i}</a></li>
                 ))}
               </ul>
@@ -1274,7 +1274,7 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold mb-4 text-sm">Kontakt</h4>
               <ul className="space-y-2 text-sm">
-                <li>poptavka@optivio.cz</li>
+                <li>poptavka@onyxweb.cz</li>
                 <li>+420 XXX XXX XXX</li>
                 <li><a href="#" className="hover:text-white transition-colors">Případové studie</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
@@ -1282,7 +1282,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-            <p>© 2026 OPTIVIO. Všechna práva vyhrazena.</p>
+            <p>© 2026 ONYX WEB. Všechna práva vyhrazena.</p>
             <div className="flex gap-6">
               <a href="#" className="hover:text-white transition-colors">Zásady ochrany osobních údajů</a>
               <a href="#" className="hover:text-white transition-colors">Obchodní podmínky</a>

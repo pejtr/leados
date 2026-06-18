@@ -67,7 +67,7 @@ export default function IBotsPage() {
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a href="/agents">
               <Button className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 py-3 rounded-full text-base shadow-[0_0_30px_rgba(245,158,11,0.3)]">
-                Vyzkoušet AI Agenty OPTIVIO <ArrowRight className="w-4 h-4 ml-2" />
+                Vyzkoušet AI Agenty ONYX WEB <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </a>
             <a href="/#pricing">
@@ -198,13 +198,13 @@ export default function IBotsPage() {
             Chcete AI chatboty <span className="text-amber-400">pro váš byznys?</span>
           </h2>
           <p className="text-white/40 mb-8">
-            OPTIVIO integruje tyto AI osobnosti přímo do vašeho webu nebo Telegram kanálu.
+            ONYX WEB integruje tyto AI osobnosti přímo do vašeho webu nebo Telegram kanálu.
             Nastavení za 5 minut, provoz 24/7.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a href="/#pricing">
               <Button className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 py-3 rounded-full">
-                Začít s OPTIVIO →
+                Začít s ONYX WEB →
               </Button>
             </a>
             <a href="/agents">
@@ -217,7 +217,7 @@ export default function IBotsPage() {
       </section>
 
       <footer className="py-8 text-center text-white/20 text-sm border-t border-white/5">
-        © {new Date().getFullYear()} OPTIVIO · <a href="/agents" className="text-violet-400 hover:text-violet-300">AI Agenti</a>
+        © {new Date().getFullYear()} ONYX WEB · <a href="/agents" className="text-violet-400 hover:text-violet-300">AI Agenti</a>
       </footer>
     </div>
   );

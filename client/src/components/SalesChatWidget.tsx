@@ -35,7 +35,7 @@ export function SalesChatWidget() {
       setMessages((prev) => [...prev, { role: "assistant", content: res.content }]);
     },
     onError: () => {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Omlouvám se, zkuste to prosím znovu nebo nám napište na poptavka@optivio.cz." }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "Omlouvám se, zkuste to prosím znovu nebo nám napište na poptavka@onyxweb.cz." }]);
     },
   });
 
@@ -122,7 +122,7 @@ export function SalesChatWidget() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-white/15 backdrop-blur flex items-center justify-center text-lg">💼</div>
                 <div>
-                  <h3 className="text-sm font-bold">Viktor — poradce OPTIVIO</h3>
+                  <h3 className="text-sm font-bold">Viktor — poradce ONYX WEB</h3>
                   <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                     <span className="text-xs text-violet-100">Online · odpovídá ihned</span>

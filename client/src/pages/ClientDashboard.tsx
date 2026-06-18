@@ -98,7 +98,7 @@ export default function ClientDashboard() {
       <div className="bg-white border-b border-slate-200 px-4 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <a href="/" aria-label="OPTIVIO" className="hover:opacity-80 transition-opacity"><OptivioLogo className="h-7" /></a>
+            <a href="/" aria-label="ONYX WEB" className="hover:opacity-80 transition-opacity"><OptivioLogo className="h-7" /></a>
             <span className="text-slate-300">|</span>
             <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
               <LayoutDashboard className="w-4 h-4 text-violet-600" /> ADMIN
