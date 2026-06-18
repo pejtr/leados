@@ -15,6 +15,7 @@ import AgentsHub from "./pages/AgentsHub";
 import IBotsPage from "./pages/IBotsPage";
 import DemoPage from "./pages/DemoPage";
 import DotaznikPage from "./pages/DotaznikPage";
+import AiCorePage from "./pages/AiCorePage";
 import ABTestingDashboard from "./pages/ABTestingDashboard";
 import { useEffect, useState } from "react";
 import { getVariant } from "./lib/ab-test";
@@ -62,6 +63,7 @@ function Router() {
       <Route path="/agents" component={AgentsHub} />
       <Route path="/ibots" component={IBotsPage} />
       <Route path="/demo" component={DemoPage} />
+      <Route path="/ai-core" component={AiCorePage} />
       <Route path="/dotaznik" component={DotaznikPage} />
       <Route path="/ab-testing" component={ABTestingDashboard} />
       <Route path="/404" component={NotFound} />
