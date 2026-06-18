@@ -1,4 +1,4 @@
-# OPTIVIO — Project TODO
+# ONYXO — Project TODO
 
 ## Landing Page Structure
 
@@ -66,7 +66,7 @@
 
 - All content in Czech (Čeština)
 - Pricing: 3 490 Kč, 4 999 Kč, 6 990 Kč, 9 990 Kč (exact)
-- Comparison: OPTIVIO vs. tradiční agentury (20 000+ Kč)
+- Comparison: ONYXO vs. tradiční agentury (20 000+ Kč)
 - LeadOS: B2B SaaS product (Starter 49 USD, Growth 99 USD, Pro 199 USD)
 - Contact form → Owner notification on every submission
 - Elegant, professional, premium feel

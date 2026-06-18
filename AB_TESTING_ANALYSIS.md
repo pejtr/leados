@@ -1,4 +1,4 @@
-# OPTIVIO AB Testing — Analýza & Implementace
+# ONYXO AB Testing — Analýza & Implementace
 
 ## 1. Analýza appstocash.ai + tvých mockupů
 

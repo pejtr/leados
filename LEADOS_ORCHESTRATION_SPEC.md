@@ -1,10 +1,10 @@
-# LeadOS Orchestration Specification — OPTIVIO v1.1+
+# LeadOS Orchestration Specification — ONYXO v1.1+
 
 ## Overview
 
-LeadOS is the **autonomous orchestration hub** for OPTIVIO projects. It centralizes project management, lead generation, email automation, and CRM through Manus API v2.
+LeadOS is the **autonomous orchestration hub** for ONYXO projects. It centralizes project management, lead generation, email automation, and CRM through Manus API v2.
 
-**Goal:** Clients order websites via OPTIVIO, projects are automatically orchestrated through LeadOS, and Heartbeat jobs provide autonomous monitoring and self-healing.
+**Goal:** Clients order websites via ONYXO, projects are automatically orchestrated through LeadOS, and Heartbeat jobs provide autonomous monitoring and self-healing.
 
 ---
 
@@ -12,8 +12,8 @@ LeadOS is the **autonomous orchestration hub** for OPTIVIO projects. It centrali
 
 ### System Components
 
-1. **OPTIVIO Frontend** — Landing page, pricing, contact form, Stripe checkout
-2. **OPTIVIO Backend** — tRPC routers, database (orders, payments, subscriptions)
+1. **ONYXO Frontend** — Landing page, pricing, contact form, Stripe checkout
+2. **ONYXO Backend** — tRPC routers, database (orders, payments, subscriptions)
 3. **LeadOS Control Hub** — Project orchestration, status tracking, lead management
 4. **Heartbeat Jobs** — Autonomous monitoring, alerts, self-healing
 5. **Manus API v2** — Task creation, project management, LLM integration
@@ -21,7 +21,7 @@ LeadOS is the **autonomous orchestration hub** for OPTIVIO projects. It centrali
 ### Data Flow
 
 ```
-Client Order → OPTIVIO Checkout → Order Created → LeadOS Orchestration
+Client Order → ONYXO Checkout → Order Created → LeadOS Orchestration
                                                         ↓
                                                   Create Manus Task
                                                         ↓
@@ -41,7 +41,7 @@ Client Order → OPTIVIO Checkout → Order Created → LeadOS Orchestration
 Add to `drizzle/schema.ts`:
 
 ```typescript
-// Projects table — tracks all OPTIVIO projects orchestrated via LeadOS
+// Projects table — tracks all ONYXO projects orchestrated via LeadOS
 export const projects = sqliteTable('projects', {
   id: text('id').primaryKey().default(sql`(lower(hex(randomblob(8))))`),
   orderId: text('order_id').notNull().references(() => orders.id),
