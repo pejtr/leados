@@ -133,7 +133,7 @@ function ROICalculator({ interval }: { interval: "monthly" | "yearly" }) {
             <span className="text-emerald-400 font-semibold">{monthlyRevenue.toLocaleString()} Kč</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-zinc-400">Náklady na ONYX OS</span>
+            <span className="text-zinc-400">Náklady na Onyx OS</span>
             <span className="text-zinc-300">{planCost.toLocaleString()} Kč/měs</span>
           </div>
           <div className="h-px bg-zinc-700" />
@@ -171,7 +171,7 @@ export default function Billing() {
   const canceled = params.get("canceled");
 
   if (success) {
-    toast.success(t("billing.subscriptionActivated", "Předplatné aktivováno! Vítejte v ONYX OS."));
+    toast.success(t("billing.subscriptionActivated", "Předplatné aktivováno! Vítejte v Onyx OS."));
     refetch();
     navigate("/billing", { replace: true });
   }
@@ -338,7 +338,7 @@ export default function Billing() {
             </ul>
             <Button
               className="w-full gap-2 bg-zinc-700 hover:bg-zinc-600 text-white"
-              onClick={() => window.open("mailto:sales@crmleads.io?subject=ONYX OS Enterprise", "_blank")}
+              onClick={() => window.open("mailto:sales@crmleads.io?subject=Onyx OS Enterprise", "_blank")}
             >
               <Phone className="w-3.5 h-3.5" />
               {t("billing.bookDemo", "Domluvit demo")}
@@ -376,13 +376,13 @@ export default function Billing() {
 
         {/* Competitor Comparison Table */}
         <div>
-          <h2 className="text-lg font-semibold text-white mb-4">{t("billing.comparisonTitle", "ONYX OS vs. konkurence")}</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">{t("billing.comparisonTitle", "Onyx OS vs. konkurence")}</h2>
           <div className="overflow-x-auto rounded-xl border border-zinc-700/50">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-zinc-700/50 bg-zinc-800/50">
                   <th className="text-left py-3 px-4 text-zinc-400 font-medium">{t("billing.feature", "Funkce")}</th>
-                  <th className="text-center py-3 px-4 text-violet-400 font-bold">ONYX OS</th>
+                  <th className="text-center py-3 px-4 text-violet-400 font-bold">Onyx OS</th>
                   <th className="text-center py-3 px-4 text-zinc-400 font-medium">HubSpot</th>
                   <th className="text-center py-3 px-4 text-zinc-400 font-medium">Apollo.io</th>
                   <th className="text-center py-3 px-4 text-zinc-400 font-medium">Salesforce</th>
@@ -422,12 +422,12 @@ export default function Billing() {
         {/* Demo CTA */}
         <div className="p-6 rounded-2xl bg-gradient-to-r from-violet-600/20 to-blue-600/10 border border-violet-500/20 flex flex-col md:flex-row items-center justify-between gap-4">
           <div>
-            <h3 className="text-white font-semibold text-lg">{t("billing.demoTitle", "Chcete vidět ONYX OS v akci?")}</h3>
-            <p className="text-zinc-400 text-sm mt-1">{t("billing.demoSubtitle", "Naplánujte si 30minutové demo s naším týmem a uvidíte, jak ONYX OS transformuje váš B2B pipeline.")}</p>
+            <h3 className="text-white font-semibold text-lg">{t("billing.demoTitle", "Chcete vidět Onyx OS v akci?")}</h3>
+            <p className="text-zinc-400 text-sm mt-1">{t("billing.demoSubtitle", "Naplánujte si 30minutové demo s naším týmem a uvidíte, jak Onyx OS transformuje váš B2B pipeline.")}</p>
           </div>
           <Button
             className="gap-2 bg-violet-600 hover:bg-violet-700 text-white shrink-0"
-            onClick={() => window.open("mailto:sales@crmleads.io?subject=ONYX OS Demo Request", "_blank")}
+            onClick={() => window.open("mailto:sales@crmleads.io?subject=Onyx OS Demo Request", "_blank")}
           >
             {t("billing.bookDemoNow", "Domluvit demo zdarma")}
             <ArrowRight className="w-4 h-4" />

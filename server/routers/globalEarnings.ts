@@ -2,7 +2,7 @@
  * Global Earnings Router
  * Aggregates revenue from all connected projects:
  *  - DeepSleepReset (via Management API — values are in CZK despite "Usd" field names)
- *  - ONYX OS internal (Stripe orders stored in DB, if any)
+ *  - Onyx OS internal (Stripe orders stored in DB, if any)
  *
  * NOTE: DSR API field names contain "Usd" but the actual currency is CZK (czk).
  * The amountUsd / totalRevenueUsd fields store CZK values — no conversion needed.
@@ -81,7 +81,7 @@ export const globalEarningsRouter = router({
     const dsrTotal = kpis ? Math.round(parseFloat(kpis.totalRevenueUsd ?? "0") * 100) : 0;
     const dsrToday = kpis ? Math.round(parseFloat(kpis.todayRevenueUsd ?? "0") * 100) : 0;
     const dsrLast30d = kpis ? Math.round(parseFloat(kpis.last30DaysRevenueUsd ?? "0") * 100) : 0;
-    const projectCount = dsrHeaders() ? 2 : 1; // DSR + ONYX OS
+    const projectCount = dsrHeaders() ? 2 : 1; // DSR + Onyx OS
     return {
       totalRevenueCents: dsrTotal,       // all-time total in haléře (CZK)
       todayRevenueCents: dsrToday,       // today only in haléře (CZK)
@@ -138,10 +138,10 @@ export const globalEarningsRouter = router({
       });
     }
 
-    // ── ONYX OS (placeholder — Stripe revenue from DB can be added here) ──────
+    // ── Onyx OS (placeholder — Stripe revenue from DB can be added here) ──────
     projects.push({
       id: "leadOS",
-      name: "ONYX OS",
+      name: "Onyx OS",
       url: "https://leadOS.manus.space",
       currency: "CZK",
       totalRevenue: 0,
@@ -197,10 +197,10 @@ export const globalEarningsRouter = router({
           lastCheck: new Date().toISOString(),
         });
       }
-      // ONYX OS health (always online)
+      // Onyx OS health (always online)
       projects.push({
         id: "leadOS",
-        name: "ONYX OS",
+        name: "Onyx OS",
         status: "healthy",
         uptime: 99.9,
         lastCheck: new Date().toISOString(),
@@ -246,7 +246,7 @@ export const globalEarningsRouter = router({
         },
         {
           id: "leadOS",
-          name: "ONYX OS CRM",
+          name: "Onyx OS CRM",
           description: "AI Lead Generation SaaS",
           revenue: 0,
           cost: 0,

@@ -30,8 +30,8 @@ export default function AffiliateDashboard() {
   const shareLink = () => {
     if (navigator.share && referralLink) {
       navigator.share({
-        title: "ONYX OS — AI Lead Generation",
-        text: "Zkus ONYX OS — nejlepší AI nástroj pro generování B2B leadů. Získej 20% slevu přes můj referral odkaz.",
+        title: "Onyx OS — AI Lead Generation",
+        text: "Zkus Onyx OS — nejlepší AI nástroj pro generování B2B leadů. Získej 20% slevu přes můj referral odkaz.",
         url: referralLink,
       });
     } else {

@@ -461,12 +461,12 @@ export default function AdCampaigns() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-bold text-foreground">Alpha Case Study: Deep Sleep Reset × ONYX OS</p>
+                  <p className="font-bold text-foreground">Alpha Case Study: Deep Sleep Reset × Onyx OS</p>
                   <Badge className="bg-violet-500/20 text-violet-300 border-violet-500/30 text-xs">LIVE</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground mb-3">
                   $37 digital product · Meta Ads funnel · Email sequences · Affiliate backend. 
-                  Target: 100K+ CZK revenue tracked through ONYX OS ROAS dashboard.
+                  Target: 100K+ CZK revenue tracked through Onyx OS ROAS dashboard.
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                   {[

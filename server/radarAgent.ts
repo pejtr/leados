@@ -54,7 +54,7 @@ export async function fetchRedditPosts(subreddit: string, limit = 25): Promise<R
   if (!sub) return [];
   try {
     const res = await fetch(`https://www.reddit.com/r/${encodeURIComponent(sub)}/new.json?limit=${limit}`, {
-      headers: { "User-Agent": "ONYX OS-Radar/1.0 (signal monitoring)" },
+      headers: { "User-Agent": "Onyx OS-Radar/1.0 (signal monitoring)" },
       signal: AbortSignal.timeout(10000),
     });
     if (!res.ok) return [];

@@ -366,7 +366,7 @@ export default function DeepSleepReset() {
                   DSR Lead Generation Presets
                 </CardTitle>
                 <CardDescription>
-                  Use ONYX OS to find B2B partners, affiliates, and bulk buyers for Deep Sleep Reset.
+                  Use Onyx OS to find B2B partners, affiliates, and bulk buyers for Deep Sleep Reset.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">

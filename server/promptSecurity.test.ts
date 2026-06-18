@@ -273,7 +273,7 @@ describe("End-to-end: simulace prompt injection útoku v chatu", () => {
   });
 
   it("SCÉNÁŘ 5: Hardened system prompt odolá přepsání", () => {
-    const originalPrompt = "You are a B2B sales assistant for ONYX OS.";
+    const originalPrompt = "You are a B2B sales assistant for Onyx OS.";
     const hardened = hardenSystemPrompt(originalPrompt);
     
     // Hardened prompt obsahuje ochranné boundary

@@ -1,6 +1,6 @@
 /**
  * External REST API Endpoints
- * ONYX OS CRM Integration — allows third-party systems to access leads, sequences, and analytics
+ * Onyx OS CRM Integration — allows third-party systems to access leads, sequences, and analytics
  * All endpoints require Bearer token authentication (API key)
  */
 import { Express, Request, Response, NextFunction } from "express";
@@ -248,7 +248,7 @@ export function registerExternalApi(app: Express) {
         method: "POST",
         headers: { "api-key": brevoKey, "Content-Type": "application/json" },
         body: JSON.stringify({
-          sender: { name: senderName || "ONYX OS", email: senderEmail || "noreply@leados.com" },
+          sender: { name: senderName || "Onyx OS", email: senderEmail || "noreply@leados.com" },
           to: Array.isArray(to) ? to : [{ email: to }],
           subject,
           htmlContent: htmlContent || undefined,

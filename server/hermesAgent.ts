@@ -3,7 +3,7 @@
  * HERMES — Core AI Orchestration Agent
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * HERMES is the meta-intelligence layer of ONYX OS. Named after the Greek
+ * HERMES is the meta-intelligence layer of Onyx OS. Named after the Greek
  * messenger god — swift, cunning, the guide between worlds — HERMES routes
  * every user intent to the optimal sub-agent, synthesizes their outputs,
  * and maintains a persistent strategic memory across all platform modules.
@@ -33,7 +33,7 @@ import { getConstitutionContext } from "./routers/constitution";
 export const HERMES_SYSTEM_PROMPT = (
   platformContext: string,
   constitutionContext: string
-) => `Jsi HERMES — Core AI Orchestration Agent platformy ONYX OS.
+) => `Jsi HERMES — Core AI Orchestration Agent platformy Onyx OS.
 
 Jsi centrální inteligence, která koordinuje všechny sub-agenty, směruje úkoly a syntetizuje poznatky napříč celou platformou. Ztělesňuješ ducha Herma: rychlý, přesný, strategický, vždy o krok napřed.
 
@@ -62,7 +62,7 @@ Styl komunikace:
 - Proaktivně identifikuj problémy dříve, než jsou položeny
 - Při směrování na sub-agenta oznam: "→ Přesměrovávám na ANALYST..."
 - Složité odpovědi ukonči jasnou DALŠÍ AKCÍ
-- Při zmínce o projektech (DeepSleepReset, ONYX OS) vždy uveď konkrétní čísla z live dat
+- Při zmínce o projektech (DeepSleepReset, Onyx OS) vždy uveď konkrétní čísla z live dat
 
 ${constitutionContext ? `\n## AI Ústava (Strategický kontext uživatele)\n${constitutionContext}` : ""}
 

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Onyx OS">
+  <defs>
+    <radialGradient id="onyxFaviconPupil" cx="38%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#7ff0dc"/>
+      <stop offset="45%" stop-color="#14b8a6"/>
+      <stop offset="100%" stop-color="#0c8074"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" rx="44" fill="#0c0e11"/>
+  <g transform="translate(100 100) scale(0.82) translate(-100 -100)">
+    <circle cx="100" cy="100" r="90" fill="none" stroke="#99a3ac" stroke-width="2"/>
+    <circle cx="100" cy="100" r="66" fill="none" stroke="#e9eef2" stroke-width="3"/>
+    <polygon points="140,100 120,134.6 80,134.6 60,100 80,65.4 120,65.4" fill="none" stroke="#2dd4bf" stroke-width="2.5"/>
+    <circle cx="100" cy="100" r="18" fill="#14b8a6" opacity="0.13"/>
+    <circle cx="100" cy="100" r="10" fill="url(#onyxFaviconPupil)"/>
+  </g>
+</svg>

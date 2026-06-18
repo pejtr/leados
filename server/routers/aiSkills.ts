@@ -40,7 +40,7 @@ Rules:
     content: `# Daily Lead Audit SOP
 
 ## Step 1: Review New Leads (5 min)
-- Open ONYX OS → History
+- Open Onyx OS → History
 - Filter: created yesterday
 - Check email enrichment status
 - Flag leads with verified emails as priority
@@ -118,7 +118,7 @@ Respond with JSON:
     "due_date": "{{dueDate}}",
     "priority": "{{priority}}"
   },
-  "source": "ONYX OS",
+  "source": "Onyx OS",
   "security": {
     "mode": "draft_only",
     "requires_approval": true

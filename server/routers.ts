@@ -1929,7 +1929,7 @@ Be concise: max 3-4 sentences unless asked for more. Use numbers from stats abov
         const persona = getPersonaById(input.personaId ?? DEFAULT_PERSONA_ID);
         const systemPrompt = persona
           ? persona.systemPrompt(platformContext)
-          : `You are an autonomous AI sales assistant for ONYX OS.${platformContext}`;
+          : `You are an autonomous AI sales assistant for Onyx OS.${platformContext}`;
 
         // Build messages array
         const messages: any[] = [

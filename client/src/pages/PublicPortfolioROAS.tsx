@@ -113,7 +113,7 @@ export default function PublicPortfolioROAS() {
             <div>
               <div className="font-bold text-foreground text-sm">{label}</div>
               <div className="text-xs text-muted-foreground">
-                Vygenerováno: {new Date(generatedAt).toLocaleDateString("cs-CZ")} · ONYX OS
+                Vygenerováno: {new Date(generatedAt).toLocaleDateString("cs-CZ")} · Onyx OS
               </div>
             </div>
           </div>
@@ -253,7 +253,7 @@ export default function PublicPortfolioROAS() {
           <p className="text-xs text-muted-foreground">
             Tento report byl vygenerován platformou{" "}
             <a href="https://crmleadsystem.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-              ONYX OS — crmleadsystem.com
+              Onyx OS — crmleadsystem.com
             </a>
             {" "}· AI-powered B2B Lead Generation & Revenue Analytics
           </p>

@@ -1,8 +1,8 @@
-# ONYX OS — AI Lead Generation & CRM Platform
+# Onyx OS — AI Lead Generation & CRM Platform
 
 ## Project Overview
 
-ONYX OS is a full-stack AI-powered lead generation and sales CRM platform. It generates B2B leads via LinkedIn/Xing scraping (Apify), enriches them with AI icebreakers, and provides a complete sales pipeline with CRM, sequences, analytics, and a multi-agent AI orchestrator (HERMES).
+Onyx OS is a full-stack AI-powered lead generation and sales CRM platform. It generates B2B leads via LinkedIn/Xing scraping (Apify), enriches them with AI icebreakers, and provides a complete sales pipeline with CRM, sequences, analytics, and a multi-agent AI orchestrator (HERMES).
 
 **Primary markets**: Czech Republic, Germany, Austria, Switzerland (DACH). UI languages: CS / EN / DE.
 

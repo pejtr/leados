@@ -160,7 +160,7 @@ async function sendToSlack(
         type: "header",
         text: {
           type: "plain_text",
-          text: `🎯 ONYX OS: ${payload.event}`,
+          text: `🎯 Onyx OS: ${payload.event}`,
         },
       },
       {

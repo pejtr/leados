@@ -1232,7 +1232,7 @@ export const ingestedLeads = mysqlTable("ingested_leads", {
   userAgent: text("user_agent"),
   extraData: json("extra_data").$type<Record<string, any>>(),
   status: mysqlEnum("status", ["new", "contacted", "qualified", "disqualified"]).default("new").notNull(),
-  assignedUserId: int("assigned_user_id"),  // ONYX OS user who owns this lead
+  assignedUserId: int("assigned_user_id"),  // Onyx OS user who owns this lead
   notes: text("notes"),
   createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
   updatedAt: bigint("updated_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),
@@ -1304,7 +1304,7 @@ export const roiAuditSessions = mysqlTable("roi_audit_sessions", {
 export type RoiAuditSession = typeof roiAuditSessions.$inferSelect;
 export type InsertRoiAuditSession = typeof roiAuditSessions.$inferInsert;
 
-// ─── API Keys Management (ONYX OS CRM Integration) ─────────────────────────────
+// ─── API Keys Management (Onyx OS CRM Integration) ─────────────────────────────
 export const apiKeys = mysqlTable("api_keys", {
   id: int("id").primaryKey().autoincrement(),
   userId: int("user_id").notNull(),

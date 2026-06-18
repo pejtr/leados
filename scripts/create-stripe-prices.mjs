@@ -9,21 +9,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const PLANS = [
   {
     key: "starter",
-    name: "ONYX OS — Starter",
+    name: "Onyx OS — Starter",
     description: "Perfect for solo founders and small sales teams. 500 leads/month, AI icebreakers, email verification.",
     monthly: 4900,   // $49/month
     yearly: 39000,   // $390/year
   },
   {
     key: "growth",
-    name: "ONYX OS — Growth",
+    name: "Onyx OS — Growth",
     description: "For growing sales teams. 2,500 leads/month, AI SDR Agent, email sequences, market intelligence.",
     monthly: 9900,   // $99/month
     yearly: 79000,   // $790/year
   },
   {
     key: "pro",
-    name: "ONYX OS — Pro",
+    name: "Onyx OS — Pro",
     description: "For agencies and enterprise teams. Unlimited leads, all AI features, agency panel, priority support.",
     monthly: 24900,  // $249/month
     yearly: 199000,  // $1990/year

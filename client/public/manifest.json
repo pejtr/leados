@@ -1,7 +1,7 @@
 {
-  "name": "ONYX OS — AI Lead Generation",
-  "short_name": "ONYX OS",
-  "description": "B2B AI-powered lead generation CRM platform with HERMES AI agent",
+  "name": "Onyx OS — AI Lead-Gen · CRM · Autonomous System",
+  "short_name": "Onyx OS",
+  "description": "Onyx OS — autonomní AI systém pro B2B lead generation, CRM pipeline a marketing, řízený orchestrátory HERMES a HERA.",
   "start_url": "/dashboard",
   "display": "standalone",
   "orientation": "any",

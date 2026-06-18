@@ -1,6 +1,6 @@
-# ONYX OS — AI Lead Generation & CRM Automation Platform
+# Onyx OS — AI Lead Generation & CRM Automation Platform
 
-**ONYX OS** je komplexní platforma pro automatizovanou generaci B2B leadů, jejich kvalifikaci a správu prodejního pipeline pomocí AI agentů. Kombinuje nejnovější technologie v oblasti AI orchestrace, real-time data processing a bezpečné integrace s externími systémy.
+**Onyx OS** je komplexní platforma pro automatizovanou generaci B2B leadů, jejich kvalifikaci a správu prodejního pipeline pomocí AI agentů. Kombinuje nejnovější technologie v oblasti AI orchestrace, real-time data processing a bezpečné integrace s externími systémy.
 
 ## 🎯 Klíčové Vlastnosti
 
@@ -238,7 +238,7 @@ Uzavřen (Automatická fakturace)
 
 ### Webhook Integrations
 ```
-ONYX OS → n8n Security Gateway → Schválení → CRM/ERP/Slack
+Onyx OS → n8n Security Gateway → Schválení → CRM/ERP/Slack
 ```
 
 ## 🧪 Testing
@@ -357,7 +357,7 @@ curl -X POST https://hooks.zapier.com/... -H "Content-Type: application/json" -d
 
 ## 📄 License
 
-Proprietary — ONYX OS Platform © 2026
+Proprietary — Onyx OS Platform © 2026
 
 ## 🚀 Roadmap
 

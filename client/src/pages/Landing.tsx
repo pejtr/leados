@@ -265,7 +265,7 @@ export default function Landing() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   useEffect(() => {
-    document.title = "ONYX OS — AI-Powered B2B Lead Generation Platform";
+    document.title = "Onyx OS — AI-Powered B2B Lead Generation Platform";
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
@@ -512,12 +512,12 @@ export default function Landing() {
               className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.05] mb-6"
               style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
               Lead<span style={{ background: `linear-gradient(135deg, ${C.indigo} 0%, ${C.teal} 60%, ${C.green} 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>OS</span><br />
-              <span style={{ color: C.textMuted, fontSize: "0.58em", fontWeight: 600 }}>ONYX OS</span>
+              <span style={{ color: C.textMuted, fontSize: "0.58em", fontWeight: 600 }}>Onyx OS</span>
             </motion.h1>
 
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
               className="text-lg sm:text-xl max-w-xl mb-10 leading-relaxed" style={{ color: C.textMuted }}>
-              {t("landing.heroSubtitle") || "ONYX OS finds, enriches, and personalizes outreach to your ideal B2B customers — fully automated, GDPR compliant, and ready in minutes."}
+              {t("landing.heroSubtitle") || "Onyx OS finds, enriches, and personalizes outreach to your ideal B2B customers — fully automated, GDPR compliant, and ready in minutes."}
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}
@@ -693,7 +693,7 @@ export default function Landing() {
                 <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Every Industry</span>
               </h2>
               <p className="text-lg max-w-2xl mx-auto" style={{ color: C.textMuted }}>
-                Filter by your industry to see how ONYX OS performs for businesses like yours.
+                Filter by your industry to see how Onyx OS performs for businesses like yours.
               </p>
             </div>
           </Reveal>
@@ -712,10 +712,10 @@ export default function Landing() {
               </Badge>
               <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
                 What Makes a{" "}
-                <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ONYX OS Lead?</span>
+                <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Onyx OS Lead?</span>
               </h2>
               <p className="text-lg max-w-2xl mx-auto" style={{ color: C.textMuted }}>
-                Not all leads are equal. ONYX OS only delivers leads that meet strict quality criteria — so your sales team spends time closing, not chasing.
+                Not all leads are equal. Onyx OS only delivers leads that meet strict quality criteria — so your sales team spends time closing, not chasing.
               </p>
             </div>
           </Reveal>
@@ -755,7 +755,7 @@ export default function Landing() {
                   <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full" style={{ background: C.green }} />
-                      <span className="text-xs font-semibold" style={{ color: C.textMuted }}>ONYX OS Quality Report</span>
+                      <span className="text-xs font-semibold" style={{ color: C.textMuted }}>Onyx OS Quality Report</span>
                     </div>
                     <div className="text-xs px-2.5 py-1 rounded-full font-bold"
                       style={{ background: `${C.green}14`, color: C.green, border: `1px solid ${C.green}28` }}>
@@ -935,9 +935,9 @@ export default function Landing() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {[
-              { name: "Tomáš Novotný", role: "VP Sales, Pražský SaaS s.r.o.", flag: "CZ", text: "ONYX OS ztrojnásobil naši outbound pipeline za 3 týdny. Soulad s GDPR byl klíčový pro naše enterprise klienty.", metric: "3× Pipeline", metricLabel: "za 3 týdny" },
+              { name: "Tomáš Novotný", role: "VP Sales, Pražský SaaS s.r.o.", flag: "CZ", text: "Onyx OS ztrojnásobil naši outbound pipeline za 3 týdny. Soulad s GDPR byl klíčový pro naše enterprise klienty.", metric: "3× Pipeline", metricLabel: "za 3 týdny" },
               { name: "Jana Horáková", role: "Head of BD, Brno Consulting s.r.o.", flag: "CZ", text: "Integrace s LinkedIn je zlatá. 80% našich cílových zákazníků je aktivnějších na LinkedIn než kdekoliv jinde.", metric: "80% leadů", metricLabel: "přes LinkedIn" },
-              { name: "Marek Zimmermann", role: "CEO, Praha FinTech Startup", flag: "CZ", text: "Uzavřeli jsme 3 enterprise obchody v prvním měsíci s ONYX OS. ROI byl pozitivní hned od začátku.", metric: "3 Enterprise", metricLabel: "1. měsíc" },
+              { name: "Marek Zimmermann", role: "CEO, Praha FinTech Startup", flag: "CZ", text: "Uzavřeli jsme 3 enterprise obchody v prvním měsíci s Onyx OS. ROI byl pozitivní hned od začátku.", metric: "3 Enterprise", metricLabel: "1. měsíc" },
             ].map(({ name, role, flag, text, metric, metricLabel }) => (
               <Reveal key={name}>
                 <div className="p-5 rounded-2xl h-full flex flex-col" style={{ background: C.bgCard, border: `1px solid ${C.border}`, boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
@@ -987,7 +987,7 @@ export default function Landing() {
             <div className="text-center mb-12">
               <Badge className="mb-4 text-xs px-3 py-1" style={{ background: `${C.amber}12`, border: `1px solid ${C.amber}30`, color: "#d97706" }}>Před / Po</Badge>
               <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>Od chaosu v Excelu k AI pipeline</h2>
-              <p className="text-lg" style={{ color: C.textMuted }}>Podívejte se, co přesně se změní, když nahradíte ruční vyhledávání automatizací ONYX OS.</p>
+              <p className="text-lg" style={{ color: C.textMuted }}>Podívejte se, co přesně se změní, když nahradíte ruční vyhledávání automatizací Onyx OS.</p>
             </div>
           </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1024,7 +1024,7 @@ export default function Landing() {
                   <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${C.teal}20` }}>
                     <Rocket className="w-4 h-4" style={{ color: C.teal }} />
                   </div>
-                  <span className="font-bold text-sm" style={{ color: C.tealDark }}>PO — ONYX OS AI automatizace</span>
+                  <span className="font-bold text-sm" style={{ color: C.tealDark }}>PO — Onyx OS AI automatizace</span>
                 </div>
                 <ul className="space-y-3">
                   {[
@@ -1033,7 +1033,7 @@ export default function Landing() {
                     "✉️ Personalizované icebreakery s 28% mírou odpovědí",
                     "📈 AI skórování leadů — oslovujte jen zájemce se skóre 90+",
                     "⚡ O 80% méně času na průzkum — soustřeďte se na uzavírání",
-                    "💰 ROI: 1 uzavřený obchod zaplatí 12 měsíců ONYX OS",
+                    "💰 ROI: 1 uzavřený obchod zaplatí 12 měsíců Onyx OS",
                   ].map(item => (
                     <li key={item} className="flex items-start gap-2 text-sm" style={{ color: C.text }}>
                       <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: C.teal }} />
@@ -1047,7 +1047,7 @@ export default function Landing() {
           {/* ROI Calculator teaser */}
           <Reveal delay={0.2}>
             <div className="mt-8 p-5 rounded-2xl text-center" style={{ background: `linear-gradient(135deg, ${C.indigo}08, ${C.teal}06)`, border: `1px solid ${C.indigo}20` }}>
-              <p className="text-sm font-medium mb-1" style={{ color: C.text }}>💡 Rychlý ROI: Pokud je vaše průměrná zakázka <strong>150 000 Kč</strong> a ONYX OS vám pomůže uzavřít jen <strong>1 obchod navíc/měsíc</strong></p>
+              <p className="text-sm font-medium mb-1" style={{ color: C.text }}>💡 Rychlý ROI: Pokud je vaše průměrná zakázka <strong>150 000 Kč</strong> a Onyx OS vám pomůže uzavřít jen <strong>1 obchod navíc/měsíc</strong></p>
               <p className="text-2xl font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>To je 1 800 000 Kč/rok ROI za nástroj za 3 700 Kč/měsíc.</p>
             </div>
           </Reveal>
@@ -1260,7 +1260,7 @@ export default function Landing() {
                     <tr style={{ background: `${C.indigo}08`, borderBottom: `1px solid ${C.border}` }}>
                       <th className="text-left px-5 py-4 font-semibold" style={{ color: C.textMuted, width: "28%" }}>{t("landing.compFeature")}</th>
                       <th className="px-5 py-4 font-bold text-center" style={{ background: `${C.indigo}06` }}>
-                        <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Space Grotesk', sans-serif" }}>ONYX OS</span>
+                        <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "'Space Grotesk', sans-serif" }}>Onyx OS</span>
                       </th>
                       <th className="px-5 py-4 font-semibold text-center" style={{ color: C.textMuted }}>HubSpot</th>
                       <th className="px-5 py-4 font-semibold text-center" style={{ color: C.textMuted }}>Apollo.io</th>
@@ -1361,13 +1361,13 @@ export default function Landing() {
               style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})` }}>
               <Zap className="w-3.5 h-3.5 text-white" />
             </div>
-            <span className="font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>ONYX OS</span>
+            <span className="font-bold" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>Onyx OS</span>
           </div>
           <div className="flex items-center gap-6 text-sm" style={{ color: C.textMuted }}>
             <a href="#features" className="hover:text-indigo-600 transition-colors">{t("nav.features")}</a>
             <a href="#case-studies" className="hover:text-indigo-600 transition-colors">{t("nav.results")}</a>
             <a href="#pricing" className="hover:text-indigo-600 transition-colors">{t("nav.pricing")}</a>
-            <span>© 2026 ONYX OS</span>
+            <span>© 2026 Onyx OS</span>
           </div>
           <div className="flex items-center gap-3 text-xs" style={{ color: C.textLight }}>
             <Shield className="w-3.5 h-3.5" style={{ color: C.green }} />

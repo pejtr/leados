@@ -626,7 +626,7 @@ export default function AIConstitution() {
           <Textarea
             value={form.customContext}
             onChange={(e) => set("customContext")(e.target.value)}
-            placeholder={`Examples:\n- Always write in Czech when the lead is from Czech Republic or Slovakia\n- Never mention pricing in first outreach\n- Focus on ROI and time savings in all messaging\n- Our main product is ONYX OS — always reference it by name`}
+            placeholder={`Examples:\n- Always write in Czech when the lead is from Czech Republic or Slovakia\n- Never mention pricing in first outreach\n- Focus on ROI and time savings in all messaging\n- Our main product is Onyx OS — always reference it by name`}
             rows={5}
             className="border-[#E2E8F0] focus:border-[#6B4FE8] resize-none font-mono text-sm"
           />

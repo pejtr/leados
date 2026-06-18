@@ -1,6 +1,6 @@
-# ONYX OS — Deployment Guide
+# Onyx OS — Deployment Guide
 
-**Cíl:** Nasadit ONYX OS na produkční server s maximální bezpečností, výkonem a spolehlivostí.
+**Cíl:** Nasadit Onyx OS na produkční server s maximální bezpečností, výkonem a spolehlivostí.
 
 ---
 
@@ -301,7 +301,7 @@ jobs:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
           payload: |
             {
-              "text": "ONYX OS deployed to production ✅"
+              "text": "Onyx OS deployed to production ✅"
             }
 ```
 

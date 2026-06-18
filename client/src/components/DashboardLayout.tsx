@@ -1,5 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Logo } from "@/components/Logo";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -189,11 +190,7 @@ function MacMenuBar({ user, logout, onAppsClick }: { user: any; logout: () => vo
           style={{ color: "oklch(0.82 0.012 240)", fontFamily: "'Space Grotesk', sans-serif" }}
           onMouseEnter={e => (e.currentTarget.style.background = "oklch(0.55 0.20 192 / 10%)")}
           onMouseLeave={e => (e.currentTarget.style.background = "")}>
-          <div className="h-4 w-4 rounded flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220))" }}>
-            <Zap className="h-2.5 w-2.5 text-white" />
-          </div>
-          Lead<span style={{ color: "oklch(0.50 0.22 192)" }}>OS</span>
+          <Logo variant="lockup" size={17} theme="dark" />
         </button>
 
         {/* Live earnings pill */}
