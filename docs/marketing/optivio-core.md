@@ -1,6 +1,6 @@
-# ONYXO AI Core — prezentační podklad
+# ONYX WEB AI Core — prezentační podklad
 
-Zdroj: infografika „ONYXO AI CORE" (zlato-modrý vizuál, egyptský motiv).
+Zdroj: infografika „ONYX WEB AI CORE" (zlato-modrý vizuál, egyptský motiv).
 Webová verze: sekce `#core` na landing page ([Home.tsx](../../client/src/pages/Home.tsx)).
 
 > Originální PNG infografiky ulož do `docs/marketing/assets/optivio-core.png`
@@ -8,7 +8,7 @@ Webová verze: sekce `#core` na landing page ([Home.tsx](../../client/src/pages/
 
 ## Klíčové sdělení
 
-**ONYXO Core** — jeden centrální systém: booking · CRM · data · automatizace · MCP/API.
+**ONYX WEB Core** — jeden centrální systém: booking · CRM · data · automatizace · MCP/API.
 
 | Pilíř | Popis |
 |---|---|
@@ -32,20 +32,20 @@ Vlastní aukční platforma pro galerie, aukce a distribuci uměleckých děl, n
 
 Pilíře: **Aukční engine** (příhozy, limity, dražby v reálném čase) · **Distribuce & marketplace** (jedno dílo na více trzích) · **Data & historie** (provenience, výsledky, cenové trendy) · **Důvěra & autenticita** (ověření děl, transparentní záznamy).
 
-Tagline use-case: „ONYXO propojuje salon s trhem umění."
+Tagline use-case: „ONYX WEB propojuje salon s trhem umění."
 
 ## Vizuální motivy infografik
 
 1. **Robot + pyramidy** (zlato-modrá, egyptský motiv) — původní verze.
 2. **Thoth** (bůh písma s tabletem, zlatá zbroj) — silnější varianta; slogan „Jedna inteligentní platforma. Nekonečné možnosti." + benefity: Jeden zdroj pravdy, Vyšší konverze, Data jako aktivum, Bezpečí & důvěra (audit logy, provenance).
 
-## LEADOS — domény a kanálová strategie
+## ONYX OS — domény a kanálová strategie
 
 Dostupné domény: crmleadsystem.cz / .com (+www), ai-lead-generation.com, ai-lead-gen.com.
 
 **Pozicování dle kanálu:**
-- **Sklik/Seznam (čeští podnikatelé)** → vést na *crmleadsystem.cz*. Jazyk: „CRM systém", „přehled o zákaznících", „víc poptávek bez práce navíc". Bez tech žargonu — ONYXO jako expert, který dodává hotovou službu.
-- **LinkedIn (B2B, agentury, SaaS)** → *ai-lead-generation.com* nebo ONYXO AI Core. Jazyk: outcomes — „−70 % času na rutině", „LTV insights", „AI asistenti v platformě".
+- **Sklik/Seznam (čeští podnikatelé)** → vést na *crmleadsystem.cz*. Jazyk: „CRM systém", „přehled o zákaznících", „víc poptávek bez práce navíc". Bez tech žargonu — ONYX WEB jako expert, který dodává hotovou službu.
+- **LinkedIn (B2B, agentury, SaaS)** → *ai-lead-generation.com* nebo ONYX WEB AI Core. Jazyk: outcomes — „−70 % času na rutině", „LTV insights", „AI asistenti v platformě".
 - Silné slovo pro CZ trh: **„CRM systém"** (vyhledávané, srozumitelné). „Lead generation" funguje jen na LinkedIn/EN publikum.
 
 ## Slogany
@@ -56,12 +56,12 @@ Dostupné domény: crmleadsystem.cz / .com (+www), ai-lead-generation.com, ai-le
 
 ## Tarif AI Core
 
-Funkce běží na platformě **LeadOS** (interně), navenek prodáváno jako tarif **AI Core**.
+Funkce běží na platformě **ONYX OS** (interně), navenek prodáváno jako tarif **AI Core**.
 
 | Položka | Cena |
 |---|---|
 | Zavedení na míru | od 14 990 Kč jednorázově |
-| Provoz (vše v ceně) | 990 Kč/měs |
+| Provoz (vše v ceně) | 999 Kč/měs |
 | Napojené moduly | 2 v ceně, další +290 Kč/měs |
 
 V ceně provozu: booking + správa kapacit, CRM 360°, data/reporting/predikce, asistenti (obsah, kampaně, rutina), MCP/API napojení, zálohy a podpora.

@@ -55,7 +55,7 @@ const STEPS = [
 ];
 
 const COMPARISON = [
-  { label: "Cena za provoz", core: "990 Kč/měs — vše v ceně", box: "Základ + příplatky 800–1 500 Kč", agency: "Desítky tisíc / měs" },
+  { label: "Cena za provoz", core: "999 Kč/měs — vše v ceně", box: "Základ + příplatky 800–1 500 Kč", agency: "Desítky tisíc / měs" },
   { label: "Booking + CRM + marketing pohromadě", core: true, box: false, agency: "Záleží na dodavateli" },
   { label: "Tým asistentů (obsah, kampaně)", core: true, box: false, agency: "Za příplatek" },
   { label: "Nastavení za vás", core: true, box: "Většinou svépomocí", agency: true },
@@ -81,7 +81,7 @@ const CASES = [
 ];
 
 const FAQS = [
-  { q: "Je to opravdu vše v ceně?", a: "Ano. V provozu 990 Kč/měs je booking, CRM, data, asistenti i podpora. 2 moduly máte v ceně, každý další je +290 Kč/měs. Žádné skryté příplatky za základní funkce." },
+  { q: "Je to opravdu vše v ceně?", a: "Ano. V provozu 999 Kč/měs je booking, CRM, data, asistenti i podpora. 2 moduly máte v ceně, každý další je +290 Kč/měs. Žádné skryté příplatky za základní funkce." },
   { q: "Co když už mám web?", a: "Není problém. AI Core umíme napojit na váš stávající web a nástroje přes MCP/API, nebo vám postavíme nový — podle toho, co dává smysl." },
   { q: "Musím něco programovat nebo nastavovat?", a: "Ne. Zavedení děláme my za vás na míru. Vy popíšete, co potřebujete, a systém dostanete připravený k používání." },
   { q: "Jak dlouho trvá zavedení?", a: "Základní nasazení obvykle 1–2 týdny podle rozsahu. Konzultace a návrh plánu jsou zdarma a nezávazné." },
@@ -129,7 +129,7 @@ export default function AiCorePage() {
             <span className="text-amber-300">běží sám.</span> Vy jen řídíte směr.
           </h1>
           <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-9 leading-relaxed">
-            ONYXO <span className="text-white font-semibold">AI Core</span> spojí rezervace, CRM, e-shop, kampaně a tým asistentů
+            ONYX WEB <span className="text-white font-semibold">AI Core</span> spojí rezervace, CRM, e-shop, kampaně a tým asistentů
             do jednoho systému — místo abyste platili a propojovali deset různých nástrojů.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
@@ -145,7 +145,7 @@ export default function AiCorePage() {
             </a>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/50">
-            <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-400" /> 990 Kč/měs — vše v ceně</span>
+            <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-400" /> 999 Kč/měs — vše v ceně</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-400" /> 14 dní zdarma, bez karty</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-400" /> Bez dlouhých závazků</span>
           </div>
@@ -191,7 +191,7 @@ export default function AiCorePage() {
               Řešení
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">
-              ONYXO <span className="text-amber-300">AI Core</span> — vše v jednom
+              ONYX WEB <span className="text-amber-300">AI Core</span> — vše v jednom
             </h2>
             <p className="text-white/50 max-w-xl mx-auto">Pět pilířů, jedna platforma, jeden zdroj pravdy o vašem byznysu.</p>
           </div>
@@ -284,7 +284,7 @@ export default function AiCorePage() {
                 <tr>
                   <th className="text-left p-4 text-white/40 font-medium"></th>
                   <th className="p-4 text-center rounded-t-2xl bg-amber-400/10 border-x border-t border-amber-400/30">
-                    <span className="text-amber-300 font-extrabold text-base">ONYXO AI Core</span>
+                    <span className="text-amber-300 font-extrabold text-base">ONYX WEB AI Core</span>
                   </th>
                   <th className="p-4 text-center text-white/60 font-semibold">Krabicová platforma</th>
                   <th className="p-4 text-center text-white/60 font-semibold">Agentura / freelancer</th>
@@ -324,7 +324,7 @@ export default function AiCorePage() {
               <div className="hidden sm:block w-px bg-white/10" />
               <div className="flex-1">
                 <p className="text-white/50 text-sm mb-1">Provoz — vše v ceně</p>
-                <p className="text-3xl font-extrabold text-amber-300">990 <span className="text-base font-medium text-white/50">Kč/měs</span></p>
+                <p className="text-3xl font-extrabold text-amber-300">999 <span className="text-base font-medium text-white/50">Kč/měs</span></p>
                 <p className="text-xs text-white/40 mt-1">2 moduly v ceně, další +290 Kč/měs</p>
               </div>
             </div>
@@ -449,7 +449,7 @@ export default function AiCorePage() {
       {/* ── FOOTER ── */}
       <footer className="py-8 bg-[#060912] border-t border-white/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
-          <p>© 2026 ONYXO. Všechna práva vyhrazena.</p>
+          <p>© 2026 ONYX WEB. Všechna práva vyhrazena.</p>
           <div className="flex gap-5">
             <a href="/" className="hover:text-white transition-colors">Domů</a>
             <a href="/demo" className="hover:text-white transition-colors">Ukázky</a>

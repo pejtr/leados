@@ -853,7 +853,7 @@ export default function DemoPage() {
                   <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
                   <span className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
                   <div className="flex-1 ml-2 bg-white/8 rounded-full h-4 flex items-center justify-center">
-                    <span className="text-[9px] text-white/25 tracking-wide">optivio.cz/{t.id}</span>
+                    <span className="text-[9px] text-white/25 tracking-wide">onyxweb.cz/{t.id}</span>
                   </div>
                 </div>
                 {/* Template preview */}
@@ -908,7 +908,7 @@ export default function DemoPage() {
       </section>
 
       <footer className="py-8 text-center text-white/20 text-sm border-t border-white/5">
-        © {new Date().getFullYear()} ONYXO · <a href="/" className="hover:text-white/40">Domů</a> · <a href="/agents" className="text-violet-400 hover:text-violet-300">Asistenti</a>
+        © {new Date().getFullYear()} ONYX WEB · <a href="/" className="hover:text-white/40">Domů</a> · <a href="/agents" className="text-violet-400 hover:text-violet-300">Asistenti</a>
       </footer>
 
       {/* Online advisor — pomáhá vybrat šablonu a odpovídá na dotazy */}

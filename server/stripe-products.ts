@@ -1,9 +1,9 @@
 /**
  * Stripe Products Configuration
- * Define all products and prices for ONYXO services
+ * Define all products and prices for ONYX WEB services
  */
 
-export const ONYXO_PRODUCTS = {
+export const OPTIVIO_PRODUCTS = {
   // Web packages
   LITE_WEB: {
     name: "Lite Web",
@@ -19,7 +19,7 @@ export const ONYXO_PRODUCTS = {
   },
   WEB_LEAD_GEN: {
     name: "Web + Lead Gen",
-    description: "Web s integrací LeadOS",
+    description: "Web s integrací ONYX OS",
     priceInCzk: 6990,
     depositPercentage: 30,
   },

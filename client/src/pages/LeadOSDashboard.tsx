@@ -45,7 +45,7 @@ const mockProjects = [
     status: "in_progress",
     completionPercentage: 65,
     deadline: Date.now() + 5 * 24 * 60 * 60 * 1000,
-    assignedTo: "team@optivio.cz",
+    assignedTo: "team@onyxweb.cz",
   },
   {
     id: "proj_002",
@@ -63,7 +63,7 @@ const mockProjects = [
     status: "completed",
     completionPercentage: 100,
     deadline: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    assignedTo: "team@optivio.cz",
+    assignedTo: "team@onyxweb.cz",
   },
 ];
 
@@ -138,7 +138,7 @@ export default function LeadOSDashboard() {
                 <Cpu className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">LeadOS Control Hub</h1>
+                <h1 className="text-lg font-bold text-gray-900">ONYX OS Control Hub</h1>
                 <p className="text-xs text-gray-500">Autonomní orchestrace projektů</p>
               </div>
             </div>

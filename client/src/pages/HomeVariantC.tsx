@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Menu, X, Shield, Zap, Users } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
+import { OptivioLogo } from "@/components/OptivioLogo";
 
 export default function HomeVariantC() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -58,7 +59,7 @@ export default function HomeVariantC() {
       }`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/manus-storage/optivio-logo_d4a4757c.png" alt="ONYXO" className="h-8" />
+            <OptivioLogo className="h-8" />
           </div>
           <div className="hidden md:flex gap-8">
             <a href="#comparison" className="text-sm font-medium hover:text-emerald-600 transition">Porovnání</a>
@@ -111,13 +112,13 @@ export default function HomeVariantC() {
       {/* Comparison Table */}
       <section id="comparison" className="py-20 px-4 bg-white">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold mb-12 text-center">Proč ONYXO?</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center">Proč ONYX WEB?</h2>
           <div className="overflow-x-auto rounded-lg border border-slate-200">
             <table className="w-full">
               <thead>
                 <tr className="bg-emerald-50 border-b border-slate-200">
                   <th className="text-left py-4 px-6 font-bold">Kritérium</th>
-                  <th className="text-center py-4 px-6 font-bold text-emerald-600">ONYXO</th>
+                  <th className="text-center py-4 px-6 font-bold text-emerald-600">ONYX WEB</th>
                   <th className="text-center py-4 px-6 font-bold text-slate-400">Tradiční agentura</th>
                 </tr>
               </thead>
@@ -216,7 +217,7 @@ export default function HomeVariantC() {
       {/* Footer */}
       <footer className="bg-slate-900 text-white/60 py-12">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="mb-4">© 2026 ONYXO. Všechna práva vyhrazena.</p>
+          <p className="mb-4">© 2026 ONYX WEB. Všechna práva vyhrazena.</p>
           <div className="flex justify-center gap-6">
             <a href="#" className="hover:text-white transition">Zásady ochrany</a>
             <a href="#" className="hover:text-white transition">Obchodní podmínky</a>
