@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { OptivioLogo } from "@/components/OptivioLogo";
+import { OnyxWebLogo } from "@/components/OnyxWebLogo";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ export default function WebLandingPage() {
       {/* ── NAV ── */}
       <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="/"><OptivioLogo className="h-8" /></a>
+          <a href="/"><OnyxWebLogo className="h-8" /></a>
           <a href="#poptavka">
             <Button className="bg-violet-600 hover:bg-violet-700 text-white rounded-full text-sm font-semibold px-5">
               Chci web

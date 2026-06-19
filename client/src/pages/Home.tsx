@@ -8,7 +8,7 @@ import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, S
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
-import { OptivioLogo } from "@/components/OptivioLogo";
+import { OnyxWebLogo } from "@/components/OnyxWebLogo";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -144,7 +144,7 @@ export default function Home() {
       {/* ── NAV ── */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#1a0a3c]/95 backdrop-blur-md shadow-lg" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a href="/" aria-label="ONYX WEB"><OptivioLogo className="h-9" light /></a>
+          <a href="/" aria-label="ONYX WEB"><OnyxWebLogo className="h-9" light /></a>
           <div className="hidden md:flex items-center gap-8">
             {["Řešení", "Ceny", "Případové studie", "O nás"].map(item => (
               <a key={item} href={`#${item === "Ceny" ? "pricing" : item === "Případové studie" ? "cases" : item === "Řešení" ? "niche" : "contact"}`}
@@ -1246,7 +1246,7 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-10">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <OptivioLogo className="h-8" light />
+                <OnyxWebLogo className="h-8" light />
               </div>
               <p className="text-sm leading-relaxed">Webová agentura zaměřená na české firmy a živnostníky. Weby, automatizace, ONYX OS.</p>
               <div className="flex gap-3 mt-4">

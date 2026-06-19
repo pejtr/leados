@@ -1,8 +1,8 @@
 // Hlavní logo ONYX WEB — faceted onyx-gem mark (vektorová rekonstrukce brand assetu).
-// Pozn.: komponenta i soubor si zatím drží legacy název `OptivioLogo` kvůli importům
+// Pozn.: komponenta i soubor si zatím drží legacy název `OnyxWebLogo` kvůli importům
 // napříč ~15 soubory — přejmenování identifikátoru je samostatný pozdější krok.
 // `light` přepíná wordmark do bílé pro tmavá pozadí.
-export function OptivioLogo({
+export function OnyxWebLogo({
   className = "h-8",
   light = false,
   withWordmark = true,

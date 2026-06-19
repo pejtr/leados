@@ -49,7 +49,7 @@ export function TechSupportWidget() {
     const updated = [...messages, { role: "user" as const, content: trimmed }];
     setMessages(updated);
     setInput("");
-    chatMutation.mutate({ conversationId, personaId: "optivio-support", messages: updated });
+    chatMutation.mutate({ conversationId, personaId: "onyxweb-support", messages: updated });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

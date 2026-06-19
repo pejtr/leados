@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Menu, X, Shield, Zap, Users } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { OptivioLogo } from "@/components/OptivioLogo";
+import { OnyxWebLogo } from "@/components/OnyxWebLogo";
 
 export default function HomeVariantC() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -59,7 +59,7 @@ export default function HomeVariantC() {
       }`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <OptivioLogo className="h-8" />
+            <OnyxWebLogo className="h-8" />
           </div>
           <div className="hidden md:flex gap-8">
             <a href="#comparison" className="text-sm font-medium hover:text-emerald-600 transition">Porovnání</a>

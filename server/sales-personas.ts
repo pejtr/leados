@@ -2,7 +2,7 @@
  * Sales Personas Library — inspirováno BotHub iBots
  *
  * Dvě použití:
- *  1. Customer-facing prodejní chatbot na landing page (persona "optivio-sales")
+ *  1. Customer-facing prodejní chatbot na landing page (persona "onyxweb-sales")
  *  2. Persona agenti v AI Agents Hubu — prodejní kouči, se kterými uživatel chatuje
  *
  * Každá persona má bohatý system prompt v duchu dané osobnosti.
@@ -10,7 +10,7 @@
 
 import type { BrandMemory } from "../drizzle/schema";
 
-export type PersonaCategory = "sales" | "marketing" | "persuasion" | "closing" | "optivio";
+export type PersonaCategory = "sales" | "marketing" | "persuasion" | "closing" | "onyxweb";
 
 export type SalesPersona = {
   id: string;
@@ -34,7 +34,7 @@ export type SalesPersona = {
 
 // ─── ONYX WEB znalostní báze (sdílená pro customer-facing bota) ──────────────────
 
-export const OPTIVIO_KNOWLEDGE = `ZNALOSTI O ONYX WEB:
+export const ONYXWEB_KNOWLEDGE = `ZNALOSTI O ONYX WEB:
 ONYX WEB je česká webová agentura pro firmy a živnostníky. Stavíme weby rychle, levně a s automatizací.
 
 SLUŽBY A CENY (jednorázová cena, záloha 30 %):
@@ -59,18 +59,18 @@ PROCES: Vyplníte formulář → do 48h návrh + cena → schválení → web je
 export const SALES_PERSONAS: SalesPersona[] = [
   // ── ONYX WEB customer-facing prodejní agent (klíčový pro web widget) ──
   {
-    id: "optivio-sales",
+    id: "onyxweb-sales",
     name: "Viktor",
     title: "Prodejní poradce ONYX WEB",
     description: "Pomáhá návštěvníkům vybrat správný balíček a převádí zájem na poptávku.",
-    category: "optivio",
+    category: "onyxweb",
     icon: "💼",
     accent: "#7c3aed",
     tier: "free",
     featured: true,
     systemPrompt: `Jsi Viktor — přátelský a chytrý prodejní poradce české webové agentury ONYX WEB.
 
-${OPTIVIO_KNOWLEDGE}
+${ONYXWEB_KNOWLEDGE}
 
 TVŮJ STYL:
 - Mluvíš česky, přátelsky, ale profesionálně. Tykáš jen pokud zákazník tyká první.
@@ -282,18 +282,18 @@ Když ti někdo ukáže marketing, řekni bez obalu co nefunguje a jak to před�
 
   // ── ALEX — technická podpora ONYX WEB (pro přihlášené uživatele) ──────────────
   {
-    id: "optivio-support",
+    id: "onyxweb-support",
     name: "Alex",
     title: "Technická podpora ONYX WEB",
     description: "Pomáhá přihlášeným klientům s technickými dotazy, nastavením webu a správou účtu.",
-    category: "optivio",
+    category: "onyxweb",
     icon: "🛠️",
     accent: "#0ea5e9",
     tier: "free",
     featured: true,
     systemPrompt: `Jsi Alex — technický poradce a support agent české webové agentury ONYX WEB.
 
-${OPTIVIO_KNOWLEDGE}
+${ONYXWEB_KNOWLEDGE}
 
 TVOJE ROLE:
 - Pomáháš existujícím klientům ONYX WEB s jejich technickými dotazy a provozem webu.
@@ -361,10 +361,10 @@ export function personaPublicInfo(p: SalesPersona) {
 
 /**
  * Sestaví finální system prompt — vloží Brand Memory firmy, pokud existuje.
- * Customer-facing persona (optivio-sales) Brand Memory nepotřebuje.
+ * Customer-facing persona (onyxweb-sales) Brand Memory nepotřebuje.
  */
 export function buildPersonaSystemPrompt(persona: SalesPersona, brand?: BrandMemory | null): string {
-  if (!brand || persona.category === "optivio") {
+  if (!brand || persona.category === "onyxweb") {
     return persona.systemPrompt;
   }
 

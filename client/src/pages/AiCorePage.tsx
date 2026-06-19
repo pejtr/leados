@@ -5,7 +5,7 @@ import {
   Calendar, Users, Database, Zap, Globe, ShoppingBag, Rocket, TrendingUp,
   Megaphone, MessageSquare,
 } from "lucide-react";
-import { OptivioLogo } from "@/components/OptivioLogo";
+import { OnyxWebLogo } from "@/components/OnyxWebLogo";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -101,7 +101,7 @@ export default function AiCorePage() {
       {/* ── NAV ── */}
       <nav className="sticky top-0 z-50 bg-[#080d1f]/90 backdrop-blur-md border-b border-white/10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-2"><OptivioLogo className="h-8" light /></a>
+          <a href="/" className="flex items-center gap-2"><OnyxWebLogo className="h-8" light /></a>
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline text-xs text-amber-200/70 tracking-widest uppercase">AI Core</span>
             <a href={cta}>

@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { OptivioLogo } from "@/components/OptivioLogo";
+import { OnyxWebLogo } from "@/components/OnyxWebLogo";
 import { ArrowRight, ArrowLeft, Check, ShieldCheck } from "lucide-react";
 
 // ─── Static options ────────────────────────────────────────────────────────────
@@ -429,7 +429,7 @@ function Header() {
     <header className="bg-white border-b border-slate-200">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <a href="/">
-          <OptivioLogo className="h-8" />
+          <OnyxWebLogo className="h-8" />
         </a>
         <span className="text-sm text-slate-400">Dotazník pro vytvoření webu</span>
       </div>
