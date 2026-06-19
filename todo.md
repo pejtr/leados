@@ -1034,6 +1034,29 @@ pnpm test -- --watch                   # Watch mode
 
 ---
 
+## 🚀 Conversion & Lead Backlog — AI funnel features (FUTURE SPRINTS, not now)
+
+Inspirace: Chat5.5 AI Max (rankmarket.org). **Kurátorsky** — jen co reálně zvedá konverze/leady pro OPTIHUB + OPTIWEB funnel. Build až v příštích iteracích.
+
+**Vysoký lift (priorita):**
+- [ ] **AI landing-page / funnel generátor** — prompt/voice → stránka z šablon. OPTIWEB rychle staví klientské weby + OPTIHUB auto-buildí kampaňové landingy. (HERA)
+- [ ] **Conversion copywriting suite** — headlines/hooky, sales pages, ad copy, varianty e-mailů. Krmí HERA kampaně + e-mail sekvence; A/B-test ready.
+- [ ] **AI video na landing + outreach** — avatar/explainer + short-form s auto-captions. Video = prokázaný conversion lift; napojit na VIDEO FACTORY přes MCP. (HERA)
+- [ ] **Generování ad-creative obrázků** — bannery, social grafika, thumbnaily. Krmí Google Ads optimalizační smyčku.
+- [ ] **Vícejazyčný obsah (DE/AT/CH)** — DACH expanze landing/e-mail copy.
+
+**Sekundární:**
+- [ ] FAQ + product-description generátory (SEO obsah).
+- [ ] Social caption / short-form script generátor (organic).
+- [ ] No-code workflow-automation builder — překrývá se s HERMES/HERA orchestrací; jen pokud přidá uživatelskou no-code plochu.
+
+**Poznámky:**
+- Většina bundlu (podcast audiogramy, hudba/jingly, generický code-gen) = mimo konverze → skip.
+- Každá AI-gen featura běží pod guardraily (PR #3): cost-budget cap, human approval před publikací/útratou, untrusted-data fencing.
+- Reuse, nestavět znovu: generování vést přes HERA + (později) Onyx RAG / Factory MCP workery, ne samostatné nástroje.
+
+---
+
 **Maintainer:** PejtrView (System Designer/QA Architect)  
 **Last Updated:** 2026-06-03  
 **Version:** 1.0.0
