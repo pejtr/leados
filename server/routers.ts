@@ -11,7 +11,7 @@ import { SALES_PERSONAS, getPersona, listPersonas, personaPublicInfo, buildPerso
 import { getSalesConversation, upsertSalesConversation, addSalesMessage, getSalesMessages, incrementSalesMessageCount, captureSalesLead, getAllSalesConversations } from "./db";
 import Stripe from "stripe";
 import { z } from "zod";
-import { OPTIVIO_PRODUCTS, calculateDeposit, calculateRemaining } from "./stripe-products";
+import { ONYXWEB_PRODUCTS, calculateDeposit, calculateRemaining } from "./stripe-products";
 import { getABTestSummary, getABTestMetrics } from "./ab-analytics";
 
 export const appRouter = router({
@@ -197,8 +197,8 @@ export const appRouter = router({
       })
       .mutation(async ({ input, ctx }) => {
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
-        const packageKey = input.packageType.toUpperCase().replace(/-/g, "_") as keyof typeof OPTIVIO_PRODUCTS;
-        const product = OPTIVIO_PRODUCTS[packageKey];
+        const packageKey = input.packageType.toUpperCase().replace(/-/g, "_") as keyof typeof ONYXWEB_PRODUCTS;
+        const product = ONYXWEB_PRODUCTS[packageKey];
 
         if (!product) {
           throw new Error("Invalid package type");
@@ -662,14 +662,14 @@ export const appRouter = router({
     send: publicProcedure
       .input(z.object({
         conversationId: z.string().min(1),
-        personaId: z.string().default("optivio-sales"),
+        personaId: z.string().default("onyxweb-sales"),
         messages: z.array(z.object({
           role: z.enum(["system", "user", "assistant"]),
           content: z.string(),
         })),
       }))
       .mutation(async ({ input }) => {
-        const persona = getPersona(input.personaId) ?? getPersona("optivio-sales")!;
+        const persona = getPersona(input.personaId) ?? getPersona("onyxweb-sales")!;
         const conversation = input.messages.filter(m => m.role !== "system");
 
         const llmMessages = [

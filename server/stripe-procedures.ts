@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { protectedProcedure, publicProcedure } from "./_core/trpc";
 import { createOrder, getOrder, updateOrder, createPayment, getPaymentsByOrder } from "./db";
-import { OPTIVIO_PRODUCTS, calculateDeposit, calculateRemaining } from "./stripe-products";
+import { ONYXWEB_PRODUCTS, calculateDeposit, calculateRemaining } from "./stripe-products";
 import { notifyOwner } from "./_core/notification";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
@@ -18,8 +18,8 @@ export const stripeRouter = {
       };
     })
     .mutation(async ({ input, ctx }) => {
-      const packageKey = input.packageType.toUpperCase().replace(/-/g, "_") as keyof typeof OPTIVIO_PRODUCTS;
-      const product = OPTIVIO_PRODUCTS[packageKey];
+      const packageKey = input.packageType.toUpperCase().replace(/-/g, "_") as keyof typeof ONYXWEB_PRODUCTS;
+      const product = ONYXWEB_PRODUCTS[packageKey];
 
       if (!product) {
         throw new Error("Invalid package type");

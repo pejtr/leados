@@ -70,7 +70,7 @@ export function SalesChatWidget() {
     const updated = [...messages, { role: "user" as const, content: trimmed }];
     setMessages(updated);
     setInput("");
-    chatMutation.mutate({ conversationId, personaId: "optivio-sales", messages: updated });
+    chatMutation.mutate({ conversationId, personaId: "onyxweb-sales", messages: updated });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

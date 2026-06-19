@@ -10,7 +10,7 @@ import AdminSubscriptions from "./AdminSubscriptions";
 import AdminStats from "./AdminStats";
 import AdminProjects from "./AdminProjects";
 import AdminPayments from "./AdminPayments";
-import { OptivioLogo } from "@/components/OptivioLogo";
+import { OnyxWebLogo } from "@/components/OnyxWebLogo";
 
 export default function AdminDashboard() {
   const { user, logout, isAuthenticated } = useAuth();
@@ -42,7 +42,7 @@ export default function AdminDashboard() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <OptivioLogo className="h-8" />
+            <OnyxWebLogo className="h-8" />
             <span className="text-sm font-semibold text-slate-400 uppercase tracking-wider mt-1">Admin</span>
           </div>
 

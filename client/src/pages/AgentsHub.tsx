@@ -570,7 +570,7 @@ export default function AgentsHub() {
               <span className="text-sm text-slate-400">Chatujte s AI verzemi legend prodeje a marketingu</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {personas.filter(p => p.category !== "optivio").map(persona => (
+              {personas.filter(p => p.category !== "onyxweb").map(persona => (
                 <Card
                   key={persona.id}
                   className="border border-slate-200 hover:shadow-md transition-all cursor-pointer group relative overflow-hidden"

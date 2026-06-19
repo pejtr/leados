@@ -253,7 +253,7 @@ export type InsertAgentMessage = typeof agentMessages.$inferInsert;
 // Sales Chat Conversations — customer-facing chatbot na landing page (lead capture)
 export const salesConversations = mysqlTable("sales_conversations", {
   id: varchar("id", { length: 64 }).primaryKey(),       // client-generated session id
-  personaId: varchar("personaId", { length: 64 }).notNull().default("optivio-sales"),
+  personaId: varchar("personaId", { length: 64 }).notNull().default("onyxweb-sales"),
   visitorEmail: varchar("visitorEmail", { length: 255 }), // captured lead email
   visitorName: varchar("visitorName", { length: 255 }),
   visitorPhone: varchar("visitorPhone", { length: 64 }),

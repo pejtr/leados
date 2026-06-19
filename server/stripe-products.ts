@@ -3,7 +3,7 @@
  * Define all products and prices for ONYX WEB services
  */
 
-export const OPTIVIO_PRODUCTS = {
+export const ONYXWEB_PRODUCTS = {
   // Web packages
   LITE_WEB: {
     name: "Lite Web",
