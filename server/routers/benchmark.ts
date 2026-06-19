@@ -1,5 +1,5 @@
 /**
- * Agent Benchmark Router — ARC-AGI inspired evaluation framework for Onyx OS agents
+ * Agent Benchmark Router — ARC-AGI inspired evaluation framework for OPTIHUB agents
  *
  * Inspired by ARC-AGI-3 principles:
  * - Novel environments (fresh test cases, no memorization)
@@ -7,7 +7,7 @@
  * - Long-horizon planning with sparse feedback
  * - Experience-driven adaptation
  *
- * Onyx OS adapts these to B2B sales intelligence tasks:
+ * OPTIHUB adapts these to B2B sales intelligence tasks:
  * - Lead qualification accuracy
  * - Icebreaker quality & personalization
  * - ICP matching precision
@@ -130,7 +130,7 @@ export const BENCHMARK_TASKS = [
           "Downloaded 'B2B Outreach Playbook' PDF",
         ],
       },
-      product: "Onyx OS — AI-powered B2B lead generation and outreach automation",
+      product: "OPTIHUB — AI-powered B2B lead generation and outreach automation",
     },
     scoringCriteria: [
       { criterion: "References at least 1 specific signal (Series A, pricing visits, or PDF download)", weight: 35 },
@@ -156,7 +156,7 @@ export const BENCHMARK_TASKS = [
         employees: 8,
         signals: [],
       },
-      product: "Onyx OS — AI-powered B2B lead generation",
+      product: "OPTIHUB — AI-powered B2B lead generation",
     },
     scoringCriteria: [
       { criterion: "Does NOT fabricate signals or fake personalization", weight: 40 },
@@ -186,7 +186,7 @@ export const BENCHMARK_TASKS = [
         { type: "web", event: "Visited /case-studies page", timestamp: "2 days ago", weight: "low" },
         { type: "linkedin", event: "Liked post about 'AI in sales'", timestamp: "5 days ago", weight: "low" },
         { type: "email", event: "Opened email sequence 3/5", timestamp: "1 day ago", weight: "medium" },
-        { type: "linkedin", event: "Connected with 2 Onyx OS team members", timestamp: "3 days ago", weight: "high" },
+        { type: "linkedin", event: "Connected with 2 OPTIHUB team members", timestamp: "3 days ago", weight: "high" },
         { type: "web", event: "Spent 8 minutes on /features page", timestamp: "1 day ago", weight: "medium" },
       ],
     },
@@ -224,7 +224,7 @@ export const BENCHMARK_TASKS = [
         { event: "Submitted cancellation request for trial", sentiment: "negative" },
         { event: "Opened 5 emails in 3 days", sentiment: "positive" },
         { event: "Left negative review on G2: 'too expensive'", sentiment: "negative" },
-        { event: "Shared Onyx OS blog post on LinkedIn", sentiment: "positive" },
+        { event: "Shared OPTIHUB blog post on LinkedIn", sentiment: "positive" },
       ],
     },
     scoringCriteria: [

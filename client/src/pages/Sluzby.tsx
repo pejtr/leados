@@ -91,7 +91,7 @@ const SERVICES = [
       "Automatické follow-up sekvence",
     ],
     savings: "80% méně času na výzkum",
-    roi: "1 uzavřený deal navíc/měsíc pokryje 12 měsíců Onyx OS",
+    roi: "1 uzavřený deal navíc/měsíc pokryje 12 měsíců OPTIHUB",
     available: true,
     cta: "Generovat leady",
     link: "/generate",
@@ -185,7 +185,7 @@ function RoiCalculator() {
         </div>
         <div>
           <h3 className="text-lg font-bold text-foreground">Kalkulačka ROI</h3>
-          <p className="text-sm text-muted-foreground">Spočítejte si návratnost investice do Onyx OS</p>
+          <p className="text-sm text-muted-foreground">Spočítejte si návratnost investice do OPTIHUB</p>
         </div>
       </div>
 
@@ -220,7 +220,7 @@ function RoiCalculator() {
           </div>
 
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Nové dealy/měsíc díky Onyx OS</label>
+            <label className="text-xs text-muted-foreground mb-1 block">Nové dealy/měsíc díky OPTIHUB</label>
             <div className="flex items-center gap-3">
               <input
                 type="range" min="0" max="10" step="1"
@@ -265,7 +265,7 @@ function RoiCalculator() {
           </div>
 
           <div className="p-4 rounded-xl bg-gradient-to-br from-[oklch(0.68_0.18_162_/_15%)] to-[oklch(0.55_0.20_192_/_15%)] border border-[oklch(0.68_0.18_162_/_30%)]">
-            <p className="text-xs text-muted-foreground mb-1">ROI (vs. cena Onyx OS {leadosCost.toLocaleString("cs-CZ")} Kč/rok)</p>
+            <p className="text-xs text-muted-foreground mb-1">ROI (vs. cena OPTIHUB {leadosCost.toLocaleString("cs-CZ")} Kč/rok)</p>
             <p className="text-3xl font-black text-[oklch(0.68_0.18_162)]">{roi.toLocaleString("cs-CZ")}%</p>
             <p className="text-xs text-muted-foreground mt-1">
               {roi > 1000 ? "🚀 Výjimečná návratnost" : roi > 500 ? "✅ Vynikající návratnost" : roi > 200 ? "👍 Dobrá návratnost" : "📊 Solidní návratnost"}
@@ -365,7 +365,7 @@ export default function Sluzby() {
             Druhý mozek vaší firmy
           </h1>
           <p className="text-base text-muted-foreground max-w-2xl mx-auto">
-            Onyx OS není jen "lead gen nástroj". Je to komplexní AI operační systém, 
+            OPTIHUB není jen "lead gen nástroj". Je to komplexní AI operační systém, 
             který automatizuje klíčové procesy ve vaší firmě — od obchodu přes tým až po strategická rozhodnutí.
           </p>
         </div>

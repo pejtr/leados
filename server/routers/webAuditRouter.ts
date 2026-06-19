@@ -25,7 +25,7 @@ async function fetchUrlMetadata(url: string) {
     const timeout = setTimeout(() => controller.abort(), 8000);
     const res = await fetch(normalizedUrl, {
       signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; Onyx OS-Audit/1.0)" },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; OPTIHUB-Audit/1.0)" },
     });
     clearTimeout(timeout);
     const html = await res.text();

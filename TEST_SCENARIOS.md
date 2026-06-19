@@ -1,4 +1,4 @@
-# Onyx OS — Test Scenarios pro Klíčové Funkce
+# OPTIHUB — Test Scenarios pro Klíčové Funkce
 
 **Cíl:** Kompletní manuální a automatizované testovací scénáře pro ověření funkčnosti aplikace.
 
@@ -227,7 +227,7 @@ expect(score).toBeGreaterThan(80); // High quality lead
 
 **Manuální test:**
 1. Otevři Billing stránku
-2. Vyber plan: "Onyx OS Growth" (9 490 Kč/měs)
+2. Vyber plan: "OPTIHUB Growth" (9 490 Kč/měs)
 3. Klikni "Upgradovat"
 4. Otevře se Stripe checkout
 5. Vyplň testovací kartu: `4242 4242 4242 4242`

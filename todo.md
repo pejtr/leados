@@ -1,4 +1,4 @@
-# Onyx OS — Feature Roadmap & Implementation Status
+# OPTIHUB — Feature Roadmap & Implementation Status
 
 **Poslední aktualizace:** 2026-06-03  
 **Verze:** 1.0.0  
@@ -251,8 +251,8 @@
 - [ ] Sticky mobile CTA bar
 - [ ] Specific ROI numbers in testimonials section
 
-## Branding Update to Onyx OS
-- [ ] Update app title to Onyx OS
+## Branding Update to OPTIHUB
+- [ ] Update app title to OPTIHUB
 - [ ] Set new logo (V1 light for header, V3 icon for favicon)
 - [ ] Update Landing page branding
 - [ ] Update DashboardLayout branding
@@ -302,7 +302,7 @@
 - [x] Wire into DashboardLayout redirect
 
 ## Branding Update
-- [x] Update VITE_APP_TITLE to "Onyx OS"
+- [x] Update VITE_APP_TITLE to "OPTIHUB"
 - [x] Update DashboardLayout sidebar logo/name
 - [x] Update Landing page brand name
 
@@ -534,8 +534,8 @@ pnpm test -- --watch                   # Watch mode
 - [ ] Nav item in DashboardLayout sidebar
 - [ ] Route in App.tsx
 
-## Branding Rename: Onyx OS → Onyx OS
-- [x] Update all hardcoded "Onyx OS" strings in Landing.tsx
+## Branding Rename: OPTIHUB → OPTIHUB
+- [x] Update all hardcoded "OPTIHUB" strings in Landing.tsx
 - [x] Update DashboardLayout sidebar logo/name
 - [x] Update page title in index.html
 - [x] Update meta tags in Landing.tsx
@@ -701,7 +701,7 @@ pnpm test -- --watch                   # Watch mode
 
 ## Sales Strategy Features (from DeepSleepReset 100k project)
 - [x] Exit-Intent Popup — lead capture with email opt-in when user tries to leave Landing page
-- [x] Social Proof Live Counter — animated counter "X companies using Onyx OS" on Landing page
+- [x] Social Proof Live Counter — animated counter "X companies using OPTIHUB" on Landing page
 - [ ] Pre-checkout Wait Popup — swipeable add-ons with live total counter before checkout
 - [x] Urgency/Scarcity Banner — countdown timer for limited offers on pricing section
 - [ ] Order Bump component — one-click add-on at checkout (e.g., "Add Onboarding Call +€99")
@@ -761,7 +761,7 @@ pnpm test -- --watch                   # Watch mode
 ## HERMES Czech + Live Project Performance
 - [ ] Fix ingestRoute.ts schema import path error (Cannot find module '/home/ubuntu/drizzle/schema')
 - [ ] Apply dsr_snapshots migration to DB
-- [ ] hermesAgent.ts: Czech as primary language, no greeting, inject live DSR+Onyx OS KPIs into system prompt
+- [ ] hermesAgent.ts: Czech as primary language, no greeting, inject live DSR+OPTIHUB KPIs into system prompt
 - [ ] hermesAgent.ts: auto-fetch DSR analytics on every chat call, include in context
 - [ ] Hermes.tsx: Czech labels throughout, auto-briefing panel on load with live project status
 - [ ] Hermes.tsx: DeepSleepReset performance card in project status grid
@@ -772,7 +772,7 @@ pnpm test -- --watch                   # Watch mode
 - [x] Prevent duplicate briefing on re-render (autoBriefingFiredRef)
 
 ## HERMES Daily Digest (08:00 CET Scheduler)
-- [ ] Create server/hermesDigest.ts — generateDailyDigest() fetches live DSR data + Onyx OS stats, invokes LLM for Czech briefing
+- [ ] Create server/hermesDigest.ts — generateDailyDigest() fetches live DSR data + OPTIHUB stats, invokes LLM for Czech briefing
 - [ ] Add node-cron scheduler in server/_core/index.ts — fires at 08:00 CET daily
 - [ ] Store digest in hermes_messages table (role: "digest") for history
 - [ ] Send digest via notifyOwner({ title, content })
@@ -792,7 +792,7 @@ pnpm test -- --watch                   # Watch mode
 - [ ] Add EU VAT compliance note to pricing section
 - [ ] Add Datenschutz link in footer (German privacy policy page)
 
-## External Project Integration (Onyx OS Ingest)
+## External Project Integration (OPTIHUB Ingest)
 - [x] POST /api/leads/ingest endpoint with API key auth
 - [x] ingested_leads DB table created and migrated
 - [x] IngestSources dashboard page (External Leads in sidebar)
@@ -840,7 +840,7 @@ pnpm test -- --watch                   # Watch mode
 
 ## Video Best Practices Integration (2026-05-04)
 - [x] Fix globalEarnings.ts JSON parse error (content-type check before res.json())
-- [x] Landing page: Add Before/After Excel vs Onyx OS comparison section
+- [x] Landing page: Add Before/After Excel vs OPTIHUB comparison section
 - [x] Landing page: Upgrade Pricing to 3-tier agency model (DFY/Retainer/Agency)
 - [x] Social Listening: Add Intent Mining tab (review mining pattern)
 
@@ -859,7 +859,7 @@ pnpm test -- --watch                   # Watch mode
 - [x] Add GlobalEarnings nav item to DashboardLayout sidebar (TIER 3 Analytics)
 - [x] Register /global-earnings route in App.tsx
 
-## Onyx OS CRM Integration (May 2026)
+## OPTIHUB CRM Integration (May 2026)
 
 ### Phase 1: API Keys & External Endpoints (Completed)
 - [x] Create API Keys management system (DB table, CRUD, permissions)
@@ -903,7 +903,7 @@ pnpm test -- --watch                   # Watch mode
 ## Deep Sleep Admin Integration (May 2026)
 - [ ] Add /api/external/orders endpoint
 - [ ] Add /api/external/email/send endpoint
-- [ ] Build integration cards UI (Stripe, Brevo, Meta Pixel, Reddit Ads, TikTok Ads, Onyx OS CRM)
+- [ ] Build integration cards UI (Stripe, Brevo, Meta Pixel, Reddit Ads, TikTok Ads, OPTIHUB CRM)
 - [ ] Update DashboardLayout sidebar sections (ANALYTICS, MARKETING, OBSAH, AUTOMATIZACE, SYSTÉM)
 - [ ] Add Brevo API key management
 - [ ] Add Reddit Ads API key management
@@ -950,13 +950,13 @@ pnpm test -- --watch                   # Watch mode
 
 ## Phase 7 — HDM CRM Obousměrné propojení
 
-- [ ] Onyx OS: POST /api/webhook/hdm endpoint pro příjem eventů z HDM (new_user, new_order, chart_created, subscription_upgraded)
-- [ ] Onyx OS: Uložit HDM eventy do ingested_leads a project_events tabulek s HMAC-SHA256 ověřením
-- [x] Onyx OS: Human Design Chart přidán do connected_projects v DB (id=2, apiKey=lsk_a669...)
-- [ ] HDM Manus vlákno: Odeslat event do Onyx OS při registraci nového uživatele
-- [ ] HDM Manus vlákno: Odeslat event do Onyx OS při Stripe platbě (subscription_upgraded)
-- [ ] HDM Manus vlákno: Odeslat event do Onyx OS při vytvoření chartu (chart_created)
-- [ ] HDM Manus vlákno: Příjem Onyx OS webhooků (new_lead, lead_status_changed) pro CRM sync
+- [ ] OPTIHUB: POST /api/webhook/hdm endpoint pro příjem eventů z HDM (new_user, new_order, chart_created, subscription_upgraded)
+- [ ] OPTIHUB: Uložit HDM eventy do ingested_leads a project_events tabulek s HMAC-SHA256 ověřením
+- [x] OPTIHUB: Human Design Chart přidán do connected_projects v DB (id=2, apiKey=lsk_a669...)
+- [ ] HDM Manus vlákno: Odeslat event do OPTIHUB při registraci nového uživatele
+- [ ] HDM Manus vlákno: Odeslat event do OPTIHUB při Stripe platbě (subscription_upgraded)
+- [ ] HDM Manus vlákno: Odeslat event do OPTIHUB při vytvoření chartu (chart_created)
+- [ ] HDM Manus vlákno: Příjem OPTIHUB webhooků (new_lead, lead_status_changed) pro CRM sync
 
 ## Phase 8 — Google Maps Scraper + Web Audit Tool (Webové zakázky)
 

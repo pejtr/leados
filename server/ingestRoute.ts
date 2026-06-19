@@ -172,7 +172,7 @@ export function registerIngestRoute(app: Express) {
   });
 
   // ── POST /api/leads/ingest — Universal lead capture from external projects ──────
-  // Auth: X-Onyx OS-Key header = project apiKey from connectedProjects table
+  // Auth: X-OPTIHUB-Key header = project apiKey from connectedProjects table
   // Payload: { source, name?, email, phone?, interest?, url?, utm_source?, utm_medium?, utm_campaign?, ...extra }
   app.post("/api/leads/ingest", async (req: Request, res: Response) => {
     try {
@@ -181,7 +181,7 @@ export function registerIngestRoute(app: Express) {
         (req.headers["authorization"] as string)?.replace("Bearer ", "");
 
       if (!apiKey || apiKey.length < 8) {
-        return res.status(401).json({ ok: false, error: "Missing X-Onyx OS-Key header" });
+        return res.status(401).json({ ok: false, error: "Missing X-OPTIHUB-Key header" });
       }
 
       const project = await getProjectByApiKey(apiKey);

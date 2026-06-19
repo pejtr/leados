@@ -1,7 +1,7 @@
 /**
  * useGoogleAds — Centralized Google Ads conversion tracking hook
  *
- * Sends gtag conversion events for every meaningful user action in Onyx OS.
+ * Sends gtag conversion events for every meaningful user action in OPTIHUB.
  * Conversion ID is configured via VITE_GOOGLE_ADS_ID env var (AW-XXXXXXXXX).
  * Each event maps to a specific Google Ads conversion action label.
  *

@@ -16,7 +16,7 @@ async function sendWelcomeEmail(email: string, firstName?: string): Promise<bool
       messages: [
         {
           role: "system",
-          content: `You are a B2B SaaS copywriter for Onyx OS — an AI-powered lead generation platform. 
+          content: `You are a B2B SaaS copywriter for OPTIHUB — an AI-powered lead generation platform. 
 Write a short, warm, high-converting welcome email for a new lead who just signed up for a free guide.
 The email should:
 - Be 3-4 short paragraphs

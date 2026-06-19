@@ -1,14 +1,14 @@
 import { useId } from "react";
 
 /**
- * Onyx OS brand logo.
+ * OPTIHUB brand logo.
  *
  * The mark is a monoline onyx "aperture" — concentric onyx rings around a teal
  * pupil, evoking a polished banded-onyx eye (insight / scanning) that doubles as
- * the letter O. In the lockup the mark IS the O of "Onyx OS" (monogram).
+ * the letter O. In the lockup the mark IS the O of "OPTIHUB" (monogram).
  *
  *  - variant="icon"   → standalone mark (favicon, collapsed nav, app icon)
- *  - variant="lockup" → mark + "nyx OS" wordmark in Space Grotesk
+ *  - variant="lockup" → mark + "PTIHUB" wordmark in Space Grotesk
  *  - theme="dark"     → for dark surfaces (light strokes)
  *  - theme="light"    → for light surfaces (dark strokes)
  */
@@ -46,7 +46,7 @@ export function Logo({
       height={size}
       viewBox="0 0 200 200"
       role="img"
-      aria-label="Onyx OS"
+      aria-label="OPTIHUB"
       style={{ display: "block", flexShrink: 0 }}
     >
       <defs>
@@ -93,7 +93,7 @@ export function Logo({
             color: wordPrimary,
           }}
         >
-          nyx<span style={{ color: wordAccent }}> OS</span>
+          PTI<span style={{ color: wordAccent }}>HUB</span>
         </span>
         {showTagline && (
           <span

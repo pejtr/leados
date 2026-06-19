@@ -30,7 +30,7 @@ export default function AiAdvisor() {
 
   // SEO: set page title and meta description for /chat-agent
   useEffect(() => {
-    document.title = "Chat Agent — 33 AI Expert Personas | Onyx OS";
+    document.title = "Chat Agent — 33 AI Expert Personas | OPTIHUB";
     let metaDesc = document.querySelector('meta[name="description"]');
     if (!metaDesc) {
       metaDesc = document.createElement("meta");
@@ -38,9 +38,9 @@ export default function AiAdvisor() {
       document.head.appendChild(metaDesc);
     }
     (metaDesc as HTMLMetaElement).content =
-      "Chat Agent by Onyx OS — 33 AI expert personas including Alex Hormozi, Warren Buffett, Sun Tzu and more. Get sales strategies, growth advice, and B2B lead generation insights powered by AI.";
+      "Chat Agent by OPTIHUB — 33 AI expert personas including Alex Hormozi, Warren Buffett, Sun Tzu and more. Get sales strategies, growth advice, and B2B lead generation insights powered by AI.";
     return () => {
-      document.title = "Onyx OS — AI Lead Generation Platform";
+      document.title = "OPTIHUB — AI Lead Generation Platform";
     };
   }, []);
   const [selectedPersonaForResume, setSelectedPersonaForResume] = useState<Persona | null>(null);

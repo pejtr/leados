@@ -254,7 +254,7 @@ function VariantANudge({ onDismiss, onConvert }: { onDismiss: () => void; onConv
           </div>
           <div>
             <p className="text-sm font-bold text-white">Odemkni plný výkon</p>
-            <p className="text-xs text-white/50">Onyx OS Pro</p>
+            <p className="text-xs text-white/50">OPTIHUB Pro</p>
           </div>
         </div>
         <button onClick={onDismiss} className="text-white/30 hover:text-white/60">
@@ -332,7 +332,7 @@ function VariantBNudge({ onDismiss, onConvert }: { onDismiss: () => void; onConv
         </div>
         <div>
           <p className="text-sm font-bold text-white">Tvoji konkurenti generují leady 24/7</p>
-          <p className="text-xs text-white/50">Průměrný ROI zákazníků Onyx OS</p>
+          <p className="text-xs text-white/50">Průměrný ROI zákazníků OPTIHUB</p>
         </div>
       </div>
 
@@ -362,7 +362,7 @@ function VariantBNudge({ onDismiss, onConvert }: { onDismiss: () => void; onConv
         onClick={onConvert}
       >
         <Rocket className="w-3.5 h-3.5 mr-2" />
-        Spustit Onyx OS Pro — 14 dní zdarma
+        Spustit OPTIHUB Pro — 14 dní zdarma
         <ArrowRight className="w-3.5 h-3.5 ml-2" />
       </Button>
       <p className="text-center text-xs text-white/30 mt-2">Bez kreditní karty · Zrušit kdykoliv</p>

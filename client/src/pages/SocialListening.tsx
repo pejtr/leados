@@ -327,7 +327,7 @@ export default function SocialListening() {
                     { icon: AlertTriangle, color: "text-red-500", bg: "bg-red-50", title: "LinkedIn Pain Posts", desc: "Posts about CRM frustration, manual prospecting", count: 67, signal: "High frustration" },
                     { icon: DollarSign, color: "text-green-500", bg: "bg-green-50", title: "Pricing Complaints", desc: "'Too expensive', 'price increase', 'cancelling'", count: 54, signal: "Budget pressure" },
                     { icon: Zap, color: "text-purple-500", bg: "bg-purple-50", title: "Job Change Signals", desc: "New VP Sales / Head of Growth hired", count: 38, signal: "New budget cycle" },
-                    { icon: Search, color: "text-teal-500", bg: "bg-teal-50", title: "Competitor Mentions", desc: "'vs Onyx OS', 'Onyx OS alternative', 'Onyx OS review'", count: 23, signal: "Active evaluation" },
+                    { icon: Search, color: "text-teal-500", bg: "bg-teal-50", title: "Competitor Mentions", desc: "'vs OPTIHUB', 'OPTIHUB alternative', 'OPTIHUB review'", count: 23, signal: "Active evaluation" },
                   ] as const).map(({ icon: Icon, color, bg, title, desc, count, signal }) => (
                     <div key={title} className="p-4 rounded-xl border border-border bg-card hover:shadow-md transition-shadow">
                       <div className="flex items-start justify-between mb-2">
@@ -380,7 +380,7 @@ export default function SocialListening() {
 
                 <div className="p-4 rounded-xl bg-orange-50 border border-orange-200">
                   <p className="text-sm font-medium text-orange-800 mb-1">🎯 Intent Mining Strategy</p>
-                  <p className="text-xs text-orange-700">Find people who wrote 1-2 star reviews of competitor tools, then reach out: <em>"I saw your review of [Competitor] — we built Onyx OS specifically to solve [their exact complaint]. Worth a 15-min call?"</em> Reply rates 3-5× higher than cold outreach.</p>
+                  <p className="text-xs text-orange-700">Find people who wrote 1-2 star reviews of competitor tools, then reach out: <em>"I saw your review of [Competitor] — we built OPTIHUB specifically to solve [their exact complaint]. Worth a 15-min call?"</em> Reply rates 3-5× higher than cold outreach.</p>
                 </div>
               </CardContent>
             </Card>
