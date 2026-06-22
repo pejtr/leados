@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { motion, useReducedMotion, type Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
   Check, X, ArrowRight, ChevronDown, Star, Shield, Clock, Sparkles,
@@ -89,52 +90,150 @@ const FAQS = [
   { q: "Je to vhodné pro můj obor?", a: "AI Core funguje napříč obory — od kaváren a salonů po řemeslníky, kliniky, e-shopy a kurzy. Na konzultaci řekneme rovnou, co se pro vás vyplatí." },
 ];
 
+// ─── Motion helpers ───────────────────────────────────────────────────────────
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
+};
+
+const container: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+
+/** Scroll-triggered reveal wrapper. Animates once when it scrolls into view. */
+function Reveal({ children, className, as = "div" }: { children: ReactNode; className?: string; as?: "div" | "section" }) {
+  const M = as === "section" ? motion.section : motion.div;
+  return (
+    <M
+      className={className}
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-80px" }}
+    >
+      {children}
+    </M>
+  );
+}
+
+/** Staggered grid: children fade-up one after another as the grid enters view. */
+function StaggerGrid({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.div
+      className={className}
+      variants={container}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-60px" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────────
 
 export default function AiCorePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const reduce = useReducedMotion();
   const cta = "/dotaznik?obor=ai-core";
+
+  // Floating-blob loop, disabled when the user prefers reduced motion.
+  const floatA = reduce ? {} : { x: [0, 30, -10, 0], y: [0, -20, 15, 0], scale: [1, 1.08, 0.97, 1] };
+  const floatB = reduce ? {} : { x: [0, -25, 15, 0], y: [0, 20, -15, 0], scale: [1, 0.95, 1.06, 1] };
 
   return (
     <div className="min-h-screen bg-[#080d1f] text-white font-[Plus_Jakarta_Sans,Inter,sans-serif] selection:bg-amber-400/30">
+      <style>{`
+        @keyframes ai-grid-pan { from { background-position: 0 0; } to { background-position: 0 44px; } }
+        @keyframes ai-sheen { 0% { transform: translateX(-120%); } 60%, 100% { transform: translateX(220%); } }
+      `}</style>
 
       {/* ── NAV ── */}
-      <nav className="sticky top-0 z-50 bg-[#080d1f]/90 backdrop-blur-md border-b border-white/10">
+      <motion.nav
+        initial={{ y: -24, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: EASE }}
+        className="sticky top-0 z-50 bg-[#080d1f]/90 backdrop-blur-md border-b border-white/10"
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <a href="/" className="flex items-center gap-2"><OnyxWebLogo className="h-8" light /></a>
           <div className="flex items-center gap-3">
             <span className="hidden sm:inline text-xs text-amber-200/70 tracking-widest uppercase">AI Core</span>
             <a href={cta}>
-              <Button className="bg-amber-400 hover:bg-amber-300 text-[#1a1206] font-bold rounded-full px-5 text-sm">
+              <Button className="bg-amber-400 hover:bg-amber-300 text-[#1a1206] font-bold rounded-full px-5 text-sm transition-transform hover:scale-105">
                 Chci AI Core
               </Button>
             </a>
           </div>
         </div>
-      </nav>
+      </motion.nav>
 
       {/* ── HERO ── */}
       <header className="relative overflow-hidden">
+        {/* animated backdrop */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#13224a_0%,#080d1f_60%)]" />
-          <div className="absolute top-10 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-violet-600/10 rounded-full blur-3xl" />
+          {/* drifting grid */}
+          <div
+            className="absolute inset-0 opacity-[0.25]"
+            style={{
+              backgroundImage:
+                "linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px)",
+              backgroundSize: "44px 44px",
+              maskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%)",
+              WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%)",
+              animation: reduce ? undefined : "ai-grid-pan 9s linear infinite",
+            }}
+          />
+          <motion.div
+            className="absolute top-6 left-1/4 w-96 h-96 bg-amber-500/15 rounded-full blur-3xl"
+            animate={floatA}
+            transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute bottom-0 right-1/4 w-80 h-80 bg-violet-600/15 rounded-full blur-3xl"
+            animate={floatB}
+            transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+          />
         </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-28 text-center">
-          <div className="inline-flex items-center gap-2 border border-amber-400/30 bg-amber-400/5 px-4 py-1.5 rounded-full text-xs font-medium text-amber-200 tracking-widest uppercase mb-7">
+
+        <motion.div
+          className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 py-20 sm:py-28 text-center"
+          variants={container}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.div
+            variants={fadeUp}
+            className="inline-flex items-center gap-2 border border-amber-400/30 bg-amber-400/5 px-4 py-1.5 rounded-full text-xs font-medium text-amber-200 tracking-widest uppercase mb-7"
+          >
             <Sparkles className="w-3.5 h-3.5" /> Jeden systém místo deseti nástrojů
-          </div>
-          <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.05] mb-6">
+          </motion.div>
+          <motion.h1 variants={fadeUp} className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-[1.05] mb-6">
             Váš marketing a provoz<br />
-            <span className="text-amber-300">běží sám.</span> Vy jen řídíte směr.
-          </h1>
-          <p className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-9 leading-relaxed">
+            <span className="relative inline-block text-amber-300">
+              běží sám.
+              <motion.span
+                className="absolute -bottom-1 left-0 h-[3px] rounded-full bg-gradient-to-r from-amber-400 to-amber-200"
+                initial={{ width: 0 }}
+                animate={{ width: "100%" }}
+                transition={{ duration: 0.8, delay: 0.7, ease: EASE }}
+              />
+            </span>{" "}
+            Vy jen řídíte směr.
+          </motion.h1>
+          <motion.p variants={fadeUp} className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-9 leading-relaxed">
             ONYX WEB <span className="text-white font-semibold">AI Core</span> spojí rezervace, CRM, e-shop, kampaně a tým asistentů
             do jednoho systému — místo abyste platili a propojovali deset různých nástrojů.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
+          </motion.p>
+          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
             <a href={cta}>
-              <Button size="lg" className="bg-amber-400 hover:bg-amber-300 text-[#1a1206] font-bold rounded-full px-9 shadow-lg shadow-amber-900/30 w-full sm:w-auto">
+              <Button size="lg" className="bg-amber-400 hover:bg-amber-300 text-[#1a1206] font-bold rounded-full px-9 shadow-lg shadow-amber-900/30 w-full sm:w-auto transition-transform hover:scale-[1.03]">
                 Spustit AI Core <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </a>
@@ -143,42 +242,47 @@ export default function AiCorePage() {
                 Jak to funguje
               </Button>
             </a>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/50">
+          </motion.div>
+          <motion.div variants={fadeUp} className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-white/50">
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-400" /> 999 Kč/měs — vše v ceně</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-400" /> 14 dní zdarma, bez karty</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-400" /> Bez dlouhých závazků</span>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mt-14 pt-8 border-t border-white/10">
+          <motion.div variants={fadeUp} className="grid grid-cols-3 gap-4 max-w-md mx-auto mt-14 pt-8 border-t border-white/10">
             {[["8", "asistentů v týmu"], ["6", "modulů na míru"], ["1", "systém pro vše"]].map(([v, l]) => (
               <div key={l}>
                 <div className="text-3xl font-extrabold text-amber-300">{v}</div>
                 <div className="text-xs text-white/50 mt-1">{l}</div>
               </div>
             ))}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </header>
 
       {/* ── PROBLEM STACK ── */}
       <section className="py-20 bg-[#0b1124]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Znáte to?</h2>
             <p className="text-white/50 max-w-xl mx-auto">Většina firem neřeší jeden problém — řeší pět najednou, každý v jiné appce.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          </Reveal>
+          <StaggerGrid className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {PAINS.map((p) => (
-              <div key={p.t} className="bg-white/5 border border-white/10 rounded-2xl p-5">
+              <motion.div
+                key={p.t}
+                variants={fadeUp}
+                whileHover={{ y: -4 }}
+                className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-white/20 transition-colors"
+              >
                 <div className="w-9 h-9 rounded-lg bg-red-500/15 text-red-300 flex items-center justify-center mb-3">
                   <X className="w-5 h-5" />
                 </div>
                 <h3 className="font-semibold mb-1.5">{p.t}</h3>
                 <p className="text-sm text-white/50 leading-relaxed">{p.d}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
@@ -186,7 +290,7 @@ export default function AiCorePage() {
       <section className="py-20 bg-[#080d1f] relative overflow-hidden">
         <div className="absolute top-0 left-1/3 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
         <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <div className="inline-flex items-center gap-2 border border-amber-400/30 bg-amber-400/5 px-4 py-1.5 rounded-full text-xs font-medium text-amber-200 tracking-widest uppercase mb-5">
               Řešení
             </div>
@@ -194,91 +298,110 @@ export default function AiCorePage() {
               ONYX WEB <span className="text-amber-300">AI Core</span> — vše v jednom
             </h2>
             <p className="text-white/50 max-w-xl mx-auto">Pět pilířů, jedna platforma, jeden zdroj pravdy o vašem byznysu.</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          </Reveal>
+          <StaggerGrid className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {PILLARS.map((p) => (
-              <div key={p.t} className="bg-[#0c1430]/80 border border-amber-400/15 rounded-2xl p-5 text-center">
+              <motion.div
+                key={p.t}
+                variants={fadeUp}
+                whileHover={{ y: -5 }}
+                className="bg-[#0c1430]/80 border border-amber-400/15 rounded-2xl p-5 text-center hover:border-amber-400/40 transition-colors"
+              >
                 <div className="text-amber-300 mb-3 flex justify-center">{p.icon}</div>
                 <h3 className="font-semibold text-sm text-amber-50 mb-1">{p.t}</h3>
                 <p className="text-[11px] text-white/45 leading-relaxed">{p.d}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
       {/* ── AGENTS ── */}
       <section className="py-20 bg-gradient-to-br from-violet-950 via-[#1a0a3c] to-slate-900">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-1.5 rounded-full text-sm mb-5">
               <Sparkles className="w-4 h-4 text-violet-300" /> <span className="text-violet-200">Váš tým asistentů</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Vy říkáte CO. Oni vědí JAK.</h2>
             <p className="text-violet-200 max-w-xl mx-auto">Každý asistent nese znalosti nejlepších světových marketérů — připravený 24/7.</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          </Reveal>
+          <StaggerGrid className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {AGENTS.map((a) => (
-              <div key={a.name} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center hover:bg-white/10 transition-all">
+              <motion.div
+                key={a.name}
+                variants={fadeUp}
+                whileHover={{ y: -5, scale: 1.02 }}
+                className="bg-white/5 border border-white/10 rounded-xl p-4 text-center hover:bg-white/10 transition-colors"
+              >
                 <div className="text-2xl mb-2">{a.icon}</div>
                 <div className="font-semibold text-sm text-white">{a.name}</div>
                 <div className="text-violet-300 text-xs mt-0.5">{a.desc}</div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
       {/* ── MODULES ── */}
       <section className="py-20 bg-[#0b1124]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Moduly, které zapojíte podle potřeby</h2>
             <p className="text-white/50 max-w-xl mx-auto">2 máte v ceně. Další přidáte za 290 Kč/měs, když je budete potřebovat.</p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          </Reveal>
+          <StaggerGrid className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {MODULES.map((m) => (
-              <div key={m.t} className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-start gap-4">
+              <motion.div
+                key={m.t}
+                variants={fadeUp}
+                whileHover={{ y: -4 }}
+                className="bg-white/5 border border-white/10 rounded-2xl p-5 flex items-start gap-4 hover:border-amber-400/30 transition-colors"
+              >
                 <div className="w-10 h-10 rounded-lg bg-amber-400/10 text-amber-300 flex items-center justify-center flex-shrink-0">{m.icon}</div>
                 <div>
                   <h3 className="font-semibold mb-1">{m.t}</h3>
                   <p className="text-sm text-white/50 leading-relaxed">{m.d}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
       {/* ── HOW IT WORKS ── */}
       <section id="jak-to-funguje" className="py-20 bg-[#080d1f]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-14">
+          <Reveal className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Jak to funguje</h2>
             <p className="text-white/50 max-w-xl mx-auto">Od první konzultace po systém, který běží sám — ve čtyřech krocích.</p>
-          </div>
-          <div className="space-y-4">
+          </Reveal>
+          <StaggerGrid className="space-y-4">
             {STEPS.map((s) => (
-              <div key={s.n} className="flex items-start gap-5 bg-white/5 border border-white/10 rounded-2xl p-6">
+              <motion.div
+                key={s.n}
+                variants={fadeUp}
+                className="flex items-start gap-5 bg-white/5 border border-white/10 rounded-2xl p-6"
+              >
                 <div className="w-11 h-11 rounded-full bg-amber-400 text-[#1a1206] font-extrabold flex items-center justify-center flex-shrink-0">{s.n}</div>
                 <div>
                   <h3 className="font-bold text-lg mb-1">{s.t}</h3>
                   <p className="text-white/55 leading-relaxed">{s.d}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
       {/* ── COMPARISON ── */}
       <section className="py-20 bg-[#0b1124]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Proč AI Core, a ne krabice nebo agentura</h2>
             <p className="text-white/50 max-w-xl mx-auto">Více za méně — bez příplatků za každou drobnost a bez zamčených dat.</p>
-          </div>
-          <div className="overflow-x-auto -mx-4 px-4">
+          </Reveal>
+          <Reveal className="overflow-x-auto -mx-4 px-4">
             <table className="w-full min-w-[640px] border-separate border-spacing-0 text-sm">
               <thead>
                 <tr>
@@ -303,19 +426,26 @@ export default function AiCorePage() {
                 ))}
               </tbody>
             </table>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* ── PRICING ── */}
       <section className="py-20 bg-[#080d1f]">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10">
+          <Reveal className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Jedna cena, žádná překvapení</h2>
             <p className="text-white/50">Zavedení na míru jednorázově, pak měsíční provoz se vším v ceně.</p>
-          </div>
-          <div className="bg-gradient-to-b from-[#13224a] to-[#0c1430] border border-amber-400/30 rounded-3xl p-8 shadow-2xl shadow-amber-900/20">
-            <div className="flex flex-col sm:flex-row gap-6 sm:gap-8 mb-7 text-center sm:text-left">
+          </Reveal>
+          <Reveal className="relative bg-gradient-to-b from-[#13224a] to-[#0c1430] border border-amber-400/30 rounded-3xl p-8 shadow-2xl shadow-amber-900/20 overflow-hidden">
+            {/* sheen sweep */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden">
+              <div
+                className="absolute top-0 left-0 h-full w-1/3 bg-gradient-to-r from-transparent via-white/[0.07] to-transparent"
+                style={{ animation: reduce ? undefined : "ai-sheen 6s ease-in-out infinite" }}
+              />
+            </div>
+            <div className="relative flex flex-col sm:flex-row gap-6 sm:gap-8 mb-7 text-center sm:text-left">
               <div className="flex-1">
                 <p className="text-white/50 text-sm mb-1">Zavedení na míru</p>
                 <p className="text-3xl font-extrabold">od 14 990 <span className="text-base font-medium text-white/50">Kč</span></p>
@@ -328,27 +458,27 @@ export default function AiCorePage() {
                 <p className="text-xs text-white/40 mt-1">2 moduly v ceně, další +290 Kč/měs</p>
               </div>
             </div>
-            <ul className="space-y-2.5 mb-8">
+            <ul className="relative space-y-2.5 mb-8">
               {INCLUDED.map((f) => (
                 <li key={f} className="flex items-start gap-2.5 text-sm text-white/80">
                   <Check className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" /> {f}
                 </li>
               ))}
             </ul>
-            <a href={cta} className="block">
-              <Button size="lg" className="w-full bg-amber-400 hover:bg-amber-300 text-[#1a1206] font-bold rounded-full shadow-lg">
+            <a href={cta} className="relative block">
+              <Button size="lg" className="w-full bg-amber-400 hover:bg-amber-300 text-[#1a1206] font-bold rounded-full shadow-lg transition-transform hover:scale-[1.02]">
                 Spustit AI Core <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </a>
-            <p className="text-center text-xs text-white/40 mt-4">Pricing argument: krabicové platformy účtují za srovnatelné doplňky 800–1 500 Kč/měs jen na příplatcích.</p>
-          </div>
+            <p className="relative text-center text-xs text-white/40 mt-4">Pricing argument: krabicové platformy účtují za srovnatelné doplňky 800–1 500 Kč/měs jen na příplatcích.</p>
+          </Reveal>
         </div>
       </section>
 
       {/* ── GUARANTEE ── */}
       <section className="py-16 bg-[#0b1124]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="bg-emerald-500/[0.07] border border-emerald-500/25 rounded-2xl p-7 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+          <Reveal className="bg-emerald-500/[0.07] border border-emerald-500/25 rounded-2xl p-7 flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
             <div className="w-14 h-14 rounded-full bg-emerald-500/15 text-emerald-300 flex items-center justify-center flex-shrink-0">
               <Shield className="w-7 h-7" />
             </div>
@@ -358,20 +488,25 @@ export default function AiCorePage() {
                 Vyzkoušejte AI Core vlastním tempem. Konzultace a návrh plánu jsou zdarma a nezávazné — a vaše data zůstávají vždy vaše.
               </p>
             </div>
-          </div>
+          </Reveal>
         </div>
       </section>
 
       {/* ── TESTIMONIALS ── */}
       <section className="py-20 bg-[#080d1f]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Výsledky, ne sliby</h2>
             <p className="text-white/50 max-w-xl mx-auto">Konkrétní čísla od firem, které jsme rozjeli.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          </Reveal>
+          <StaggerGrid className="grid md:grid-cols-3 gap-6">
             {CASES.map((c) => (
-              <div key={c.author} className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col">
+              <motion.div
+                key={c.author}
+                variants={fadeUp}
+                whileHover={{ y: -6 }}
+                className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col hover:border-amber-400/30 transition-colors"
+              >
                 <span className={`self-start text-xs font-semibold px-2.5 py-1 rounded-full ${c.color} mb-4`}>{c.tag}</span>
                 <div className="flex items-baseline gap-2 mb-3">
                   <span className="text-3xl font-extrabold text-amber-300">{c.metric}</span>
@@ -385,21 +520,21 @@ export default function AiCorePage() {
                   <div className="font-semibold text-sm">{c.author}</div>
                   <div className="text-xs text-white/40">{c.role}</div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
       {/* ── FAQ ── */}
       <section className="py-20 bg-[#0b1124]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-extrabold mb-3">Časté otázky</h2>
-          </div>
-          <div className="space-y-3">
+          </Reveal>
+          <StaggerGrid className="space-y-3">
             {FAQS.map((f, i) => (
-              <div key={f.q} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+              <motion.div key={f.q} variants={fadeUp} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                   className="w-full flex items-center justify-between gap-4 p-5 text-left"
@@ -407,19 +542,28 @@ export default function AiCorePage() {
                   <span className="font-semibold">{f.q}</span>
                   <ChevronDown className={`w-5 h-5 text-white/40 flex-shrink-0 transition-transform ${openFaq === i ? "rotate-180" : ""}`} />
                 </button>
-                {openFaq === i && (
-                  <p className="px-5 pb-5 text-white/55 text-sm leading-relaxed -mt-1">{f.a}</p>
-                )}
-              </div>
+                <motion.div
+                  initial={false}
+                  animate={{ height: openFaq === i ? "auto" : 0, opacity: openFaq === i ? 1 : 0 }}
+                  transition={{ duration: 0.3, ease: EASE }}
+                  className="overflow-hidden"
+                >
+                  <p className="px-5 pb-5 text-white/55 text-sm leading-relaxed">{f.a}</p>
+                </motion.div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
       {/* ── FINAL CTA ── */}
       <section className="py-24 bg-gradient-to-br from-[#13224a] via-[#0f0628] to-[#080d1f] relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 text-center">
+        <motion.div
+          className="absolute top-0 left-1/2 -translate-x-1/2 w-[40rem] h-[40rem] bg-amber-500/10 rounded-full blur-3xl pointer-events-none"
+          animate={reduce ? {} : { scale: [1, 1.12, 1], opacity: [0.6, 1, 0.6] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <Reveal className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 text-center">
           <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-5">
             Přestaňte lepit nástroje.<br />
             <span className="text-amber-300">Začněte řídit směr.</span>
@@ -429,7 +573,7 @@ export default function AiCorePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a href={cta}>
-              <Button size="lg" className="bg-amber-400 hover:bg-amber-300 text-[#1a1206] font-bold rounded-full px-9 shadow-lg w-full sm:w-auto">
+              <Button size="lg" className="bg-amber-400 hover:bg-amber-300 text-[#1a1206] font-bold rounded-full px-9 shadow-lg w-full sm:w-auto transition-transform hover:scale-[1.03]">
                 Spustit AI Core <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </a>
@@ -443,7 +587,7 @@ export default function AiCorePage() {
             <span className="flex items-center gap-1.5"><Clock className="w-4 h-4" /> Odpověď do 24 hodin</span>
             <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-emerald-400" /> Konzultace zdarma</span>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── FOOTER ── */}

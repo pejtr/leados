@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion, useInView, animate } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -335,6 +336,59 @@ export default function Home() {
                 <div className="text-xl font-bold text-violet-300">{v}</div>
                 <div className="text-xs text-white/50">{l}</div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PROOF — BYZNYS V DNA ── */}
+      <section className="relative py-24 bg-white overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-20 right-[-6rem] w-96 h-96 bg-violet-100/60 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-[-8rem] w-80 h-80 bg-cyan-100/50 rounded-full blur-3xl" />
+        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-3xl mb-14"
+          >
+            <div className="inline-flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-full px-4 py-1.5 text-sm text-violet-700 font-medium mb-5">
+              Proč zrovna my
+            </div>
+            <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-5">
+              Neděláme jen weby.<br />
+              <span className="text-violet-600">Stavíme a provozujeme vlastní platformy.</span>
+            </h2>
+            <p className="text-lg text-slate-600 leading-relaxed">
+              Rezervace, e-shopy, CRM, chytří asistenti, predikce — všechno jsme nejdřív postavili a provozovali
+              na vlastních produktech. Co u nás funguje v ostrém provozu, nasadíme i vám. Proto víme, co prodává —
+              ne z kurzu, ale z praxe.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+            {[
+              { to: 20, suffix: "+", label: "vlastních platforem v provozu" },
+              { to: 50, suffix: "+", label: "realizovaných projektů" },
+              { to: 5, suffix: " let", label: "zkušeností na trhu" },
+              { to: 98, suffix: " %", label: "spokojených klientů" },
+            ].map((s, i) => (
+              <motion.div
+                key={s.label}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 mb-2">
+                  <CountUp to={s.to} suffix={s.suffix} />
+                </div>
+                <div className="h-1 w-12 bg-gradient-to-r from-violet-500 to-cyan-400 rounded-full mb-3" />
+                <div className="text-sm text-slate-500 leading-snug">{s.label}</div>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -961,28 +1015,29 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {([
-              // Až budou screenshoty, doplň `image: "/portfolio/<soubor>.png"` k danému projektu.
-              { name: "KatastrOnline", repo: "katastr-online", desc: "Vyhledávání v katastru nemovitostí — oficiální data ČÚZK, 20M+ nemovitostí, AI cenový odhad, hypoteční kalkulačka a CRM pro makléře.", tags: ["Nástroj", "Data", "Reality"], color: "from-sky-600 to-blue-700" },
-              { name: "YouKeto", repo: "youketo", desc: "Infoprodukt funnel pro keto dietu — před/po vizuál, keto recepty PDF zdarma, online poradce a konverzní prodejní stránka.", tags: ["Infoprodukt", "Funnel", "Zdraví"], color: "from-cyan-500 to-emerald-500" },
-              { name: "Amarex Shop", repo: "amarex", desc: "Brandový e-shop doplňků stravy Amarex — produktové řady, výhodné balíčky, srovnávací tabulka, poradce v chatu, 4.7/5 od 10 000+ zákazníků.", tags: ["E-shop", "Brand", "Zdraví"], color: "from-orange-500 to-amber-600" },
-              { name: "Silné Libido", repo: "silnelibido", desc: "Konverzní prodejní stránka produktu (silnelibido.cz) — order bump, countdown akce, cenové balíčky, 30denní garance, social proof.", tags: ["Funnel", "Konverze", "Zdraví"], color: "from-rose-500 to-red-600" },
-              { name: "Aktivní Důchodce", repo: "aktivni-duchodce", desc: "Portál pro aktivní seniory (Pardubice a okolí) — aktivity, výlety, pobyty, doprava, seznamka a ergoterapeutický přístup. Vše na jednom místě.", tags: ["Portál", "Senioři", "Služby"], color: "from-teal-500 to-cyan-600" },
-              { name: "FlyingRadar24", repo: "flyingradar24", desc: "Flight tracker s živou radarovou mapou a porovnáním cen letenek (KAYAK) — 500+ tras, 56 aerolinek, 172 letišť, live status letů v reálném čase.", tags: ["Travel", "Live data", "Flight"], color: "from-cyan-500 to-slate-700" },
-              { name: "NomadWallet", repo: "nomadwallet", desc: "Finanční nástroje pro nomády (EN) — monitoring kreditního skóre, mezinárodní převody peněz, měnová kalkulačka a fintech průvodci.", tags: ["Fintech", "Nástroje", "EN"], color: "from-blue-500 to-blue-700" },
-              { name: "Human Design Chart", repo: "humandesignchart", desc: "Prémiová webová aplikace pro výpočet a vizualizaci Human Design Bodygraph diagramů. Interaktivní SVG, registrace, platby.", tags: ["Web App", "SVG", "Stripe"], color: "from-violet-500 to-purple-600", stars: 1 },
-              { name: "ONYX OS", repo: "leados", desc: "B2B lead generation platforma s persistentním historickým přehledem, AI-powered icebreakers a dark-mode dashboardem.", tags: ["SaaS", "B2B", "Dashboard"], color: "from-blue-500 to-indigo-600", stars: 1 },
-              { name: "ONYX WEB", repo: "optivio", desc: "Webová agentura s automatizovaným procesem od objednávky po nasazení. ONYX OS backend, CRM, chatbot.", tags: ["Agentura", "CRM", "Chatbot"], color: "from-violet-600 to-indigo-700" },
-              { name: "BotHub", repo: "bothub", desc: "Marketplace pro prodej chatbotů s affiliate programem. Premium landing page s pokročilými konverzními prvky.", tags: ["Marketplace", "Affiliate"], color: "from-emerald-500 to-teal-600" },
-              { name: "Akční Letenky", repo: "akcni-letenky", desc: "Online travel agency s affiliate systémem pro vyhledávání a prodej leteckých spojení.", tags: ["OTA", "Affiliate", "Travel"], color: "from-sky-500 to-blue-600" },
-              { name: "VoxelCraft", repo: "voxelcraft", desc: "Voxelová hra ve stylu Minecraftu přímo v prohlížeči — bez instalace, 3D engine, generování světa, stavění v reálném čase.", tags: ["Hra", "WebGL", "Aplikace"], color: "from-green-600 to-lime-600" },
-              { name: "StoryLiner", repo: "story_liner", desc: "Platforma pro tvorbu videí s inteligentním chatbot asistentem, RAG systémem a persistentní pamětí.", tags: ["Video", "Chatbot", "RAG"], color: "from-orange-500 to-red-600" },
-              { name: "Amulets.cz", repo: "my.amulette", desc: "E-shop s ručně vyráběnými orgonitovými pyramidami, amulety a aromaterapeutickými produkty.", tags: ["E-shop", "Produkty"], color: "from-amber-500 to-orange-600" },
-              { name: "Deep Sleep Reset", repo: "deep-sleep", desc: "Performance marketing funnel s chronotype kvízem, personalizovaným průvodcem a upsell sekvencí.", tags: ["Funnel", "Marketing", "Quiz"], color: "from-indigo-500 to-violet-600" },
-              { name: "Do Itálie", repo: "do-italie", desc: "Cestovatelský portál Do-italie.cz — průvodce po italských destinacích, tipy a praktické informace.", tags: ["Cestování", "Portál"], color: "from-green-500 to-emerald-600" },
-              { name: "Influencer Generator", repo: "ai-influencer-generator", desc: "Platforma pro generování ultra-realistických virtuálních influencerů pro TikTok, Instagram a YouTube.", tags: ["Generátor", "Sociální sítě"], color: "from-pink-500 to-rose-600" },
-              { name: "iBots", repo: "ibots", desc: "Premium landing page pro prodej chatbotů — katalog 77 botů v 7 kategoriích, cenové plány, dark theme se zlatými akcenty.", tags: ["Landing Page", "Katalog"], color: "from-yellow-500 to-amber-600" },
-              { name: "Affiliate Network Builder", repo: "ai_affiliate_network_builder", desc: "Platforma pro automatizované budování sítě prodejců pro affiliate marketing.", tags: ["Affiliate", "Automatizace"], color: "from-cyan-500 to-teal-600" },
-            ] as Array<{ name: string; repo: string; desc: string; tags: string[]; color: string; stars?: number; image?: string }>).map((project) => (
+              // Top full-stack platformy první. image: "/portfolio/<soubor>.png" doplň, až budou screenshoty.
+              { name: "Monika Virtue", repo: "omnix", desc: "Holistická wellness platforma (omnix.cz) v konceptu Wabi-Sabi — terapie, hormonální jóga a kurzy. Rezervace s platbami, kvíz a chytrý asistent, který se učí tón terapeutky.", tags: ["Wellness", "Platforma", "Fullstack"], color: "from-amber-500 to-stone-600", modules: ["Rezervace + Stripe platby", "Telegram asistent (sentiment + booking intent)", "Kvíz lead-gen", "7denní drip e-maily (cron)", "CRM", "Blog + SEO admin", "Vícejazyčnost", "Light/Dark režim"] },
+              { name: "Human Design Mapa", repo: "humandesignchart", desc: "Prémiový SaaS pro sebepoznání (humandesignmapa.cz) — přesný astrologický výpočet, interaktivní Bodygraph a kontextový průvodce, který mapu vykládá a sleduje denní tranzity.", tags: ["SaaS", "Premium", "Předplatné"], color: "from-violet-500 to-purple-600", stars: 1, modules: ["Astro kalkulátor (ephemeridy)", "Bodygraph 9 center / 64 bran", "Personalizované výklady", "Průvodce chat s pamětí", "Denní tranzity live", "Gene Keys", "Kompozitní mapy vztahů", "I-Ťing encyklopedie", "Stripe premium + kredity", "PDF export", "Affiliate systém", "i18n CZ/EN"] },
+              { name: "KatastrOnline", repo: "katastr-online", desc: "Vyhledávání v katastru nemovitostí — oficiální data ČÚZK, 20M+ nemovitostí, cenový odhad, hypoteční kalkulačka a CRM pro makléře.", tags: ["Nástroj", "Data", "Reality"], color: "from-sky-600 to-blue-700", modules: ["Data ČÚZK (20M+ nemovitostí)", "Cenový odhad", "Hypoteční kalkulačka", "CRM pro makléře", "Fulltext vyhledávání"] },
+              { name: "Amarex Shop", repo: "amarex", desc: "Brandový e-shop doplňků stravy Amarex — produktové řady, výhodné balíčky, srovnávací tabulka, poradce v chatu, 4.7/5 od 10 000+ zákazníků.", tags: ["E-shop", "Brand", "Zdraví"], color: "from-orange-500 to-amber-600", modules: ["E-shop katalog", "Balíčky + upsell", "Srovnávací tabulka", "Poradce v chatu", "Recenze 4.7/5"] },
+              { name: "YouKeto", repo: "youketo", desc: "Infoprodukt funnel pro keto dietu — před/po vizuál, keto recepty PDF zdarma, online poradce a konverzní prodejní stránka.", tags: ["Infoprodukt", "Funnel", "Zdraví"], color: "from-cyan-500 to-emerald-500", modules: ["Prodejní funnel", "Lead magnet (PDF)", "Online poradce", "Před/po vizuál"] },
+              { name: "FlyingRadar24", repo: "flyingradar24", desc: "Flight tracker s živou radarovou mapou a porovnáním cen letenek — 500+ tras, 56 aerolinek, 172 letišť, live status letů v reálném čase.", tags: ["Travel", "Live data", "Flight"], color: "from-cyan-500 to-slate-700", modules: ["Živá radarová mapa", "Porovnání cen letenek", "Live status letů", "500+ tras / 172 letišť"] },
+              { name: "Silné Libido", repo: "silnelibido", desc: "Konverzní prodejní stránka produktu (silnelibido.cz) — order bump, countdown akce, cenové balíčky, 30denní garance, social proof.", tags: ["Funnel", "Konverze", "Zdraví"], color: "from-rose-500 to-red-600", modules: ["Prodejní funnel", "Order bump", "Countdown akce", "Cenové balíčky", "30denní garance"] },
+              { name: "Aktivní Důchodce", repo: "aktivni-duchodce", desc: "Portál pro aktivní seniory (Pardubice a okolí) — aktivity, výlety, pobyty, doprava, seznamka a ergoterapeutický přístup. Vše na jednom místě.", tags: ["Portál", "Senioři", "Služby"], color: "from-teal-500 to-cyan-600", modules: ["Portál služeb", "Aktivity a výlety", "Doprava", "Seznamka"] },
+              { name: "NomadWallet", repo: "nomadwallet", desc: "Finanční nástroje pro nomády (EN) — monitoring kreditního skóre, mezinárodní převody peněz, měnová kalkulačka a fintech průvodci.", tags: ["Fintech", "Nástroje", "EN"], color: "from-blue-500 to-blue-700", modules: ["Monitoring kreditního skóre", "Mezinárodní převody", "Měnová kalkulačka", "Fintech průvodci"] },
+              { name: "ONYX OS", repo: "leados", desc: "B2B lead generation platforma s persistentním historickým přehledem, chytrými icebreakery a dark-mode dashboardem.", tags: ["SaaS", "B2B", "Dashboard"], color: "from-blue-500 to-indigo-600", stars: 1, modules: ["Lead generation", "Historický přehled", "Icebreakers asistent", "Dark-mode dashboard"] },
+              { name: "StoryLiner", repo: "story_liner", desc: "Platforma pro tvorbu videí s inteligentním chatbot asistentem, RAG systémem a persistentní pamětí.", tags: ["Video", "Chatbot", "RAG"], color: "from-orange-500 to-red-600", modules: ["Tvorba videí", "Chatbot asistent", "RAG systém", "Persistentní paměť"] },
+              { name: "Deep Sleep Reset", repo: "deep-sleep", desc: "Performance marketing funnel s chronotype kvízem, personalizovaným průvodcem a upsell sekvencí.", tags: ["Funnel", "Marketing", "Quiz"], color: "from-indigo-500 to-violet-600", modules: ["Performance funnel", "Chronotype kvíz", "Personalizovaný průvodce", "Upsell sekvence"] },
+              { name: "iBots", repo: "ibots", desc: "Premium landing page pro prodej chatbotů — katalog 77 botů v 7 kategoriích, cenové plány, dark theme se zlatými akcenty.", tags: ["Landing Page", "Katalog"], color: "from-yellow-500 to-amber-600", modules: ["Katalog 77 botů", "7 kategorií", "Cenové plány", "Dark theme"] },
+              { name: "VoxelCraft", repo: "voxelcraft", desc: "Voxelová hra ve stylu Minecraftu přímo v prohlížeči — bez instalace, 3D engine, generování světa, stavění v reálném čase.", tags: ["Hra", "WebGL", "Aplikace"], color: "from-green-600 to-lime-600", modules: ["3D WebGL engine", "Generování světa", "Stavění v reálném čase", "Bez instalace"] },
+              { name: "Amulets.cz", repo: "my.amulette", desc: "E-shop s ručně vyráběnými orgonitovými pyramidami, amulety a aromaterapeutickými produkty.", tags: ["E-shop", "Produkty"], color: "from-amber-500 to-orange-600", modules: ["E-shop", "Produktové řady", "Objednávky"] },
+              { name: "Do Itálie", repo: "do-italie", desc: "Cestovatelský portál Do-italie.cz — průvodce po italských destinacích, tipy a praktické informace.", tags: ["Cestování", "Portál"], color: "from-green-500 to-emerald-600", modules: ["Cestovní portál", "Průvodce destinacemi", "Praktické tipy"] },
+              { name: "Influencer Generator", repo: "ai-influencer-generator", desc: "Platforma pro generování ultra-realistických virtuálních influencerů pro TikTok, Instagram a YouTube.", tags: ["Generátor", "Sociální sítě"], color: "from-pink-500 to-rose-600", modules: ["Generátor influencerů", "TikTok / IG / YT", "Realistické vizuály"] },
+              { name: "Akční Letenky", repo: "akcni-letenky", desc: "Online travel agency s affiliate systémem pro vyhledávání a prodej leteckých spojení.", tags: ["OTA", "Affiliate", "Travel"], color: "from-sky-500 to-blue-600", modules: ["OTA vyhledávání", "Affiliate systém", "Letecká spojení"] },
+              { name: "Affiliate Network Builder", repo: "ai_affiliate_network_builder", desc: "Platforma pro automatizované budování sítě prodejců pro affiliate marketing.", tags: ["Affiliate", "Automatizace"], color: "from-cyan-500 to-teal-600", modules: ["Síť prodejců", "Automatizace", "Affiliate tracking"] },
+              { name: "BotHub", repo: "bothub", desc: "Marketplace pro prodej chatbotů s affiliate programem. Premium landing page s pokročilými konverzními prvky.", tags: ["Marketplace", "Affiliate"], color: "from-emerald-500 to-teal-600", modules: ["Marketplace chatbotů", "Affiliate program", "Premium landing"] },
+              { name: "ONYX WEB", repo: "optivio", desc: "Webová agentura s automatizovaným procesem od objednávky po nasazení — CRM, chatbot a ONYX OS backend.", tags: ["Agentura", "CRM", "Chatbot"], color: "from-violet-600 to-indigo-700", modules: ["Automatizace objednávek", "CRM", "Chatbot", "ONYX OS backend"] },
+            ] as Array<{ name: string; repo: string; desc: string; tags: string[]; color: string; stars?: number; image?: string; modules?: string[] }>).map((project) => (
               <div
                 key={project.repo}
                 className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all duration-300"
@@ -1015,6 +1070,21 @@ export default function Home() {
                       <span key={tag} className="text-xs font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">{tag}</span>
                     ))}
                   </div>
+                  {project.modules?.length ? (
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-2">Moduly &amp; funkce</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {project.modules.slice(0, 6).map(m => (
+                          <span key={m} className="inline-flex items-center gap-1 text-[11px] font-medium bg-violet-50 text-violet-700 border border-violet-100 px-2 py-0.5 rounded-md">
+                            <Check className="w-2.5 h-2.5 shrink-0" /> {m}
+                          </span>
+                        ))}
+                        {project.modules.length > 6 ? (
+                          <span className="text-[11px] font-medium text-slate-400 px-1 py-0.5">+{project.modules.length - 6} dalších</span>
+                        ) : null}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             ))}
@@ -1296,5 +1366,28 @@ export default function Home() {
 
       </div>{/* END VIEWPORT WRAPPER */}
     </div>
+  );
+}
+
+// Animované počítadlo — odpočítá od 0 k cílové hodnotě, když se dostane do viewportu.
+function CountUp({ to, suffix = "", prefix = "", duration = 1.6 }: { to: number; suffix?: string; prefix?: string; duration?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-80px" });
+  const [val, setVal] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    const controls = animate(0, to, {
+      duration,
+      ease: [0.22, 1, 0.36, 1],
+      onUpdate: (v) => setVal(v),
+    });
+    return () => controls.stop();
+  }, [inView, to, duration]);
+
+  return (
+    <span ref={ref}>
+      {prefix}{Math.round(val).toLocaleString("cs-CZ")}{suffix}
+    </span>
   );
 }
