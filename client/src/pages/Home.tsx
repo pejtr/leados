@@ -9,7 +9,7 @@ import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, S
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
-import { OnyxWebLogo } from "@/components/OnyxWebLogo";
+import { OptimateoLogo } from "@/components/OptimateoLogo";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -145,7 +145,7 @@ export default function Home() {
       {/* ── NAV ── */}
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-[#1a0a3c]/95 backdrop-blur-md shadow-lg" : "bg-transparent"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <a href="/" aria-label="ONYX WEB"><OnyxWebLogo className="h-9" light /></a>
+          <a href="/" aria-label="Optimateo"><OptimateoLogo className="h-9" light /></a>
           <div className="hidden md:flex items-center gap-8">
             {["Řešení", "Ceny", "Případové studie", "O nás"].map(item => (
               <a key={item} href={`#${item === "Ceny" ? "pricing" : item === "Případové studie" ? "cases" : item === "Řešení" ? "niche" : "contact"}`}
@@ -1316,9 +1316,9 @@ export default function Home() {
           <div className="grid md:grid-cols-4 gap-8 mb-10">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <OnyxWebLogo className="h-8" light />
+                <OptimateoLogo className="h-8" light />
               </div>
-              <p className="text-sm leading-relaxed">Webová agentura zaměřená na české firmy a živnostníky. Weby, automatizace, ONYX OS.</p>
+              <p className="text-sm leading-relaxed">Optimateo — agentura pro weby, automatizace a data. Pod jednou střechou produkty <span className="text-white/80">ONYX WEB</span> (weby) a <span className="text-white/80">ONYX OS</span> (B2B platforma).</p>
               <div className="flex gap-3 mt-4">
                 {["LinkedIn", "Facebook", "Instagram"].map(s => (
                   <a key={s} href="#" className="w-8 h-8 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center text-xs transition-colors">{s[0]}</a>
@@ -1328,7 +1328,7 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold mb-4 text-sm">Produkty</h4>
               <ul className="space-y-2 text-sm">
-                {["Tvorba webu", "Lead Generation", "Automatizace", "ONYX OS SaaS"].map(i => (
+                {["ONYX WEB — weby", "ONYX OS — B2B platforma", "Automatizace", "Lead Generation"].map(i => (
                   <li key={i}><a href="#" className="hover:text-white transition-colors">{i}</a></li>
                 ))}
               </ul>
@@ -1352,7 +1352,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-            <p>© 2026 ONYX WEB. Všechna práva vyhrazena.</p>
+            <p>© 2026 Optimateo. Všechna práva vyhrazena.</p>
             <div className="flex gap-6">
               <a href="#" className="hover:text-white transition-colors">Zásady ochrany osobních údajů</a>
               <a href="#" className="hover:text-white transition-colors">Obchodní podmínky</a>
