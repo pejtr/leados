@@ -4,7 +4,7 @@
  */
 
 import type { WebhookConfig, Lead } from "../drizzle/schema";
-import { createIntegrationLog } from "./db";
+import { createIntegrationLog, createWebhookLog } from "./db";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 5000, 15000]; // ms
@@ -62,9 +62,9 @@ async function sendGenericWebhook(
   config: WebhookConfig,
   payload: WebhookPayload
 ): Promise<{ status: number; body: string }> {
-  if (!config.webhookUrl) throw new Error("Webhook URL is required");
+  if (!config.url) throw new Error("Webhook URL is required");
 
-  const response = await fetch(config.webhookUrl, {
+  const response = await fetch(config.url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -147,7 +147,7 @@ async function sendToSlack(
   config: WebhookConfig,
   payload: WebhookPayload
 ): Promise<{ status: number; body: string }> {
-  if (!config.slackWebhookUrl) throw new Error("Slack webhook URL is required");
+  if (!config.url) throw new Error("Slack webhook URL is required");
 
   const leadSummary = payload.leads
     .slice(0, 10)
@@ -160,7 +160,7 @@ async function sendToSlack(
         type: "header",
         text: {
           type: "plain_text",
-          text: `🎯 OPTIHUB: ${payload.event}`,
+          text: `🎯 ONYX OS: ${payload.event}`,
         },
       },
       {
@@ -182,7 +182,7 @@ async function sendToSlack(
     ],
   };
 
-  const response = await fetch(config.slackWebhookUrl, {
+  const response = await fetch(config.url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(slackPayload),
@@ -284,6 +284,20 @@ export async function dispatchWebhooks(
           success: result.success,
           errorMessage: result.error || null,
           retryCount: result.success ? 0 : MAX_RETRIES,
+        });
+        // Persist a delivery row in webhook_logs so the retry scheduler can redeliver failures
+        await createWebhookLog({
+          userId,
+          webhookConfigId: config.id,
+          event: mappedEvent,
+          payload,
+          statusCode: result.status,
+          response: result.body.substring(0, 2000),
+          attempt: 1,
+          status: result.success ? "success" : "failed",
+          nextRetryAt: result.success ? null : Date.now() + config.retryDelaySeconds * 1000,
+          error: result.error || null,
+          completedAt: result.success ? Date.now() : null,
         });
       } catch (logErr) {
         console.error("[Webhook] Failed to log integration event:", logErr);

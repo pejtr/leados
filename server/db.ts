@@ -362,9 +362,10 @@ export async function assignLead(leadId: number, userId: number, assignedTo: num
 // ─── Webhook Configs ────────────────────────────────────────────
 
 import {
-  webhookConfigs, integrationLogs,
+  webhookConfigs, integrationLogs, webhookLogs,
   type WebhookConfig, type InsertWebhookConfig,
   type IntegrationLog, type InsertIntegrationLog,
+  type InsertWebhookLog,
 } from "../drizzle/schema";
 
 export async function getWebhookConfigs(userId: number): Promise<WebhookConfig[]> {
@@ -429,6 +430,15 @@ export async function createIntegrationLog(data: InsertIntegrationLog): Promise<
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   const result = await db.insert(integrationLogs).values(data);
+  return (result[0] as any).insertId as number;
+}
+
+// Webhook delivery log (webhook_logs) — drives the retry scheduler. A row with
+// status "failed", attempt < maxRetries and a due nextRetryAt is picked up for redelivery.
+export async function createWebhookLog(data: InsertWebhookLog): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.insert(webhookLogs).values(data);
   return (result[0] as any).insertId as number;
 }
 

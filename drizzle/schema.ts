@@ -1358,6 +1358,10 @@ export const webhookConfigs = mysqlTable("webhook_configs_crm", {
   maxRetries: int("max_retries").default(3).notNull(),
   retryDelaySeconds: int("retry_delay_seconds").default(300).notNull(),
   headers: json("headers").$type<Record<string, string>>().$default(() => ({})),
+  // Integration type — generic webhook (Zapier/Make/n8n), ClickUp, or Slack. generic + slack deliver to `url`.
+  type: mysqlEnum("integration_type", ["generic", "clickup", "slack"]).default("generic").notNull(),
+  clickupApiKey: text("clickup_api_key"), // used when type = "clickup"
+  clickupListId: varchar("clickup_list_id", { length: 64 }), // used when type = "clickup"
   lastTriggeredAt: bigint("last_triggered_at", { mode: "number" }),
   failureCount: int("failure_count").default(0).notNull(),
   createdAt: bigint("created_at", { mode: "number" }).notNull().$defaultFn(() => Date.now()),

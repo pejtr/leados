@@ -62,7 +62,7 @@ export async function webhookRetryHandler(req: Request, res: Response) {
         // Webhook config deleted, mark as permanently failed
         await db
           .update(webhookLogs)
-          .set({ status: "failed", errorMessage: "Webhook config deleted" })
+          .set({ status: "failed", error: "Webhook config deleted" })
           .where(eq(webhookLogs.id, log.id));
         continue;
       }
@@ -71,7 +71,7 @@ export async function webhookRetryHandler(req: Request, res: Response) {
       
       // Attempt redelivery
       try {
-        const payload = log.payload || "{}";
+        const payload = log.payload ? JSON.stringify(log.payload) : "{}";
         const timestamp = Math.floor(Date.now() / 1000).toString();
         
         // Generate HMAC-SHA256 signature
@@ -85,7 +85,7 @@ export async function webhookRetryHandler(req: Request, res: Response) {
           "Content-Type": "application/json",
           "X-Webhook-Signature": `sha256=${signature}`,
           "X-Webhook-Timestamp": timestamp,
-          "X-Webhook-Event": log.eventType,
+          "X-Webhook-Event": log.event,
           "X-Webhook-Retry": (log.attempt + 1).toString(),
           ...(config.headers || {}),
         };
@@ -111,9 +111,9 @@ export async function webhookRetryHandler(req: Request, res: Response) {
             .set({
               status: "success",
               statusCode: response.status,
-              responseBody: responseBody.substring(0, 2000),
+              response: responseBody.substring(0, 2000),
               attempt: log.attempt + 1,
-              deliveredAt: Date.now(),
+              completedAt: Date.now(),
             })
             .where(eq(webhookLogs.id, log.id));
           successCount++;
@@ -127,9 +127,9 @@ export async function webhookRetryHandler(req: Request, res: Response) {
             .set({
               status: newStatus,
               statusCode: response.status,
-              responseBody: responseBody.substring(0, 2000),
+              response: responseBody.substring(0, 2000),
               attempt: newAttempt,
-              errorMessage: `HTTP ${response.status}: ${responseBody.substring(0, 200)}`,
+              error: `HTTP ${response.status}: ${responseBody.substring(0, 200)}`,
             })
             .where(eq(webhookLogs.id, log.id));
           failCount++;
@@ -143,7 +143,7 @@ export async function webhookRetryHandler(req: Request, res: Response) {
           .set({
             status: newAttempt >= MAX_RETRIES ? "failed" : "failed",
             attempt: newAttempt,
-            errorMessage: fetchError.message || "Network error",
+            error: fetchError.message || "Network error",
           })
           .where(eq(webhookLogs.id, log.id));
         failCount++;
@@ -152,7 +152,7 @@ export async function webhookRetryHandler(req: Request, res: Response) {
 
     // Update webhook config failure counts
     const failedConfigs = new Set(pendingRetries.filter((_, i) => i < failCount).map(l => l.webhookConfigId));
-    for (const configId of failedConfigs) {
+    for (const configId of Array.from(failedConfigs)) {
       const config = (await db.select().from(webhookConfigs).where(eq(webhookConfigs.id, configId)).limit(1))[0];
       if (config && config.failureCount >= 10) {
         // Auto-pause webhook after 10 consecutive failures

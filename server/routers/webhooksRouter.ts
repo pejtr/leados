@@ -21,7 +21,7 @@ export const webhooksRouter = router({
         events: z.string().min(1), // comma-separated: "new_lead,new_order,quiz_completed"
         maxRetries: z.number().min(1).max(10).default(3),
         retryDelaySeconds: z.number().min(60).max(3600).default(300),
-        headers: z.record(z.string()).optional(),
+        headers: z.record(z.string(), z.string()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -115,7 +115,7 @@ export const webhooksRouter = router({
         status: z.enum(["active", "paused", "failed"]).optional(),
         maxRetries: z.number().optional(),
         retryDelaySeconds: z.number().optional(),
-        headers: z.record(z.string()).optional(),
+        headers: z.record(z.string(), z.string()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
