@@ -98,7 +98,13 @@ async function startServer() {
   }
 
   const preferredPort = parseInt(process.env.PORT || "3000");
-  const port = await findAvailablePort(preferredPort);
+  // V produkci (Railway/Render/…) MUSÍME bindovat přesně na přidělený $PORT —
+  // hledání „volného" portu by způsobilo, že platforma na server nedosáhne (502).
+  // Lokálně necháme fallback na nejbližší volný port kvůli pohodlí při vývoji.
+  const port =
+    process.env.NODE_ENV === "production"
+      ? preferredPort
+      : await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {
     console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
