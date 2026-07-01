@@ -215,23 +215,39 @@ export default function Home() {
           {/* base depth gradient */}
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,#1d0f45_0%,#0f0628_55%,#0a041d_100%)]" />
 
-          {/* fine grid with radial fade */}
-          <svg className="absolute inset-0 w-full h-full" aria-hidden="true">
-            <defs>
-              <pattern id="hero-grid" width="52" height="52" patternUnits="userSpaceOnUse">
-                <path d="M52 0H0V52" fill="none" stroke="white" strokeWidth="0.6" />
-              </pattern>
-              <radialGradient id="hero-grid-fade" cx="50%" cy="35%" r="75%">
-                <stop offset="0%" stopColor="white" stopOpacity="0.09" />
-                <stop offset="60%" stopColor="white" stopOpacity="0.04" />
-                <stop offset="100%" stopColor="white" stopOpacity="0" />
-              </radialGradient>
-              <mask id="hero-grid-mask">
-                <rect width="100%" height="100%" fill="url(#hero-grid-fade)" />
-              </mask>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#hero-grid)" mask="url(#hero-grid-mask)" />
-          </svg>
+          {/* neon grid styles */}
+          <style>{`
+            @keyframes heroGridPan { from { background-position: 0 0, 0 0; } to { background-position: 52px 52px, 52px 52px; } }
+            @keyframes heroFloorScroll { from { background-position: 0 0; } to { background-position: 0 60px; } }
+            @keyframes heroNeonPulse { 0%,100% { opacity:.32; } 50% { opacity:.62; } }
+            @keyframes heroTextGlow { 0%,100% { filter: drop-shadow(0 0 10px rgba(124,58,237,.35)); } 50% { filter: drop-shadow(0 0 22px rgba(34,211,238,.55)); } }
+            .hero-neon-grid {
+              background-image:
+                linear-gradient(rgba(139,92,246,.20) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(34,211,238,.16) 1px, transparent 1px);
+              background-size: 52px 52px;
+              -webkit-mask-image: radial-gradient(ellipse 75% 60% at 50% 32%, #000 0%, transparent 72%);
+              mask-image: radial-gradient(ellipse 75% 60% at 50% 32%, #000 0%, transparent 72%);
+              animation: heroGridPan 7s linear infinite, heroNeonPulse 4s ease-in-out infinite;
+            }
+            .hero-neon-floor {
+              transform: rotateX(74deg);
+              background-image:
+                linear-gradient(rgba(34,211,238,.55) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139,92,246,.45) 1px, transparent 1px);
+              background-size: 60px 60px;
+              -webkit-mask-image: linear-gradient(to top, #000 8%, transparent 82%);
+              mask-image: linear-gradient(to top, #000 8%, transparent 82%);
+              animation: heroFloorScroll 1.6s linear infinite;
+              filter: drop-shadow(0 0 6px rgba(34,211,238,.45));
+            }
+            .hero-neon-text { animation: heroTextGlow 3.5s ease-in-out infinite; }
+            @media (prefers-reduced-motion: reduce) {
+              .hero-neon-grid, .hero-neon-floor, .hero-neon-text { animation: none; }
+            }
+          `}</style>
+          {/* animated neon grid — flat, pans + pulses */}
+          <div className="absolute inset-0 hero-neon-grid" />
 
           {/* diagonal light beams */}
           <div className="absolute -top-40 left-[18%] w-[30rem] h-[110%] rotate-[24deg] bg-gradient-to-b from-violet-400/10 via-violet-500/[0.03] to-transparent blur-2xl" />
@@ -257,7 +273,11 @@ export default function Home() {
 
           {/* corner accents + bottom fade */}
           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
-          <div className="absolute bottom-0 inset-x-0 h-44 bg-gradient-to-t from-[#0f0628] to-transparent" />
+          {/* synthwave neon floor — mřížka scrolluje k divákovi */}
+          <div className="absolute bottom-0 inset-x-0 h-[42%] overflow-hidden" style={{ perspective: "520px" }}>
+            <div className="hero-neon-floor absolute inset-x-[-60%] bottom-0 h-[220%] origin-bottom" />
+          </div>
+          <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-[#0f0628] via-[#0f0628]/40 to-transparent" />
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 grid lg:grid-cols-2 gap-16 items-center">
@@ -269,7 +289,7 @@ export default function Home() {
             </div>
             <h1 className="text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
               Váš web,<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">
+              <span className="hero-neon-text text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">
                 vaše pravidla.
               </span>
             </h1>
