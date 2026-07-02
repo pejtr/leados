@@ -276,8 +276,10 @@ export default function Home() {
               filter: drop-shadow(0 0 6px rgba(34,211,238,.45));
             }
             .hero-neon-text { animation: heroTextGlow 3.5s ease-in-out infinite; }
+            @keyframes heroLinePulse { 0%,100% { opacity:.18; } 50% { opacity:.65; } }
+            .hero-line-pulse { animation: heroLinePulse 3.2s ease-in-out infinite; }
             @media (prefers-reduced-motion: reduce) {
-              .hero-neon-grid, .hero-neon-floor, .hero-neon-text { animation: none; }
+              .hero-neon-grid, .hero-neon-floor, .hero-neon-text, .hero-line-pulse { animation: none; }
             }
           `}</style>
           {/* animated neon grid — flat, pans + pulses */}
@@ -286,6 +288,12 @@ export default function Home() {
           {/* diagonal light beams */}
           <div className="absolute -top-40 left-[18%] w-[30rem] h-[110%] rotate-[24deg] bg-gradient-to-b from-violet-400/10 via-violet-500/[0.03] to-transparent blur-2xl" />
           <div className="absolute -top-52 right-[8%] w-[22rem] h-[110%] rotate-[-18deg] bg-gradient-to-b from-cyan-400/[0.07] via-transparent to-transparent blur-2xl" />
+
+          {/* pulzující linky — po celé hero sekci, ne jen v rohu */}
+          <div className="hero-line-pulse absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-cyan-400/40 to-transparent" style={{ animationDelay: "0.4s" }} />
+          <div className="hero-line-pulse absolute right-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-violet-400/40 to-transparent" style={{ animationDelay: "1.2s" }} />
+          <div className="hero-line-pulse absolute top-[38%] inset-x-0 h-px bg-gradient-to-r from-transparent via-fuchsia-400/25 to-transparent" style={{ animationDelay: "2s" }} />
+          <div className="hero-line-pulse absolute top-[64%] inset-x-0 h-px bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" style={{ animationDelay: "0.9s" }} />
 
           {/* glow orbs */}
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl" />
@@ -306,7 +314,7 @@ export default function Home() {
           </svg>
 
           {/* corner accents + bottom fade */}
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-violet-400/30 to-transparent" />
+          <div className="hero-line-pulse absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-violet-400/50 to-transparent" style={{ animationDelay: "0s" }} />
           {/* synthwave neon floor — mřížka scrolluje k divákovi */}
           <div className="absolute bottom-0 inset-x-0 h-[42%] overflow-hidden" style={{ perspective: "520px" }}>
             <div className="hero-neon-floor absolute inset-x-[-60%] bottom-0 h-[220%] origin-bottom" />
@@ -314,14 +322,14 @@ export default function Home() {
           <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-[#0f0628] via-[#0f0628]/40 to-transparent" />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 grid lg:grid-cols-2 gap-16 items-center">
+        <div className={`relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 grid gap-16 items-center ${viewportMode === 'mobile' ? '' : 'lg:grid-cols-2'}`}>
           {/* Left */}
           <div>
             <div className="inline-flex items-center gap-2 bg-violet-500/20 border border-violet-400/30 rounded-full px-4 py-1.5 text-sm text-violet-300 mb-6">
               <span className="w-2 h-2 bg-violet-400 rounded-full animate-pulse" />
               Nový web za 1–2 týdny · Platíte až po schválení
             </div>
-            <h1 className="text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
+            <h1 className={`font-extrabold leading-tight mb-6 ${viewportMode === 'mobile' ? 'text-4xl' : 'text-5xl lg:text-6xl'}`}>
               Váš web,<br />
               <span className="hero-neon-text text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">
                 vaše pravidla.
@@ -349,7 +357,7 @@ export default function Home() {
           </div>
 
           {/* Right — mock dashboard */}
-          <div className="hidden lg:block relative">
+          <div className={viewportMode === 'mobile' ? 'hidden' : 'hidden lg:block relative'}>
             <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-2xl">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 rounded-full bg-red-400" />
