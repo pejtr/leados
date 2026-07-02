@@ -439,22 +439,52 @@ function Header() {
   );
 }
 
-// Živé aurora pozadí — difuzní diagonální pruhy, jemně driftují.
-// Karty a formulář zůstávají bílé/neprůhledné a plavou nad ním.
+// Živé onyx pozadí — velká lesklá koule s ametystovo-amber leskem, jemně
+// rotuje. Navázáno na brand mark (tmavý onyx + amber jiskra). Karta
+// formuláře zůstává bílá/neprůhledná a plave nad ním.
 function AuroraBackground() {
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#05070f]" aria-hidden="true">
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#06070a]" aria-hidden="true">
       <style>{`
-        @keyframes auroraDrift1 { 0%,100% { transform: translate3d(-4%,-2%,0) rotate(24deg) scale(1); } 50% { transform: translate3d(4%,3%,0) rotate(28deg) scale(1.08); } }
-        @keyframes auroraDrift2 { 0%,100% { transform: translate3d(3%,-3%,0) rotate(-16deg) scale(1); } 50% { transform: translate3d(-3%,2%,0) rotate(-12deg) scale(1.06); } }
-        @keyframes auroraDrift3 { 0%,100% { transform: translate3d(-2%,4%,0) rotate(10deg) scale(1); } 50% { transform: translate3d(2%,-4%,0) rotate(14deg) scale(1.05); } }
-        .aurora-band { position: absolute; filter: blur(70px); }
-        @media (prefers-reduced-motion: reduce) { .aurora-band { animation: none !important; } }
+        @keyframes onyxOrbSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .onyx-orb-sheen { animation: onyxOrbSpin 60s linear infinite; }
+        @media (prefers-reduced-motion: reduce) { .onyx-orb-sheen { animation: none !important; } }
       `}</style>
-      <div className="aurora-band -left-1/4 -top-1/4 w-[75%] h-[150%] bg-gradient-to-b from-blue-500/80 via-indigo-500/60 to-transparent" style={{ animation: "auroraDrift1 24s ease-in-out infinite" }} />
-      <div className="aurora-band left-1/4 -top-[15%] w-[65%] h-[135%] bg-gradient-to-b from-violet-500/80 via-fuchsia-500/50 to-transparent" style={{ animation: "auroraDrift2 28s ease-in-out infinite" }} />
-      <div className="aurora-band right-[-15%] top-[5%] w-[60%] h-[125%] bg-gradient-to-b from-amber-400/70 via-orange-500/45 to-transparent" style={{ animation: "auroraDrift3 21s ease-in-out infinite" }} />
-      <div className="absolute inset-0 bg-black/25" />
+
+      {/* velká lesklá koule */}
+      <div className="absolute -right-[12%] top-1/2 -translate-y-1/2 w-[115vmin] h-[115vmin] rounded-full shadow-[0_0_180px_50px_rgba(0,0,0,0.65)] overflow-hidden">
+        {/* rotující ametystovo-amber lesk */}
+        <div
+          className="onyx-orb-sheen absolute inset-0"
+          style={{
+            background:
+              "conic-gradient(from 200deg, #06070a 0deg, #2b1450 55deg, #7c3aed 100deg, #d97706 150deg, #06070a 210deg, #06070a 290deg, #6d28d9 335deg, #06070a 360deg)",
+          }}
+        />
+        {/* specular odlesk vlevo nahoře */}
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(circle at 28% 22%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.06) 15%, transparent 32%)" }}
+        />
+        {/* jemná amber záře vpravo dole */}
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(circle at 78% 78%, rgba(217,119,6,0.35) 0%, transparent 42%)" }}
+        />
+        {/* vnitřní stín pro hloubku */}
+        <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 140px 45px rgba(0,0,0,0.7), inset 0 0 24px 6px rgba(0,0,0,0.55)" }} />
+        {/* vnitřní "díra" — náznak prstenu/torusu */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            left: "8%", top: "48%", width: "46%", height: "46%",
+            background: "radial-gradient(circle at 35% 30%, #16181f 0%, #06070a 62%)",
+            boxShadow: "inset 0 0 44px 12px rgba(0,0,0,0.85), 0 0 44px 12px rgba(0,0,0,0.6)",
+          }}
+        />
+      </div>
+
+      <div className="absolute inset-0 bg-black/10" />
     </div>
   );
 }
