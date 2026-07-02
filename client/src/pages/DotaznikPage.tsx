@@ -62,17 +62,17 @@ function Stepper({ current }: { current: number }) {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                   active
-                    ? "bg-violet-600 text-white"
+                    ? "bg-violet-500 text-white"
                     : done
-                    ? "bg-violet-100 text-violet-600"
-                    : "bg-slate-100 text-slate-400"
+                    ? "bg-violet-400/30 text-violet-100"
+                    : "bg-white/10 text-white/40"
                 }`}
               >
                 {done ? <Check className="w-4 h-4" /> : i + 1}
               </div>
-              <span className={`mt-1.5 text-[11px] ${active ? "text-slate-900 font-semibold" : "text-slate-400"}`}>{label}</span>
+              <span className={`mt-1.5 text-[11px] ${active ? "text-white font-semibold" : "text-white/40"}`}>{label}</span>
             </div>
-            {i < STEPS.length - 1 && <div className={`w-8 sm:w-16 h-0.5 -mt-5 ${done ? "bg-violet-300" : "bg-slate-200"}`} />}
+            {i < STEPS.length - 1 && <div className={`w-8 sm:w-16 h-0.5 -mt-5 ${done ? "bg-violet-300/60" : "bg-white/15"}`} />}
           </div>
         );
       })}
@@ -223,7 +223,8 @@ export default function DotaznikPage() {
   // ── Thank-you screen ──
   if (submitted) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="min-h-screen flex flex-col relative">
+        <AuroraBackground />
         <Header />
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="max-w-md text-center bg-white border border-slate-200 rounded-3xl p-10 shadow-sm">
@@ -249,19 +250,20 @@ export default function DotaznikPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      <AuroraBackground />
       <Header />
 
       <main className="flex-1 px-4 py-10">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
-            <p className="inline-flex items-center gap-2 text-amber-600 text-sm font-semibold mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Návrh zdarma — platíte až po schválení
+            <p className="inline-flex items-center gap-2 text-amber-300 text-sm font-semibold mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Návrh zdarma — platíte až po schválení
             </p>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-              Dotazník pro <span className="text-violet-600">váš web</span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
+              Dotazník pro <span className="text-violet-300">váš web</span>
             </h1>
-            <p className="text-slate-500 mt-2">Zabere to ~3 minuty. Díky tomu připravíme návrh přesně na míru.</p>
+            <p className="text-white/60 mt-2">Zabere to ~3 minuty. Díky tomu připravíme návrh přesně na míru.</p>
           </div>
 
           <Stepper current={step} />
@@ -415,7 +417,7 @@ export default function DotaznikPage() {
             </div>
           </div>
 
-          <p className="flex items-center justify-center gap-1.5 text-center text-xs text-slate-400 mt-5">
+          <p className="flex items-center justify-center gap-1.5 text-center text-xs text-white/50 mt-5">
             <ShieldCheck className="w-3.5 h-3.5" /> Krok {step + 1} z {STEPS.length} · Vaše údaje jsou v bezpečí.
           </p>
         </div>
@@ -426,14 +428,34 @@ export default function DotaznikPage() {
 
 function Header() {
   return (
-    <header className="bg-white border-b border-slate-200">
+    <header className="bg-white/10 backdrop-blur-md border-b border-white/10">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <a href="/">
-          <OnyxWebLogo className="h-8" />
+          <OnyxWebLogo className="h-8" light />
         </a>
-        <span className="text-sm text-slate-400">Dotazník pro vytvoření webu</span>
+        <span className="text-sm text-white/50">Dotazník pro vytvoření webu</span>
       </div>
     </header>
+  );
+}
+
+// Živé aurora pozadí — difuzní diagonální pruhy, jemně driftují.
+// Karty a formulář zůstávají bílé/neprůhledné a plavou nad ním.
+function AuroraBackground() {
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#05070f]" aria-hidden="true">
+      <style>{`
+        @keyframes auroraDrift1 { 0%,100% { transform: translate3d(-4%,-2%,0) rotate(24deg) scale(1); } 50% { transform: translate3d(4%,3%,0) rotate(28deg) scale(1.08); } }
+        @keyframes auroraDrift2 { 0%,100% { transform: translate3d(3%,-3%,0) rotate(-16deg) scale(1); } 50% { transform: translate3d(-3%,2%,0) rotate(-12deg) scale(1.06); } }
+        @keyframes auroraDrift3 { 0%,100% { transform: translate3d(-2%,4%,0) rotate(10deg) scale(1); } 50% { transform: translate3d(2%,-4%,0) rotate(14deg) scale(1.05); } }
+        .aurora-band { position: absolute; filter: blur(70px); }
+        @media (prefers-reduced-motion: reduce) { .aurora-band { animation: none !important; } }
+      `}</style>
+      <div className="aurora-band -left-1/4 -top-1/4 w-[75%] h-[150%] bg-gradient-to-b from-blue-500/80 via-indigo-500/60 to-transparent" style={{ animation: "auroraDrift1 24s ease-in-out infinite" }} />
+      <div className="aurora-band left-1/4 -top-[15%] w-[65%] h-[135%] bg-gradient-to-b from-violet-500/80 via-fuchsia-500/50 to-transparent" style={{ animation: "auroraDrift2 28s ease-in-out infinite" }} />
+      <div className="aurora-band right-[-15%] top-[5%] w-[60%] h-[125%] bg-gradient-to-b from-amber-400/70 via-orange-500/45 to-transparent" style={{ animation: "auroraDrift3 21s ease-in-out infinite" }} />
+      <div className="absolute inset-0 bg-black/25" />
+    </div>
   );
 }
 
