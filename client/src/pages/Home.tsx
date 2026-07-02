@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, useInView, animate } from "framer-motion";
+import { useState, useEffect, useRef, type ReactNode } from "react";
+import { motion, useInView, animate, type Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, ArrowRight, Menu, X, ChevronDown, Star, Zap, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket, Coffee, Scissors, Wrench, Dumbbell, Building2, Stethoscope, GraduationCap, Palette } from "lucide-react";
+import { Check, ArrowRight, Menu, X, ChevronDown, Star, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket, Coffee, Scissors, Wrench, Dumbbell, Building2, Stethoscope, GraduationCap } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
@@ -23,16 +23,6 @@ const niches = [
   { icon: Stethoscope, label: "Lékaři & kliniky", desc: "Objednávkový systém, tým, ceník výkonů", color: "from-teal-500/20 to-cyan-500/10", iconColor: "text-teal-600" },
   { icon: GraduationCap, label: "Vzdělávání & kurzy", desc: "Přihlašování na kurzy, platby, certifikáty", color: "from-purple-500/20 to-violet-500/10", iconColor: "text-violet-600" },
   { icon: ShoppingBag, label: "E-shopy & obchody", desc: "Produktový katalog, košík, platební brána", color: "from-indigo-500/20 to-blue-500/10", iconColor: "text-indigo-600" },
-];
-
-const services = [
-  { icon: <Globe className="w-6 h-6" />, title: "Tvorba webu", desc: "Profesionální web na míru za 1–2 týdny. Responzivní design, SEO, rychlost.", badge: "od 3 490 Kč" },
-  { icon: <Zap className="w-6 h-6" />, title: "Automatizace", desc: "Automatické emaily, CRM integrace, chatbot. Váš web pracuje i ve 3 ráno.", badge: "od 6 990 Kč" },
-  { icon: <BarChart3 className="w-6 h-6" />, title: "Lead Generation", desc: "Systém na sběr kontaktů, scoring leadů, automatické follow-upy.", badge: "od 6 990 Kč" },
-  { icon: <TrendingUp className="w-6 h-6" />, title: "ONYX OS SaaS", desc: "Kompletní AI orchestrace vašeho obchodu. Autonomní správa projektů.", badge: "na míru" },
-  { icon: <MessageSquare className="w-6 h-6" />, title: "AI Chatbot", desc: "Inteligentní chatbot odpovídá zákazníkům 24/7 a sbírá kontakty.", badge: "addon" },
-  { icon: <Shield className="w-6 h-6" />, title: "Správa & hosting", desc: "Hosting, SSL, zálohy, aktualizace. Staráme se o vše technické.", badge: "179 Kč/m" },
-  { icon: <Palette className="w-6 h-6" />, title: "Branding & logotypy", desc: "Logo, color palette, brand guidelines. Lite verze zdarma, premium designy na objednávku.", badge: "od 4 990 Kč" },
 ];
 
 const caseStudies = [
@@ -74,7 +64,7 @@ const faqs = [
   { q: "Platím celou částku předem?", a: "Ne. Platíte pouze 30% zálohu po schválení návrhu. Zbývajících 70% hradíte až po spuštění webu, když jste spokojeni s výsledkem." },
   { q: "Co je zahrnuto v měsíčním poplatku 179 Kč?", a: "Hosting, SSL certifikát, zálohy, technická podpora a drobné úpravy obsahu. Žádné skryté poplatky." },
   { q: "Mohu web kdykoliv upravit?", a: "Ano. Máte přístup do administrace a můžete upravovat texty, fotky a obsah sami. Nebo nám napište — drobné úpravy jsou v ceně provozu." },
-  { q: "Co je ONYX OS a potřebuji ho?", a: "ONYX OS je naše AI platforma pro automatizaci obchodu — automatické emaily, scoring leadů, CRM integrace. Hodí se firmám, které chtějí růst bez přijímání dalších lidí." },
+  { q: "Co je ONYX OS a potřebuji ho?", a: "ONYX OS je naše platforma pro automatizaci obchodu — automatické emaily, scoring leadů, CRM integrace. Hodí se firmám, které chtějí růst bez přijímání dalších lidí." },
   { q: "Děláte weby i pro firmy mimo Prahu?", a: "Ano, pracujeme plně online. Máme klienty po celé ČR i v zahraničí. Vše řešíme přes video hovory a email." },
 ];
 
@@ -100,6 +90,50 @@ const packages = [
     cta: "Mám zájem",
   },
 ];
+
+// ─── Motion helpers ───────────────────────────────────────────────────────────
+// Sdílený jazyk animací napříč celou stránkou — scroll-reveal + stagger,
+// stejný princip jako v hero a DNA sekci. Drží web živý bez ohrožení čitelnosti.
+
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
+};
+
+const staggerContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+
+function Reveal({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.div
+      className={className}
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-80px" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function StaggerGrid({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.div
+      className={className}
+      variants={staggerContainer}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-60px" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -321,7 +355,7 @@ export default function Home() {
                 <div className="w-3 h-3 rounded-full bg-red-400" />
                 <div className="w-3 h-3 rounded-full bg-yellow-400" />
                 <div className="w-3 h-3 rounded-full bg-green-400" />
-                <span className="ml-2 text-white/40 text-xs">onyxweb.cz/dashboard</span>
+                <span className="ml-2 text-white/40 text-xs">optimateo.com/dashboard</span>
               </div>
               <div className="grid grid-cols-3 gap-3 mb-4">
                 {[["89", "Nové leady"], ["3×", "Více poptávek"], ["47%", "Růst rezervací"]].map(([v, l]) => (
@@ -368,13 +402,7 @@ export default function Home() {
           <div className="absolute bottom-0 left-[-8rem] w-80 h-80 bg-cyan-100/50 rounded-full blur-3xl" />
         </div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="max-w-3xl mb-14"
-          >
+          <Reveal className="max-w-3xl mb-14">
             <div className="inline-flex items-center gap-2 bg-violet-50 border border-violet-200 rounded-full px-4 py-1.5 text-sm text-violet-700 font-medium mb-5">
               Proč zrovna my
             </div>
@@ -387,22 +415,16 @@ export default function Home() {
               na vlastních produktech. Co u nás funguje v ostrém provozu, nasadíme i vám. Proto víme, co prodává —
               ne z kurzu, ale z praxe.
             </p>
-          </motion.div>
+          </Reveal>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+          <StaggerGrid className="grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {[
               { to: 20, suffix: "+", label: "vlastních platforem v provozu" },
               { to: 50, suffix: "+", label: "realizovaných projektů" },
               { to: 5, suffix: " let", label: "zkušeností na trhu" },
               { to: 98, suffix: " %", label: "spokojených klientů" },
-            ].map((s, i) => (
-              <motion.div
-                key={s.label}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-              >
+            ].map((s) => (
+              <motion.div key={s.label} variants={fadeUp}>
                 <div className="text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 mb-2">
                   <CountUp to={s.to} suffix={s.suffix} />
                 </div>
@@ -410,14 +432,14 @@ export default function Home() {
                 <div className="text-sm text-slate-500 leading-snug">{s.label}</div>
               </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
       {/* ── NICHE SOLUTIONS ── */}
       <section id="niche" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-cyan-50 border border-cyan-200 rounded-full px-4 py-2 mb-5 text-sm text-cyan-700 font-medium">
               📱 80% návštěv je z mobilů — navrhujeme primárně pro displeje
             </div>
@@ -426,54 +448,32 @@ export default function Home() {
               <span className="text-violet-600">funguje nejlépe</span>
             </h2>
             <p className="text-slate-500 max-w-xl mx-auto">Specializujeme se na obory, kde záleží na prvním dojmu, rychlé odezvě a měřitelných výsledcích.</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          </Reveal>
+          <StaggerGrid className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {niches.map(n => (
-              <button key={n.label} onClick={scrollToContact}
-                className={`bg-gradient-to-br ${n.color} border border-slate-200 hover:border-violet-300 rounded-2xl p-5 text-left transition-all hover:shadow-md hover:-translate-y-0.5 group`}>
+              <motion.button
+                key={n.label}
+                variants={fadeUp}
+                whileHover={{ y: -4 }}
+                onClick={scrollToContact}
+                className={`bg-gradient-to-br ${n.color} border border-slate-200 hover:border-violet-300 rounded-2xl p-5 text-left transition-colors hover:shadow-md group`}
+              >
                 <div className={`w-12 h-12 mb-3 rounded-xl bg-white/70 backdrop-blur-sm border border-white/60 shadow-sm flex items-center justify-center ${n.iconColor} group-hover:scale-105 transition-transform`}>
                   <n.icon className="w-6 h-6" strokeWidth={1.75} />
                 </div>
                 <div className="font-semibold text-slate-900 text-sm mb-1">{n.label}</div>
                 <div className="text-xs text-slate-500 leading-relaxed">{n.desc}</div>
                 <div className="mt-3 text-xs text-violet-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Zobrazit řešení →</div>
-              </button>
+              </motion.button>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
-      {/* ── SERVICES ── */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14">
-            <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-5 tracking-tight">Naše hlavní služby</h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto font-medium">Od jednoduchého webu až po plnou AI automatizaci vašeho obchodu. Každá služba je postavena na měřitelných výsledcích.</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {services.map(s => (
-              <div key={s.title} className="border border-slate-200 bg-white hover:border-violet-300 rounded-2xl p-7 hover:shadow-xl transition-all duration-300 group cursor-pointer hover:bg-slate-50" onClick={scrollToContact}>
-                <div className="w-14 h-14 bg-gradient-to-br from-violet-50 to-violet-100 text-violet-600 rounded-xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300">
-                  {s.icon}
-                </div>
-                <div className="mb-3">
-                  <h3 className="font-bold text-lg text-slate-900 mb-2">{s.title}</h3>
-                  <span className="inline-block text-xs bg-violet-100 text-violet-700 px-3 py-1 rounded-full font-semibold">{s.badge}</span>
-                </div>
-                <p className="text-slate-600 leading-relaxed mb-5">{s.desc}</p>
-                <div className="text-sm text-violet-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                  Zjistit více <ArrowRight className="w-4 h-4" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── WHY US ── */}
+      {/* ── PROČ NÁS + JAK PRACUJEME ── */}
       <section className="py-20 bg-[#0f0628] text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
-          <div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16">
+          <Reveal>
             <h2 className="text-3xl lg:text-4xl font-extrabold mb-6">
               Nejsme jen webová agentura.<br />
               <span className="text-violet-400">Jsme váš dlouhodobý partner.</span>
@@ -483,7 +483,7 @@ export default function Home() {
             </p>
             <div className="space-y-4 mb-8">
               {[
-                ["Vlastní AI nástroje a automatizace", "ONYX OS, chatbot, scoring leadů — vše pod jednou střechou."],
+                ["Vlastní nástroje a automatizace", "ONYX OS, chatbot, scoring leadů — vše pod jednou střechou."],
                 ["Silný důraz na výsledky", "Každý web měříme. Víme, co funguje a co ne."],
                 ["Zkušenosti z reálného prostředí", "50+ projektů pro české živnostníky a firmy."],
               ].map(([title, desc]) => (
@@ -501,20 +501,37 @@ export default function Home() {
             <Button className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-full px-8 font-bold" onClick={scrollToContact}>
               Domluvit konzultaci
             </Button>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { v: "50+", l: "dokončených projektů", icon: "🚀" },
-              { v: "5 let", l: "na trhu", icon: "📅" },
-              { v: "98%", l: "spokojených klientů", icon: "⭐" },
-              { v: "24/7", l: "monitoring & podpora", icon: "🛡️" },
-            ].map(({ v, l, icon }) => (
-              <div key={l} className="bg-white/5 border border-white/10 rounded-2xl p-5 text-center">
-                <div className="text-2xl mb-2">{icon}</div>
-                <div className="text-3xl font-extrabold text-violet-300 mb-1">{v}</div>
-                <div className="text-xs text-white/50">{l}</div>
+          </Reveal>
+
+          <div>
+            <Reveal className="mb-6">
+              <div className="inline-flex items-center gap-2 bg-violet-500/20 border border-violet-400/30 rounded-full px-4 py-1.5 text-sm text-violet-300 mb-4">
+                Transparentní vývoj
               </div>
-            ))}
+              <h3 className="text-2xl font-extrabold mb-2">Jak probíhá vývoj MVP?</h3>
+              <p className="text-white/50 text-sm">Krátké iterace, viditelný postup, vy máte vždy kontrolu nad tím, co se vyvíjí a proč.</p>
+            </Reveal>
+            <StaggerGrid className="space-y-3">
+              {[
+                { emoji: "🔍", step: "1. Analýza", desc: "Zmapujeme váš byznys, cíle a konkurenci. Navrhneme strukturu a obsah." },
+                { emoji: "💻", step: "2. Vývoj", desc: "Píšeme kód, designujeme, integrujeme. Průběžné náhledy pro vaše schválení." },
+                { emoji: "🚀", step: "3. Nasazení", desc: "Spustíme web live — hosting, SSL, rychlost, SEO. Vše nastaveno." },
+                { emoji: "📊", step: "4. Zpětná vazba", desc: "Sledujeme výsledky a ladíme. Každá iterace je lepší než předchozí." },
+              ].map(({ emoji, step, desc }) => (
+                <motion.div
+                  key={step}
+                  variants={fadeUp}
+                  whileHover={{ x: 4 }}
+                  className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-sky-400/30 transition-colors"
+                >
+                  <div className="text-2xl flex-shrink-0">{emoji}</div>
+                  <div>
+                    <div className="font-bold text-sm text-sky-300">{step}</div>
+                    <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </StaggerGrid>
           </div>
         </div>
       </section>
@@ -526,7 +543,7 @@ export default function Home() {
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-amber-400/5 rounded-full blur-3xl" />
         </div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-14">
+          <Reveal className="text-center mb-14">
             <div className="inline-flex items-center gap-2 border border-amber-400/30 bg-amber-400/5 px-4 py-1.5 rounded-full text-xs font-medium text-amber-200 tracking-widest uppercase mb-5">
               Jeden systém · vše propojené
             </div>
@@ -534,27 +551,27 @@ export default function Home() {
               ONYX WEB <span className="text-amber-300">AI Core</span>
             </h2>
             <p className="text-white/50 text-sm tracking-wide">booking · CRM · data · automatizace · MCP/API</p>
-          </div>
+          </Reveal>
 
           {/* Core pillars */}
           <div className="rounded-3xl border border-amber-400/20 bg-gradient-to-b from-[#0c1430] to-[#0a1026] p-6 md:p-10 mb-10 shadow-2xl shadow-black/40">
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+            <StaggerGrid className="grid grid-cols-2 md:grid-cols-5 gap-6">
               {[
                 { icon: <Calendar className="w-6 h-6" />, title: "Booking", desc: "Inteligentní rezervace a správa kapacit v reálném čase." },
                 { icon: <Users className="w-6 h-6" />, title: "CRM", desc: "360° pohled na klienta, automatizace vztahů a komunikace." },
                 { icon: <BarChart3 className="w-6 h-6" />, title: "Data", desc: "Reporting a chytré predikce pro lepší rozhodování." },
-                { icon: <Bot className="w-6 h-6" />, title: "Automatizace", desc: "AI asistenti pro obsah, reklamy, doporučení a optimalizace." },
+                { icon: <Bot className="w-6 h-6" />, title: "Automatizace", desc: "Asistenti pro obsah, reklamy, doporučení a optimalizace." },
                 { icon: <Globe className="w-6 h-6" />, title: "MCP / API", desc: "Otevřené napojení na nástroje, partnery a marketplace." },
               ].map((p) => (
-                <div key={p.title} className="text-center">
+                <motion.div key={p.title} variants={fadeUp} whileHover={{ y: -4 }} className="text-center">
                   <div className="w-16 h-16 mx-auto rounded-full border border-amber-400/40 bg-amber-400/5 flex items-center justify-center text-amber-300 mb-4">
                     {p.icon}
                   </div>
                   <h3 className="font-bold text-sm tracking-wider uppercase text-amber-100 mb-2">{p.title}</h3>
                   <p className="text-xs text-white/50 leading-relaxed">{p.desc}</p>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </StaggerGrid>
           </div>
 
           {/* Connector label */}
@@ -567,7 +584,7 @@ export default function Home() {
           </div>
 
           {/* Connected modules */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-16">
+          <StaggerGrid className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-16">
             {[
               { icon: <Calendar className="w-5 h-5" />, title: "Rezervace", desc: "Online booking, připomínky, kalendáře, změny." },
               { icon: <MessageSquare className="w-5 h-5" />, title: "Komunikace", desc: "E-maily, newslettery, Telegram, WhatsApp scénáře." },
@@ -577,18 +594,18 @@ export default function Home() {
               { icon: <TrendingUp className="w-5 h-5" />, title: "Reporting", desc: "Dashboardy, predikce, tržby, klienti, LTV, insights." },
               { icon: <Sparkles className="w-5 h-5" />, title: "AI Asistenti", desc: "Tvorba obsahu, doporučení, automatizace rutinních úkolů." },
             ].map((m) => (
-              <div key={m.title} className="bg-white/[0.03] border border-white/10 hover:border-amber-400/30 rounded-2xl p-4 text-center transition-colors">
+              <motion.div key={m.title} variants={fadeUp} whileHover={{ y: -3 }} className="bg-white/[0.03] border border-white/10 hover:border-amber-400/30 rounded-2xl p-4 text-center transition-colors">
                 <div className="w-11 h-11 mx-auto rounded-full bg-amber-400/10 flex items-center justify-center text-amber-300 mb-3">
                   {m.icon}
                 </div>
                 <h4 className="font-semibold text-sm text-white mb-1.5">{m.title}</h4>
                 <p className="text-[11px] text-white/45 leading-relaxed">{m.desc}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
 
           {/* AI Core pricing */}
-          <div className="rounded-3xl border-2 border-amber-400/40 bg-gradient-to-r from-[#101a3d] to-[#0c1430] p-8 md:p-10 mb-16 mt-3 relative">
+          <Reveal className="rounded-3xl border-2 border-amber-400/40 bg-gradient-to-r from-[#101a3d] to-[#0c1430] p-8 md:p-10 mb-16 mt-3 relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="bg-amber-400 text-[#0a0f24] text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider">Tarif AI Core</span>
             </div>
@@ -605,7 +622,7 @@ export default function Home() {
                     "Booking systém + správa kapacit",
                     "CRM s 360° pohledem na klienta",
                     "Data, reporting a chytré predikce",
-                    "AI asistenti — obsah, kampaně, rutina",
+                    "Asistenti — obsah, kampaně, rutina",
                     "Prodejní web pro infoprodukty a kurzy",
                     "MCP/API napojení na vaše nástroje",
                     "2 moduly v ceně, další +290 Kč/měs",
@@ -629,224 +646,15 @@ export default function Home() {
             <p className="text-[11px] text-white/30 mt-6 text-center">
               Funkce AI Core běží na platformě ONYX OS. Krabicové platformy účtují za srovnatelné doplňky 800–1 500 Kč/měs — u nás je vše podstatné v jednom tarifu.
             </p>
-          </div>
+          </Reveal>
 
         </div>
       </section>
 
-      {/* ── CASE STUDIES ── */}
-      <section id="cases" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-end justify-between mb-12">
-            <div>
-              <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-3">Případové studie</h2>
-              <p className="text-slate-500">Reálné výsledky reálných klientů.</p>
-            </div>
-            <button className="hidden md:flex items-center gap-2 text-violet-600 font-medium text-sm hover:text-violet-700" onClick={scrollToContact}>
-              Zobrazit vše <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-
-          {/* Featured case */}
-          <div className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-100 rounded-3xl p-8 lg:p-12 mb-6">
-            <div className="grid lg:grid-cols-2 gap-10 items-center">
-              <div>
-                <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full mb-4 ${caseStudies[activeCase].tagColor}`}>
-                  {caseStudies[activeCase].tag}
-                </span>
-                <h3 className="text-2xl lg:text-3xl font-extrabold text-slate-900 mb-4">{caseStudies[activeCase].title}</h3>
-                <p className="text-slate-600 leading-relaxed mb-6">{caseStudies[activeCase].desc}</p>
-                <blockquote className="border-l-4 border-violet-400 pl-4 italic text-slate-600 text-sm mb-6">
-                  „{caseStudies[activeCase].quote}"
-                  <footer className="mt-2 not-italic font-semibold text-slate-800 text-xs">
-                    — {caseStudies[activeCase].author}, {caseStudies[activeCase].role}
-                  </footer>
-                </blockquote>
-                <Button className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-full" onClick={scrollToContact}>
-                  Chci podobné výsledky
-                </Button>
-              </div>
-              <div className="text-center">
-                <div className="text-8xl font-extrabold text-violet-600 mb-2">{caseStudies[activeCase].metric}</div>
-                <div className="text-slate-500 font-medium">{caseStudies[activeCase].metricLabel}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Case tabs */}
-          <div className="flex gap-3 flex-wrap">
-            {caseStudies.map((c, i) => (
-              <button key={i} onClick={() => setActiveCase(i)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeCase === i ? "bg-violet-600 text-white shadow-md" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
-                {c.tag}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS ── */}
-      <section className="py-20 bg-slate-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 text-center mb-12">Co říkají naši klienti</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {testimonials.map(t => (
-              <div key={t.name} className="bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-md transition-shadow">
-                <div className="flex gap-0.5 mb-3">
-                  {Array.from({ length: t.stars }).map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
-                </div>
-                <p className="text-slate-600 text-sm leading-relaxed mb-4">„{t.text}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
-                    {t.initial}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-slate-900 text-sm">{t.name}</div>
-                    <div className="text-xs text-slate-400">{t.role}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── MVP PROCESS ── */}
-      <section className="py-20 bg-[#0f0628] text-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-violet-500/20 border border-violet-400/30 rounded-full px-4 py-1.5 text-sm text-violet-300 mb-4">
-              Transparentní vývoj
-            </div>
-            <h2 className="text-3xl lg:text-4xl font-extrabold mb-4">Jak probíhá vývoj MVP?</h2>
-            <p className="text-white/50 max-w-xl mx-auto">Pracujeme v krátkých iteracích. Každý krok je viditelný a vy máte vždy kontrolu nad tím, co se vyvíjí a proč.</p>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* Left — cycle diagram */}
-            <div className="flex justify-center">
-              {/* Scales with viewport: ~full column width, capped at 460px */}
-              <div className="relative w-full max-w-[460px] aspect-square">
-                {/* SVG circle + directional arrows (viewBox 460, center 230, radius 158) */}
-                <svg className="absolute inset-0 w-full h-full" viewBox="0 0 460 460">
-                  <circle cx="230" cy="230" r="158" fill="none" stroke="#F59E0B" strokeWidth="5" />
-                  {/* Arrows at 45°, 135°, 225°, 315° — pointing clockwise (tangent +90°) */}
-                  {[45, 135, 225, 315].map(deg => {
-                    const rad = (deg * Math.PI) / 180;
-                    const ax = 230 + 158 * Math.cos(rad);
-                    const ay = 230 + 158 * Math.sin(rad);
-                    const rot = deg + 90;
-                    return (
-                      <g key={deg} transform={`translate(${ax},${ay}) rotate(${rot})`}>
-                        <polygon points="0,-13 10,7 -10,7" fill="#F59E0B" />
-                      </g>
-                    );
-                  })}
-                </svg>
-                {/* Center label */}
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <p className="text-center text-lg sm:text-xl font-bold text-white leading-snug pointer-events-none">
-                    Jak probíhá<br />vývoj MVP?
-                  </p>
-                </div>
-                {/* 4 step bubbles — positioned at % so they scale with the container */}
-                {[
-                  { label: "Vývoj", angle: -90 },
-                  { label: "Nasazení", angle: 0 },
-                  { label: "Zpětná\nvazba", angle: 90 },
-                  { label: "Analýza", angle: 180 },
-                ].map(({ label, angle }) => {
-                  const rad = (angle * Math.PI) / 180;
-                  const cxPct = 50 + (158 / 460) * 100 * Math.cos(rad);
-                  const cyPct = 50 + (158 / 460) * 100 * Math.sin(rad);
-                  return (
-                    <div
-                      key={label}
-                      className="absolute flex items-center justify-center w-[24%] aspect-square text-sm sm:text-base"
-                      style={{
-                        borderRadius: "50%",
-                        background: "linear-gradient(135deg,#38BDF8,#0EA5E9)",
-                        color: "#fff",
-                        fontWeight: 700,
-                        textAlign: "center",
-                        lineHeight: 1.3,
-                        left: `${cxPct - 12}%`,
-                        top: `${cyPct - 12}%`,
-                        boxShadow: "0 0 36px rgba(56,189,248,0.45)",
-                        whiteSpace: "pre-line",
-                      }}
-                    >
-                      {label}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Right — steps detail + MoSCoW */}
-            <div className="space-y-6">
-              {/* Step cards */}
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { emoji: "🔍", step: "1. Analýza", desc: "Zmapujeme váš byznys, cíle a konkurenci. Navrhneme strukturu a obsah." },
-                  { emoji: "💻", step: "2. Vývoj", desc: "Píšeme kód, designujeme, integrujeme. Průběžné náhledy pro vaše schválení." },
-                  { emoji: "🚀", step: "3. Nasazení", desc: "Spustíme web live — hosting, SSL, rychlost, SEO. Vše nastaveno." },
-                  { emoji: "📊", step: "4. Zpětná vazba", desc: "Sledujeme výsledky a ladíme. Každá iterace je lepší než předchozí." },
-                ].map(({ emoji, step, desc }) => (
-                  <div key={step} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:border-sky-400/30 transition-colors">
-                    <div className="text-xl mb-2">{emoji}</div>
-                    <div className="font-bold text-sm text-sky-300 mb-1">{step}</div>
-                    <p className="text-xs text-white/50 leading-relaxed">{desc}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* MoSCoW */}
-              <div className="border border-white/10 bg-white/3 rounded-2xl p-5">
-                <h3 className="text-sm font-bold text-white/80 mb-3">Co bude součástí vašeho webu (MoSCoW)</h3>
-                <div className="space-y-2">
-                  {[
-                    { dot: "bg-green-400", badge: "bg-green-400/10 text-green-400 border-green-400/30", label: "musíme mít", desc: "Základ MVP — bez toho web nefunguje." },
-                    { dot: "bg-blue-400", badge: "bg-blue-400/10 text-blue-400 border-blue-400/30", label: "bychom měli mít", desc: "Přidáme dle časových možností." },
-                    { dot: "bg-amber-400", badge: "bg-amber-400/10 text-amber-400 border-amber-400/30", label: "můžeme mít", desc: "Zlepšují zážitek, v další iteraci." },
-                    { dot: "bg-slate-500", badge: "bg-slate-400/10 text-slate-400 border-slate-400/30", label: "zatím nebudeme mít", desc: "V pozdějších fázích." },
-                  ].map(({ dot, badge, label, desc }) => (
-                    <div key={label} className="flex gap-3 items-start">
-                      <div className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${dot}`} />
-                      <p className="text-xs text-white/60 leading-relaxed">
-                        <span className={`font-bold border rounded px-1.5 py-0.5 mr-1 ${badge}`}>{label}</span>
-                        {desc}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Plugin marketplace teaser */}
-              <div className="border border-violet-400/20 bg-violet-400/5 rounded-2xl p-5">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xl">🧩</span>
-                  <h4 className="font-bold text-violet-300 text-sm">Plugin marketplace</h4>
-                  <span className="text-[10px] bg-violet-500/20 text-violet-300 border border-violet-400/30 rounded-full px-2 py-0.5 font-semibold">Brzy</span>
-                </div>
-                <p className="text-xs text-white/50 mb-3">Funkce navíc přímo z ADMIN panelu, bez vývojáře. Základní pluginy v ceně provozu — žádné měsíční příplatky za každý doplněk.</p>
-                <div className="grid grid-cols-3 gap-1.5 text-[11px]">
-                  {["📅 Booking", "🛒 E-shop", "📧 Emaily", "📊 Analytics", "💬 Live chat", "🌍 Multijazyčnost"].map(p => (
-                    <div key={p} className="flex items-center gap-1 text-white/40">
-                      <Check className="w-2.5 h-2.5 text-violet-400 shrink-0" /> {p}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── PRICING ── */}
+      {/* ── CENY + SROVNÁNÍ ── */}
       <section id="pricing" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10">
+          <Reveal className="text-center mb-10">
             <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">Vyberte si nejlepší plán</h2>
             <p className="text-slate-500 mb-6">Platíte pouze 30% zálohu. Zbytek až po spuštění.</p>
             {/* Billing toggle */}
@@ -856,11 +664,11 @@ export default function Home() {
                 Roční provoz <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Ušetříte 20%</span>
               </button>
             </div>
-          </div>
+          </Reveal>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <StaggerGrid className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
             {packages.map(pkg => (
-              <div key={pkg.name} className={`border ${pkg.color} rounded-2xl p-6 relative flex flex-col ${pkg.badge ? "shadow-xl shadow-violet-100" : ""}`}>
+              <motion.div key={pkg.name} variants={fadeUp} whileHover={{ y: -4 }} className={`border ${pkg.color} rounded-2xl p-6 relative flex flex-col ${pkg.badge ? "shadow-xl shadow-violet-100" : ""}`}>
                 {pkg.badge && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-xs font-bold px-4 py-1 rounded-full">
                     {pkg.badge}
@@ -890,105 +698,174 @@ export default function Home() {
                 >
                   {pkg.cta}
                 </Button>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
 
-          <p className="text-center text-xs text-slate-400 mt-6">Ceny jsou bez DPH. Roční provoz zahrnuje hosting, SSL, zálohy a technickou podporu.</p>
+          <p className="text-center text-xs text-slate-400 mt-6 mb-16">Ceny jsou bez DPH. Roční provoz zahrnuje hosting, SSL, zálohy a technickou podporu.</p>
+
+          {/* Platform comparison — inset card v rámci stejné sekce */}
+          <div className="bg-slate-50 rounded-3xl p-6 md:p-10">
+            <Reveal className="text-center mb-10">
+              <h3 className="text-2xl lg:text-3xl font-extrabold text-slate-900 mb-4">
+                Znáte to z krabicových platforem?
+              </h3>
+              <p className="text-slate-500 max-w-2xl mx-auto">
+                Základní tarif vypadá levně — ale pak platíte za každý doplněk zvlášť.
+                Booking, e-maily, chat, analytika… a najednou jste na trojnásobku.
+                <span className="font-semibold text-slate-700"> U nás je to obráceně: vše podstatné v ceně.</span>
+              </p>
+            </Reveal>
+
+            <StaggerGrid className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+              {/* Krabicová platforma */}
+              <motion.div variants={fadeUp} className="bg-white border border-slate-200 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-5">
+                  <span className="text-2xl">📦</span>
+                  <h4 className="font-bold text-slate-700">Krabicová platforma</h4>
+                </div>
+                <ul className="space-y-3">
+                  {[
+                    "Základ od ~330 Kč/měs — reálně ale 800–1 500 Kč s doplňky",
+                    "Každý doplněk (booking, e-maily, chat) za příplatek 50–300 Kč/měs",
+                    "Šablona, kterou používá dalších 500 webů",
+                    "Vše si nastavujete a spravujete sami",
+                    "Podpora přes helpdesk a fórum",
+                    "Chytré funkce chybí, nebo jen draze přes třetí strany",
+                  ].map(t => (
+                    <li key={t} className="flex items-start gap-2.5 text-sm text-slate-500">
+                      <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+
+              {/* Optimateo */}
+              <motion.div variants={fadeUp} className="bg-[#0f0628] border-2 border-violet-500 rounded-2xl p-6 relative shadow-xl shadow-violet-200">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-xs font-bold px-4 py-1 rounded-full">
+                  Více za méně
+                </div>
+                <div className="flex items-center gap-2 mb-5">
+                  <span className="text-2xl">⚡</span>
+                  <h4 className="font-bold text-white">Optimateo</h4>
+                </div>
+                <ul className="space-y-3">
+                  {[
+                    "Provoz od 179 Kč/měs — žádné skryté příplatky",
+                    "Základní pluginy (booking, e-maily, analytika) v ceně",
+                    "Web na míru od profíků — žádná univerzální šablona",
+                    "Postavíme a spravujeme za vás, vy jen schvalujete",
+                    "Osobní podpora + poradce Alex 24/7",
+                    "Chatbot, tým asistentů a Brand Memory v platformě",
+                  ].map(t => (
+                    <li key={t} className="flex items-start gap-2.5 text-sm text-white/80">
+                      <Check className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  className="w-full mt-6 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-full"
+                  onClick={scrollToContact}
+                >
+                  Chci víc za míň →
+                </Button>
+              </motion.div>
+            </StaggerGrid>
+
+            <p className="text-center text-xs text-slate-400 mt-6">
+              Srovnání vychází z veřejných ceníků běžných českých krabicových řešení (e-shop a webové platformy) k datu zveřejnění.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* ── PLATFORM COMPARISON ── */}
-      <section className="py-20 bg-slate-50">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">
-              Znáte to z krabicových platforem?
-            </h2>
-            <p className="text-slate-500 max-w-2xl mx-auto">
-              Základní tarif vypadá levně — ale pak platíte za každý doplněk zvlášť.
-              Booking, e-maily, chat, analytika… a najednou jste na trojnásobku.
-              <span className="font-semibold text-slate-700"> U nás je to obráceně: vše podstatné v ceně.</span>
-            </p>
+      {/* ── VÝSLEDKY — CASE STUDIES + TESTIMONIALS ── */}
+      <section id="cases" className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Reveal className="flex items-end justify-between mb-12">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-3">Výsledky, ne sliby</h2>
+              <p className="text-slate-500">Reálné výsledky reálných klientů.</p>
+            </div>
+          </Reveal>
+
+          {/* Featured case */}
+          <Reveal className="bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-100 rounded-3xl p-8 lg:p-12 mb-6">
+            <div className="grid lg:grid-cols-2 gap-10 items-center">
+              <div>
+                <span className={`inline-block text-xs font-semibold px-3 py-1 rounded-full mb-4 ${caseStudies[activeCase].tagColor}`}>
+                  {caseStudies[activeCase].tag}
+                </span>
+                <h3 className="text-2xl lg:text-3xl font-extrabold text-slate-900 mb-4">{caseStudies[activeCase].title}</h3>
+                <p className="text-slate-600 leading-relaxed mb-6">{caseStudies[activeCase].desc}</p>
+                <blockquote className="border-l-4 border-violet-400 pl-4 italic text-slate-600 text-sm mb-6">
+                  „{caseStudies[activeCase].quote}"
+                  <footer className="mt-2 not-italic font-semibold text-slate-800 text-xs">
+                    — {caseStudies[activeCase].author}, {caseStudies[activeCase].role}
+                  </footer>
+                </blockquote>
+                <Button className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-full" onClick={scrollToContact}>
+                  Chci podobné výsledky
+                </Button>
+              </div>
+              <div className="text-center">
+                <div className="text-8xl font-extrabold text-violet-600 mb-2">{caseStudies[activeCase].metric}</div>
+                <div className="text-slate-500 font-medium">{caseStudies[activeCase].metricLabel}</div>
+              </div>
+            </div>
+          </Reveal>
+
+          {/* Case tabs */}
+          <div className="flex gap-3 flex-wrap mb-16">
+            {caseStudies.map((c, i) => (
+              <button key={i} onClick={() => setActiveCase(i)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeCase === i ? "bg-violet-600 text-white shadow-md" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}>
+                {c.tag}
+              </button>
+            ))}
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Krabicová platforma */}
-            <div className="bg-white border border-slate-200 rounded-2xl p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <span className="text-2xl">📦</span>
-                <h3 className="font-bold text-slate-700">Krabicová platforma</h3>
-              </div>
-              <ul className="space-y-3">
-                {[
-                  "Základ od ~330 Kč/měs — reálně ale 800–1 500 Kč s doplňky",
-                  "Každý doplněk (booking, e-maily, chat) za příplatek 50–300 Kč/měs",
-                  "Šablona, kterou používá dalších 500 webů",
-                  "Vše si nastavujete a spravujete sami",
-                  "Podpora přes helpdesk a fórum",
-                  "AI funkce chybí, nebo jen draze přes třetí strany",
-                ].map(t => (
-                  <li key={t} className="flex items-start gap-2.5 text-sm text-slate-500">
-                    <X className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* ONYX WEB */}
-            <div className="bg-[#0f0628] border-2 border-violet-500 rounded-2xl p-6 relative shadow-xl shadow-violet-200">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-xs font-bold px-4 py-1 rounded-full">
-                Více za méně
-              </div>
-              <div className="flex items-center gap-2 mb-5">
-                <span className="text-2xl">⚡</span>
-                <h3 className="font-bold text-white">ONYX WEB</h3>
-              </div>
-              <ul className="space-y-3">
-                {[
-                  "Provoz od 179 Kč/měs — žádné skryté příplatky",
-                  "Základní pluginy (booking, e-maily, analytika) v ceně",
-                  "Web na míru od profíků — žádná univerzální šablona",
-                  "Postavíme a spravujeme za vás, vy jen schvalujete",
-                  "Osobní podpora + AI asistent Alex 24/7",
-                  "AI chatbot, 9 AI asistentů a Brand Memory v platformě",
-                ].map(t => (
-                  <li key={t} className="flex items-start gap-2.5 text-sm text-white/80">
-                    <Check className="w-4 h-4 text-green-400 shrink-0 mt-0.5" />
-                    {t}
-                  </li>
-                ))}
-              </ul>
-              <Button
-                className="w-full mt-6 bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-full"
-                onClick={scrollToContact}
-              >
-                Chci víc za míň →
-              </Button>
-            </div>
-          </div>
-
-          <p className="text-center text-xs text-slate-400 mt-6">
-            Srovnání vychází z veřejných ceníků běžných českých krabicových řešení (e-shop a webové platformy) k datu zveřejnění.
-          </p>
+          <Reveal className="text-center mb-10">
+            <h3 className="text-2xl lg:text-3xl font-extrabold text-slate-900">Co říkají naši klienti</h3>
+          </Reveal>
+          <StaggerGrid className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
+            {testimonials.map(t => (
+              <motion.div key={t.name} variants={fadeUp} whileHover={{ y: -4 }} className="bg-white border border-slate-100 rounded-2xl p-6 hover:shadow-md transition-shadow">
+                <div className="flex gap-0.5 mb-3">
+                  {Array.from({ length: t.stars }).map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />)}
+                </div>
+                <p className="text-slate-600 text-sm leading-relaxed mb-4">„{t.text}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-violet-100 text-violet-700 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    {t.initial}
+                  </div>
+                  <div>
+                    <div className="font-semibold text-slate-900 text-sm">{t.name}</div>
+                    <div className="text-xs text-slate-400">{t.role}</div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </StaggerGrid>
         </div>
       </section>
 
       {/* ── PORTFOLIO — REAL PROJECTS ── */}
       <section id="portfolio" className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
+          <Reveal className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">
               Reálné projekty z našeho portfolia
             </h2>
             <p className="text-slate-500 max-w-2xl mx-auto">
               Aplikace, e-shopy a platformy, které jsme navrhli a realizovali. Vše v TypeScriptu, nasazeno na produkci.
             </p>
-          </div>
+          </Reveal>
 
           {/* Premium projekty — Enchanté One spotlight */}
-          <div className="mb-12">
+          <Reveal className="mb-12">
             <div className="flex items-center gap-3 mb-5">
               <span className="inline-flex items-center gap-1.5 bg-amber-100 text-amber-800 border border-amber-200 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider">
                 <Star className="w-3 h-3 fill-amber-500 text-amber-500" /> Premium projekty
@@ -1006,7 +883,7 @@ export default function Home() {
                   <p className="text-amber-300/80 text-xs tracking-widest uppercase mb-5">Galleries · Auctions · Data</p>
                   <p className="text-white/60 leading-relaxed mb-6">
                     Vlastní aukční platforma pro galerie, aukce a distribuci uměleckých děl —
-                    napojená na světové marketplace. ONYX WEB propojuje salon s trhem umění.
+                    napojená na světové marketplace. Optimateo propojuje salon s trhem umění.
                   </p>
                   <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/40">
                     <span className="font-semibold text-orange-400">Aukro</span>
@@ -1031,9 +908,9 @@ export default function Home() {
                 </div>
               </div>
             </div>
-          </div>
+          </Reveal>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <StaggerGrid className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {([
               // Top full-stack platformy první. image: "/portfolio/<soubor>.png" doplň, až budou screenshoty.
               { name: "Monika Virtue", repo: "omnix", desc: "Holistická wellness platforma (omnix.cz) v konceptu Wabi-Sabi — terapie, hormonální jóga a kurzy. Rezervace s platbami, kvíz a chytrý asistent, který se učí tón terapeutky.", tags: ["Wellness", "Platforma", "Fullstack"], color: "from-amber-500 to-stone-600", modules: ["Rezervace + Stripe platby", "Telegram asistent (sentiment + booking intent)", "Kvíz lead-gen", "7denní drip e-maily (cron)", "CRM", "Blog + SEO admin", "Vícejazyčnost", "Light/Dark režim"] },
@@ -1058,9 +935,11 @@ export default function Home() {
               { name: "BotHub", repo: "bothub", desc: "Marketplace pro prodej chatbotů s affiliate programem. Premium landing page s pokročilými konverzními prvky.", tags: ["Marketplace", "Affiliate"], color: "from-emerald-500 to-teal-600", modules: ["Marketplace chatbotů", "Affiliate program", "Premium landing"] },
               { name: "ONYX WEB", repo: "optivio", desc: "Webová agentura s automatizovaným procesem od objednávky po nasazení — CRM, chatbot a ONYX OS backend.", tags: ["Agentura", "CRM", "Chatbot"], color: "from-violet-600 to-indigo-700", modules: ["Automatizace objednávek", "CRM", "Chatbot", "ONYX OS backend"] },
             ] as Array<{ name: string; repo: string; desc: string; tags: string[]; color: string; stars?: number; image?: string; modules?: string[] }>).map((project) => (
-              <div
+              <motion.div
                 key={project.repo}
-                className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all duration-300"
+                variants={fadeUp}
+                whileHover={{ y: -4 }}
+                className="group bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-colors"
               >
                 {project.image ? (
                   <div className="relative h-44 overflow-hidden bg-slate-100">
@@ -1106,52 +985,48 @@ export default function Home() {
                     </div>
                   ) : null}
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
-      {/* ── CTA BAND ── */}
-      <section className="py-20 bg-[#0f0628] text-white">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <h2 className="text-3xl lg:text-4xl font-extrabold mb-4">Jste připraveni začít?</h2>
-          <p className="text-white/70 mb-8 text-lg leading-relaxed">
-            Objednejte si konzultaci a získejte doporučení na míru, přehled o vašem obchodním procesu a jasný plán realizace — nebo si vyzkoušejte naše služby 14 dní zdarma vlastním tempem.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold px-10 rounded-full shadow-lg shadow-violet-900/40" onClick={scrollToContact}>
-              Domluvit konzultaci
-            </Button>
-            <Button size="lg" variant="ghost" className="text-white/80 hover:text-white border border-white/20 hover:border-white/40 rounded-full" onClick={scrollToContact}>
-              14-denní zkušební verze zdarma →
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── AI AGENTS PROMO ── */}
-      <section className="py-20 bg-gradient-to-br from-violet-950 via-[#1a0a3c] to-slate-900 text-white overflow-hidden relative">
+      {/* ── ZÁVĚREČNÁ VÝZVA + AI ASISTENTI ── */}
+      <section className="py-24 bg-gradient-to-br from-violet-950 via-[#1a0a3c] to-slate-900 text-white overflow-hidden relative">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-10 left-1/4 w-72 h-72 bg-violet-600/20 rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-1/4 w-56 h-56 bg-indigo-600/20 rounded-full blur-3xl" />
         </div>
         <div className="max-w-5xl mx-auto px-4 sm:px-6 relative z-10">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-sm mb-5">
-              <span>✨</span>
-              <span className="text-violet-200">Nové — AI Marketing Suite</span>
-            </div>
-            <h2 className="text-3xl lg:text-4xl font-extrabold mb-4">
-              Váš tým AI asistentů.<br />
-              <span className="text-violet-300">Vždy připravených.</span>
-            </h2>
-            <p className="text-violet-200 text-lg max-w-xl mx-auto">
-              Každý agent nese znalosti nejlepších světových marketérů. Vy říkáte CO — on ví JAK.
+          <Reveal className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-extrabold mb-4">Jste připraveni začít?</h2>
+            <p className="text-white/70 mb-8 text-lg leading-relaxed max-w-2xl mx-auto">
+              Objednejte si konzultaci a získejte doporučení na míru, přehled o vašem obchodním procesu a jasný plán realizace — nebo si vyzkoušejte naše služby 14 dní zdarma vlastním tempem.
             </p>
-          </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold px-10 rounded-full shadow-lg shadow-violet-900/40" onClick={scrollToContact}>
+                Domluvit konzultaci
+              </Button>
+              <Button size="lg" variant="ghost" className="text-white/80 hover:text-white border border-white/20 hover:border-white/40 rounded-full" onClick={scrollToContact}>
+                14-denní zkušební verze zdarma →
+              </Button>
+            </div>
+          </Reveal>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          <Reveal className="text-center mb-10">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-sm mb-5">
+              <Sparkles className="w-4 h-4 text-violet-300" />
+              <span className="text-violet-200">Rozšiřte si to o tým AI asistentů</span>
+            </div>
+            <h3 className="text-2xl lg:text-3xl font-extrabold mb-3">
+              Vy říkáte CO. Oni vědí JAK.
+            </h3>
+            <p className="text-violet-200 max-w-xl mx-auto">
+              8 asistentů nese znalosti nejlepších světových marketérů, připravených 24/7 — a katalog 77+ dalších osobností v iBots.
+            </p>
+          </Reveal>
+
+          <StaggerGrid className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
             {[
               { icon: "🧠", name: "Virtuální CMO", desc: "Orchestruje vše" },
               { icon: "✍️", name: "Copywriter", desc: "Ogilvy + Halbert styl" },
@@ -1162,68 +1037,23 @@ export default function Home() {
               { icon: "🧲", name: "Lead Magnet", desc: "List building" },
               { icon: "🎙️", name: "Webinar Script", desc: "Perfect Webinar" },
             ].map(agent => (
-              <div key={agent.name} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center hover:bg-white/10 transition-all">
+              <motion.div key={agent.name} variants={fadeUp} whileHover={{ y: -4, scale: 1.02 }} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center hover:bg-white/10 transition-colors">
                 <div className="text-2xl mb-2">{agent.icon}</div>
                 <div className="font-semibold text-sm text-white">{agent.name}</div>
                 <div className="text-violet-300 text-xs mt-0.5">{agent.desc}</div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </StaggerGrid>
 
-          <div className="text-center">
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 max-w-2xl mx-auto mb-8">
-              <blockquote className="text-violet-100 text-lg italic">
-                „Bez Brand Memory je to jako kdybyste každé ráno přišli do agentury a museli novému stážistovi vysvětlovat, co děláte, komu prodáváte a jak mluvíte. S Brand Memory přijdete — a tým už VÍ."
-              </blockquote>
-            </div>
+          <div className="text-center flex flex-col sm:flex-row gap-3 justify-center">
             <a href="/agents">
-              <Button className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold px-8 py-4 text-base rounded-full shadow-lg shadow-violet-900/40">
-                Vyzkoušet AI Asistenty zdarma →
+              <Button className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold px-8 py-4 text-base rounded-full shadow-lg shadow-violet-900/40 w-full sm:w-auto">
+                ✨ Vyzkoušet AI Asistenty zdarma →
               </Button>
             </a>
-          </div>
-        </div>
-      </section>
-
-      {/* ── iBOTS PROMO ── */}
-      <section className="py-16 bg-[#0A0A0F] text-white">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 border border-amber-400/30 bg-amber-400/5 rounded-full px-4 py-1.5 text-sm text-amber-400 mb-4">
-              <Zap className="w-3.5 h-3.5" /> 77+ AI osobností
-            </div>
-            <h2 className="text-3xl lg:text-4xl font-extrabold mb-3">
-              AI chatboti, kteří <span className="text-amber-400">prodávají za vás</span>
-            </h2>
-            <p className="text-white/50 max-w-xl mx-auto">Nejlepší světoví marketéři jako AI asistenti pro váš web. Alex Hormozi, Russell Brunson, Dan Kennedy a desítky dalších.</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {[
-              { avatar: "🚀", name: "Alex Hormozi", specialty: "$100M Offers" },
-              { avatar: "🎯", name: "Russell Brunson", specialty: "Funnels & Marketing" },
-              { avatar: "✉️", name: "Dan Kennedy", specialty: "Direct Response" },
-              { avatar: "📈", name: "Grant Cardone", specialty: "Sales Mastery" },
-              { avatar: "📱", name: "Gary Vaynerchuk", specialty: "Social Media" },
-              { avatar: "💼", name: "Sam Ovens", specialty: "Consulting" },
-              { avatar: "🧠", name: "Carl Jung", specialty: "Psychologie" },
-              { avatar: "💰", name: "Warren Buffett", specialty: "Investice" },
-            ].map(bot => (
-              <div key={bot.name} className="border border-white/10 rounded-xl p-4 bg-white/3 hover:border-amber-400/30 transition-all text-center">
-                <div className="text-2xl mb-2">{bot.avatar}</div>
-                <div className="text-sm font-semibold text-white">{bot.name}</div>
-                <div className="text-xs text-amber-400/70 mt-0.5">{bot.specialty}</div>
-              </div>
-            ))}
-          </div>
-          <div className="text-center">
             <a href="/ibots">
-              <Button className="bg-amber-500 hover:bg-amber-600 text-black font-bold px-8 rounded-full mr-4">
-                Prohlédnout všech 77 botů →
-              </Button>
-            </a>
-            <a href="/agents">
-              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 rounded-full">
-                ✨ Vyzkoušet AI Asistenty
+              <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 rounded-full w-full sm:w-auto">
+                Prohlédnout 77+ AI botů →
               </Button>
             </a>
           </div>
@@ -1233,10 +1063,12 @@ export default function Home() {
       {/* ── FAQ ── */}
       <section id="faq" className="py-20 bg-slate-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6">
-          <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 text-center mb-12">Často kladené otázky</h2>
-          <div className="space-y-3">
+          <Reveal className="mb-12">
+            <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 text-center">Často kladené otázky</h2>
+          </Reveal>
+          <StaggerGrid className="space-y-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
+              <motion.div key={i} variants={fadeUp} className="bg-white border border-slate-100 rounded-2xl overflow-hidden">
                 <button
                   className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-slate-50 transition-colors"
                   onClick={() => setOpenFaqs(p => ({ ...p, [i]: !p[i] }))}
@@ -1249,21 +1081,16 @@ export default function Home() {
                     {faq.a}
                   </div>
                 )}
-              </div>
+              </motion.div>
             ))}
-          </div>
-          <div className="text-center mt-8">
-            <button className="text-violet-600 font-medium text-sm hover:text-violet-700 flex items-center gap-1 mx-auto" onClick={scrollToContact}>
-              Zobrazit více otázek <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
+          </StaggerGrid>
         </div>
       </section>
 
       {/* ── CONTACT ── */}
       <section id="contact" ref={contactRef} className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16 items-start">
-          <div>
+          <Reveal>
             <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">Domluvme si konzultaci</h2>
             <p className="text-slate-500 mb-8 leading-relaxed">
               Vyplňte formulář a my se vám ozveme do 24 hodin s konkrétním návrhem a cenou. Konzultace je zdarma a nezávazná.
@@ -1283,9 +1110,9 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </div>
+          </Reveal>
 
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-100">
+          <Reveal className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl shadow-slate-100">
             <h3 className="font-bold text-slate-900 text-xl mb-6">Vyplňte poptávku</h3>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -1326,7 +1153,7 @@ export default function Home() {
               </Button>
               <p className="text-xs text-slate-400 text-center">Ozveme se do 24 hodin. Konzultace je zdarma a nezávazná.</p>
             </form>
-          </div>
+          </Reveal>
         </div>
       </section>
 
@@ -1364,7 +1191,7 @@ export default function Home() {
             <div>
               <h4 className="text-white font-semibold mb-4 text-sm">Kontakt</h4>
               <ul className="space-y-2 text-sm">
-                <li>poptavka@onyxweb.cz</li>
+                <li>poptavka@optimateo.com</li>
                 <li>+420 XXX XXX XXX</li>
                 <li><a href="#" className="hover:text-white transition-colors">Případové studie</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
