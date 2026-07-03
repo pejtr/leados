@@ -62,17 +62,17 @@ function Stepper({ current }: { current: number }) {
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
                   active
-                    ? "bg-violet-600 text-white"
+                    ? "bg-violet-500 text-white"
                     : done
-                    ? "bg-violet-100 text-violet-600"
-                    : "bg-slate-100 text-slate-400"
+                    ? "bg-violet-400/30 text-violet-100"
+                    : "bg-white/10 text-white/40"
                 }`}
               >
                 {done ? <Check className="w-4 h-4" /> : i + 1}
               </div>
-              <span className={`mt-1.5 text-[11px] ${active ? "text-slate-900 font-semibold" : "text-slate-400"}`}>{label}</span>
+              <span className={`mt-1.5 text-[11px] ${active ? "text-white font-semibold" : "text-white/40"}`}>{label}</span>
             </div>
-            {i < STEPS.length - 1 && <div className={`w-8 sm:w-16 h-0.5 -mt-5 ${done ? "bg-violet-300" : "bg-slate-200"}`} />}
+            {i < STEPS.length - 1 && <div className={`w-8 sm:w-16 h-0.5 -mt-5 ${done ? "bg-violet-300/60" : "bg-white/15"}`} />}
           </div>
         );
       })}
@@ -223,7 +223,8 @@ export default function DotaznikPage() {
   // ── Thank-you screen ──
   if (submitted) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="min-h-screen flex flex-col relative">
+        <AuroraBackground />
         <Header />
         <div className="flex-1 flex items-center justify-center px-4">
           <div className="max-w-md text-center bg-white border border-slate-200 rounded-3xl p-10 shadow-sm">
@@ -249,19 +250,20 @@ export default function DotaznikPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      <AuroraBackground />
       <Header />
 
       <main className="flex-1 px-4 py-10">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
-            <p className="inline-flex items-center gap-2 text-amber-600 text-sm font-semibold mb-3">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Návrh zdarma — platíte až po schválení
+            <p className="inline-flex items-center gap-2 text-amber-300 text-sm font-semibold mb-3">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" /> Návrh zdarma — platíte až po schválení
             </p>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900">
-              Dotazník pro <span className="text-violet-600">váš web</span>
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-white">
+              Dotazník pro <span className="text-violet-300">váš web</span>
             </h1>
-            <p className="text-slate-500 mt-2">Zabere to ~3 minuty. Díky tomu připravíme návrh přesně na míru.</p>
+            <p className="text-white/60 mt-2">Zabere to ~3 minuty. Díky tomu připravíme návrh přesně na míru.</p>
           </div>
 
           <Stepper current={step} />
@@ -415,7 +417,7 @@ export default function DotaznikPage() {
             </div>
           </div>
 
-          <p className="flex items-center justify-center gap-1.5 text-center text-xs text-slate-400 mt-5">
+          <p className="flex items-center justify-center gap-1.5 text-center text-xs text-white/50 mt-5">
             <ShieldCheck className="w-3.5 h-3.5" /> Krok {step + 1} z {STEPS.length} · Vaše údaje jsou v bezpečí.
           </p>
         </div>
@@ -426,14 +428,64 @@ export default function DotaznikPage() {
 
 function Header() {
   return (
-    <header className="bg-white border-b border-slate-200">
+    <header className="bg-white/10 backdrop-blur-md border-b border-white/10">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <a href="/">
-          <OnyxWebLogo className="h-8" />
+          <OnyxWebLogo className="h-8" light />
         </a>
-        <span className="text-sm text-slate-400">Dotazník pro vytvoření webu</span>
+        <span className="text-sm text-white/50">Dotazník pro vytvoření webu</span>
       </div>
     </header>
+  );
+}
+
+// Živé onyx pozadí — velká lesklá koule s ametystovo-amber leskem, jemně
+// rotuje. Navázáno na brand mark (tmavý onyx + amber jiskra). Karta
+// formuláře zůstává bílá/neprůhledná a plave nad ním.
+function AuroraBackground() {
+  return (
+    <div className="fixed inset-0 -z-10 overflow-hidden bg-[#06070a]" aria-hidden="true">
+      <style>{`
+        @keyframes onyxOrbSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .onyx-orb-sheen { animation: onyxOrbSpin 60s linear infinite; }
+        @media (prefers-reduced-motion: reduce) { .onyx-orb-sheen { animation: none !important; } }
+      `}</style>
+
+      {/* velká lesklá koule */}
+      <div className="absolute -right-[12%] top-1/2 -translate-y-1/2 w-[115vmin] h-[115vmin] rounded-full shadow-[0_0_180px_50px_rgba(0,0,0,0.65)] overflow-hidden">
+        {/* rotující ametystovo-amber lesk */}
+        <div
+          className="onyx-orb-sheen absolute inset-0"
+          style={{
+            background:
+              "conic-gradient(from 200deg, #06070a 0deg, #2b1450 55deg, #7c3aed 100deg, #d97706 150deg, #06070a 210deg, #06070a 290deg, #6d28d9 335deg, #06070a 360deg)",
+          }}
+        />
+        {/* specular odlesk vlevo nahoře */}
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(circle at 28% 22%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.06) 15%, transparent 32%)" }}
+        />
+        {/* jemná amber záře vpravo dole */}
+        <div
+          className="absolute inset-0"
+          style={{ background: "radial-gradient(circle at 78% 78%, rgba(217,119,6,0.35) 0%, transparent 42%)" }}
+        />
+        {/* vnitřní stín pro hloubku */}
+        <div className="absolute inset-0" style={{ boxShadow: "inset 0 0 140px 45px rgba(0,0,0,0.7), inset 0 0 24px 6px rgba(0,0,0,0.55)" }} />
+        {/* vnitřní "díra" — náznak prstenu/torusu */}
+        <div
+          className="absolute rounded-full"
+          style={{
+            left: "8%", top: "48%", width: "46%", height: "46%",
+            background: "radial-gradient(circle at 35% 30%, #16181f 0%, #06070a 62%)",
+            boxShadow: "inset 0 0 44px 12px rgba(0,0,0,0.85), 0 0 44px 12px rgba(0,0,0,0.6)",
+          }}
+        />
+      </div>
+
+      <div className="absolute inset-0 bg-black/10" />
+    </div>
   );
 }
 
