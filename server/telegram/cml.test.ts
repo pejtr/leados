@@ -90,7 +90,7 @@ describe("CML commands", () => {
     const deps = makeDeps({ ask: vi.fn(async () => { throw new Error("boom"); }) });
     const cml = createCml(deps);
     await cml.handleUpdate(makeUpdate(111, "něco"));
-    expect((deps.send as any).mock.calls[0][1]).toContain("Mozek teď neodpovídá");
+    expect((deps.send as any).mock.calls[0][1]).toContain("CML teď neodpovídá");
   });
 
   it("keeps per-chat history and passes it to the brain", async () => {
@@ -131,6 +131,44 @@ describe("CML hub commands", () => {
     await cml.handleUpdate(makeUpdate(111, "/newproject"));
     expect(deps.createProject).not.toHaveBeenCalled();
     expect((deps.send as any).mock.calls[0][1]).toContain("Použití");
+  });
+});
+
+describe("CML persistent memory", () => {
+  it("hydrates history from persistent storage once and passes it to the brain", async () => {
+    const stored = [
+      { role: "user" as const, content: "co je Optimateo?" },
+      { role: "assistant" as const, content: "Tvoje agentura." },
+    ];
+    const loadHistory = vi.fn(async () => stored);
+    const saveTurn = vi.fn(async () => {});
+    const deps = makeDeps({ loadHistory, saveTurn });
+    const cml = createCml(deps);
+
+    await cml.handleUpdate(makeUpdate(111, "a co ONYX OS?"));
+    expect(loadHistory).toHaveBeenCalledTimes(1);
+    const passedHistory = (deps.ask as any).mock.calls[0][0];
+    expect(passedHistory.length).toBe(3); // 2 stored + new user turn
+    expect(passedHistory[0].content).toBe("co je Optimateo?");
+
+    await cml.handleUpdate(makeUpdate(111, "dík"));
+    expect(loadHistory).toHaveBeenCalledTimes(1); // hydrated only once
+  });
+
+  it("persists both user and assistant turns via saveTurn", async () => {
+    const saveTurn = vi.fn(async () => {});
+    const deps = makeDeps({ loadHistory: vi.fn(async () => null), saveTurn });
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "ahoj"));
+    const roles = saveTurn.mock.calls.map((c: any[]) => c[1].role);
+    expect(roles).toEqual(["user", "assistant"]);
+  });
+
+  it("works without persistence deps (in-memory fallback)", async () => {
+    const deps = makeDeps();
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "test"));
+    expect((deps.send as any).mock.calls[0][1]).toBe("odpověď mozku");
   });
 });
 

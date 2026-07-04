@@ -19,6 +19,8 @@ import {
   deleteTelegramWebhook,
 } from "./telegramApi";
 import { createCml, CML_SYSTEM_PROMPT, type ChatTurn, type CmlLeadStats } from "./cml";
+import { loadHistory, saveTurn } from "./cmlMemory";
+import { validateAnswer, validatorProvider } from "./dualBrain";
 
 async function getLeadStats(): Promise<CmlLeadStats | null> {
   try {
@@ -52,14 +54,19 @@ function extractText(content: unknown): string {
   return "";
 }
 
-async function ask(history: ChatTurn[], _userText: string): Promise<string> {
+async function ask(history: ChatTurn[], userText: string): Promise<string> {
   // History already contains the latest user turn (cml.ts remembers before asking).
   const messages: Message[] = [
     { role: "system", content: CML_SYSTEM_PROMPT },
     ...history.map(turn => ({ role: turn.role, content: turn.content }) as Message),
   ];
+  // Dual brain („mužsko-ženské uvažování"): HERMES drafts…
   const result = await invokeLLM({ messages });
-  return extractText(result.choices?.[0]?.message?.content).trim();
+  const draft = extractText(result.choices?.[0]?.message?.content).trim();
+  if (!draft) return draft;
+  // …HERA validates through a second model; on failure the draft stands.
+  const validated = await validateAnswer(userText, draft);
+  return validated ?? draft;
 }
 
 /** Resolve the ONYX OS user id that owns hub projects: owner openId, else first admin, else first user. */
@@ -107,10 +114,13 @@ export async function startCmlTelegram(): Promise<void> {
       return { id: p.id, name: p.name, apiKey: p.apiKey, url: p.url };
     },
     hubBaseUrl,
+    loadHistory,
+    saveTurn,
   });
 
   // Ensure no webhook is configured — getUpdates conflicts with webhooks.
   await deleteTelegramWebhook();
+  console.log(`[CML] Duální mozek: HERA validátor = ${validatorProvider()}`);
   console.log(
     `[CML] Telegram orchestrator online (polling)${
       process.env.TELEGRAM_OWNER_CHAT_ID ? "" : " — BOOTSTRAP MODE: send /start to the bot to get your chat id"

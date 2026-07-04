@@ -30,6 +30,10 @@ export type CmlDeps = {
   createProject: (name: string, url?: string) => Promise<CmlProject>;
   /** Public base URL of this ONYX OS instance (for agent handoff instructions). */
   hubBaseUrl: () => string;
+  /** Optional persistent memory: load recent turns (null = unavailable, use in-memory). */
+  loadHistory?: (chatId: number, limit: number) => Promise<ChatTurn[] | null>;
+  /** Optional persistent memory: store one turn. */
+  saveTurn?: (chatId: number, turn: ChatTurn) => Promise<void>;
 };
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
@@ -46,9 +50,11 @@ Portfolio, které znáš:
 - Katastr-Online.cz — realitní platforma (posílá leady do ONYX OS).
 - OMNISHOPPER — budoucí consumer agregátor (zatím backlog).
 
-Tvé aktuální schopnosti: odpovídat na dotazy, reportovat statistiky leadů (/stats), pomáhat plánovat a rozepisovat úkoly na kroky. Zatím NEUMÍŠ přímo spouštět mise/agenty — když ti owner zadá úkol, rozeber ho, navrhni konkrétní kroky a co spustit kde. Nic si nevymýšlej; když něco nevíš, řekni to.
+Tvé aktuální schopnosti: odpovídat na dotazy a radit ke strategii i exekuci, reportovat statistiky leadů (/stats), spravovat připojené projekty OMNICORE Hubu (/projects, /newproject), pomáhat plánovat a rozepisovat úkoly na kroky. Máš perzistentní paměť konverzace (přežívá restarty). Zatím NEUMÍŠ přímo spouštět mise/agenty — když ti owner zadá úkol, rozeber ho, navrhni konkrétní kroky a co spustit kde.
 
-Odpovídej ČESKY, stručně, věcně, bez balastu. Jsi v Telegramu — krátké odstavce, žádné dlouhé eseje, formátování jen prostým textem.`;
+Uvažuješ duálně („mužsko-ženské uvažování"): HERMES v tobě odpověď navrhne, HERA ji zvaliduje druhým modelem — ownerovi odchází až finální verze.
+
+Styl: jsi plnohodnotný strategický parťák, ne FAQ bot. Odpovídej ČESKY, věcně a lidsky. Veď s ownerem normální dialog: dávej vlastní názor a jasné doporučení, upozorni na rizika, přiznej, když něco nevíš nebo si nejsi jistý — nic si nevymýšlej. Buď konkrétní (čísla, kroky, priority), ne obecné fráze. Jsi v Telegramu — krátké odstavce, prostý text bez markdownu; delší strukturu členěj odrážkami „•". Když je dotaz široký, odpověz tomu nejdůležitějšímu a nabídni, kam jít hlouběji.`;
 
 const HELP_TEXT = `🧠 CML — Centrální Mozek Lidstva
 
@@ -72,11 +78,30 @@ export function formatStats(stats: CmlLeadStats | null): string {
 export function createCml(deps: CmlDeps) {
   const history = new Map<number, ChatTurn[]>();
 
+  const hydrated = new Set<number>();
+
+  /** One-time per chat: hydrate in-memory history from persistent storage. */
+  async function hydrate(chatId: number) {
+    if (hydrated.has(chatId)) return;
+    hydrated.add(chatId);
+    if (!deps.loadHistory) return;
+    try {
+      const stored = await deps.loadHistory(chatId, HISTORY_LIMIT);
+      if (stored && stored.length > 0 && !history.has(chatId)) {
+        history.set(chatId, stored.slice(-HISTORY_LIMIT));
+      }
+    } catch {
+      // in-memory fallback is fine
+    }
+  }
+
   function remember(chatId: number, turn: ChatTurn) {
     const list = history.get(chatId) ?? [];
     list.push(turn);
     while (list.length > HISTORY_LIMIT) list.shift();
     history.set(chatId, list);
+    // Persist fire-and-forget; failures degrade to in-memory only.
+    deps.saveTurn?.(chatId, turn).catch(() => {});
   }
 
   async function handleUpdate(update: TgUpdate): Promise<void> {
@@ -163,7 +188,8 @@ export function createCml(deps: CmlDeps) {
       return;
     }
 
-    // Free-form: ask the brain with per-chat history.
+    // Free-form: ask the brain with per-chat history (hydrated from DB once).
+    await hydrate(chatId);
     remember(chatId, { role: "user", content: text });
     let reply: string;
     try {
@@ -171,7 +197,7 @@ export function createCml(deps: CmlDeps) {
       reply = await deps.ask([...(history.get(chatId) ?? [])], text);
     } catch (err: any) {
       console.error("[CML] LLM error:", err?.message || err);
-      reply = "⚠️ Mozek teď neodpovídá (LLM chyba). Zkus to za chvíli.";
+      reply = "⚠️ CML teď neodpovídá (chyba LLM). Zkus to za chvíli.";
     }
     if (!reply || !reply.trim()) reply = "🤔 Nemám k tomu co říct — zkus to formulovat jinak.";
     remember(chatId, { role: "assistant", content: reply });
