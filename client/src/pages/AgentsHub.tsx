@@ -199,12 +199,12 @@ export default function AgentsHub() {
               <Brain className="w-8 h-8 text-violet-600" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900">AI Agenti</h2>
-            <p className="text-slate-500">Přihlaste se a získejte přístup k virtuálnímu CMO a celé sadě marketingových agentů.</p>
+            <p className="text-slate-500">Vytvořte si účet zdarma a získejte přístup k virtuálnímu CMO a celé sadě marketingových asistentů.</p>
             <Button
               className="w-full bg-violet-600 hover:bg-violet-700"
-              onClick={() => window.location.href = getLoginUrl()}
+              onClick={() => window.location.href = "/dotaznik?zdroj=agenti"}
             >
-              Přihlásit se
+              Vytvořit účet zdarma
             </Button>
           </CardContent>
         </Card>

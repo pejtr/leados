@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Menu, X, Sparkles } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { trackSklikConversion } from "@/lib/sklik";
 import { toast } from "sonner";
 import { OnyxWebLogo } from "@/components/OnyxWebLogo";
 
@@ -44,6 +45,7 @@ export default function HomeVariantD() {
         details: undefined,
         source: "web-variant-d",
       });
+      trackSklikConversion({ orderId: `lead-variant-d-${Date.now()}`, value: 900 });
       toast.success("Poptávka odeslána! Brzy se vám ozveme.");
       form.reset();
     } catch (error) {
@@ -70,9 +72,8 @@ export default function HomeVariantD() {
       `}</style>
 
       {/* Navigation */}
-      <nav className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-slate-950/95 backdrop-blur-md border-b border-pink-500/20' : 'bg-slate-950/50 backdrop-blur-sm'
-      }`}>
+      <nav className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-slate-950/95 backdrop-blur-md border-b border-pink-500/20' : 'bg-slate-950/50 backdrop-blur-sm'
+        }`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <OnyxWebLogo className="h-8" light />
@@ -137,7 +138,7 @@ export default function HomeVariantD() {
       {/* Features Grid */}
       <section id="features" className="py-20 px-4 bg-slate-900/50 backdrop-blur-sm">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-4xl font-bold mb-12 text-center glow-text">Proč ONYX WEB?</h2>
+          <h2 className="text-4xl font-bold mb-12 text-center glow-text">Proč OPTIMATEO?</h2>
           <div className="grid md:grid-cols-2 gap-6">
             {[
               { title: "Rychlé spuštění", desc: "Váš web je hotov za 1–3 týdny. Bez dlouhého čekání." },
@@ -202,11 +203,11 @@ export default function HomeVariantD() {
       {/* Footer */}
       <footer className="bg-slate-950 text-slate-500 py-12 border-t border-pink-500/20">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="mb-4">© 2026 ONYX WEB. Všechna práva vyhrazena.</p>
+          <p className="mb-4">© 2026 OPTIMATEO. Všechna práva vyhrazena.</p>
           <div className="flex justify-center gap-6">
             <a href="#" className="hover:text-pink-400 transition">Zásady ochrany</a>
             <a href="#" className="hover:text-pink-400 transition">Obchodní podmínky</a>
-            <a href="#" className="hover:text-pink-400 transition">Kontakt</a>
+            <a href="tel:+420731348984" className="hover:text-pink-400 transition">Kontakt: +420 731 348 984</a>
           </div>
         </div>
       </footer>

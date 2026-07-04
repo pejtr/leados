@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { trackSklikConversion } from "@/lib/sklik";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { OnyxWebLogo } from "@/components/OnyxWebLogo";
@@ -144,9 +145,14 @@ export default function DotaznikPage() {
   const [submitted, setSubmitted] = useState(false);
 
   // Prefill from demo (?obor=kavarna&firma=Café Momento)
-  const { oborId, firmaPrefill } = useMemo(() => {
+  const { oborId, firmaPrefill, sourceParam, segmentParam } = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
-    return { oborId: params.get("obor") || "", firmaPrefill: params.get("firma") || "" };
+    return {
+      oborId: params.get("obor") || "",
+      firmaPrefill: params.get("firma") || "",
+      sourceParam: params.get("zdroj") || "",
+      segmentParam: params.get("segment") || "",
+    };
   }, []);
 
   // Step 1 — O vás
@@ -203,8 +209,14 @@ export default function DotaznikPage() {
         phone,
         businessDescription: company,
         packageType: websiteType,
-        source: oborId ? `dotaznik:demo:${oborId}` : "dotaznik",
+        source: sourceParam
+          ? `dotaznik:${sourceParam}${segmentParam ? `:${segmentParam}` : ""}`
+          : oborId
+            ? `dotaznik:demo:${oborId}`
+            : "dotaznik",
         details: {
+          sourceParam,
+          segmentParam,
           goals,
           pages,
           materials,
@@ -214,6 +226,7 @@ export default function DotaznikPage() {
           message,
         },
       } as any);
+      trackSklikConversion({ orderId: `lead-dotaznik-${Date.now()}`, value: 900 });
       setSubmitted(true);
     } catch (e) {
       toast.error("Něco se nepovedlo. Zkuste to prosím znovu nebo nám zavolejte.");
