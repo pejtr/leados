@@ -6,10 +6,12 @@
  * in local dev, Manus, and Railway without a public URL.
  */
 
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 import { getDb } from "../db";
-import { leads } from "../../drizzle/schema";
+import { leads, users } from "../../drizzle/schema";
+import { ENV } from "../_core/env";
 import { invokeLLM, type Message } from "../_core/llm";
+import * as projectsDb from "../projectsDb";
 import {
   telegramEnabled,
   sendTelegramMessage,
@@ -60,6 +62,25 @@ async function ask(history: ChatTurn[], _userText: string): Promise<string> {
   return extractText(result.choices?.[0]?.message?.content).trim();
 }
 
+/** Resolve the ONYX OS user id that owns hub projects: owner openId, else first admin, else first user. */
+async function resolveOwnerUserId(): Promise<number> {
+  const db = await getDb();
+  if (!db) throw new Error("DB unavailable");
+  if (ENV.ownerOpenId) {
+    const [byOpenId] = await db.select().from(users).where(eq(users.openId, ENV.ownerOpenId)).limit(1);
+    if (byOpenId) return byOpenId.id;
+  }
+  const [admin] = await db.select().from(users).where(eq(users.role, "admin")).limit(1);
+  if (admin) return admin.id;
+  const [first] = await db.select().from(users).limit(1);
+  if (first) return first.id;
+  throw new Error("Žádný uživatel v DB — přihlas se nejdřív do ONYX OS");
+}
+
+function hubBaseUrl(): string {
+  return (process.env.HUB_PUBLIC_URL || "http://localhost:3001").replace(/\/$/, "");
+}
+
 let started = false;
 
 export async function startCmlTelegram(): Promise<void> {
@@ -75,6 +96,17 @@ export async function startCmlTelegram(): Promise<void> {
     ask,
     getLeadStats,
     ownerChatId: () => process.env.TELEGRAM_OWNER_CHAT_ID?.trim() || undefined,
+    listProjects: async () => {
+      const userId = await resolveOwnerUserId();
+      const rows = await projectsDb.listProjects(userId);
+      return rows.map(p => ({ id: p.id, name: p.name, apiKey: p.apiKey, url: p.url }));
+    },
+    createProject: async (name, url) => {
+      const userId = await resolveOwnerUserId();
+      const p = await projectsDb.createProject({ userId, name, url, category: "portfolio" });
+      return { id: p.id, name: p.name, apiKey: p.apiKey, url: p.url };
+    },
+    hubBaseUrl,
   });
 
   // Ensure no webhook is configured — getUpdates conflicts with webhooks.

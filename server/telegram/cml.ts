@@ -13,6 +13,8 @@ export type CmlLeadStats = {
   byStatus: Record<string, number>;
 };
 
+export type CmlProject = { id: number; name: string; apiKey: string; url?: string | null };
+
 export type CmlDeps = {
   /** Send a plain-text reply to a chat. */
   send: (chatId: number, text: string) => Promise<boolean>;
@@ -22,6 +24,12 @@ export type CmlDeps = {
   getLeadStats: () => Promise<CmlLeadStats | null>;
   /** Owner chat id from env — undefined means "not yet configured" (bootstrap mode). */
   ownerChatId: () => string | undefined;
+  /** List connected projects (OMNICORE Hub). */
+  listProjects: () => Promise<CmlProject[]>;
+  /** Create a connected project and return it (with fresh API key). */
+  createProject: (name: string, url?: string) => Promise<CmlProject>;
+  /** Public base URL of this ONYX OS instance (for agent handoff instructions). */
+  hubBaseUrl: () => string;
 };
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
@@ -46,6 +54,8 @@ const HELP_TEXT = `🧠 CML — Centrální Mozek Lidstva
 
 Příkazy:
 /stats — přehled leadů v ONYX OS
+/projects — připojené projekty (OMNICORE Hub)
+/newproject Název | https://url — založit projekt, vrátím API klíč
 /ping — kontrola, že žiju
 /help — tohle
 
@@ -110,6 +120,46 @@ export function createCml(deps: CmlDeps) {
     if (text.startsWith("/stats")) {
       const stats = await deps.getLeadStats();
       await deps.send(chatId, formatStats(stats));
+      return;
+    }
+
+    if (text.startsWith("/projects")) {
+      try {
+        const projects = await deps.listProjects();
+        if (projects.length === 0) {
+          await deps.send(chatId, "📦 Zatím žádné připojené projekty. Založ první: /newproject Název | https://url");
+        } else {
+          const lines = projects.map(p => `• ${p.name} (#${p.id})${p.url ? ` — ${p.url}` : ""}\n  klíč: ${p.apiKey}`);
+          await deps.send(chatId, `📦 Připojené projekty (OMNICORE Hub):\n\n${lines.join("\n")}`);
+        }
+      } catch (err: any) {
+        await deps.send(chatId, `⚠️ Nemůžu načíst projekty: ${err?.message || "chyba"}`);
+      }
+      return;
+    }
+
+    if (text.startsWith("/newproject")) {
+      const rest = text.replace(/^\/newproject\s*/, "").trim();
+      if (!rest) {
+        await deps.send(chatId, "Použití: /newproject Název projektu | https://url (URL je volitelná)");
+        return;
+      }
+      const [rawName, rawUrl] = rest.split("|").map(s => s.trim());
+      try {
+        const project = await deps.createProject(rawName, rawUrl || undefined);
+        const base = deps.hubBaseUrl();
+        await deps.send(
+          chatId,
+          `✅ Projekt „${project.name}" založen (#${project.id}).\n\n` +
+            `🔑 API klíč:\n${project.apiKey}\n\n` +
+            `Hub: ${base}/api/hub\n` +
+            `Agentovi projektu předej:\n` +
+            `HUB_BASE_URL=${base}\nHUB_API_KEY=${project.apiKey}\n\n` +
+            `Kontrakt si agent načte z ${base}/api/hub/manifest`
+        );
+      } catch (err: any) {
+        await deps.send(chatId, `⚠️ Projekt se nepodařilo založit: ${err?.message || "chyba"}`);
+      }
       return;
     }
 

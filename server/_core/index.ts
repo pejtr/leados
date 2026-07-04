@@ -48,6 +48,9 @@ async function startServer() {
   registerCallsUploadRoute(app);
   // Public project analytics ingest endpoint
   registerIngestRoute(app);
+  // OMNICORE Hub — unified connection point for all portfolio projects
+  const { registerHubRoute } = await import("../hubRoute");
+  registerHubRoute(app);
   // Google OAuth routes
   registerGoogleOAuthRoutes(app);
   // Webhook retry scheduler (Heartbeat cron endpoint)

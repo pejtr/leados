@@ -9,7 +9,7 @@ import { notifyOwner } from "./_core/notification";
  * When a 'sale' event is ingested for a project, automatically
  * increment the revenue of all Ad Campaigns linked to that project.
  */
-async function autoUpdateCampaignRevenue(projectId: number, saleValue: number) {
+export async function autoUpdateCampaignRevenue(projectId: number, saleValue: number) {
   try {
     const db = await getDb();
     if (!db || saleValue <= 0) return;

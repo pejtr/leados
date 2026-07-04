@@ -20,6 +20,13 @@ function makeDeps(overrides: Partial<CmlDeps> = {}) {
     ask: vi.fn(async () => "odpověď mozku"),
     getLeadStats: vi.fn(async () => ({ total: 5, byStatus: { new: 3, contacted: 2 } })),
     ownerChatId: () => "111",
+    listProjects: vi.fn(async () => [
+      { id: 1, name: "Katastr Online", apiKey: "lpos_abc123", url: "https://katastr-online.cz" },
+    ]),
+    createProject: vi.fn(async (name: string, url?: string) => ({
+      id: 2, name, apiKey: "lpos_new456", url: url ?? null,
+    })),
+    hubBaseUrl: () => "https://crmleadsystem.com",
     ...overrides,
   };
   return deps;
@@ -94,6 +101,36 @@ describe("CML commands", () => {
     const secondCallHistory = (deps.ask as any).mock.calls[1][0];
     expect(secondCallHistory.length).toBe(3); // user, assistant, user
     expect(secondCallHistory[0].content).toBe("první zpráva");
+  });
+});
+
+describe("CML hub commands", () => {
+  it("/projects lists connected projects with keys", async () => {
+    const deps = makeDeps();
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "/projects"));
+    const text = (deps.send as any).mock.calls[0][1];
+    expect(text).toContain("Katastr Online");
+    expect(text).toContain("lpos_abc123");
+  });
+
+  it("/newproject creates a project and returns key + hub handoff", async () => {
+    const deps = makeDeps();
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "/newproject Enchanté One | https://enchante.one"));
+    expect(deps.createProject).toHaveBeenCalledWith("Enchanté One", "https://enchante.one");
+    const text = (deps.send as any).mock.calls[0][1];
+    expect(text).toContain("lpos_new456");
+    expect(text).toContain("HUB_BASE_URL=https://crmleadsystem.com");
+    expect(text).toContain("/api/hub/manifest");
+  });
+
+  it("/newproject without args shows usage", async () => {
+    const deps = makeDeps();
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "/newproject"));
+    expect(deps.createProject).not.toHaveBeenCalled();
+    expect((deps.send as any).mock.calls[0][1]).toContain("Použití");
   });
 });
 
