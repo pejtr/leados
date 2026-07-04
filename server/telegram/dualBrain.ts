@@ -17,6 +17,13 @@ export function validatorProvider(): ValidatorProvider {
   if (forced === "off" || forced === "none") return "none";
   if (forced === "deepseek") return process.env.DEEPSEEK_API_KEY ? "deepseek" : "none";
   if (forced === "gemini") return process.env.GEMINI_API_KEY ? "gemini" : "none";
+  // Auto: HERA should be a DIFFERENT model than the primary (HERMES) brain.
+  // Primary = Anthropic when its key exists, else DeepSeek (see _core/llm.ts).
+  const primaryIsDeepseek = !process.env.ANTHROPIC_API_KEY && !!process.env.DEEPSEEK_API_KEY;
+  if (primaryIsDeepseek) {
+    if (process.env.GEMINI_API_KEY) return "gemini";
+    return "deepseek"; // same-model second pass — weaker, but better than nothing
+  }
   if (process.env.DEEPSEEK_API_KEY) return "deepseek";
   if (process.env.GEMINI_API_KEY) return "gemini";
   return "none";

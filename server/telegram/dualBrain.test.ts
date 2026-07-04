@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { validatorProvider, validateAnswer } from "./dualBrain";
 
-const ENV_KEYS = ["CML_VALIDATOR", "DEEPSEEK_API_KEY", "GEMINI_API_KEY"] as const;
+const ENV_KEYS = ["CML_VALIDATOR", "DEEPSEEK_API_KEY", "GEMINI_API_KEY", "ANTHROPIC_API_KEY"] as const;
 const saved: Record<string, string | undefined> = {};
 
 beforeEach(() => {
@@ -24,9 +24,21 @@ describe("validatorProvider selection", () => {
     expect(validatorProvider()).toBe("none");
   });
 
-  it("prefers deepseek when its key is set", () => {
+  it("prefers deepseek when primary is Anthropic (different model for HERA)", () => {
+    process.env.ANTHROPIC_API_KEY = "ant-test";
     process.env.DEEPSEEK_API_KEY = "ds-test";
     process.env.GEMINI_API_KEY = "gm-test";
+    expect(validatorProvider()).toBe("deepseek");
+  });
+
+  it("prefers gemini when primary is DeepSeek (no Anthropic key)", () => {
+    process.env.DEEPSEEK_API_KEY = "ds-test";
+    process.env.GEMINI_API_KEY = "gm-test";
+    expect(validatorProvider()).toBe("gemini");
+  });
+
+  it("falls back to same-model deepseek when it is the only key", () => {
+    process.env.DEEPSEEK_API_KEY = "ds-test";
     expect(validatorProvider()).toBe("deepseek");
   });
 

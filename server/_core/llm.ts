@@ -215,8 +215,10 @@ const resolveApiUrl = () =>
     : "https://forge.manus.im/v1/chat/completions";
 
 const assertApiKey = () => {
-  if (!ENV.anthropicApiKey && !ENV.forgeApiKey) {
-    throw new Error("No LLM provider configured (set ANTHROPIC_API_KEY, or BUILT_IN_FORGE_API_KEY)");
+  if (!ENV.anthropicApiKey && !ENV.deepseekApiKey && !ENV.forgeApiKey) {
+    throw new Error(
+      "No LLM provider configured (set ANTHROPIC_API_KEY, DEEPSEEK_API_KEY, or BUILT_IN_FORGE_API_KEY)"
+    );
   }
 };
 
@@ -422,8 +424,16 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     response_format,
   } = params;
 
+  // OpenAI-compatible path: DeepSeek direct (Manus-independent) when its key
+  // is set, otherwise the legacy Manus Forge gateway.
+  const useDeepseek = !!ENV.deepseekApiKey;
+  const apiUrl = useDeepseek
+    ? "https://api.deepseek.com/chat/completions"
+    : resolveApiUrl();
+  const apiKey = useDeepseek ? ENV.deepseekApiKey : ENV.forgeApiKey;
+
   const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
+    model: useDeepseek ? ENV.deepseekModel : "gemini-2.5-flash",
     messages: messages.map(normalizeMessage),
   };
 
@@ -439,9 +449,12 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.tool_choice = normalizedToolChoice;
   }
 
-  payload.max_tokens = 32768
-  payload.thinking = {
-    "budget_tokens": 128
+  if (useDeepseek) {
+    // deepseek-chat caps output at 8k and has no `thinking` field
+    payload.max_tokens = 8192;
+  } else {
+    payload.max_tokens = 32768;
+    payload.thinking = { budget_tokens: 128 };
   }
 
   const normalizedResponseFormat = normalizeResponseFormat({
@@ -452,14 +465,25 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   });
 
   if (normalizedResponseFormat) {
-    payload.response_format = normalizedResponseFormat;
+    if (useDeepseek && normalizedResponseFormat.type === "json_schema") {
+      // DeepSeek supports json_object only — enforce the schema via instruction.
+      payload.response_format = { type: "json_object" };
+      (payload.messages as unknown[]).unshift({
+        role: "system",
+        content: `Return ONLY a valid JSON object matching this exact schema: ${JSON.stringify(
+          normalizedResponseFormat.json_schema.schema
+        )}`,
+      });
+    } else {
+      payload.response_format = normalizedResponseFormat;
+    }
   }
 
-  const response = await fetch(resolveApiUrl(), {
+  const response = await fetch(apiUrl, {
     method: "POST",
     headers: {
       "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
+      authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(payload),
   });

@@ -10,6 +10,9 @@ export const ENV = {
   // Direct Anthropic API (Manus-independent LLM path; preferred when set)
   anthropicApiKey: process.env.ANTHROPIC_API_KEY ?? "",
   anthropicModel: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
+  // DeepSeek (OpenAI-compatible) — primary fallback when Anthropic key is absent
+  deepseekApiKey: process.env.DEEPSEEK_API_KEY ?? "",
+  deepseekModel: process.env.DEEPSEEK_MODEL ?? "deepseek-chat",
   // Dev-only: set DEV_AUTO_LOGIN=true to bypass Manus OAuth in local development
   devAutoLogin: process.env.DEV_AUTO_LOGIN === "true",
 };
