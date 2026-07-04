@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight, Menu, X } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { trackSklikConversion } from "@/lib/sklik";
 import { toast } from "sonner";
 import { OnyxWebLogo } from "@/components/OnyxWebLogo";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
@@ -45,6 +46,7 @@ export default function HomeVariantB() {
         details: undefined,
         source: "web-variant-b",
       });
+      trackSklikConversion({ orderId: `lead-variant-b-${Date.now()}`, value: 900 });
       toast.success("Poptávka odeslána! Brzy se vám ozveme.");
       form.reset();
     } catch (error) {
@@ -55,9 +57,8 @@ export default function HomeVariantB() {
   return (
     <div className="min-h-screen bg-white text-slate-900">
       {/* Navigation */}
-      <nav className={`sticky top-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white shadow-md' : 'bg-white/80 backdrop-blur-sm'
-      }`}>
+      <nav className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-white/80 backdrop-blur-sm'
+        }`}>
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <OnyxWebLogo className="h-8" />
@@ -132,13 +133,13 @@ export default function HomeVariantB() {
       {/* Comparison Table */}
       <section className="py-20 px-4 bg-white">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl font-bold mb-12 text-center">Proč ONYX WEB?</h2>
+          <h2 className="text-3xl font-bold mb-12 text-center">Proč OPTIMATEO?</h2>
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
               <thead>
                 <tr className="border-b-2 border-green-200">
                   <th className="text-left py-4 px-4 font-bold">Kritérium</th>
-                  <th className="text-center py-4 px-4 font-bold text-green-600">ONYX WEB</th>
+                  <th className="text-center py-4 px-4 font-bold text-green-600">OPTIMATEO</th>
                   <th className="text-center py-4 px-4 font-bold text-slate-400">Tradiční agentura</th>
                 </tr>
               </thead>
@@ -244,11 +245,11 @@ export default function HomeVariantB() {
       {/* Footer */}
       <footer className="bg-slate-900 text-white/60 py-12">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="mb-4">© 2026 ONYX WEB. Všechna práva vyhrazena.</p>
+          <p className="mb-4">© 2026 OPTIMATEO. Všechna práva vyhrazena.</p>
           <div className="flex justify-center gap-6">
             <a href="#" className="hover:text-white transition">Zásady ochrany</a>
             <a href="#" className="hover:text-white transition">Obchodní podmínky</a>
-            <a href="#" className="hover:text-white transition">Kontakt</a>
+            <a href="tel:+420731348984" className="hover:text-white transition">Kontakt: +420 731 348 984</a>
           </div>
         </div>
       </footer>

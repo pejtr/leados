@@ -6,6 +6,7 @@ import {
   Store, ShoppingCart, Layers, Sparkles, CheckCircle2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { trackSklikConversion } from "@/lib/sklik";
 import { toast } from "sonner";
 import { OnyxWebLogo } from "@/components/OnyxWebLogo";
 
@@ -64,8 +65,7 @@ export default function WebLandingPage() {
         details: { segment, segmentLabel: segLabel, hook: "vysledky" },
         source: "sklik-web",
       });
-      // ⬇️ MĚŘENÍ KONVERZE: sem vlož Sklik konverzní kód (retargeting/konverze).
-      // window.seznam_retargeting_id = ...; nebo měřicí pixel po zobrazení děkovacího stavu.
+      trackSklikConversion({ orderId: `lead-web-${Date.now()}`, value: 900 });
       window.dispatchEvent(new CustomEvent("lead:web", { detail: { segment } }));
       setSent(true);
     } catch {
@@ -258,7 +258,7 @@ export default function WebLandingPage() {
       {/* ── FOOTER ── */}
       <footer className="py-6 bg-slate-900 text-slate-400 text-xs">
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© 2026 ONYX WEB. Všechna práva vyhrazena.</p>
+          <p>© 2026 OPTIMATEO. Všechna práva vyhrazena.</p>
           <div className="flex gap-5">
             <a href="/" className="hover:text-white transition-colors">Domů</a>
             <a href="/demo" className="hover:text-white transition-colors">Ukázky</a>

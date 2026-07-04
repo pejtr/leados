@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Check, ArrowRight, Menu, X, ChevronDown, Star, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket, Coffee, Scissors, Wrench, Dumbbell, Building2, Stethoscope, GraduationCap } from "lucide-react";
+import { Check, ArrowRight, Menu, X, ChevronDown, Star, Globe, BarChart3, Shield, TrendingUp, MessageSquare, LayoutDashboard, Bot, Calendar, Users, Megaphone, ShoppingBag, Sparkles, Gavel, Database, Rocket, Coffee, Scissors, Wrench, Dumbbell, Building2, Stethoscope, GraduationCap, Zap, Scale, Plane, Heart } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
 import { OptimateoLogo } from "@/components/OptimateoLogo";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trackSklikConversion } from "@/lib/sklik";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -167,6 +168,7 @@ export default function Home() {
     setIsSubmitting(true);
     try {
       await createInquiry.mutateAsync({ ...formData, details: undefined, source: "web-form" });
+      trackSklikConversion({ orderId: `lead-${Date.now()}`, value: 900 });
       toast.success("Poptávka odeslána! Ozveme se do 24 hodin.");
       setFormData({ name: "", email: "", phone: "", businessDescription: "", packageType: "" });
     } catch { toast.error("Chyba při odesílání. Zkuste to znovu."); }
@@ -243,7 +245,7 @@ export default function Home() {
       <div className={viewportMode === 'mobile' ? "max-w-md mx-auto bg-slate-50 shadow-2xl overflow-hidden" : ""}>
 
       {/* ── HERO ── */}
-      <section className="relative bg-[#0f0628] text-white overflow-hidden min-h-[90vh] flex items-center">
+      <section className="relative bg-[#0f0628] text-white overflow-hidden">
         {/* Background — layered grid, beams, orbs, brand watermark */}
         <div className="absolute inset-0 pointer-events-none">
           {/* base depth gradient */}
@@ -358,48 +360,112 @@ export default function Home() {
 
           {/* Right — mock dashboard */}
           <div className={viewportMode === 'mobile' ? 'hidden' : 'hidden lg:block relative'}>
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 shadow-2xl">
-              <div className="flex items-center gap-2 mb-4">
+            {/* main dashboard card */}
+            <div className="relative bg-white/[0.04] backdrop-blur-sm border border-violet-500/40 rounded-2xl p-6 shadow-2xl shadow-violet-900/40">
+              <div className="absolute inset-0 rounded-2xl pointer-events-none" style={{ boxShadow: "0 0 60px -12px rgba(139,92,246,.5)" }} />
+              <div className="relative flex items-center gap-2 mb-4">
                 <div className="w-3 h-3 rounded-full bg-red-400" />
                 <div className="w-3 h-3 rounded-full bg-yellow-400" />
                 <div className="w-3 h-3 rounded-full bg-green-400" />
                 <span className="ml-2 text-white/40 text-xs">optimateo.com/dashboard</span>
               </div>
-              <div className="grid grid-cols-3 gap-3 mb-4">
-                {[["89", "Nové leady"], ["3×", "Více poptávek"], ["47%", "Růst rezervací"]].map(([v, l]) => (
-                  <div key={l} className="bg-white/5 rounded-xl p-3 text-center">
-                    <div className="text-2xl font-bold text-violet-300">{v}</div>
-                    <div className="text-xs text-white/50 mt-1">{l}</div>
+              <div className="relative grid grid-cols-3 gap-3 mb-4">
+                {[["89", "Nové poptávky", "23"], ["3×", "Více poptávek", "180"], ["47%", "Růst rezervací", "32"]].map(([v, l, up]) => (
+                  <div key={l} className="bg-white/5 border border-white/10 rounded-xl p-3 text-center">
+                    <div className="text-2xl font-bold text-white">{v}</div>
+                    <div className="text-[11px] text-white/50 mt-1 leading-tight">{l}</div>
+                    <div className="text-[11px] text-emerald-400 font-semibold mt-1">↑ {up} %</div>
                   </div>
                 ))}
               </div>
-              <div className="space-y-2">
-                {["Kavárna Espresso — web spuštěn ✓", "Elektrikář Novák — 3 nové poptávky", "Beauty Salon — booking aktivní ✓"].map(t => (
-                  <div key={t} className="flex items-center gap-2 bg-white/5 rounded-lg px-3 py-2 text-xs text-white/70">
-                    <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                    {t}
-                  </div>
-                ))}
+              <div className="relative bg-white/[0.03] border border-white/10 rounded-xl p-4">
+                <div className="text-sm font-semibold text-white/80 mb-3">Aktivní projekty</div>
+                <div className="space-y-2.5">
+                  {["Kavárna Espresso — web spuštěn ✓", "Elektrikář Novák — 3 nové poptávky", "Beauty Salon — booking aktivní ✓"].map(t => (
+                    <div key={t} className="flex items-center gap-2 text-xs text-white/70">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0" />
+                      {t}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-            {/* Floating badge */}
-            <div className="absolute -top-4 -right-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl px-4 py-3 shadow-xl text-center">
-              <div className="text-2xl font-extrabold text-white">50+</div>
-              <div className="text-xs text-white/80">projektů</div>
+            {/* overlapping chart card */}
+            <div className="absolute -bottom-10 -right-6 w-64 bg-[#120a2e]/90 backdrop-blur-md border border-violet-500/40 rounded-2xl p-4 shadow-2xl shadow-violet-900/50">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-semibold text-white/80">Růst výkonu</span>
+                <span className="text-[10px] text-white/40 border border-white/15 rounded-full px-2 py-0.5">12 měsíců ▾</span>
+              </div>
+              <div className="relative">
+                <span className="absolute right-0 -top-1 text-xs font-bold text-emerald-400">+247%</span>
+                <svg viewBox="0 0 220 90" className="w-full h-20" aria-hidden="true">
+                  <defs>
+                    <linearGradient id="heroChartStroke" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#a78bfa" />
+                      <stop offset="100%" stopColor="#60a5fa" />
+                    </linearGradient>
+                  </defs>
+                  <polyline points="4,78 30,70 52,74 76,58 100,62 124,44 150,50 174,30 200,34 216,8" fill="none" stroke="url(#heroChartStroke)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ filter: "drop-shadow(0 0 6px rgba(139,92,246,.7))" }} />
+                  <circle cx="216" cy="8" r="4" fill="#fff" style={{ filter: "drop-shadow(0 0 6px rgba(167,139,250,.9))" }} />
+                </svg>
+              </div>
+              <p className="text-[11px] text-white/50 mt-1">Měřitelný růst. Reálné výsledky.</p>
             </div>
           </div>
         </div>
 
-        {/* Stats bar */}
-        <div className="absolute bottom-0 left-0 right-0 bg-white/5 backdrop-blur-sm border-t border-white/10">
-          <div className="max-w-7xl mx-auto px-4 py-4 grid grid-cols-3 gap-4 text-center">
-            {[["50+", "projektů dokončeno"], ["5 let", "zkušeností"], ["98%", "spokojenost klientů"]].map(([v, l]) => (
-              <div key={l}>
-                <div className="text-xl font-bold text-violet-300">{v}</div>
-                <div className="text-xs text-white/50">{l}</div>
+        {/* Trust logos */}
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 pt-6">
+          <p className="text-center text-[11px] tracking-widest uppercase text-white/40 mb-5">Důvěřují nám firmy napříč obory</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
+            {[
+              { icon: <Coffee className="w-5 h-5" />, label: "Kavárna Espresso" },
+              { icon: <Zap className="w-5 h-5" />, label: "Elektrikář Novák" },
+              { icon: <Scissors className="w-5 h-5" />, label: "Beauty Salon" },
+              { icon: <Dumbbell className="w-5 h-5" />, label: "Fitness Club" },
+              { icon: <Scale className="w-5 h-5" />, label: "Advokátní kancelář" },
+              { icon: <Building2 className="w-5 h-5" />, label: "Realitní Pro" },
+              { icon: <Stethoscope className="w-5 h-5" />, label: "DentalCare" },
+              { icon: <Plane className="w-5 h-5" />, label: "TravelPoint" },
+            ].map(t => (
+              <div key={t.label} className="flex items-center gap-2 text-white/45 hover:text-white/70 transition-colors">
+                {t.icon}
+                <span className="text-sm font-medium leading-tight">{t.label}</span>
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Stats bar */}
+        <div className="relative bg-white/5 backdrop-blur-sm border-t border-white/10">
+          <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-3 gap-4 divide-x divide-white/10">
+            {[
+              { icon: <Zap className="w-6 h-6" />, v: "50+", l: "projektů dokončeno" },
+              { icon: <Star className="w-6 h-6" />, v: "5 let", l: "zkušeností" },
+              { icon: <Heart className="w-6 h-6" />, v: "98%", l: "spokojenost klientů" },
+            ].map(s => (
+              <div key={s.l} className="flex items-center justify-center gap-3">
+                <span className="text-violet-300">{s.icon}</span>
+                <div>
+                  <div className="text-2xl font-extrabold text-violet-200">{s.v}</div>
+                  <div className="text-xs text-white/50">{s.l}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── AI TÝM — pixelová foto, parallax ── */}
+      <section
+        className="relative h-[65vh] min-h-[420px] bg-fixed bg-cover bg-center bg-[#0b0620]"
+        style={{ backgroundImage: "linear-gradient(to bottom, rgba(11,6,32,.62), rgba(11,6,32,.42)), url('/agents-pixel.jpg')" }}
+      >
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+          <span className="uppercase tracking-widest text-xs text-white/70 mb-3">Náš AI tým</span>
+          <h2 className="text-3xl lg:text-5xl font-extrabold text-white max-w-3xl leading-tight drop-shadow-lg">
+            Tři asistenti. Jeden systém.<br />Vaše firma běží dál i ve 3 ráno.
+          </h2>
         </div>
       </section>
 
@@ -546,9 +612,50 @@ export default function Home() {
 
       {/* ── ONYX WEB CORE — system architecture ── */}
       <section id="core" className="py-20 bg-[#080d1f] text-white relative overflow-hidden">
+        {/* living neon "consciousness" background */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/3 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-amber-400/5 rounded-full blur-3xl" />
+          <style>{`
+            @keyframes coreEnergyFlow { to { stroke-dashoffset: -180; } }
+            @keyframes coreNodePulse { 0%,100% { opacity:.18; } 50% { opacity:1; } }
+            @keyframes coreBreath { 0%,100% { box-shadow: 0 0 45px -14px rgba(245,158,11,.28), inset 0 0 34px -14px rgba(245,158,11,.16); border-color: rgba(245,158,11,.22); } 50% { box-shadow: 0 0 85px -8px rgba(245,158,11,.5), inset 0 0 50px -10px rgba(245,158,11,.32); border-color: rgba(245,158,11,.6); } }
+            @keyframes corePillarGlow { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); border-color: rgba(245,158,11,.4); } 50% { box-shadow: 0 0 26px 1px rgba(245,158,11,.55); border-color: rgba(245,158,11,.95); } }
+            @keyframes coreAuraBreath { 0%,100% { opacity:.4; transform: scale(1); } 50% { opacity:.85; transform: scale(1.14); } }
+            @keyframes coreLabelPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); } 50% { box-shadow: 0 0 22px 0 rgba(245,158,11,.45); } }
+            .core-line { animation: coreEnergyFlow linear infinite; }
+            .core-node { animation: coreNodePulse 3s ease-in-out infinite; filter: drop-shadow(0 0 4px rgba(251,191,36,.85)); }
+            .core-breath { animation: coreBreath 5s ease-in-out infinite; }
+            .core-pillar-icon { animation: corePillarGlow 3.2s ease-in-out infinite; }
+            .core-aura { animation: coreAuraBreath 7s ease-in-out infinite; }
+            .core-label { animation: coreLabelPulse 3s ease-in-out infinite; }
+            @media (prefers-reduced-motion: reduce) { .core-line,.core-node,.core-breath,.core-pillar-icon,.core-aura,.core-label { animation: none !important; } }
+          `}</style>
+          {/* breathing auras */}
+          <div className="core-aura absolute top-1/4 left-1/3 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
+          <div className="core-aura absolute bottom-0 right-1/4 w-72 h-72 bg-amber-400/10 rounded-full blur-3xl" style={{ animationDelay: "2.5s" }} />
+          <div className="core-aura absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-violet-600/10 rounded-full blur-3xl" style={{ animationDelay: "1.2s" }} />
+          {/* neural plexus — energie putuje po linkách, uzly pulzují */}
+          <svg className="absolute inset-0 w-full h-full opacity-70" viewBox="0 0 1200 600" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="coreLineGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.55" />
+                <stop offset="100%" stopColor="#a78bfa" stopOpacity="0.4" />
+              </linearGradient>
+            </defs>
+            {(() => {
+              const N: [number, number][] = [[120,120],[300,300],[200,470],[500,170],[600,410],[770,130],[900,330],[1080,180],[1010,500],[430,540]];
+              const E: [number, number][] = [[0,1],[1,2],[1,3],[3,4],[4,2],[4,6],[3,5],[5,6],[6,7],[6,8],[8,4],[9,4],[9,2],[5,7]];
+              return (
+                <>
+                  {E.map(([a, b], i) => (
+                    <line key={`e${i}`} x1={N[a][0]} y1={N[a][1]} x2={N[b][0]} y2={N[b][1]} stroke="url(#coreLineGrad)" strokeWidth="1.2" strokeDasharray="5 13" className="core-line" style={{ animationDuration: `${3 + (i % 4)}s`, animationDelay: `${(i % 5) * 0.4}s` }} />
+                  ))}
+                  {N.map((n, i) => (
+                    <circle key={`n${i}`} cx={n[0]} cy={n[1]} r="3.4" fill="#fbbf24" className="core-node" style={{ animationDelay: `${(i % 6) * 0.4}s` }} />
+                  ))}
+                </>
+              );
+            })()}
+          </svg>
         </div>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <Reveal className="text-center mb-14">
@@ -562,7 +669,7 @@ export default function Home() {
           </Reveal>
 
           {/* Core pillars */}
-          <div className="rounded-3xl border border-amber-400/20 bg-gradient-to-b from-[#0c1430] to-[#0a1026] p-6 md:p-10 mb-10 shadow-2xl shadow-black/40">
+          <div className="core-breath rounded-3xl border border-amber-400/20 bg-gradient-to-b from-[#0c1430] to-[#0a1026] p-6 md:p-10 mb-10 shadow-2xl shadow-black/40">
             <StaggerGrid className="grid grid-cols-2 md:grid-cols-5 gap-6">
               {[
                 { icon: <Calendar className="w-6 h-6" />, title: "Booking", desc: "Inteligentní rezervace a správa kapacit v reálném čase." },
@@ -570,9 +677,9 @@ export default function Home() {
                 { icon: <BarChart3 className="w-6 h-6" />, title: "Data", desc: "Reporting a chytré predikce pro lepší rozhodování." },
                 { icon: <Bot className="w-6 h-6" />, title: "Automatizace", desc: "Asistenti pro obsah, reklamy, doporučení a optimalizace." },
                 { icon: <Globe className="w-6 h-6" />, title: "MCP / API", desc: "Otevřené napojení na nástroje, partnery a marketplace." },
-              ].map((p) => (
+              ].map((p, i) => (
                 <motion.div key={p.title} variants={fadeUp} whileHover={{ y: -4 }} className="text-center">
-                  <div className="w-16 h-16 mx-auto rounded-full border border-amber-400/40 bg-amber-400/5 flex items-center justify-center text-amber-300 mb-4">
+                  <div className="core-pillar-icon w-16 h-16 mx-auto rounded-full border border-amber-400/40 bg-amber-400/5 flex items-center justify-center text-amber-300 mb-4" style={{ animationDelay: `${i * 0.5}s` }}>
                     {p.icon}
                   </div>
                   <h3 className="font-bold text-sm tracking-wider uppercase text-amber-100 mb-2">{p.title}</h3>
@@ -585,7 +692,7 @@ export default function Home() {
           {/* Connector label */}
           <div className="flex items-center justify-center mb-10">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-400/30" />
-            <span className="px-5 py-1.5 border border-amber-400/40 rounded-full text-xs font-semibold tracking-widest uppercase text-amber-200 bg-[#0c1430]">
+            <span className="core-label px-5 py-1.5 border border-amber-400/40 rounded-full text-xs font-semibold tracking-widest uppercase text-amber-200 bg-[#0c1430]">
               Napojení ONYX WEB
             </span>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-400/30" />
@@ -1200,7 +1307,7 @@ export default function Home() {
               <h4 className="text-white font-semibold mb-4 text-sm">Kontakt</h4>
               <ul className="space-y-2 text-sm">
                 <li>poptavka@optimateo.com</li>
-                <li>+420 XXX XXX XXX</li>
+                <li><a href="tel:+420731348984" className="hover:text-white transition-colors">+420 731 348 984</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Případové studie</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
               </ul>
