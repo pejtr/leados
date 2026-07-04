@@ -1,0 +1,104 @@
+import { describe, it, expect, vi } from "vitest";
+import { createCml, formatStats, type CmlDeps } from "./cml";
+import type { TgUpdate } from "./telegramApi";
+
+function makeUpdate(chatId: number, text: string): TgUpdate {
+  return {
+    update_id: 1,
+    message: {
+      message_id: 1,
+      chat: { id: chatId, type: "private" },
+      date: Math.floor(Date.now() / 1000),
+      text,
+    },
+  };
+}
+
+function makeDeps(overrides: Partial<CmlDeps> = {}) {
+  const deps: CmlDeps = {
+    send: vi.fn(async () => true),
+    ask: vi.fn(async () => "odpověď mozku"),
+    getLeadStats: vi.fn(async () => ({ total: 5, byStatus: { new: 3, contacted: 2 } })),
+    ownerChatId: () => "111",
+    ...overrides,
+  };
+  return deps;
+}
+
+describe("CML owner gate", () => {
+  it("silently ignores messages from non-owner chats", async () => {
+    const deps = makeDeps();
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(999, "ahoj"));
+    expect(deps.send).not.toHaveBeenCalled();
+    expect(deps.ask).not.toHaveBeenCalled();
+  });
+
+  it("bootstrap mode: replies to /start with the chat id when owner is not configured", async () => {
+    const deps = makeDeps({ ownerChatId: () => undefined });
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(424242, "/start"));
+    expect(deps.send).toHaveBeenCalledTimes(1);
+    const [chatId, text] = (deps.send as any).mock.calls[0];
+    expect(chatId).toBe(424242);
+    expect(text).toContain("424242");
+    expect(text).toContain("TELEGRAM_OWNER_CHAT_ID");
+  });
+
+  it("bootstrap mode: ignores non-/start messages", async () => {
+    const deps = makeDeps({ ownerChatId: () => undefined });
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(424242, "udělej mi report"));
+    expect(deps.send).not.toHaveBeenCalled();
+  });
+});
+
+describe("CML commands", () => {
+  it("/stats sends formatted lead stats", async () => {
+    const deps = makeDeps();
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "/stats"));
+    expect(deps.getLeadStats).toHaveBeenCalled();
+    const text = (deps.send as any).mock.calls[0][1];
+    expect(text).toContain("Celkem: 5");
+    expect(text).toContain("new: 3");
+  });
+
+  it("/ping answers online", async () => {
+    const deps = makeDeps();
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "/ping"));
+    expect((deps.send as any).mock.calls[0][1]).toContain("online");
+  });
+
+  it("free text goes to the LLM brain and reply is sent back", async () => {
+    const deps = makeDeps();
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "naplánuj kampaň"));
+    expect(deps.ask).toHaveBeenCalledTimes(1);
+    expect((deps.send as any).mock.calls[0][1]).toBe("odpověď mozku");
+  });
+
+  it("LLM failure produces a graceful fallback message, not a crash", async () => {
+    const deps = makeDeps({ ask: vi.fn(async () => { throw new Error("boom"); }) });
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "něco"));
+    expect((deps.send as any).mock.calls[0][1]).toContain("Mozek teď neodpovídá");
+  });
+
+  it("keeps per-chat history and passes it to the brain", async () => {
+    const deps = makeDeps();
+    const cml = createCml(deps);
+    await cml.handleUpdate(makeUpdate(111, "první zpráva"));
+    await cml.handleUpdate(makeUpdate(111, "druhá zpráva"));
+    const secondCallHistory = (deps.ask as any).mock.calls[1][0];
+    expect(secondCallHistory.length).toBe(3); // user, assistant, user
+    expect(secondCallHistory[0].content).toBe("první zpráva");
+  });
+});
+
+describe("formatStats", () => {
+  it("handles unavailable DB", () => {
+    expect(formatStats(null)).toContain("není dostupná");
+  });
+});

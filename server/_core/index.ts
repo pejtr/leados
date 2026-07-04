@@ -86,6 +86,8 @@ async function startServer() {
     console.log(`Server running on http://localhost:${port}/`);
     // Start autopilot scheduler
     import("../autopilotScheduler").then(m => m.startAutopilotScheduler()).catch(console.error);
+    // CML — Telegram orchestrator (@my_general_ibot); no-op without TELEGRAM_BOT_TOKEN
+    import("../telegram").then(m => m.startCmlTelegram()).catch(console.error);
     // Start email sequence scheduler (checks every 60 minutes for due enrollment steps)
     import("../sequenceScheduler").then(m => m.startSequenceScheduler()).catch(console.error);
     // Start daily report scheduler (sends email digest at configured hour)
