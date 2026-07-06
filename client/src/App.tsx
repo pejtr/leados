@@ -11,9 +11,6 @@ import { MarketingConsentBanner } from "./components/MarketingConsentBanner";
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Home = lazy(() => import("./pages/Home"));
-const HomeVariantB = lazy(() => import("./pages/HomeVariantB"));
-const HomeVariantC = lazy(() => import("./pages/HomeVariantC"));
-const HomeVariantD = lazy(() => import("./pages/HomeVariantD"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminProjects = lazy(() => import("./pages/AdminProjects"));
 const ClientDashboard = lazy(() => import("./pages/ClientDashboard"));
@@ -25,6 +22,8 @@ const AiCorePage = lazy(() => import("./pages/AiCorePage"));
 const WebLandingPage = lazy(() => import("./pages/WebLandingPage"));
 const SklikLandingPage = lazy(() => import("./pages/SklikLandingPage"));
 const ABTestingDashboard = lazy(() => import("./pages/ABTestingDashboard"));
+const AuditZdarma = lazy(() => import("./pages/AuditZdarma"));
+const CrmLeadSystem = lazy(() => import("./pages/CrmLeadSystem"));
 
 function PageLoader() {
   return (
@@ -96,7 +95,7 @@ function Router() {
 
   if (loading) return <PageLoader />;
 
-  const HomeComponent = variant === 'B' ? HomeVariantB : variant === 'C' ? HomeVariantC : variant === 'D' ? HomeVariantD : Home;
+  const HomeComponent = Home;
 
   return (
     <Suspense fallback={<PageLoader />}>
@@ -113,6 +112,8 @@ function Router() {
         <Route path="/web" component={WebLandingPage} />
         <Route path="/dotaznik" component={DotaznikPage} />
         <Route path="/ab-testing" component={ABTestingDashboard} />
+        <Route path="/audit-zdarma" component={AuditZdarma} />
+        <Route path="/crm-lead-system" component={CrmLeadSystem} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
@@ -130,7 +131,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider
         defaultTheme="light"
-        // switchable
+      // switchable
       >
         <TooltipProvider>
           <AnalyticsScript />
