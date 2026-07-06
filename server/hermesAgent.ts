@@ -115,21 +115,23 @@ Respond with JSON only.`,
       ...conversationHistory.slice(-4),
       { role: "user", content: userMessage },
     ],
-    response_format: { type: "json_schema", json_schema: {
-      name: "intent_classification",
-      strict: true,
-      schema: {
-        type: "object",
-        properties: {
-          intent: { type: "string" },
-          confidence: { type: "number" },
-          suggestedAgents: { type: "array", items: { type: "string" } },
-          reasoning: { type: "string" },
+    response_format: {
+      type: "json_schema", json_schema: {
+        name: "intent_classification",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: {
+            intent: { type: "string" },
+            confidence: { type: "number" },
+            suggestedAgents: { type: "array", items: { type: "string" } },
+            reasoning: { type: "string" },
+          },
+          required: ["intent", "confidence", "suggestedAgents", "reasoning"],
+          additionalProperties: false,
         },
-        required: ["intent", "confidence", "suggestedAgents", "reasoning"],
-        additionalProperties: false,
-      },
-    }},
+      }
+    },
   });
 
   try {
@@ -287,12 +289,28 @@ const INTENT_LABELS_CZ: Record<string, string> = {
 
 // ─── Core HERMES Chat Function ────────────────────────────────────────────────
 
+// ─── Caveman Mode prompt ─────────────────────────────────────────────────────
+// Eliminates pleasantries, explanations, and filler — output only: result/code/action.
+// Estimated token savings: ~60-65% on system prompt overhead.
+export const CAVEMAN_MODE_PROMPT = `
+## ⚡ CAVEMAN MODE — AKTIVNÍ
+Pravidla:
+- ŽÁDNÉ pozdravu, ŽÁDNÉ "Samozřejmě!", ŽÁDNÉ "Rád ti pomohu"
+- ŽÁDNÉ vysvětlování co budeš dělat — prostě to udělej
+- ŽÁDNÉ závěrečné shrnutí co jsi udělal
+- Output = výsledek, kód, číslo, nebo akce — NIC JINÉHO
+- Max 5 řádků nebo 3 bullet pointy pokud není potřeba více
+- Formát: → [výsledek nebo akce] — [1 věta důvod pokud nutno]
+- Pokud je odpověď delší než 5 řádků — zkrať na podstatu
+- Čeština pokud user píše česky, jinak jazyk uživatele`;
+
 export interface HermesChatInput {
   userMessage: string;
   conversationHistory: Array<{ role: string; content: string }>;
   platformContext: string;
   userId: number;
   compactMode?: boolean; // Compact: bullet-dense, no prose, max 5 lines
+  cavemanMode?: boolean; // Caveman: no pleasantries, output only — ~65% token savings
 }
 
 export interface HermesChatOutput {
@@ -317,7 +335,9 @@ export async function hermesChat(input: HermesChatInput): Promise<HermesChatOutp
   const compactInstruction = input.compactMode
     ? `\n\n## KOMPAKTNÍ MÓD — AKTIVNÍ\nOdpovídej VÝHRADNĚ ve formátu:\n- Max 5 odrážek nebo 3 věty\n- Žádné úvody, žádné závěry, žádné opakování\n- Každá odrážka = 1 konkrétní sdělení s číslem nebo akcí\n- Pokud je odpověď delší, zkrať ji na podstatu\n- Formát: ⚡ [akce/číslo/insight] — [1 věta důvod]`
     : "";
-  const systemPrompt = basePrompt + compactInstruction;
+  // Caveman Mode overrides compact — even more aggressive token savings
+  const cavemanInstruction = input.cavemanMode ? CAVEMAN_MODE_PROMPT : "";
+  const systemPrompt = basePrompt + (input.cavemanMode ? cavemanInstruction : compactInstruction);
 
   // 4. Determine if we should invoke a sub-agent first
   const primaryAgent = classification.suggestedAgents[0];
@@ -467,20 +487,22 @@ Synthesize into: executive summary, key insights (array), next actions (array). 
 
   const synthResponse = await invokeLLM({
     messages: synthesisMessages,
-    response_format: { type: "json_schema", json_schema: {
-      name: "mission_synthesis",
-      strict: true,
-      schema: {
-        type: "object",
-        properties: {
-          synthesis: { type: "string" },
-          keyInsights: { type: "array", items: { type: "string" } },
-          nextActions: { type: "array", items: { type: "string" } },
+    response_format: {
+      type: "json_schema", json_schema: {
+        name: "mission_synthesis",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: {
+            synthesis: { type: "string" },
+            keyInsights: { type: "array", items: { type: "string" } },
+            nextActions: { type: "array", items: { type: "string" } },
+          },
+          required: ["synthesis", "keyInsights", "nextActions"],
+          additionalProperties: false,
         },
-        required: ["synthesis", "keyInsights", "nextActions"],
-        additionalProperties: false,
-      },
-    }},
+      }
+    },
   });
 
   let synthesisData = { synthesis: "", keyInsights: [] as string[], nextActions: [] as string[] };

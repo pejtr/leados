@@ -164,6 +164,7 @@ export const hermesRouter = router({
           .array(z.object({ role: z.string(), content: z.string() }))
           .default([]),
         compactMode: z.boolean().default(false),
+        cavemanMode: z.boolean().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -188,6 +189,7 @@ export const hermesRouter = router({
         platformContext,
         userId: ctx.user.id,
         compactMode: input.compactMode,
+        cavemanMode: input.cavemanMode,
       });
 
       // Save HERMES response
@@ -356,6 +358,7 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
           .default([]),
         hermesMode: z.boolean().default(true),
         compactMode: z.boolean().default(false),
+        cavemanMode: z.boolean().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -395,6 +398,7 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
         platformContext,
         userId: ctx.user.id,
         compactMode: input.compactMode,
+        cavemanMode: input.cavemanMode,
       });
 
       // Resolve active sub-agent info for UI
@@ -507,7 +511,7 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
         .limit(5),
     ]);
 
-     const totalMessages = sessions.reduce((sum, s) => sum + (s.messageCount ?? 0), 0);
+    const totalMessages = sessions.reduce((sum, s) => sum + (s.messageCount ?? 0), 0);
     const completedMissions = missions.filter((m) => m.status === "completed").length;
     return {
       totalSessions: sessions.length,

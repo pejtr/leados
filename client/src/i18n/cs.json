@@ -92,7 +92,12 @@
     "googleMapsScraper": "Google Maps Scraper",
     "webAudit": "Web Audit",
     "sluzby": "Služby & ROI",
-    "aresSearch": "ARES Rejstřík"
+    "aresSearch": "ARES Rejstřík",
+    "hera": "HERA Core AI",
+    "dailyRoutines": "Daily Routines",
+    "globalSignalDesk": "Global Signal Desk",
+    "dsrHub": "DSR Hub",
+    "globalEarnings": "Globální příjmy"
   },
   "home": {
     "aiSystemsActive": "AI systémy aktivní",

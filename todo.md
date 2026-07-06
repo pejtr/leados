@@ -1,8 +1,62 @@
 # OPTIHUB — Feature Roadmap & Implementation Status
 
-**Poslední aktualizace:** 2026-06-03  
+**Poslední aktualizace:** 2026-07-06  
 **Verze:** 1.0.0  
 **Status:** 🟡 In Active Development
+
+---
+
+## 🔴 HIGH PRIORITY — Agent OS inspirace (YouTube: Julian Goldie — Agentic Systems with Claude)
+
+> Inspirace: https://www.youtube.com/watch?v=0ppnSyQHUYw — přidáno 2026-07-06
+
+### 1. Caveman Mode — Token Optimizer (⚡ IMPLEMENTOVÁNO 2026-07-06)
+- [x] Přidat `cavemanMode: boolean` parametr do `hermesChat()` v hermesAgent.ts
+- [x] Systémový prompt přepínač — ultra-stručný styl (žádné zdvořilostní fráze, jen výsledek)
+- [x] Přidat `cavemanMode` do hermesRouter.ts `sendMessage` + `aiChat` procedur
+- [ ] Frontend toggle v AIChatWidget.tsx (Caveman ON/OFF tlačítko)
+- [ ] Zobrazit odhadovanou úsporu tokenů v UI (badge "~65% tokens saved")
+
+### 2. Daily Routines Dashboard — Ranní AI Přehled (⚡ IMPLEMENTOVÁNO 2026-07-06)
+- [x] Nová stránka `/daily-routines` s ranním briefingem
+- [x] Sekce: Pipeline přehled, nové leady, úkoly na dnes, výkon kampaní, AI doporučení
+- [x] Napojeno na existující data (leady, DSR, ad kampaně, projekty)
+- [x] Hermes AI shrnutí pro každou sekci
+- [x] Route v App.tsx + nav item v DashboardLayout
+- [ ] Automaticky otevřít při prvním ranním přihlášení (localStorage timestamp)
+- [ ] Push notifikace (8:00 CET) přes existující hermesDigest scheduler
+
+### 3. Global Signal Desk — Intelligence Dashboard (🔄 AUDIT DONE, čeká GO IMPLEMENT)
+- [x] Audit repozitáře proveden (2026-07-06)
+- [x] Datový model navržen (GlobalSignal interface)
+- [x] Mock data fixture připravena
+- [x] SignalProvider abstrakce navržena
+- [ ] **[GO IMPLEMENT]** Stránka `/global-signal-desk`
+- [ ] Level 1: MVP s mock daty + premium UI
+- [ ] Level 2: SignalProvider + env-based API (WORLD_MONITOR_API_BASE_URL, WORLD_MONITOR_API_KEY)
+- [ ] Level 3: Caching, deduplikace, confidence scoring, severity normalizace
+- [ ] Kategorie: internet outages, cyber threats, natural disasters, infrastructure, cables, datacenters, space/weather
+- [ ] Compliance nota + zdroj atribuce na každém signálu
+
+### 4. Remotion Video Templates (📋 PLÁNOVÁNO)
+- [ ] Prozkoumat Remotion (React-based programmatic video) jako alternativu k FFmpeg
+- [ ] Šablona pro Amazon Affiliate promo video
+- [ ] Agent mění vstupy: text, cena, obrázek produktu → hotové video
+- [ ] Integrace s existující video produkční platformou
+
+### 5. Agent OS Koordinátor — Centrální Dashboard Agentů (📋 PLÁNOVÁNO)
+- [ ] Unified dashboard: stav všech agentů (HERMES, HERA, RADAR, daily schedulers)
+- [ ] Real-time log akcí agentů za posledních 24h
+- [ ] Manuální spuštění libovolného agenta/mise z jednoho místa
+- [ ] Stav daily schedulerů (poslední spuštění, příští, úspěch/chyba)
+
+### 6. Hybrid LLM Routing — Levné vs. Drahé modely (📋 PLÁNOVÁNO)
+- [ ] Rutinní úkoly (meta tagy, status updates) → DeepSeek/lokální model
+- [ ] Kreativní úkoly (video skripty, blog posty, komplexní analýzy) → Claude/GPT-4
+- [ ] Cost tracking per request v UI
+- [ ] Nastavení prahu v AI Constitution
+
+---
 
 ---
 

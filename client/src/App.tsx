@@ -70,6 +70,8 @@ import GoogleMapsScraper from "./pages/GoogleMapsScraper";
 import WebAudit from "./pages/WebAudit";
 import Sluzby from "./pages/Sluzby";
 import AresSearch from "./pages/AresSearch";
+import DailyRoutines from "./pages/DailyRoutines";
+import GlobalSignalDesk from "./pages/GlobalSignalDesk";
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -138,7 +140,7 @@ function Router() {
       <Route path="/ai-skills" component={AiSkills} />
       <Route path="/roi-audit" component={RoiAudit} />
       <Route path="/computer-flow" component={ComputerFlow} />
-        <Route path="/global-earnings" component={GlobalEarnings} />
+      <Route path="/global-earnings" component={GlobalEarnings} />
       <Route path="/admin/integrations" component={AdminIntegrations} />
       <Route path="/affiliate" component={AffiliateDashboard} />
       <Route path="/revenue-intelligence" component={RevenueIntelligence} />
@@ -148,6 +150,8 @@ function Router() {
       <Route path="/web-audit" component={WebAudit} />
       <Route path="/sluzby" component={Sluzby} />
       <Route path="/ares" component={AresSearch} />
+      <Route path="/daily-routines" component={DailyRoutines} />
+      <Route path="/global-signal-desk" component={GlobalSignalDesk} />
       <Route path="*" component={NotFound} />
     </Switch>
   );

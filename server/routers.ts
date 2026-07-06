@@ -128,6 +128,7 @@ import { affiliateRouter } from "./routers/affiliateRouter";
 import { googleMapsRouter } from "./routers/googleMapsRouter";
 import { webAuditRouter } from "./routers/webAuditRouter";
 import { aresRouter } from "./routers/ares";
+import { globalSignalsRouter } from "./routers/globalSignals";
 import {
   createTrackingPixel, getTrackingPixelsByUser, deleteTrackingPixel, updateTrackingPixel,
   getVisitorSessionsByPixel, getVisitorSessionsByUser, createVisitorSession,
@@ -1912,7 +1913,7 @@ Format as structured JSON with keys: overview, competitors, buyerPersonas, sales
           ? `\nRecent AI performance cycles: ${recentLogs.length} cycles run, latest score: ${recentLogs[0]?.score ?? "N/A"}/100`
           : "";
 
-         // Build platform context string
+        // Build platform context string
         const platformContext = `
 Current user: ${ctx.user.name} (${ctx.user.email}) | Plan: ${(ctx.user as any).subscriptionPlan ?? "free"}
 Live platform stats:
@@ -2832,5 +2833,6 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
   googleMaps: googleMapsRouter,
   webAudit: webAuditRouter,
   ares: aresRouter,
+  globalSignals: globalSignalsRouter,
 });
 export type AppRouter = typeof appRouter;
