@@ -149,10 +149,14 @@ export const webAuditRouter = router({
             },
           ],
         });
-        aiSummary = res.choices?.[0]?.message?.content || "";
-      } catch {}
+        aiSummary = String(res.choices?.[0]?.message?.content || "");
+      } catch (err) {
+        console.error("Failed to generate AI summary", err);
+      }
 
-      await db.insert(webAudits).values({
+      if (!db) throw new Error("DB not ready");
+
+      const [inserted] = await db.insert(webAudits).values({
         userId: ctx.user.id,
         url: normalizedUrl,
         businessName: input.businessName || "",
@@ -174,6 +178,7 @@ export const webAuditRouter = router({
       });
 
       return {
+        id: (inserted as any).insertId,
         url: normalizedUrl,
         businessName: input.businessName,
         scores,
@@ -195,6 +200,7 @@ export const webAuditRouter = router({
 
   getHistory: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
+    if (!db) throw new Error("DB not ready");
     return db
       .select()
       .from(webAudits)
@@ -207,11 +213,63 @@ export const webAuditRouter = router({
     .input(z.object({ id: z.number() }))
     .query(async ({ input, ctx }) => {
       const db = await getDb();
+      if (!db) throw new Error("DB not ready");
       const [audit] = await db
         .select()
         .from(webAudits)
         .where(eq(webAudits.id, input.id))
         .limit(1);
       return audit || null;
+    }),
+
+  convertToLead: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db) throw new Error("DB not ready");
+      const { leads } = await import("../../drizzle/schema");
+      const { eq, and } = await import("drizzle-orm");
+
+      const [audit] = await db
+        .select()
+        .from(webAudits)
+        .where(and(eq(webAudits.id, input.id), eq(webAudits.userId, ctx.user.id)))
+        .limit(1);
+
+      if (!audit) throw new Error("Audit nenalezen");
+
+      let icebreaker = "";
+      try {
+        const res = await invokeLLM({
+          messages: [
+            {
+              role: "system",
+              content: "Jsi expert na B2B sales outreach. Piš v češtině. Buď konkrétní, přátelský a personalizovaný. Max 3 věty. Zaměř se na to, že jsi právě zkontroloval jejich web a nabízíš vylepšení.",
+            },
+            {
+              role: "user",
+              content: `Napiš personalizovaný icebreaker pro firmu s webem ${audit.url} (celkové skóre kvality webu: ${audit.overallScore}/100, výkon: ${audit.performanceScore}, mobil: ${audit.mobileScore}). Nabízím tvorbu nového a rychlejšího webu. Vyzvi k nezávazné 10-min konzultaci.`,
+            },
+          ],
+        });
+        icebreaker = String(res.choices?.[0]?.message?.content || "");
+      } catch (err) {
+        console.error("Failed to generate icebreaker", err);
+      }
+
+      await db.insert(leads).values({
+        sessionId: 0,
+        userId: ctx.user.id,
+        companyName: audit.businessName || audit.url,
+        industry: "Web Audit",
+        email: "",
+        website: audit.url,
+        dataSource: "mock",
+        status: "new",
+        icebreaker: icebreaker,
+        companyDescription: `Zdroj: Web Audit\nSkóre webu: ${audit.overallScore}/100\n\nAI Icebreaker:\n${icebreaker}`,
+      });
+
+      return { success: true, icebreaker };
     }),
 });
