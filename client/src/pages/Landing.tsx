@@ -265,7 +265,7 @@ export default function Landing() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.7], [1, 0]);
 
   useEffect(() => {
-    document.title = "OPTIHUB — AI-Powered B2B Lead Generation Platform";
+    document.title = "ONYX OS — Zastavte úniky zisků na webu";
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
@@ -303,10 +303,9 @@ export default function Landing() {
   ];
 
   const PRICING = [
-    { name: t("landing.plan1Name"), price: t("landing.plan1Price"), period: "", description: t("landing.plan1Desc"), features: [t("landing.plan1Feature1"), t("landing.plan1Feature2"), t("landing.plan1Feature3"), t("landing.plan1Feature4")], cta: t("landing.plan1Cta"), highlighted: false, badge: null as string | null },
-    { name: t("landing.plan2Name"), price: t("landing.plan2Price"), period: t("landing.pricingMonthly"), description: t("landing.plan2Desc"), features: [t("landing.plan2Feature1"), t("landing.plan2Feature2"), t("landing.plan2Feature3"), t("landing.plan2Feature4"), t("landing.plan2Feature5"), t("landing.plan2Feature6"), t("landing.plan2Feature7")], cta: t("landing.plan2Cta"), highlighted: true, badge: t("landing.badgeMostPopular") as string | null },
-    { name: t("landing.plan3Name"), price: t("landing.plan3Price"), period: t("landing.pricingMonthly"), description: t("landing.plan3Desc"), features: [t("landing.plan3Feature1"), t("landing.plan3Feature2"), t("landing.plan3Feature3"), t("landing.plan3Feature4"), t("landing.plan3Feature5"), t("landing.plan3Feature6")], cta: t("landing.plan3Cta"), highlighted: false, badge: null as string | null },
-    { name: t("landing.plan4Name"), price: t("landing.plan4Price"), period: t("landing.plan4Period"), description: t("landing.plan4Desc"), features: [t("landing.plan4Feature1"), t("landing.plan4Feature2"), t("landing.plan4Feature3"), t("landing.plan4Feature4"), t("landing.plan4Feature5"), t("landing.plan4Feature6")], cta: t("landing.plan4Cta"), highlighted: false, badge: `🏆 ${t("landing.plan4Badge")}` as string | null },
+    { name: "SDR Starter", price: "3 490 Kč", period: "měs", description: "Váš první virtuální obchodník.", features: ["250 vytěžených leadů za měsíc", "Napojení na vlastní CRM", "1 testovací kampaň", "Běžná podpora"], cta: "Nasadit SDR Starter", highlighted: false, badge: null as string | null },
+    { name: "SDR Growth", price: "9 490 Kč", period: "měs", description: "Autopilot, který garantuje schůzky.", features: ["1 000 kvalifikovaných leadů", "Deep Research Agent", "Pain Detector & Personalizace", "ROI Dashboard Report", "Prioritní podpora"], cta: "Nasadit Autopilota", highlighted: true, badge: "Nejčastější Volba" as string | null },
+    { name: "SDR Elite", price: "18 990 Kč", period: "měs", description: "Neomezený lead-gen stroj.", features: ["Neomezené zpracování dat", "Human-in-the-loop firewall", "Kontrola halucinací Reviewerem", "Tým vyhrazených agentů", "1-on-1 Slack podpora"], cta: "Nasadit Elite Tým", highlighted: false, badge: null as string | null },
   ];
 
   const HOW_IT_WORKS = [
@@ -325,76 +324,76 @@ export default function Landing() {
       <div className="fixed top-0 left-0 right-0 z-[60]" style={{ display: "flex", flexDirection: "column" }}>
         <UrgencyBanner />
 
-      {/* ── Floating Nav ─────────────────────────────────────────────────────── */}
-      <motion.nav className="w-full transition-all duration-300"
-        style={{
-          background: scrolled ? "rgba(240,244,248,0.92)" : "rgba(240,244,248,0.85)",
-          backdropFilter: "blur(20px)",
-          borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent",
-          boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,0.06)" : "none",
-        }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-              style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, boxShadow: `0 0 16px ${C.teal}40` }}>
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-lg tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
-              Lead<span style={{ background: `linear-gradient(90deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>OS</span>
-            </span>
-          </div>
-
-          <div className="hidden lg:flex items-center gap-8 text-sm" style={{ color: C.textMuted }}>
-            <a href="#features" className="hover:text-indigo-600 transition-colors">{t("nav.features")}</a>
-            <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">{t("nav.howItWorks")}</a>
-            <a href="#case-studies" className="hover:text-indigo-600 transition-colors">{t("nav.results")}</a>
-            <a href="#pricing" className="hover:text-indigo-600 transition-colors">{t("nav.pricing")}</a>
-          </div>
-
-          <div className="hidden md:flex items-center gap-3">
-            <LanguageSwitcher variant="flags" />
-            {user ? (
-              <Button onClick={() => navigate("/dashboard")} size="sm"
-                style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", boxShadow: `0 4px 16px ${C.indigo}35` }}>
-                {t("nav.goToDashboard")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            ) : (
-              <Button size="sm" onClick={handleCTA}
-                style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", boxShadow: `0 4px 16px ${C.indigo}35` }}>
-                {t("landing.ctaPrimary")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
-              </Button>
-            )}
-          </div>
-
-          <div className="flex md:hidden items-center gap-2">
-            <LanguageSwitcher variant="flags" className="scale-90" />
-            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg" style={{ background: C.bgCard, border: `1px solid ${C.border}` }}>
-              {mobileMenuOpen ? <X className="w-5 h-5" style={{ color: C.text }} /> : <Menu className="w-5 h-5" style={{ color: C.text }} />}
-            </button>
-          </div>
-        </div>
-
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-              className="md:hidden border-t" style={{ borderColor: C.border, background: "rgba(240,244,248,0.97)", backdropFilter: "blur(20px)" }}>
-              <div className="px-4 py-4 space-y-3">
-                {["features", "how-it-works", "pricing"].map(id => (
-                  <a key={id} href={`#${id}`} onClick={() => setMobileMenuOpen(false)} className="block text-sm py-2" style={{ color: C.textMuted }}>
-                    {id === "features" ? t("nav.features") : id === "how-it-works" ? t("nav.howItWorks") : t("nav.pricing")}
-                  </a>
-                ))}
-                <div className="pt-3" style={{ borderTop: `1px solid ${C.border}` }}>
-                  <Button size="sm" className="w-full" onClick={() => { handleCTA(); setMobileMenuOpen(false); }}
-                    style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none" }}>
-                    {t("landing.ctaPrimary")}
-                  </Button>
-                </div>
+        {/* ── Floating Nav ─────────────────────────────────────────────────────── */}
+        <motion.nav className="w-full transition-all duration-300"
+          style={{
+            background: scrolled ? "rgba(240,244,248,0.92)" : "rgba(240,244,248,0.85)",
+            backdropFilter: "blur(20px)",
+            borderBottom: scrolled ? `1px solid ${C.border}` : "1px solid transparent",
+            boxShadow: scrolled ? "0 2px 20px rgba(0,0,0,0.06)" : "none",
+          }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, boxShadow: `0 0 16px ${C.teal}40` }}>
+                <Zap className="w-4 h-4 text-white" />
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.nav>
+              <span className="font-bold text-lg tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
+                ONYX<span style={{ background: `linear-gradient(90deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}> OS</span>
+              </span>
+            </div>
+
+            <div className="hidden lg:flex items-center gap-8 text-sm" style={{ color: C.textMuted }}>
+              <a href="#features" className="hover:text-indigo-600 transition-colors">{t("nav.features")}</a>
+              <a href="#how-it-works" className="hover:text-indigo-600 transition-colors">{t("nav.howItWorks")}</a>
+              <a href="#case-studies" className="hover:text-indigo-600 transition-colors">{t("nav.results")}</a>
+              <a href="#pricing" className="hover:text-indigo-600 transition-colors">{t("nav.pricing")}</a>
+            </div>
+
+            <div className="hidden md:flex items-center gap-3">
+              <LanguageSwitcher variant="flags" />
+              {user ? (
+                <Button onClick={() => navigate("/dashboard")} size="sm"
+                  style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", boxShadow: `0 4px 16px ${C.indigo}35` }}>
+                  {t("nav.goToDashboard")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </Button>
+              ) : (
+                <Button size="sm" onClick={handleCTA}
+                  style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", boxShadow: `0 4px 16px ${C.indigo}35` }}>
+                  {t("landing.ctaPrimary")} <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                </Button>
+              )}
+            </div>
+
+            <div className="flex md:hidden items-center gap-2">
+              <LanguageSwitcher variant="flags" className="scale-90" />
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="p-2 rounded-lg" style={{ background: C.bgCard, border: `1px solid ${C.border}` }}>
+                {mobileMenuOpen ? <X className="w-5 h-5" style={{ color: C.text }} /> : <Menu className="w-5 h-5" style={{ color: C.text }} />}
+              </button>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                className="md:hidden border-t" style={{ borderColor: C.border, background: "rgba(240,244,248,0.97)", backdropFilter: "blur(20px)" }}>
+                <div className="px-4 py-4 space-y-3">
+                  {["features", "how-it-works", "pricing"].map(id => (
+                    <a key={id} href={`#${id}`} onClick={() => setMobileMenuOpen(false)} className="block text-sm py-2" style={{ color: C.textMuted }}>
+                      {id === "features" ? t("nav.features") : id === "how-it-works" ? t("nav.howItWorks") : t("nav.pricing")}
+                    </a>
+                  ))}
+                  <div className="pt-3" style={{ borderTop: `1px solid ${C.border}` }}>
+                    <Button size="sm" className="w-full" onClick={() => { handleCTA(); setMobileMenuOpen(false); }}
+                      style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none" }}>
+                      {t("landing.ctaPrimary")}
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.nav>
       </div>{/* end fixed banner+nav wrapper */}
 
       {/* ── Hero ─────────────────────────────────────────────────────────────── */}
@@ -491,7 +490,7 @@ export default function Landing() {
             {[0, 1, 2, 3].map(row => [0, 1, 2, 3].map(col => {
               const x = col * 80 + (row % 2) * 40;
               const y = row * 70;
-              return <polygon key={`${row}-${col}`} points={`${x+40},${y} ${x+80},${y+20} ${x+80},${y+60} ${x+40},${y+80} ${x},${y+60} ${x},${y+20}`} stroke={C.teal} strokeWidth="1" />;
+              return <polygon key={`${row}-${col}`} points={`${x + 40},${y} ${x + 80},${y + 20} ${x + 80},${y + 60} ${x + 40},${y + 80} ${x},${y + 60} ${x},${y + 20}`} stroke={C.teal} strokeWidth="1" />;
             }))}
           </svg>
         </div>
@@ -504,34 +503,33 @@ export default function Landing() {
               <Badge className="mb-6 text-xs font-medium px-4 py-1.5"
                 style={{ background: `${C.teal}14`, border: `1px solid ${C.teal}35`, color: C.tealDark }}>
                 <Sparkles className="w-3 h-3 mr-1.5" />
-                AI platforma pro B2B generování leadů
+                Diagnostika unikajícího zisku
               </Badge>
             </motion.div>
 
             <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.1 }}
-              className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tight leading-[1.05] mb-6"
+              className="text-5xl sm:text-6xl md:text-[68px] font-black tracking-tight leading-[1.05] mb-6"
               style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
-              Lead<span style={{ background: `linear-gradient(135deg, ${C.indigo} 0%, ${C.teal} 60%, ${C.green} 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>OS</span><br />
-              <span style={{ color: C.textMuted, fontSize: "0.58em", fontWeight: 600 }}>OPTIHUB</span>
+              Najdeme, kde web <span style={{ background: `linear-gradient(135deg, ${C.indigo} 0%, ${C.teal} 60%, ${C.green} 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ztrácí zákazníky.</span><br />
             </motion.h1>
 
             <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }}
-              className="text-lg sm:text-xl max-w-xl mb-10 leading-relaxed" style={{ color: C.textMuted }}>
-              {t("landing.heroSubtitle") || "OPTIHUB finds, enriches, and personalizes outreach to your ideal B2B customers — fully automated, GDPR compliant, and ready in minutes."}
+              className="text-lg sm:text-xl max-w-xl mb-10 leading-relaxed font-medium" style={{ color: C.text }}>
+              A postavíme systém, který je začne získávat zpět. Nasadíme virtuálního SDR obchodníka, který zachytí, kvalifikuje a uzavírá leady za zlomek ceny zaměstnance.
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.3 }}
               className="flex flex-col gap-3 justify-start items-start mb-12">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Button onClick={handleCTA} size="lg" className="h-13 px-8 text-base font-bold text-white"
-                  style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", boxShadow: `0 8px 30px ${C.indigo}40`, height: "52px" }}>
-                  {t("landing.ctaPrimary") || "Začít generovat leady"} <ArrowRight className="w-4 h-4 ml-2" />
+              <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                <Button onClick={handleCTA} size="lg" className="h-14 px-8 text-base font-bold text-white w-full sm:w-auto"
+                  style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", boxShadow: `0 8px 30px ${C.indigo}40` }}>
+                  Získat mini audit zdarma <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
                 <Button onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })}
-                  variant="outline" size="lg" className="h-13 px-8 text-base"
-                  style={{ background: C.bgCard, border: `1px solid ${C.border}`, color: C.text, height: "52px", boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                  variant="outline" size="lg" className="h-14 px-8 text-base w-full sm:w-auto"
+                  style={{ background: C.bgCard, border: `1px solid ${C.border}`, color: C.text, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
                   <Play className="w-4 h-4 mr-2" style={{ color: C.indigo }} />
-                  {t("landing.ctaSecondary") || "How does it work?"}
+                  Jak ROI Audit funguje?
                 </Button>
               </div>
               {!user && (
@@ -539,10 +537,10 @@ export default function Landing() {
                   className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-medium transition-all hover:shadow-md"
                   style={{ background: "#fff", border: `1px solid ${C.border}`, color: "#3c4043", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", height: "44px" }}>
                   <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
-                    <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05"/>
-                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                    <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4" />
+                    <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853" />
+                    <path d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z" fill="#FBBC05" />
+                    <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335" />
                   </svg>
                   Přihlásit se přes Google
                 </button>
@@ -606,25 +604,40 @@ export default function Landing() {
         </motion.div>
       </section>
 
-      {/* ── Stats Bar ────────────────────────────────────────────────────────── */}
+      {/* ── ROI Dashboard Preview ────────────────────────────────────────────────────────── */}
       <section className="py-16 px-4 relative" style={{ background: C.bgCard, borderTop: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}` }}>
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 relative">
-          {[
-            { value: 32000, suffix: "+", label: t("landing.statsLeads") || "Vygenerovaných leadů" },
-            { value: 94, suffix: "%", label: t("landing.statsEnrichment") || "Míra obohacení" },
-            { value: 12, suffix: "+", label: t("landing.statsIndustries") || "Odvětví" },
-            { value: 5, suffix: "min", label: t("landing.statsTime") || "Prům. čas nastavení" },
-          ].map(({ value, suffix, label }, i) => (
-            <Reveal key={label} delay={i * 0.1}>
-              <div className="text-center">
-                <div className="text-4xl sm:text-5xl font-black mb-2"
-                  style={{ fontFamily: "'Space Grotesk', sans-serif", background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-                  <AnimatedCounter value={value} suffix={suffix} />
+        <div className="max-w-6xl mx-auto">
+          <Reveal>
+            <div className="text-center mb-10">
+              <Badge className="mb-4 text-xs px-3 py-1" style={{ background: `${C.indigo}10`, border: `1px solid ${C.indigo}28`, color: C.indigo }}>
+                Ukázka ROI Dashboardu
+              </Badge>
+              <h2 className="text-2xl sm:text-3xl font-black mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
+                Proč klienti neodcházejí? Protože vidí čísla.
+              </h2>
+              <p className="text-sm" style={{ color: C.textMuted }}>Modelový příklad měsíčního výkonu ONYX OS vs. Běžný zaměstnanec</p>
+            </div>
+          </Reveal>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 relative">
+            {[
+              { value: 9490, suffix: " Kč", label: "Měsíční náklad", color: C.text },
+              { value: 84, suffix: "", label: "Vytvořené leady", color: C.teal },
+              { value: 19, suffix: "", label: "Kvalifikované leady", color: C.indigo },
+              { value: 6, suffix: "", label: "Domluvené schůzky", color: C.green },
+              { value: 420000, suffix: " Kč", label: "Odhad pipeline", color: C.amber },
+              { value: 37, suffix: " h", label: "Ušetřený čas", color: C.violet },
+            ].map(({ value, suffix, label, color }, i) => (
+              <Reveal key={label} delay={i * 0.05}>
+                <div className="text-center p-4 rounded-xl" style={{ border: `1px solid ${C.border}`, background: C.bgAlt }}>
+                  <div className="text-2xl font-black mb-1"
+                    style={{ fontFamily: "'Space Grotesk', sans-serif", color: color }}>
+                    <AnimatedCounter value={value} />{suffix}
+                  </div>
+                  <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: C.textMuted }}>{label}</div>
                 </div>
-                <div className="text-sm" style={{ color: C.textMuted }}>{label}</div>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -701,21 +714,21 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Lead Quality Standard ────────────────────────────────────────────── */}
+      {/* ── Villain / Problem ────────────────────────────────────────────── */}
       <section className="py-24 px-4 sm:px-6 relative" style={{ background: C.bg, borderTop: `1px solid ${C.border}` }}>
         <div className="max-w-6xl mx-auto relative">
           <Reveal>
             <div className="text-center mb-16">
-              <Badge className="mb-4 text-xs px-3 py-1"
-                style={{ background: `${C.indigo}10`, border: `1px solid ${C.indigo}28`, color: C.indigo }}>
-                Lead Quality Standard
+              <Badge className="mb-4 text-xs px-3 py-1 flex inline-flex items-center gap-1.5"
+                style={{ background: "#fee2e2", border: `1px solid #fecaca`, color: "#dc2626" }}>
+                <Flame className="w-3 h-3" /> Ztrácíte čas i peníze
               </Badge>
               <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>
-                What Makes a{" "}
-                <span style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>OPTIHUB Lead?</span>
+                Váš web má návštěvnost. <br className="hidden sm:block" />
+                <span className="text-[#dc2626]">Kde jsou zákazníci?</span>
               </h2>
               <p className="text-lg max-w-2xl mx-auto" style={{ color: C.textMuted }}>
-                Not all leads are equal. OPTIHUB only delivers leads that meet strict quality criteria — so your sales team spends time closing, not chasing.
+                Majitelé firem a sales manažeři pálí rozpočty za návštěvnost, údržbu a další SaaS licence. Ale chybí jim systém.
               </p>
             </div>
           </Reveal>
@@ -724,11 +737,10 @@ export default function Landing() {
             <Reveal>
               <div className="space-y-4">
                 {[
-                  { icon: BadgeCheck, color: C.green, title: t("landing.qualityAIScore") || "AI Score ≥ 70", desc: t("landing.qualityAIScoreDesc") || "Every lead is scored by our AI on 12 signals including intent, company fit, and decision-maker authority." },
-                  { icon: Mail, color: C.teal, title: t("landing.qualityVerified") || "Verified Contact Data", desc: t("landing.qualityVerifiedDesc") || "Email, LinkedIn, phone — all verified before delivery. Zero bounced emails." },
-                  { icon: Activity, color: C.indigo, title: t("landing.qualitySignal") || "Behavioral Signal Detected", desc: t("landing.qualitySignalDesc") || "Leads show real buying intent: visited pricing page, downloaded content." },
-                  { icon: MessageSquare, color: C.amber, title: t("landing.qualityIcebreaker") || "Personalized AI Icebreaker", desc: t("landing.qualityIcebreakerDesc") || "Each lead comes with a custom opening message written by AI." },
-                  { icon: Target, color: "#ec4899", title: t("landing.qualityICP") || "ICP Match Confirmed", desc: t("landing.qualityICPDesc") || "Filtered against your Ideal Customer Profile." },
+                  { icon: XCircle, color: "#dc2626", title: "Marketingové Agentury (Villain)", desc: "Účtují si obrovské měsíční paušály za 'kliknutí' a 'zobrazení', aniž by vám řekly, kudy vám reálně unikají peníze z funneluz." },
+                  { icon: XCircle, color: "#dc2626", title: "Prázdná CRM (Villain)", desc: "Vaše CRM umí krásně ukládat data. Problém je, že ho nikdo nechce plnit. CRM samo vaše produkty neprodává." },
+                  { icon: Activity, color: C.amber, title: "Vy (Oběť)", desc: "Máte občas poptávku z formuláře, kvalitní produkt, ale žádný systematický sběr leadů a jejich okamžité oslovení. Prodeje drhnete silou vůle." },
+                  { icon: Shield, color: C.green, title: "Tady pomůže ONYX OS (Naše Vow)", desc: "Provedeme audit webu, najdeme ztráty, tyto ztráty opravíme a nasadíme virtuálního SDR obchodníka, který začne leady sbírat a kontaktovat za vás." },
                 ].map(({ icon: Icon, color, title, desc }, i) => (
                   <Reveal key={title} delay={i * 0.08}>
                     <div className="flex gap-4 p-4 rounded-2xl"
@@ -799,17 +811,17 @@ export default function Landing() {
                   <div className="p-4 rounded-xl" style={{ background: `${C.indigo}08`, border: `1px solid ${C.indigo}18` }}>
                     <div className="flex items-center gap-2 mb-2">
                       <Sparkles className="w-3.5 h-3.5" style={{ color: C.indigo }} />
-                      <span className="text-xs font-semibold" style={{ color: C.indigo }}>AI-Generated Icebreaker</span>
+                      <span className="text-xs font-semibold" style={{ color: C.indigo }}>Opravený e-mail vytvořený SDR Agentem</span>
                     </div>
                     <p className="text-xs leading-relaxed" style={{ color: C.textMuted }}>
-                      "Hi Jan, I noticed TechCorp has been growing rapidly in the Czech SaaS market. We've helped 3 similar companies in Prague reduce their lead acquisition cost by 60% using AI outreach. Worth a 15-min call this week?"
+                      "Ahoj Jane, všiml jsem si, že vaše firma TechCorp rapidně roste, ale na webu nenecháváte prostor pro zachycení B2B leadů. Víte, kolik na tom měsíčně pálíte? Pomohli jsme podobným s.r.o. v Praze posbírat 3x více leadů..."
                     </p>
                     <div className="flex items-center gap-2 mt-3">
                       <Button size="sm" className="h-7 text-xs px-3 text-white"
                         style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none" }}>
-                        Copy & Send <ArrowRight className="w-3 h-3 ml-1" />
+                        Odesláno na autopilota <CheckCircle2 className="w-3 h-3 ml-1" />
                       </Button>
-                      <span className="text-xs" style={{ color: C.textLight }}>or edit in 1 click</span>
+                      <span className="text-xs" style={{ color: C.textLight }}>ONYX OS Copy Agent</span>
                     </div>
                   </div>
                 </div>
@@ -942,7 +954,7 @@ export default function Landing() {
               <Reveal key={name}>
                 <div className="p-5 rounded-2xl h-full flex flex-col" style={{ background: C.bgCard, border: `1px solid ${C.border}`, boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
                   <div className="flex gap-0.5 mb-3">
-                    {[1,2,3,4,5].map(j => <Star key={j} className="w-3.5 h-3.5 fill-current" style={{ color: C.amber }} />)}
+                    {[1, 2, 3, 4, 5].map(j => <Star key={j} className="w-3.5 h-3.5 fill-current" style={{ color: C.amber }} />)}
                     <span className="ml-2 text-xs font-bold px-1.5 py-0.5 rounded" style={{ background: C.indigo + "18", color: C.indigo }}>{flag}</span>
                   </div>
                   <p className="text-sm leading-relaxed mb-4 flex-1 italic" style={{ color: C.textMuted }}>{text}</p>
@@ -1052,7 +1064,7 @@ export default function Landing() {
             </div>
           </Reveal>
         </div>
-       </section>
+      </section>
 
       {/* ── Tech Stack (Factorio-inspired) ─────────────────────────────────── */}
       <section id="tech-stack" className="py-24 px-4 sm:px-6 relative overflow-hidden" style={{ background: "#0D1B2A", borderTop: `1px solid ${C.border}` }}>
@@ -1070,13 +1082,13 @@ export default function Landing() {
             <div className="text-center mb-16">
               <Badge className="mb-4 text-xs px-3 py-1"
                 style={{ background: "rgba(0,212,200,0.1)", border: "1px solid rgba(0,212,200,0.3)", color: "#00D4C8" }}>
-                ⚙️ {t("landing.techStackBadge") || "Technology Pipeline"}
+                ⚙️ Systém bez chyb
               </Badge>
               <h2 className="text-3xl sm:text-4xl font-black mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif", color: "#ffffff" }}>
-                {t("landing.techStackTitle") || "The Factory Behind Your Leads"}
+                Research stack před každým e-mailem
               </h2>
               <p className="text-lg max-w-2xl mx-auto" style={{ color: "rgba(255,255,255,0.6)" }}>
-                {t("landing.techStackSubtitle") || "Every lead passes through 7 automated stations — from raw data to qualified pipeline. Zero manual work."}
+                Rozdíl mezi spamem a drahým B2B systémem. Před oslovením provádíme hloubkový výzkum. Žádné halucinace. Žádný spam.
               </p>
             </div>
           </Reveal>
@@ -1091,7 +1103,7 @@ export default function Landing() {
             {/* Animated dots on conveyor */}
             <div className="absolute top-1/2 left-0 right-0 h-1 -translate-y-1/2 hidden lg:block overflow-hidden">
               <div className="flex gap-8 animate-pulse">
-                {Array.from({length: 12}).map((_, i) => (
+                {Array.from({ length: 12 }).map((_, i) => (
                   <div key={i} className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: C.teal, boxShadow: `0 0 8px ${C.teal}`, marginLeft: i === 0 ? '5%' : '0' }} />
                 ))}
               </div>
@@ -1100,14 +1112,12 @@ export default function Landing() {
             {/* Tech Stations */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-10">
               {[
-                { icon: "🎯", titleKey: "landing.techStation1Title", descKey: "landing.techStation1Desc", fallbackTitle: "ICP Targeting", fallbackDesc: "AI defines your ideal customer profile from industry, size, tech stack, and buying signals.", glow: C.indigo },
-                { icon: "⛏️", titleKey: "landing.techStation2Title", descKey: "landing.techStation2Desc", fallbackTitle: "LinkedIn Mining", fallbackDesc: "Apify scrapers extract decision-makers matching your ICP. 50+ data points per lead.", glow: C.teal },
-                { icon: "🔬", titleKey: "landing.techStation3Title", descKey: "landing.techStation3Desc", fallbackTitle: "Email Enrichment", fallbackDesc: "Real-time verification via Bouncer API. Only verified emails enter the pipeline.", glow: "#10b981" },
-                { icon: "🧠", titleKey: "landing.techStation4Title", descKey: "landing.techStation4Desc", fallbackTitle: "AI Scoring", fallbackDesc: "GPT-4o analyzes fit, intent signals, and engagement probability. Score 0-100.", glow: "#f59e0b" },
-                { icon: "✉️", titleKey: "landing.techStation5Title", descKey: "landing.techStation5Desc", fallbackTitle: "Icebreaker Gen", fallbackDesc: "Personalized first sentence using company news, mutual connections, and tech stack.", glow: C.indigo },
-                { icon: "🚀", titleKey: "landing.techStation6Title", descKey: "landing.techStation6Desc", fallbackTitle: "Auto-Sequence", fallbackDesc: "Multi-step email campaigns with conditional logic. If/then branching per response.", glow: C.teal },
-                { icon: "📊", titleKey: "landing.techStation7Title", descKey: "landing.techStation7Desc", fallbackTitle: "Pipeline CRM", fallbackDesc: "Kanban board, deal tracking, webhook dispatch to Zapier/Make/ClickUp.", glow: "#10b981" },
-                { icon: "🔄", titleKey: "landing.techStation8Title", descKey: "landing.techStation8Desc", fallbackTitle: "Webhook API", fallbackDesc: "HMAC-SHA256 signed events. Real-time dispatch to any endpoint. Exponential retry.", glow: "#f59e0b" },
+                { icon: "🌐", titleKey: "", descKey: "", fallbackTitle: "1. Crawler", fallbackDesc: "Automaticky projde dostupná veřejná data z webu vybrané cílové firmy.", glow: C.indigo },
+                { icon: "🕵️", titleKey: "", descKey: "", fallbackTitle: "2. Research Agent", fallbackDesc: "Zanalyzuje nalezena data a vytáhne nedostatky, příležitosti nebo hrozby.", glow: C.teal },
+                { icon: "🔍", titleKey: "", descKey: "", fallbackTitle: "3. Pain Detector", fallbackDesc: "Určí klíčovou byznysovou bolest, na kterou umíte odpovědět produktem.", glow: "#10b981" },
+                { icon: "📝", titleKey: "", descKey: "", fallbackTitle: "4. Copy Agent", fallbackDesc: "Vytvoří personalizovaný outreach se zaměřením na danou bolest.", glow: "#f59e0b" },
+                { icon: "⚖️", titleKey: "", descKey: "", fallbackTitle: "5. Reviewer", fallbackDesc: "Dvojitá kontrola proti halucinacím, optimalizace tone-of-voice.", glow: C.indigo },
+                { icon: "💾", titleKey: "", descKey: "", fallbackTitle: "6. CRM", fallbackDesc: "Uloží lead, důkazy i copy na 1 klik do CRM k vašemu schválení.", glow: C.teal },
               ].map((station, i) => (
                 <Reveal key={i} delay={i * 0.08}>
                   <div className="relative group">
@@ -1199,50 +1209,50 @@ export default function Landing() {
             </div>
           </Reveal>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 items-start">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 items-start max-w-5xl mx-auto">
             {PRICING.map(({ name, price, period, description, features, cta, highlighted, badge }, i) => {
               const isAgency = name === "Agency / DFY";
               return (
-              <Reveal key={name} delay={i * 0.1}>
-                <motion.div whileHover={{ y: -6 }} className="p-6 rounded-2xl relative"
-                  style={{
-                    background: isAgency ? `linear-gradient(160deg, ${C.amber}0d, ${C.violet}0a)` : highlighted ? `linear-gradient(160deg, ${C.indigo}0d, ${C.teal}0a)` : C.bgCard,
-                    border: isAgency ? `1px solid ${C.amber}35` : highlighted ? `1px solid ${C.indigo}35` : `1px solid ${C.border}`,
-                    boxShadow: isAgency ? `0 8px 40px ${C.amber}18` : highlighted ? `0 8px 40px ${C.indigo}18` : "0 2px 8px rgba(0,0,0,0.04)",
-                  }}>
-                  {badge && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                      <Badge className="text-xs px-3 py-0.5 text-white whitespace-nowrap"
-                        style={{ background: isAgency ? `linear-gradient(135deg, ${C.amber}, ${C.violet})` : `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none" }}>
-                        {badge}
-                      </Badge>
+                <Reveal key={name} delay={i * 0.1}>
+                  <motion.div whileHover={{ y: -6 }} className="p-6 rounded-2xl relative"
+                    style={{
+                      background: isAgency ? `linear-gradient(160deg, ${C.amber}0d, ${C.violet}0a)` : highlighted ? `linear-gradient(160deg, ${C.indigo}0d, ${C.teal}0a)` : C.bgCard,
+                      border: isAgency ? `1px solid ${C.amber}35` : highlighted ? `1px solid ${C.indigo}35` : `1px solid ${C.border}`,
+                      boxShadow: isAgency ? `0 8px 40px ${C.amber}18` : highlighted ? `0 8px 40px ${C.indigo}18` : "0 2px 8px rgba(0,0,0,0.04)",
+                    }}>
+                    {badge && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <Badge className="text-xs px-3 py-0.5 text-white whitespace-nowrap"
+                          style={{ background: isAgency ? `linear-gradient(135deg, ${C.amber}, ${C.violet})` : `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none" }}>
+                          {badge}
+                        </Badge>
+                      </div>
+                    )}
+                    <div className="mb-6">
+                      <h3 className="font-bold text-base mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>{name}</h3>
+                      <div className="flex items-end gap-1 mb-2">
+                        <span className="text-4xl font-black"
+                          style={{ fontFamily: "'Space Grotesk', sans-serif", background: highlighted ? `linear-gradient(135deg, ${C.indigo}, ${C.teal})` : "none", WebkitBackgroundClip: highlighted ? "text" : "unset", WebkitTextFillColor: highlighted ? "transparent" : C.text }}>{price}</span>
+                        {period && <span className="text-sm mb-1.5" style={{ color: C.textLight }}>/{period}</span>}
+                      </div>
+                      <p className="text-xs" style={{ color: C.textMuted }}>{description}</p>
                     </div>
-                  )}
-                  <div className="mb-6">
-                    <h3 className="font-bold text-base mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif", color: C.text }}>{name}</h3>
-                    <div className="flex items-end gap-1 mb-2">
-                      <span className="text-4xl font-black"
-                        style={{ fontFamily: "'Space Grotesk', sans-serif", background: highlighted ? `linear-gradient(135deg, ${C.indigo}, ${C.teal})` : "none", WebkitBackgroundClip: highlighted ? "text" : "unset", WebkitTextFillColor: highlighted ? "transparent" : C.text }}>{price}</span>
-                      {period && <span className="text-sm mb-1.5" style={{ color: C.textLight }}>/{period}</span>}
-                    </div>
-                    <p className="text-xs" style={{ color: C.textMuted }}>{description}</p>
-                  </div>
-                  <ul className="space-y-2.5 mb-6">
-                    {features.map(f => (
-                      <li key={f} className="flex items-start gap-2 text-sm">
-                        <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: highlighted ? C.indigo : C.green }} />
-                        <span style={{ color: C.textMuted }}>{f}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button onClick={handleCTA} className="w-full h-10 font-semibold"
-                    style={isAgency ? { background: `linear-gradient(135deg, ${C.amber}, ${C.violet})`, border: "none", color: "white", boxShadow: `0 4px 20px ${C.amber}35` } : highlighted ? { background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", color: "white", boxShadow: `0 4px 20px ${C.indigo}35` } : { background: C.bg, border: `1px solid ${C.border}`, color: C.text }}>
-                    {cta} <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
-                  </Button>
-                </motion.div>
-              </Reveal>
-            );
-          })}
+                    <ul className="space-y-2.5 mb-6">
+                      {features.map(f => (
+                        <li key={f} className="flex items-start gap-2 text-sm">
+                          <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: highlighted ? C.indigo : C.green }} />
+                          <span style={{ color: C.textMuted }}>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Button onClick={handleCTA} className="w-full h-10 font-semibold"
+                      style={isAgency ? { background: `linear-gradient(135deg, ${C.amber}, ${C.violet})`, border: "none", color: "white", boxShadow: `0 4px 20px ${C.amber}35` } : highlighted ? { background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", color: "white", boxShadow: `0 4px 20px ${C.indigo}35` } : { background: C.bg, border: `1px solid ${C.border}`, color: C.text }}>
+                      {cta} <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                    </Button>
+                  </motion.div>
+                </Reveal>
+              );
+            })}
 
 
           </div>
@@ -1330,12 +1340,12 @@ export default function Landing() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button onClick={handleCTA} size="lg" className="h-14 px-10 text-base font-bold text-white"
                 style={{ background: `linear-gradient(135deg, ${C.indigo}, ${C.teal})`, border: "none", boxShadow: `0 8px 40px ${C.indigo}40` }}>
-                {t("landing.ctaPrimary") || "Začít zdarma"} <ArrowRight className="w-5 h-5 ml-2" />
+                Získat mini audit zdarma <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
               <Button onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}
                 variant="outline" size="lg" className="h-14 px-8 text-base"
                 style={{ background: C.bgCard, border: `1px solid ${C.border}`, color: C.text, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                Zobrazit všechny funkce <ChevronRight className="w-4 h-4 ml-1" />
+                Ukázat příklad z praxe <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
             <p className="mt-6 text-sm" style={{ color: C.textLight }}>
