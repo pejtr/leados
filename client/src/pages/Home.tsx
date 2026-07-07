@@ -41,7 +41,7 @@ const caseStudies = [
     desc: "Pan Novák fungoval jen na doporučení. Nový web s poptávkovým formulářem a SEO mu přinesl 3× více zakázek — bez jediné koruny do reklamy.",
     metric: "3×", metricLabel: "více zakázek",
     author: "Jiří Novák", role: "OSVČ elektrikář, Praha",
-    quote: "Investice 3 490 Kč se mi vrátila z první zakázky. Teď mám práci na 3 měsíce dopředu.",
+    quote: "Investice 9 900 Kč se mi vrátila z první zakázky. Teď mám práci na 3 měsíce dopředu.",
   },
   {
     tag: "Salon", tagColor: "bg-pink-100 text-pink-800",
@@ -71,58 +71,68 @@ const faqs = [
 
 const packages = [
   {
-    name: "Start Web",
-    price: "9 900",
-    monthly: "179",
-    proKomu: "živnostníci, lokální služby",
+    name: "ONYX OS Audit",
+    price: "4 900",
+    monthly: "0",
+    priceNote: "jednorázově",
+    proKomu: "první konkrétní diagnóza vašeho webu",
     color: "border-slate-200",
     badge: null,
     isMonthlyOnly: false,
+    highlight: false,
     features: [
-      "Moderní jednostránkový web na míru",
-      "Plně responzivní design pro mobily",
-      "Čistá, rychlá a optimalizovaná struktura",
-      "Poptávkový nebo kontaktní formulář",
-      "Základní SEO optimalizace",
-      "Hosting a SSL v ceně provozu"
+      "Analýza 5 klíčových konverzních bodů",
+      "Audit speed, mobilní UX a formulářů",
+      "Přehledný PDF report s prioritami",
+      "3 konkrétní ztráty + doporučení opravy",
+      "Konzultace výsledků (30 min) v ceně",
+      "Platí jako záloha při přechodu na Setup"
     ],
-    cta: "Poptat Start Web",
+    cta: "Objednat audit",
+    ctaHref: "/audit-zdarma",
   },
   {
-    name: "Lead Web",
-    price: "24 900",
-    monthly: "299",
-    proKomu: "firmy, které chtějí poptávky",
-    color: "border-violet-500 border-2",
-    badge: "Doporučeno",
-    isMonthlyOnly: false,
-    features: [
-      "Vícestránkový web (až 10 podstránek)",
-      "Poptávkový formulář napojený do CRM",
-      "Automatický e-mail po odeslání leadu",
-      "Lead capture a lead magnet sekce",
-      "Google Analytics & Meta Pixel integrace",
-      "Kompletní nastavení měření konverzí"
-    ],
-    cta: "Poptat Lead Web",
-  },
-  {
-    name: "ONYX OS Pro",
-    price: "999",
+    name: "ONYX OS Setup",
+    price: "29 900",
     monthly: "0",
-    proKomu: "automatizace, CRM, reporting",
-    color: "border-slate-200",
-    badge: "Technologie",
-    isMonthlyOnly: true,
+    priceNote: "jednorázově",
+    proKohu: "firmy připravené na systematický růst",
+    proKomu: "web + CRM + automatizace",
+    color: "border-violet-500 border-2",
+    badge: "Nejpopulárnější",
+    isMonthlyOnly: false,
+    highlight: true,
     features: [
-      "B2B CRM systém pro správu poptávek",
-      "Automatické workflows a e-mail sekvence",
-      "Přehledný dashboard a reporting výkonu",
-      "AI chat asistent pro komunikaci 24/7",
-      "Drobné úpravy obsahu webu v ceně",
-      "Prioritní podpora a rozvoj platformy"
+      "Kompletní web na míru (5–15 podstránek)",
+      "Poptávkový formulář napojený do ONYX CRM",
+      "Automatický follow-up a e-mail sekvence",
+      "Google Analytics + Meta Pixel integrace",
+      "SEO základ + nastavení měření konverzí",
+      "Předání reportu výsledků po 30 dnech"
     ],
-    cta: "Aktivovat ONYX OS Pro",
+    cta: "Poptat Setup",
+    ctaHref: null,
+  },
+  {
+    name: "ONYX OS Monitoring",
+    price: "1 999",
+    monthly: "0",
+    priceNote: "za měsíc",
+    proKomu: "trvalý dohled, data a optimalizace",
+    color: "border-slate-200",
+    badge: "Pasivní příjem",
+    isMonthlyOnly: true,
+    highlight: false,
+    features: [
+      "Měsíční report výkonu webu a leadů",
+      "A/B testování landing pages a CTA",
+      "Automatické follow-up sekvence v CRM",
+      "Prioritní podpora a drobné úpravy",
+      "Doporučení pro zlepšení konverzního poměru",
+      "Správa hostingu, SSL a záloh"
+    ],
+    cta: "Aktivovat Monitoring",
+    ctaHref: null,
   },
 ];
 
@@ -234,8 +244,8 @@ function InteractiveDemoFlow() {
                 key={idx}
                 onClick={() => setActiveStep(idx)}
                 className={`w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-4 ${activeStep === idx
-                    ? `${s.activeColor} border-transparent scale-[1.02] font-semibold text-white shadow-lg`
-                    : "border-slate-200 hover:border-slate-355 bg-slate-50 text-slate-700 hover:bg-slate-100"
+                  ? `${s.activeColor} border-transparent scale-[1.02] font-semibold text-white shadow-lg`
+                  : "border-slate-200 hover:border-slate-355 bg-slate-50 text-slate-700 hover:bg-slate-100"
                   }`}
               >
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm bg-violet-100 text-violet-700 ${activeStep === idx ? 'bg-white/20 text-white border border-white/25' : ''}`}>
@@ -399,7 +409,6 @@ export default function Home() {
   const [scrolled, setScrolled] = useState(false);
   const [activeCase, setActiveCase] = useState(0);
   const [billingAnnual, setBillingAnnual] = useState(true);
-  const [viewportMode, setViewportMode] = useState<'desktop' | 'mobile'>('desktop');
   const contactRef = useRef<HTMLElement>(null);
 
   const [auditData, setAuditData] = useState({ webUrl: "", email: "", phone: "", businessType: "", mainGoal: "" });
@@ -475,11 +484,6 @@ export default function Home() {
             </a>
           </div>
           <div className="hidden md:flex items-center gap-3">
-            <button onClick={() => setViewportMode(viewportMode === 'desktop' ? 'mobile' : 'desktop')}
-              className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${viewportMode === 'mobile' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30' : 'bg-slate-200 text-slate-700 border border-slate-300'}`}
-              title={`Přepnout na ${viewportMode === 'desktop' ? 'mobil' : 'desktop'}`}>
-              {viewportMode === 'desktop' ? '📱' : '🖥️'} {viewportMode === 'desktop' ? 'Desktop' : 'Mobil'}
-            </button>
             {isAuthenticated ? (
               <a href={user?.role === "admin" ? "/admin" : "/dashboard"}
                 className="flex items-center gap-1.5 text-sm font-semibold text-white bg-violet-600/80 hover:bg-violet-600 px-4 py-2 rounded-full transition-colors border border-violet-400/30">
@@ -521,8 +525,7 @@ export default function Home() {
         )}
       </nav>
 
-      {/* ── VIEWPORT WRAPPER ── */}
-      <div className={viewportMode === 'mobile' ? "max-w-md mx-auto bg-slate-50 shadow-2xl overflow-hidden" : ""}>
+      <div>
 
         {/* ── HERO ── */}
         <section className="relative bg-[#0f0628] text-white overflow-hidden">
@@ -621,18 +624,18 @@ export default function Home() {
                 Postavíme vám moderní web napojený na formuláře, CRM, e-mail a automatizace. Nejen hezkou vizitku — systém, který pomáhá získávat zákazníky.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
-                <Button size="lg" className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold px-8 rounded-full text-base shadow-lg shadow-violet-900/40 active:scale-95 transition-transform" onClick={scrollToContact}>
-                  Získat návrh zdarma
-                </Button>
-                <a href="/demo">
-                  <Button size="lg" variant="ghost" className="text-white/80 hover:text-white border border-white/20 hover:border-white/40 rounded-full text-base">
-                    Ukázat demo →
+                <a href="/audit-zdarma">
+                  <Button size="lg" className="bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold px-8 rounded-full text-base shadow-lg shadow-violet-900/40 active:scale-95 transition-transform">
+                    Získat mini audit zdarma →
                   </Button>
                 </a>
+                <Button size="lg" variant="ghost" className="text-white/80 hover:text-white border border-white/20 hover:border-white/40 rounded-full text-base" onClick={scrollToContact}>
+                  Domluvit konzultaci
+                </Button>
               </div>
               {/* Price list snippet under buttons */}
               <div className="text-xs text-white/50 mb-10 italic">
-                Weby od 9 900 Kč · ONYX OS od 999 Kč/měs. · první návrh zdarma
+                Audit zdarma · ONYX OS Audit od 4 900 Kč · Monitoring od 1 999 Kč/měs.
               </div>
               {/* Trust badges */}
               <div className="flex flex-wrap gap-6 text-sm text-white/60">
@@ -1104,26 +1107,43 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── CENY + SROVNÁNÍ ── */}
+        {/* ── CENY — ONYX OS SYSTÉM ── */}
         <section id="pricing" className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <Reveal className="text-center mb-10">
-              <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mb-4">Vyberte si nejlepší plán</h2>
-              <p className="text-slate-500 mb-6">Platíte pouze 30% zálohu. Zbytek až po spuštění.</p>
-              {/* Billing toggle */}
-              <div className="inline-flex items-center bg-slate-100 rounded-full p-1 gap-1">
-                <button onClick={() => setBillingAnnual(false)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${!billingAnnual ? "bg-white shadow text-slate-900" : "text-slate-500"}`}>Jednorázově</button>
-                <button onClick={() => setBillingAnnual(true)} className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${billingAnnual ? "bg-white shadow text-slate-900" : "text-slate-500"}`}>
-                  Roční provoz <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">Ušetříte 20%</span>
-                </button>
+            <Reveal className="text-center mb-4">
+              <span className="text-xs font-bold text-violet-600 uppercase tracking-widest bg-violet-50 px-3 py-1 rounded-full">
+                Systém ONYX OS
+              </span>
+              <h2 className="text-3xl lg:text-4xl font-extrabold text-slate-900 mt-4 mb-4">Neprodáváme nástroj. Prodáváme výsledek.</h2>
+              <p className="text-slate-500 max-w-xl mx-auto">Najdeme, kde váš web ztrácí poptávky. Opravíme to. A pak sledujeme, jestli to funguje.</p>
+            </Reveal>
+
+            {/* Conversion funnel visualization */}
+            <Reveal className="mb-12">
+              <div className="flex flex-col md:flex-row items-center justify-center gap-2 py-8">
+                {[
+                  { label: "Mini audit", sub: "zdarma", color: "bg-slate-100 border-slate-300 text-slate-700", arrow: true },
+                  { label: "ONYX Audit", sub: "4 900–14 900 Kč", color: "bg-violet-50 border-violet-300 text-violet-800", arrow: true },
+                  { label: "ONYX Setup", sub: "29 900–90 000 Kč", color: "bg-violet-100 border-violet-400 text-violet-900", arrow: true },
+                  { label: "Monitoring", sub: "1 999 Kč/měs.", color: "bg-violet-600 border-violet-700 text-white", arrow: false },
+                ].map((step, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className={`border-2 rounded-2xl px-5 py-3 text-center min-w-[140px] ${step.color}`}>
+                      <div className="font-bold text-sm">{step.label}</div>
+                      <div className="text-xs mt-0.5 opacity-75">{step.sub}</div>
+                    </div>
+                    {step.arrow && <ArrowRight className="w-5 h-5 text-slate-400 shrink-0 hidden md:block" />}
+                  </div>
+                ))}
               </div>
+              <p className="text-center text-xs text-slate-400">zájem → diagnóza → implementace → měsíční sledování výsledků</p>
             </Reveal>
 
             <StaggerGrid className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {packages.map(pkg => (
-                <motion.div key={pkg.name} variants={fadeUp} whileHover={{ y: -4 }} className={`border ${pkg.color} bg-white rounded-2xl p-6 relative flex flex-col ${pkg.badge ? "shadow-xl shadow-violet-100" : ""}`}>
+                <motion.div key={pkg.name} variants={fadeUp} whileHover={{ y: -4 }} className={`border ${pkg.color} bg-white rounded-2xl p-6 relative flex flex-col ${pkg.highlight ? "shadow-xl shadow-violet-100" : ""}`}>
                   {pkg.badge && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-violet-600 text-white text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
+                    <div className={`absolute -top-3 left-1/2 -translate-x-1/2 text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap ${pkg.highlight ? "bg-violet-600 text-white" : "bg-slate-700 text-white"}`}>
                       {pkg.badge}
                     </div>
                   )}
@@ -1133,17 +1153,9 @@ export default function Home() {
                     <div className="flex items-baseline gap-1">
                       <span className="text-sm text-slate-500 font-medium mr-0.5">od</span>
                       <span className="text-3xl font-extrabold text-slate-900">{pkg.price}</span>
-                      <span className="text-slate-400 text-sm">Kč{pkg.isMonthlyOnly && "/měs."}</span>
+                      <span className="text-slate-400 text-sm">Kč</span>
                     </div>
-                    {!pkg.isMonthlyOnly ? (
-                      <div className="text-xs text-slate-400 mt-1">
-                        + {billingAnnual ? Math.round(parseInt(pkg.monthly) * 0.8) : pkg.monthly} Kč/měsíc provoz
-                      </div>
-                    ) : (
-                      <div className="text-xs text-slate-400 mt-1">
-                        bez zřizovacího poplatku
-                      </div>
-                    )}
+                    <div className="text-xs text-slate-400 mt-1">{pkg.priceNote}</div>
                   </div>
                   <ul className="space-y-3 mb-6 flex-1">
                     {pkg.features.map(f => (
@@ -1153,26 +1165,34 @@ export default function Home() {
                       </li>
                     ))}
                   </ul>
-                  <Button
-                    className={`w-full rounded-full font-semibold ${pkg.badge ? "bg-violet-600 hover:bg-violet-700 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"}`}
-                    onClick={scrollToContact}
-                  >
-                    {pkg.cta}
-                  </Button>
+                  {pkg.ctaHref ? (
+                    <a href={pkg.ctaHref}>
+                      <Button className={`w-full rounded-full font-semibold ${pkg.highlight ? "bg-violet-600 hover:bg-violet-700 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"}`}>
+                        {pkg.cta}
+                      </Button>
+                    </a>
+                  ) : (
+                    <Button
+                      className={`w-full rounded-full font-semibold ${pkg.highlight ? "bg-violet-600 hover:bg-violet-700 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"}`}
+                      onClick={scrollToContact}
+                    >
+                      {pkg.cta}
+                    </Button>
+                  )}
                 </motion.div>
               ))}
             </StaggerGrid>
 
             <div className="text-center mt-10 mb-8">
               <p className="text-sm text-slate-500">
-                Hledáte jen jednoduchou vizitku bez složitého napojení na CRM?{" "}
-                <button onClick={scrollToContact} className="text-violet-600 font-bold hover:underline">
-                  Landing page od 3 490 Kč →
-                </button>
+                Nevíte, kde začít?{" "}
+                <a href="/audit-zdarma" className="text-violet-600 font-bold hover:underline">
+                  Získejte mini audit webu zdarma →
+                </a>
               </p>
             </div>
 
-            <p className="text-center text-xs text-slate-400 mt-6 mb-16">Ceny jsou bez DPH. Roční provoz zahrnuje hosting, SSL, zálohy a technickou podporu.</p>
+            <p className="text-center text-xs text-slate-400 mt-6 mb-16">Ceny jsou bez DPH. Setup zahrnuje 30 dnů záruky na výsledky. Monitoring obsahuje hosting, SSL, zálohy a podporu.</p>
 
             {/* Platform comparison — inset card v rámci stejné sekce */}
             <div className="bg-slate-50 rounded-3xl p-6 md:p-10">
@@ -1698,11 +1718,10 @@ export default function Home() {
                       <SelectValue placeholder="Vyberte balíček" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="lite-web">Lite Web (3 490 Kč)</SelectItem>
-                      <SelectItem value="basic-web">Basic Web (4 999 Kč)</SelectItem>
-                      <SelectItem value="web-lead-gen">Web + Lead Gen (6 990 Kč)</SelectItem>
-                      <SelectItem value="web-automation">Web + Automatizace (9 990 Kč)</SelectItem>
-                      <SelectItem value="konzultace">Pouze konzultace (zdarma)</SelectItem>
+                      <SelectItem value="audit">ONYX OS Audit (od 4 900 Kč)</SelectItem>
+                      <SelectItem value="setup">ONYX OS Setup (od 29 900 Kč)</SelectItem>
+                      <SelectItem value="monitoring">ONYX OS Monitoring (1 999 Kč/měs.)</SelectItem>
+                      <SelectItem value="konzultace">Pouze konzultace (zdarma na 30 min)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
