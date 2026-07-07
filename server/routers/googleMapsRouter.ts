@@ -226,21 +226,19 @@ export const googleMapsRouter = router({
           ],
         });
         icebreaker = res.choices?.[0]?.message?.content || "";
-      } catch {}
+      } catch { }
 
       await db.insert(leads).values({
+        sessionId: 0,
         userId: ctx.user.id,
-        name: gml.name,
-        company: gml.name,
+        companyName: gml.name,
+        industry: gml.category || "Google Maps",
         email: "",
-        phone: gml.phone || "",
         website: gml.website || "",
-        source: "google_maps",
+        dataSource: "mock",
         status: "new",
-        score: gml.hasWebsite ? 30 : 70,
-        notes: `Zdroj: Google Maps | ${gml.address}\n\nAI Icebreaker:\n${icebreaker}`,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+        icebreaker,
+        companyDescription: `Zdroj: Google Maps | Hodnocení: ${gml.rating} (${gml.reviewsCount} recenzí)\nAdresa: ${gml.address}\n\nAI Icebreaker:\n${icebreaker}`,
       });
 
       await db

@@ -1022,20 +1022,20 @@ pnpm test -- --watch                   # Watch mode
 - [ ] Backend: AI hodnocení kvality webu (0-100 score) pro každý výsledek
 - [ ] Frontend: GoogleMapsScraper.tsx stránka s formulářem (keyword, location, radius, max results)
 - [ ] Frontend: Výsledky jako tabulka s filtry (bez webu, slabý web, rating < 4)
-- [ ] Frontend: "Přidat do CRM" tlačítko pro konverzi na lead
-- [ ] Nav item + route v App.tsx
+- [x] Frontend: "Přidat do CRM" tlačítko pro konverzi na lead
+- [x] Nav item + route v App.tsx
 
 ### Web Audit Tool
-- [ ] DB schema: web_audits tabulka (url, userId, score, performance, seo, mobile, design, speed_ms, issues JSON, recommendations JSON, createdAt)
-- [ ] Migration SQL pro web_audits
-- [ ] Backend: webAudit.analyze tRPC procedure (fetch URL → AI analýza → score 0-100)
-- [ ] Backend: webAudit.list, webAudit.getReport procedures
-- [ ] Backend: Generování PDF reportu jako lead magnet
-- [ ] Frontend: WebAudit.tsx stránka s URL inputem a výsledky
-- [ ] Frontend: Vizuální score karty (Performance, SEO, Mobile, Design)
-- [ ] Frontend: "Stáhnout PDF report" tlačítko
-- [ ] Frontend: "Nabídnout nový web" CTA tlačítko → přidá do CRM jako lead
-- [ ] Nav item + route v App.tsx
+- [x] DB schema: web_audits tabulka (url, userId, score, performance, seo, mobile, design, speed_ms, issues JSON, recommendations JSON, createdAt)
+- [x] Migration SQL pro web_audits
+- [x] Backend: webAudit.analyze tRPC procedure (fetch URL → AI analýza → score 0-100)
+- [x] Backend: webAudit.list, webAudit.getReport procedures
+- [x] Backend: Generování PDF reportu jako lead magnet
+- [x] Frontend: WebAudit.tsx stránka s URL inputem a výsledky
+- [x] Frontend: Vizuální score karty (Performance, SEO, Mobile, Design)
+- [x] Frontend: "Stáhnout PDF report" tlačítko
+- [x] Frontend: "Nabídnout nový web" CTA tlačítko → přidá do CRM jako lead
+- [x] Nav item + route v App.tsx
 
 
 ## 🌐 Integrations — Czech Translation & HERMES Automation
@@ -1082,9 +1082,9 @@ pnpm test -- --watch                   # Watch mode
 - [ ] Add Vitest tests for onboarding endpoints (getStatus, saveIcp, saveIntegrations, complete)
 
 ### Webhook Retry Scheduler
-- [ ] Fix `responseBody` → `response` schema mismatch in webhookRetryScheduler.ts
-- [ ] Fix `errorMessage` field (not in schema)
-- [ ] Fix Set iteration error (requires downlevelIteration flag)
+- [x] Fix `responseBody` → `response` schema mismatch in webhookRetryScheduler.ts
+- [x] Fix `errorMessage` field (not in schema)
+- [x] Fix Set iteration error (requires downlevelIteration flag)
 
 ---
 

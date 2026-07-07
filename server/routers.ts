@@ -2828,11 +2828,11 @@ Baseline by stage: new=10%, qualified=25%, presentation=40%, proposal=60%, negot
   roiAudit: roiAuditRouter,
   apiKeys: apiKeysRouter,
   webhooks: webhooksRouter,
-  integrations: integrationsRouter,
   affiliate: affiliateRouter,
   googleMaps: googleMapsRouter,
   webAudit: webAuditRouter,
   ares: aresRouter,
   globalSignals: globalSignalsRouter,
+  coordinator: agentCoordinatorRouter,
 });
 export type AppRouter = typeof appRouter;
