@@ -24,6 +24,7 @@ const SklikLandingPage = lazy(() => import("./pages/SklikLandingPage"));
 const ABTestingDashboard = lazy(() => import("./pages/ABTestingDashboard"));
 const AuditZdarma = lazy(() => import("./pages/AuditZdarma"));
 const CrmLeadSystem = lazy(() => import("./pages/CrmLeadSystem"));
+const VerticalLanding = lazy(() => import("./pages/VerticalLanding"));
 
 function PageLoader() {
   return (
@@ -101,6 +102,7 @@ function Router() {
     <Suspense fallback={<PageLoader />}>
       <Switch>
         <Route path="/" component={HomeComponent} />
+        <Route path="/v/:segment" component={VerticalLanding} />
         <Route path="/lp/:segment" component={SklikLandingPage} />
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/projects" component={AdminProjects} />

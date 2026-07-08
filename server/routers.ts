@@ -66,9 +66,9 @@ export const appRouter = router({
         try {
           const detailLines = input.details
             ? Object.entries(input.details)
-                .filter(([, v]) => v !== undefined && v !== null && v !== "")
-                .map(([k, v]) => `• ${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`)
-                .join("\n")
+              .filter(([, v]) => v !== undefined && v !== null && v !== "")
+              .map(([k, v]) => `• ${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`)
+              .join("\n")
             : "";
           await notifyOwner({
             title: "Nová poptávka z webu",
@@ -76,6 +76,30 @@ export const appRouter = router({
           });
         } catch (error) {
           console.error("Failed to notify owner:", error);
+        }
+
+        // --- PROFIT PLAYBOOK: Odeslat do n8n/Make webhooku ---
+        const webhookUrl = process.env.N8N_WEBHOOK_URL || process.env.MAKE_WEBHOOK_URL;
+        if (webhookUrl) {
+          try {
+            await fetch(webhookUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: (inquiry as any).insertId || 0,
+                name: input.name,
+                email: input.email,
+                phone: input.phone,
+                packageType: input.packageType,
+                businessDescription: input.businessDescription,
+                source: input.source,
+                details: input.details,
+                timestamp: new Date().toISOString()
+              })
+            });
+          } catch (error) {
+            console.error("Failed to send inquiry to automation webhook:", error);
+          }
         }
 
         return { success: true, id: (inquiry as any).insertId || 0 };
@@ -372,9 +396,9 @@ export const appRouter = router({
       const inquiries = await listInquiries();
       const userInquiries = inquiries.filter(i => i.email === ctx.user?.email);
       const inquiryIds = userInquiries.map(i => i.id);
-      
+
       if (inquiryIds.length === 0) return [];
-      
+
       const allOrders = [];
       for (const inquiryId of inquiryIds) {
         const order = await getOrder(inquiryId).catch(() => null);
@@ -389,9 +413,9 @@ export const appRouter = router({
       const inquiries = await listInquiries();
       const userInquiries = inquiries.filter(i => i.email === ctx.user?.email);
       const inquiryIds = userInquiries.map(i => i.id);
-      
+
       if (inquiryIds.length === 0) return [];
-      
+
       const allPayments = [];
       for (const inquiryId of inquiryIds) {
         const order = await getOrder(inquiryId).catch(() => null);
@@ -1024,9 +1048,9 @@ export const appRouter = router({
         .sort((a: any, b: any) => a.dueDate - b.dueDate);
       const nextMilestone = pendingMilestones[0]
         ? {
-            title: (pendingMilestones[0] as any).title as string,
-            dueDate: (pendingMilestones[0] as any).dueDate as number,
-          }
+          title: (pendingMilestones[0] as any).title as string,
+          dueDate: (pendingMilestones[0] as any).dueDate as number,
+        }
         : null;
 
       const outstanding = myOrders
@@ -1060,11 +1084,11 @@ export const appRouter = router({
         recommendedAction,
         activeProject: activeProject
           ? {
-              id: activeProject.id,
-              title: activeProject.title,
-              status: activeProject.status,
-              completionPercentage: activeProject.completionPercentage ?? 0,
-            }
+            id: activeProject.id,
+            title: activeProject.title,
+            status: activeProject.status,
+            completionPercentage: activeProject.completionPercentage ?? 0,
+          }
           : null,
       };
     }),
