@@ -10,13 +10,18 @@ import { toast } from "sonner";
 import { OptimateoLogo } from "@/components/OptimateoLogo";
 import { ArrowLeft, ArrowRight, Check, ShieldCheck, ChevronDown, ChevronUp, TrendingDown, Zap, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { isChannelConsented } from "@/components/CookieConsentBanner";
+import { trackLinkedInConversion } from "@/lib/linkedin";
+import { getAttribution } from "@/lib/attribution";
+import { trackEvent, trackFormStart } from "@/lib/ab-test";
+import { CORE_OFFERS, SERVICE_TERMS, formatOfferPrice } from "@shared/service-catalog";
 
 // ─── Pricing ladder ──────────────────────────────────────────────────────────
 const pricingLadder = [
     {
         step: "01",
         name: "Mini audit zdarma",
-        price: "0 Kč",
+        price: formatOfferPrice(CORE_OFFERS.MINI_AUDIT),
         desc: "Zjistíte 3 hlavní příčiny, proč web ztrácí zákazníky. Bez závazků.",
         color: "border-slate-300 bg-slate-50",
         textColor: "text-slate-700",
@@ -26,8 +31,8 @@ const pricingLadder = [
     {
         step: "02",
         name: "ONYX OS Audit",
-        price: "4 900–14 900 Kč",
-        desc: "Kompletní PDF report, 30min konzultace, konkrétní plán oprav. Platí jako záloha na Setup.",
+        price: formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT),
+        desc: `Kompletní PDF report, ${SERVICE_TERMS.auditConsultationMinutes}min konzultace a konkrétní plán oprav.`,
         color: "border-violet-300 bg-violet-50",
         textColor: "text-violet-900",
         stepColor: "bg-violet-100 text-violet-700",
@@ -36,7 +41,7 @@ const pricingLadder = [
     {
         step: "03",
         name: "ONYX OS Setup",
-        price: "29 900–90 000 Kč",
+        price: formatOfferPrice(CORE_OFFERS.ONYX_OS_SETUP),
         desc: "Web + CRM + automatizace. Systém, který sbírá leady, zapisuje je a spouští follow-up.",
         color: "border-violet-400 bg-violet-100",
         textColor: "text-violet-900",
@@ -46,7 +51,7 @@ const pricingLadder = [
     {
         step: "04",
         name: "ONYX OS Monitoring",
-        price: "1 999 Kč/měs.",
+        price: formatOfferPrice(CORE_OFFERS.MONITORING),
         desc: "Měsíční report, A/B testování, optimalizace konverzí, správa hostingu a CRM.",
         color: "border-violet-600 bg-violet-600",
         textColor: "text-white",
@@ -61,7 +66,7 @@ const mockIssues = [
         icon: TrendingDown,
         color: "text-red-500 bg-red-50 border-red-200",
         title: "Slabé CTA tlačítko",
-        detail: "Výzva k akci se ztrácí ve spodní části stránky. 73 % uživatelů ji nikdy neuvidí.",
+        detail: "Výzva k akci se ztrácí ve spodní části stránky a na mobilu není dostupná v rozhodovacím okamžiku.",
         priority: "Kritické",
         priorityColor: "bg-red-100 text-red-700",
     },
@@ -69,7 +74,7 @@ const mockIssues = [
         icon: Zap,
         color: "text-amber-500 bg-amber-50 border-amber-200",
         title: "Rychlost načítání: 6,2 s",
-        detail: "Benchmark je 2,5 s. Každá sekunda zpoždění sníží konverze o ~7 %. Obrázky nejsou komprimovány.",
+        detail: "Největší obrázky blokují rychlé vykreslení hlavního obsahu a potřebují kompresi i správné rozměry.",
         priority: "Vysoká",
         priorityColor: "bg-amber-100 text-amber-700",
     },
@@ -77,7 +82,7 @@ const mockIssues = [
         icon: BarChart3,
         color: "text-blue-500 bg-blue-50 border-blue-200",
         title: "Formulář má 8 polí",
-        detail: "Optimální počet je 3–4 pole. Každé navíc snižuje pravděpodobnost odeslání o ~11 %.",
+        detail: "Formulář žádá informace, které lze získat až při navazujícím hovoru. Doporučujeme zkrátit první kontakt.",
         priority: "Střední",
         priorityColor: "bg-blue-100 text-blue-700",
     },
@@ -107,7 +112,7 @@ export default function AuditZdarma() {
 
         setSubmitting(true);
         try {
-            await createInquiry.mutateAsync({
+            const result = await createInquiry.mutateAsync({
                 name: `Audit: ${formData.webUrl}`,
                 email: formData.email,
                 phone: formData.phone,
@@ -119,10 +124,15 @@ export default function AuditZdarma() {
                     businessType: formData.businessType,
                     mainGoal: formData.mainGoal,
                     auditRequested: true,
+                    ...getAttribution(),
                 },
+                linkedinConsent: isChannelConsented("linkedin"),
             } as any);
 
-            trackSklikConversion({ orderId: `audit-${Date.now()}`, value: 500 });
+            trackSklikConversion({ orderId: `audit-${result.id}` });
+            trackLinkedInConversion();
+            void trackEvent("audit_submit", { inquiryId: result.id });
+            void trackEvent("form_submit", { formName: "audit-zdarma", inquiryId: result.id });
             setSubmitted(true);
             toast.success("Žádost o audit byla úspěšně odeslána!");
         } catch (err) {
@@ -150,7 +160,7 @@ export default function AuditZdarma() {
                         {/* Upsell suggestion */}
                         <div className="bg-violet-500/10 border border-violet-400/30 rounded-2xl p-4 mb-6 text-left">
                             <p className="text-xs font-bold text-violet-300 uppercase tracking-wider mb-1">Následující krok</p>
-                            <p className="text-sm text-white/80">Po obdržení auditu vám nabídneme <strong className="text-white">ONYX OS Audit od 4 900 Kč</strong> — kompletní PDF report s plánem oprav a 30min konzultací.</p>
+                            <p className="text-sm text-white/80">Po obdržení mini auditu vám můžeme nabídnout <strong className="text-white">{CORE_OFFERS.ONYX_OS_AUDIT.name} za {formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT)}</strong> — kompletní PDF report s plánem oprav a {SERVICE_TERMS.auditConsultationMinutes}min konzultací.</p>
                         </div>
 
                         <div className="flex flex-col gap-3">
@@ -184,7 +194,7 @@ export default function AuditZdarma() {
                             </span>
                         </h1>
                         <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed">
-                            Většina webů ztrácí 95 %+ návštěvníků. Ukážeme vám 3 konkrétní bariéry na vašem webu — zcela zdarma a nezávazně.
+                            Prověříme nabídku, rychlost, mobilní zobrazení a cestu ke kontaktu. Dostanete 3 konkrétní bariéry na vašem webu — zdarma a nezávazně.
                         </p>
                     </div>
 
@@ -263,7 +273,7 @@ export default function AuditZdarma() {
                         <div className="md:col-span-7 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl shadow-black/30">
                             <h2 className="text-lg font-bold mb-1 text-white">Údaje pro vypracování auditu</h2>
                             <p className="text-xs text-slate-500 mb-5">Vyplňte formulář a do 24 hodin vám pošleme analýzu.</p>
-                            <form onSubmit={handleSubmit} className="space-y-4">
+                            <form onSubmit={handleSubmit} onFocusCapture={() => trackFormStart("audit-zdarma", "audit_start")} className="space-y-4">
                                 <div>
                                     <Label htmlFor="webUrl" className="text-xs font-semibold text-slate-300">URL vašeho webu *</Label>
                                     <Input
@@ -356,7 +366,7 @@ export default function AuditZdarma() {
                                         ["Rychlost načítání", "Core Web Vitals — mobil a desktop."],
                                         ["Formuláře & CTA", "Jsou nastavené tak, aby přesvědčily?"],
                                         ["SEO & texty", "Je srozumitelná vaše přidaná hodnota?"],
-                                        ["Mobilní kompatibilita", "60–80 % návštěv přichází z mobilu."],
+                                        ["Mobilní kompatibilita", "Prověříme nejdůležitější scénáře na malém displeji."],
                                     ].map(([title, desc]) => (
                                         <li key={title} className="flex items-start gap-2">
                                             <span className="text-violet-400 font-bold mt-0.5">✓</span>
@@ -371,7 +381,7 @@ export default function AuditZdarma() {
                                     <span>⏰</span> Proč to děláme zdarma?
                                 </h3>
                                 <p className="text-xs text-slate-400 leading-relaxed">
-                                    Chceme vám ukázat reálnou ztrátu na vašem webu. Pokud se vám výsledky líbí, rádi probereme plný <strong className="text-white">ONYX OS Audit</strong> za 4 900 Kč — kompletní report s plánem oprav. Pokud ne, tipy si nechejte a předejte svému programátorovi.
+                                    Chceme vám ukázat konkrétní slabá místa vašeho webu. Pokud vám výstup dává smysl, rádi probereme <strong className="text-white">{CORE_OFFERS.ONYX_OS_AUDIT.name}</strong> za {formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT)} — kompletní report s plánem oprav. Pokud ne, tipy si nechte a předejte svému programátorovi.
                                 </p>
                             </div>
                         </div>

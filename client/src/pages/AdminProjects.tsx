@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CheckCircle, Clock, Plus, Edit, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { formatCzk } from "@shared/service-catalog";
 
 type Project = {
   id: string;
@@ -48,7 +49,7 @@ export default function AdminProjects() {
     return <div className="p-8 text-center text-slate-500">Přístup odepřen</div>;
   }
 
-  const formatPrice = (v: number) => `${(v / 100).toLocaleString("cs-CZ")} Kč`;
+  const formatPrice = formatCzk;
 
   const statusLabel: Record<string, string> = {
     pending: "Příprava", in_progress: "Ve výrobě", completed: "Dokončeno", failed: "Pozastaveno",

@@ -1,23 +1,24 @@
 import Stripe from "stripe";
-import { protectedProcedure, publicProcedure } from "./_core/trpc";
-import { createOrder, getOrder, updateOrder, createPayment, getPaymentsByOrder } from "./db";
-import { ONYXWEB_PRODUCTS, calculateDeposit, calculateRemaining } from "./stripe-products";
-import { notifyOwner } from "./_core/notification";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+import { protectedProcedure } from "./_core/trpc";
+import { createOrder, getInquiryById, getOrder, updateOrder, getPaymentsByOrder } from "./db";
+import { ONYXWEB_PRODUCTS, calculateDeposit, calculateRemaining, toStripeMinorUnits } from "./stripe-products";
+import { PUBLIC_SITE_URL } from "../shared/brand-config";
 
 export const stripeRouter = {
-  createCheckoutSession: publicProcedure
+  createCheckoutSession: protectedProcedure
     .input((data: unknown) => {
       const obj = data as Record<string, unknown>;
       return {
         packageType: String(obj.packageType || ""),
         inquiryId: Number(obj.inquiryId || 0),
-        customerEmail: String(obj.customerEmail || ""),
-        customerName: String(obj.customerName || ""),
       };
     })
     .mutation(async ({ input, ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+      if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe is not configured");
+      const inquiry = await getInquiryById(input.inquiryId);
+      if (!inquiry) throw new Error("Inquiry not found");
+      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
       const packageKey = input.packageType.toUpperCase().replace(/-/g, "_") as keyof typeof ONYXWEB_PRODUCTS;
       const product = ONYXWEB_PRODUCTS[packageKey];
 
@@ -52,21 +53,21 @@ export const stripeRouter = {
                 name: product.name,
                 description: product.description,
               },
-              unit_amount: depositAmount, // Amount in CZK (cents)
+              unit_amount: toStripeMinorUnits(depositAmount),
             },
             quantity: 1,
           },
         ],
         mode: "payment",
-        success_url: `${ctx.req.headers.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${ctx.req.headers.origin}/payment-cancel`,
-        customer_email: input.customerEmail,
+        success_url: `${process.env.PUBLIC_APP_URL || PUBLIC_SITE_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.PUBLIC_APP_URL || PUBLIC_SITE_URL}/payment-cancel`,
+        customer_email: inquiry.email,
         client_reference_id: orderId.toString(),
         metadata: {
           orderId: orderId.toString(),
           inquiryId: input.inquiryId.toString(),
           packageType: input.packageType,
-          customerName: input.customerName,
+          customerName: inquiry.name,
         },
       });
 
@@ -82,23 +83,25 @@ export const stripeRouter = {
       };
     }),
 
-  getOrder: publicProcedure
+  getOrder: protectedProcedure
     .input((data: unknown) => {
       const obj = data as Record<string, unknown>;
       return { orderId: Number(obj.orderId || 0) };
     })
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
       const order = await getOrder(input.orderId);
       if (!order) throw new Error("Order not found");
       return order;
     }),
 
-  getOrderPayments: publicProcedure
+  getOrderPayments: protectedProcedure
     .input((data: unknown) => {
       const obj = data as Record<string, unknown>;
       return { orderId: Number(obj.orderId || 0) };
     })
-    .query(async ({ input }) => {
+    .query(async ({ input, ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
       return await getPaymentsByOrder(input.orderId);
     }),
 };

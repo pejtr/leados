@@ -1,7 +1,7 @@
-import { getDb } from "./db";
+export type ABVariant = "A" | "B";
 
 export interface VariantMetrics {
-  variant: 'A' | 'B' | 'C' | 'D';
+  variant: ABVariant;
   pageViews: number;
   ctaClicks: number;
   formSubmits: number;
@@ -10,33 +10,54 @@ export interface VariantMetrics {
   ctr: number;
 }
 
-export async function getABTestMetrics(): Promise<VariantMetrics[]> {
-  // TODO: Query from abTestEvents table when schema is updated
-  // For now, return mock data structure
-  const variants: Record<'A' | 'B' | 'C' | 'D', VariantMetrics> = {
-    A: { variant: 'A', pageViews: 1240, ctaClicks: 89, formSubmits: 12, conversions: 12, conversionRate: 0.97, ctr: 7.18 },
-    B: { variant: 'B', pageViews: 1156, ctaClicks: 98, formSubmits: 15, conversions: 15, conversionRate: 1.30, ctr: 8.48 },
-    C: { variant: 'C', pageViews: 1089, ctaClicks: 102, formSubmits: 18, conversions: 18, conversionRate: 1.65, ctr: 9.37 },
-    D: { variant: 'D', pageViews: 1203, ctaClicks: 76, formSubmits: 8, conversions: 8, conversionRate: 0.67, ctr: 6.32 },
-  };
+type MutableVariantMetrics = Omit<VariantMetrics, "conversionRate" | "ctr">;
 
-  return Object.values(variants);
+const counters: Record<ABVariant, MutableVariantMetrics> = {
+  A: { variant: "A", pageViews: 0, ctaClicks: 0, formSubmits: 0, conversions: 0 },
+  B: { variant: "B", pageViews: 0, ctaClicks: 0, formSubmits: 0, conversions: 0 },
+};
+
+export function recordABTestEvent(variant: ABVariant, event: string, metadata?: Record<string, unknown>) {
+  if (metadata?.ab_experiment_exposed !== true) return;
+
+  const metrics = counters[variant];
+
+  if (event === "page_view" && metadata.path === "/") metrics.pageViews += 1;
+  if ((event === "hero_cta_click" || event === "cta_click") && metadata.path === "/") metrics.ctaClicks += 1;
+  if (event === "form_submit") {
+    metrics.formSubmits += 1;
+    metrics.conversions += 1;
+  }
 }
 
-export async function getWinningVariant(): Promise<'A' | 'B' | 'C' | 'D'> {
+function withRates(metrics: MutableVariantMetrics): VariantMetrics {
+  return {
+    ...metrics,
+    conversionRate: metrics.pageViews > 0 ? (metrics.conversions / metrics.pageViews) * 100 : 0,
+    ctr: metrics.pageViews > 0 ? (metrics.ctaClicks / metrics.pageViews) * 100 : 0,
+  };
+}
+
+export async function getABTestMetrics(): Promise<VariantMetrics[]> {
+  return [withRates(counters.A), withRates(counters.B)];
+}
+
+export async function getWinningVariant(): Promise<ABVariant | null> {
   const metrics = await getABTestMetrics();
-  return metrics.reduce((prev, current) => 
-    current.conversionRate > prev.conversionRate ? current : prev
+  if (metrics.every(metric => metric.pageViews === 0)) return null;
+
+  return metrics.reduce((best, current) =>
+    current.conversionRate > best.conversionRate ? current : best
   ).variant;
 }
 
 export async function getABTestSummary() {
   const metrics = await getABTestMetrics();
-  const totalPageViews = metrics.reduce((sum, m) => sum + m.pageViews, 0);
-  const totalConversions = metrics.reduce((sum, m) => sum + m.conversions, 0);
-  const overallConversionRate = totalPageViews > 0 
+  const totalPageViews = metrics.reduce((sum, metric) => sum + metric.pageViews, 0);
+  const totalConversions = metrics.reduce((sum, metric) => sum + metric.conversions, 0);
+  const overallConversionRate = totalPageViews > 0
     ? ((totalConversions / totalPageViews) * 100).toFixed(2)
-    : '0.00';
+    : "0.00";
 
   return {
     totalPageViews,
@@ -44,5 +65,6 @@ export async function getABTestSummary() {
     overallConversionRate,
     winningVariant: await getWinningVariant(),
     metrics,
+    dataSource: "process-memory" as const,
   };
 }

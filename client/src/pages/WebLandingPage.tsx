@@ -8,7 +8,11 @@ import {
 import { trpc } from "@/lib/trpc";
 import { trackSklikConversion } from "@/lib/sklik";
 import { toast } from "sonner";
-import { OnyxWebLogo } from "@/components/OnyxWebLogo";
+import { OptimateoLogo } from "@/components/OptimateoLogo";
+import { isChannelConsented } from "@/components/CookieConsentBanner";
+import { trackLinkedInConversion } from "@/lib/linkedin";
+import { getAttribution } from "@/lib/attribution";
+import { trackEvent, trackFormStart } from "@/lib/ab-test";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -19,10 +23,10 @@ const SEGMENTS = [
   { id: "system", icon: <Layers className="w-5 h-5" />, label: "Kompletní systém", desc: "Web + rezervace + CRM + marketing" },
 ];
 
-const RESULTS = [
-  { metric: "+47 %", label: "více rezervací", who: "Kavárna Espresso, Praha" },
-  { metric: "3×", label: "více zakázek", who: "Elektrikář Novák, OSVČ" },
-  { metric: "0 h", label: "na telefonu navíc", who: "Beauty Salon Monika" },
+const CONVERSION_FOUNDATIONS = [
+  { title: "Jasná nabídka", description: "Návštěvník rychle pochopí, pro koho služba je a proč se ozvat." },
+  { title: "Přímý kontakt", description: "Telefon a formulář jsou dostupné bez hledání, zejména na mobilu." },
+  { title: "Měřitelný výkon", description: "Od spuštění sledujeme zdroj návštěvy, odeslané formuláře a další kroky." },
 ];
 
 const STEPS = [
@@ -32,7 +36,7 @@ const STEPS = [
 ];
 
 const TRUST = [
-  { icon: <Star className="w-4 h-4" />, t: "Reálné výsledky, ne sliby" },
+  { icon: <Star className="w-4 h-4" />, t: "Měření od prvního dne" },
   { icon: <Clock className="w-4 h-4" />, t: "Web hotový do 1–2 týdnů" },
   { icon: <ShieldCheck className="w-4 h-4" />, t: "Bez dlouhých závazků" },
 ];
@@ -56,16 +60,19 @@ export default function WebLandingPage() {
     if (!form.email.includes("@")) return toast.error("Zadejte platný e-mail");
     setSubmitting(true);
     try {
-      await createInquiry.mutateAsync({
+      const result = await createInquiry.mutateAsync({
         name: form.name,
         email: form.email,
         phone: form.phone,
         businessDescription: `Poptávka z reklamy — ${segLabel}`,
         packageType: undefined,
-        details: { segment, segmentLabel: segLabel, hook: "vysledky" },
+        details: { segment, segmentLabel: segLabel, hook: "vysledky", ...getAttribution() },
         source: "sklik-web",
-      });
-      trackSklikConversion({ orderId: `lead-web-${Date.now()}`, value: 900 });
+        linkedinConsent: isChannelConsented("linkedin"),
+      } as any);
+      trackSklikConversion({ orderId: `lead-web-${result.id}` });
+      trackLinkedInConversion();
+      void trackEvent("form_submit", { formName: "web-landing", segment, inquiryId: result.id });
       window.dispatchEvent(new CustomEvent("lead:web", { detail: { segment } }));
       setSent(true);
     } catch {
@@ -81,7 +88,7 @@ export default function WebLandingPage() {
       {/* ── NAV ── */}
       <nav className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-slate-100">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <a href="/"><OnyxWebLogo className="h-8" /></a>
+          <a href="/" aria-label="OPTIMATEO"><OptimateoLogo className="h-8" /></a>
           <a href="#poptavka">
             <Button className="bg-violet-600 hover:bg-violet-700 text-white rounded-full text-sm font-semibold px-5">
               Chci web
@@ -165,7 +172,7 @@ export default function WebLandingPage() {
                   ))}
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-3">
+                <form onSubmit={handleSubmit} onFocusCapture={() => trackFormStart("web-landing")} className="space-y-3">
                   <Input
                     placeholder="Vaše jméno"
                     value={form.name}
@@ -206,17 +213,17 @@ export default function WebLandingPage() {
         </div>
       </header>
 
-      {/* ── RESULTS ── */}
+      {/* ── CONVERSION FOUNDATIONS ── */}
       <section className="py-16 bg-white">
         <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-center mb-3">Výsledky, ne jen hezký web</h2>
-          <p className="text-slate-500 text-center max-w-xl mx-auto mb-10">Konkrétní čísla od firem, kterým web reálně přivedl zákazníky.</p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-center mb-3">Co připravíme pro získávání poptávek</h2>
+          <p className="text-slate-500 text-center max-w-xl mx-auto mb-10">Konkrétní základy, které lze po spuštění měřit a postupně zlepšovat.</p>
           <div className="grid sm:grid-cols-3 gap-5">
-            {RESULTS.map((r) => (
-              <div key={r.who} className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
-                <div className="text-4xl font-extrabold text-violet-600 mb-1">{r.metric}</div>
-                <div className="text-sm font-medium text-slate-700 mb-2">{r.label}</div>
-                <div className="text-xs text-slate-400">{r.who}</div>
+            {CONVERSION_FOUNDATIONS.map((item) => (
+              <div key={item.title} className="bg-slate-50 border border-slate-100 rounded-2xl p-6">
+                <CheckCircle2 className="mb-4 h-7 w-7 text-violet-600" />
+                <h3 className="font-bold text-slate-900">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-500">{item.description}</p>
               </div>
             ))}
           </div>

@@ -4,6 +4,7 @@ import { OptimateoLogo } from "@/components/OptimateoLogo";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, ChevronRight, BarChart3, Target, Search, Zap, SearchCheck } from "lucide-react";
 import { motion } from "framer-motion";
+import { CORE_OFFERS, formatOfferPrice } from "@shared/service-catalog";
 
 type Vertical = {
     slug: string;
@@ -40,7 +41,7 @@ const VERTICALS: Record<string, Vertical> = {
         slug: "kliniky",
         eyebrow: "Pro zubní a estetické kliniky",
         headline: "Proměňte návštěvníky z mobilu na pacienty ve vaší čekárně.",
-        subheadline: "Rezervace on-line 24/7, přehledné ceníky a důvěryhodný brand. Systém ONYX WEB odbourá administrativu a zvedne vytíženost ordinací.",
+        subheadline: "Rezervace on-line 24/7, přehledné ceníky a důvěryhodná značka. OPTIMATEO propojí web s ONYX OS tak, aby snížil administrativu a pomohl vytížit ordinaci.",
         ctaText: "Získat audit webu vaší kliniky",
         pains: [
             "Pacienti kvůli nepřehlednému webu raději volají recepci",
@@ -214,10 +215,10 @@ export default function VerticalLanding() {
                                 <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-violet-600/50 to-transparent" />
 
                                 {[
-                                    { step: "01", name: "Mini audit zdarma", price: "0 Kč", desc: "Najdeme 3 největší trhliny. Neplatíte nic, dostanete přesné tipy.", active: true },
-                                    { step: "02", name: "ONYX OS Audit", price: "4 900 Kč", desc: "Detailní hloubkový audit celého fungování firmy na webu s akčním plánem.", active: false },
-                                    { step: "03", name: "ONYX OS Setup", price: "od 29 900 Kč", desc: "Vytvoříme high-converting stránky, nastavíme automatizaci a CRM systém na míru.", active: false },
-                                    { step: "04", name: "Monitoring a údržba", price: "1 999 Kč/měs", desc: "Zajištění správy, údržby, hostingu a měsíční konzultace nad daty z automatizace.", active: false },
+                                    { step: "01", name: CORE_OFFERS.MINI_AUDIT.name, price: formatOfferPrice(CORE_OFFERS.MINI_AUDIT), desc: "Najdeme 3 největší slabá místa. Neplatíte nic, dostanete konkrétní tipy.", active: true },
+                                    { step: "02", name: CORE_OFFERS.ONYX_OS_AUDIT.name, price: formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT), desc: "Detailní audit fungování firmy na webu s prioritizovaným plánem.", active: false },
+                                    { step: "03", name: CORE_OFFERS.ONYX_OS_SETUP.name, price: formatOfferPrice(CORE_OFFERS.ONYX_OS_SETUP), desc: "Vytvoříme konverzní stránky, nastavíme automatizaci a CRM systém na míru.", active: false },
+                                    { step: "04", name: CORE_OFFERS.MONITORING.name, price: formatOfferPrice(CORE_OFFERS.MONITORING), desc: "Zajištění správy, údržby, hostingu a měsíční konzultace nad daty z automatizace.", active: false },
                                 ].map((s, i) => (
                                     <div key={i} className={`relative flex gap-6 p-5 rounded-2xl border transition-all ${s.active ? "bg-violet-900/30 border-violet-500 text-white" : "bg-white/5 border-white/10 text-slate-400"}`}>
                                         <div className={`w-14 h-14 rounded-full flex items-center justify-center text-sm font-black tracking-widest shrink-0 relative z-10 ${s.active ? "bg-violet-600 text-white" : "bg-[#1f1738] text-slate-500"}`}>

@@ -1,73 +1,63 @@
-# ONYX WEB AI Core — prezentační podklad
+# Značka a nabídka OPTIMATEO
 
-Zdroj: infografika „ONYX WEB AI CORE" (zlato-modrý vizuál, egyptský motiv).
-Webová verze: sekce `#core` na landing page ([Home.tsx](../../client/src/pages/Home.tsx)).
+## Hierarchie
 
-> Originální PNG infografiky ulož do `docs/marketing/assets/optivio-core.png`
-> (případně do `client/public/marketing/`, pokud ji chceme servírovat z webu).
+- **OPTIMATEO** je firma, dodavatel a hlavní značka.
+- **ONYX OS** je metoda a technická platforma, která propojuje web, CRM a automatizace.
+- **AI Core** je vrstva AI Asistentů pro opakované úkoly uvnitř ONYX OS.
+- Zákaznický výsledek se komunikuje jako **web, CRM a automatizace**.
 
-## Klíčové sdělení
+První obrazovka musí nejprve vysvětlit výsledek. Název ONYX OS se používá až jako pojmenování způsobu, jakým OPTIMATEO výsledek dodává.
 
-**ONYX WEB Core** — jeden centrální systém: booking · CRM · data · automatizace · MCP/API.
+## Hlavní prodejní cesta
 
-| Pilíř | Popis |
-|---|---|
-| Booking | Inteligentní rezervace a správa kapacit v reálném čase |
-| CRM | 360° pohled na klienta, automatizace vztahů a komunikace |
-| Data | Reporting a predikce pro lepší rozhodování |
-| Automatizace | Asistenti pro obsah, reklamy, doporučení a optimalizace |
-| MCP / API | Otevřené napojení na nástroje, partnery a marketplace |
+`reklama / organika -> segmentová landing page -> mini audit -> ukázka hodnoty -> úvodní hovor -> nabídka -> realizace`
 
-## Napojené moduly
+Primární CTA: **Prověřit web zdarma**
+Sekundární CTA: **Domluvit konzultaci**
 
-Rezervace · Komunikace (e-maily, Telegram, WhatsApp) · Marketing (Meta/Google Ads, retargeting) · Prodej (e-shop, předplatné, upsell) · **Prodejní web** (infoprodukty a kurzy) · Reporting (dashboardy, LTV, insights) · Asistenti (obsah, doporučení, rutinní úkoly).
+Demo je vedlejší cesta pro zájemce o nový web. Dokud obsahuje pouze demonstrační koncepty, je `noindex` a nesmí být prezentováno jako klientská reference.
 
-### Prodejní web (infoprodukty & kurzy)
+## Cenový schod
 
-Vysoce konverzní prodejní stránka (sales-letter / funnel) pro infoprodukty, kurzy a digitální produkty — VSL video, „co získáš" benefity, cenový box s urgencí, garance, reference, jedno jasné CTA. Konkurence: Konverzky.cz (DIY builder); naše výhoda = **done-for-you** funnel postavený na míru. **Prodáváno jako součást tarifu AI Core** (ne samostatný tarif). Demo šablona „Prodejní web" je v `/demo`; CTA vede na dotazník (`/dotaznik?obor=prodejni`).
+Zdroj pravdy: `shared/service-catalog.ts`.
 
-## Enchanté One (ve vývoji)
+| Nabídka | Cena | Účel |
+|---|---:|---|
+| Mini audit | zdarma | 3 hlavní bariéry jedné stránky |
+| ONYX OS Audit | 4 900 Kč | kompletní rozbor, plán oprav a 60min konzultace |
+| ONYX OS Setup | od 29 900 Kč | web, CRM a automatizace podle schváleného rozsahu |
+| ONYX OS Monitoring | 1 999 Kč / měsíc | dohled, reporting a průběžná optimalizace |
 
-Vlastní aukční platforma pro galerie, aukce a distribuci uměleckých děl, napojená na světové marketplace (Aukro, Invaluable, LiveBid…).
+Fixní webové balíčky pro menší zakázky: Lite Web 3 490 Kč, Basic Web 4 999 Kč, Web + Lead Gen 6 990 Kč, Web + automatizace 9 990 Kč.
 
-Pilíře: **Aukční engine** (příhozy, limity, dražby v reálném čase) · **Distribuce & marketplace** (jedno dílo na více trzích) · **Data & historie** (provenience, výsledky, cenové trendy) · **Důvěra & autenticita** (ověření děl, transparentní záznamy).
+## Segmenty
 
-Tagline use-case: „ONYX WEB propojuje salon s trhem umění."
+| Segment | Landing page | Hlavní problém | Nabídka |
+|---|---|---|---|
+| Živnostníci | `/lp/zivnostnici` | chybějící nebo nejasný web | Lite Web |
+| Řemeslníci | `/lp/remeslnici` | lokální dohledatelnost a kontakt | Lite / Basic |
+| B2B firmy | `/lp/b2b` | nekvalifikované leady a slabý follow-up | Web + automatizace / ONYX OS |
+| Restaurace | `/lp/restaurace` | menu, rezervace, lokální kampaně | Basic Web |
+| Salony | `/lp/salony` | služby, ceník, objednání | Basic Web |
+| E-commerce | `/lp/ecommerce` | argumentace a výkon kampaně | Web + Lead Gen |
 
-## Vizuální motivy infografik
+## Důkazy
 
-1. **Robot + pyramidy** (zlato-modrá, egyptský motiv) — původní verze.
-2. **Thoth** (bůh písma s tabletem, zlatá zbroj) — silnější varianta; slogan „Jedna inteligentní platforma. Nekonečné možnosti." + benefity: Jeden zdroj pravdy, Vyšší konverze, Data jako aktivum, Bezpečí & důvěra (audit logy, provenance).
+Na veřejném webu se zobrazují pouze projekty a reference vrácené produkční databází. Každá případová studie musí mít:
 
-## ONYX OS — domény a kanálová strategie
+1. souhlas klienta;
+2. screenshot skutečného výstupu;
+3. výchozí problém;
+4. popis provedené změny;
+5. měřitelný výsledek s obdobím a zdrojem dat.
 
-Dostupné domény: crmleadsystem.cz / .com (+www), ai-lead-generation.com, ai-lead-gen.com.
+Pokud ověřená data nejsou k dispozici, sekce se nezobrazí. Demosnímky a modelové výsledky se nesmějí vydávat za klientskou práci.
 
-**Pozicování dle kanálu:**
-- **Sklik/Seznam (čeští podnikatelé)** → vést na *crmleadsystem.cz*. Jazyk: „CRM systém", „přehled o zákaznících", „víc poptávek bez práce navíc". Bez tech žargonu — ONYX WEB jako expert, který dodává hotovou službu.
-- **LinkedIn (B2B, agentury, SaaS)** → *ai-lead-generation.com* nebo ONYX WEB AI Core. Jazyk: outcomes — „−70 % času na rutině", „LTV insights", „AI asistenti v platformě".
-- Silné slovo pro CZ trh: **„CRM systém"** (vyhledávané, srozumitelné). „Lead generation" funguje jen na LinkedIn/EN publikum.
+## Copy pravidla
 
-## Slogany
-
-- AI powered. Human centered. Spirit driven. *(jen interní / anglické materiály)*
-- „Kdo kontroluje informace, kontroluje budoucnost."
-- Inspirace minulostí. Automatizace přítomností. Inteligence budoucností.
-
-## Tarif AI Core
-
-Funkce běží na platformě **ONYX OS** (interně), navenek prodáváno jako tarif **AI Core**.
-
-| Položka | Cena |
-|---|---|
-| Zavedení na míru | od 14 990 Kč jednorázově |
-| Provoz (vše v ceně) | 999 Kč/měs |
-| Napojené moduly | 2 v ceně, další +290 Kč/měs |
-
-V ceně provozu: booking + správa kapacit, CRM 360°, data/reporting/predikce, asistenti (obsah, kampaně, rutina), MCP/API napojení, zálohy a podpora.
-
-Pricing argument („více za méně"): krabicové platformy účtují za srovnatelné doplňky 800–1 500 Kč/měs jen na příplatcích.
-
-## Pozn. k terminologii
-
-V zákaznickém UI webu nepoužíváme slovo „AI" pro generické funkce — místo toho „asistent", „automatizace", „chytré predikce". **Výjimka: „AI Core" jako název produktu/tarifu je schválený** (zní businessově). V tištěných/B2B materiálech lze „AI" ponechat.
+- používat výrazy `AI Asistenti` a `AI Core` pouze s vysvětlením konkrétního přínosu;
+- neslibovat procenta, úspory ani rychlost bez doloženého zdroje;
+- rozlišovat bezplatný 30min úvodní hovor od 60min konzultace v placeném auditu;
+- poptávku nenazývat objednávkou;
+- zálohu nabízet až po potvrzení rozsahu, ceny a harmonogramu.

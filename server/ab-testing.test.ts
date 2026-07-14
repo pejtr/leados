@@ -3,50 +3,48 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 describe('AB Testing Framework', () => {
   describe('Variant Assignment', () => {
     it('should deterministically assign variant A for hash 0', () => {
-      const variants = ['A', 'B', 'C', 'D'];
+      const variants = ['A', 'B'];
       const userId = 'user_0';
       const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const variant = variants[hash % 4];
-      expect(['A', 'B', 'C', 'D']).toContain(variant);
+      const variant = variants[hash % variants.length];
+      expect(['A', 'B']).toContain(variant);
     });
 
     it('should deterministically assign variant B for hash 1', () => {
-      const variants = ['A', 'B', 'C', 'D'];
+      const variants = ['A', 'B'];
       const userId = 'user_1';
       const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const variant = variants[hash % 4];
-      expect(['A', 'B', 'C', 'D']).toContain(variant);
+      const variant = variants[hash % variants.length];
+      expect(['A', 'B']).toContain(variant);
     });
 
     it('should assign same variant to same user consistently', () => {
-      const variants = ['A', 'B', 'C', 'D'];
+      const variants = ['A', 'B'];
       const userId = 'consistent_user';
       
       const hash1 = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const variant1 = variants[hash1 % 4];
+      const variant1 = variants[hash1 % variants.length];
       
       const hash2 = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-      const variant2 = variants[hash2 % 4];
+      const variant2 = variants[hash2 % variants.length];
       
       expect(variant1).toBe(variant2);
     });
 
-    it('should distribute users across all variants', () => {
-      const variants = ['A', 'B', 'C', 'D'];
-      const distribution = { A: 0, B: 0, C: 0, D: 0 };
+    it('should distribute users across both variants', () => {
+      const variants = ['A', 'B'];
+      const distribution = { A: 0, B: 0 };
       
       for (let i = 0; i < 100; i++) {
         const userId = `user_${i}`;
         const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const variant = variants[hash % 4] as keyof typeof distribution;
+        const variant = variants[hash % variants.length] as keyof typeof distribution;
         distribution[variant]++;
       }
       
       // Each variant should have at least some users
       expect(distribution.A).toBeGreaterThan(0);
       expect(distribution.B).toBeGreaterThan(0);
-      expect(distribution.C).toBeGreaterThan(0);
-      expect(distribution.D).toBeGreaterThan(0);
     });
   });
 
@@ -73,7 +71,7 @@ describe('AB Testing Framework', () => {
     });
 
     it('should validate variant enum', () => {
-      const validVariants = ['A', 'B', 'C', 'D'];
+      const validVariants = ['A', 'B'];
       const testVariant = 'B';
       
       expect(validVariants).toContain(testVariant);

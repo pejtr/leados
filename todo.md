@@ -6,8 +6,8 @@
 - [x] Hero section — value proposition + comparison table (3 490 Kč vs 20 000+ Kč)
 - [x] Service pricing tiers — Lite Web (3 490 Kč), Basic Web (4 999 Kč), Web + Lead Gen (6 990 Kč), Web + Automation (9 990 Kč)
 - [x] Process section — form → proposal (48h) → approval → live
-- [x] Portfolio section — case studies (kavárna, elektrikář, kadeřnice, atd.)
-- [x] Testimonials section — star ratings + real results
+- [x] Portfolio section — komponenta napojená na ověřená data z DB
+- [x] Testimonials section — komponenta napojená na ověřená data z DB
 - [x] LeadOS B2B section — Starter/Growth/Pro pricing
 - [x] Contact form — name, email, phone, business description, package selection
 - [x] FAQ section — timeline, editing, costs, monthly fees
@@ -32,7 +32,7 @@
 - [x] Pricing cards component
 - [x] Process timeline component
 - [x] Portfolio gallery component
-- [x] Testimonials carousel component
+- [x] Testimonials komponenta bez lokálních smyšlených dat
 - [x] LeadOS section component
 - [x] Contact form component
 - [x] FAQ accordion component
@@ -43,8 +43,8 @@
 - [x] Hero headline & subheadline
 - [x] Service descriptions
 - [x] Process step descriptions
-- [x] Portfolio case study texts
-- [x] Testimonial quotes (real or template)
+- [ ] Doplnit tři ověřené klientské případové studie se souhlasem
+- [ ] Doplnit ověřené klientské citace se souhlasem
 - [x] FAQ answers
 - [x] LeadOS descriptions
 
@@ -142,16 +142,16 @@
 ## Zbývající práce — Fáze 4 & 5
 
 ### Fáze 4: LeadOS Orchestrace
-- [ ] Vytvořit tRPC router pro Manus API v2
-- [ ] Katastr-style control interface
-- [ ] Orchestrace projektů přes LeadOS
-- [ ] Webhook handling pro project updates
+- [x] Vytvořit tRPC router pro Manus API v2
+- [x] Katastr-style control interface
+- [x] Orchestrace projektů přes LeadOS
+- [x] Webhook handling pro project updates
 
 ### Fáze 5: Heartbeat Jobs
-- [ ] Autonomní monitoring projektů
-- [ ] Self-healing alerts
-- [ ] KPI dashboard
-- [ ] Anomaly detection
+- [x] Autonomní monitoring projektů
+- [x] Self-healing alerts
+- [x] KPI dashboard
+- [x] Anomaly detection
 
 
 ## Redesign — Inspirace davame.com
@@ -159,8 +159,8 @@
 - [x] Redesign landing page — tmavé fialové/navy pozadí (jako davame.com)
 - [x] Hero sekce — velký headline, stats (počet projektů, roky zkušeností, spokojenost)
 - [x] Niche solutions grid — karty pro různé obory (kavárny, elektrikáři, kadeřnice...)
-- [x] Case studies sekce — reálné příběhy s výsledky
-- [x] Testimonials — citáty klientů s fotkami
+- [x] Case studies sekce se zobrazí pouze s produkčními daty
+- [x] Testimonials se zobrazí pouze s produkčními daty
 - [x] CTA sekce — "Domluvit konzultaci" + "14 dní zdarma" dual CTA
 - [x] FAQ sekce — accordion styl
 - [x] Footer — tmavý, přehledný
@@ -213,6 +213,6 @@
 - [x] Napojit AB testing dashboard na reálná data přes tRPC router (ab.getSummary, ab.getMetrics)
 - [x] Přidat persistence/backend agregaci pro AB test events (ab-analytics.ts)
 - [x] Doplnit loading, error a empty states pro AB testing dashboard
-- [ ] Google Analytics integration pro AB testing
-- [ ] Dokumentace pro spouštění AB testů
-- [ ] Production readiness checklist
+- [x] Google Analytics integration pro AB testing
+- [x] Dokumentace pro spouštění AB testů
+- [x] Production readiness checklist

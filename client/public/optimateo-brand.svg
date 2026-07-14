@@ -1,0 +1,27 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="brand-gradient" x1="15" y1="78" x2="82" y2="15" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#008cff"/>
+      <stop offset="0.5" stop-color="#2438ff"/>
+      <stop offset="1" stop-color="#e014ff"/>
+    </linearGradient>
+    <linearGradient id="wordmark-gradient" x1="466" y1="508" x2="815" y2="508" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#008cff"/>
+      <stop offset="0.5" stop-color="#4f46e5"/>
+      <stop offset="1" stop-color="#e014ff"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#020617"/>
+  <g transform="translate(480 70) scale(2.5)">
+    <path d="M29 65.5A31 31 0 0 1 63.5 22.5" fill="none" stroke="url(#brand-gradient)" stroke-width="12"/>
+    <path d="M66.5 42.5A31 31 0 0 1 44 72" fill="none" stroke="url(#brand-gradient)" stroke-width="12"/>
+    <path d="M21 75L72 24" fill="none" stroke="url(#brand-gradient)" stroke-width="11" stroke-linecap="square"/>
+    <path d="M61 17L82 12L77 33Z" fill="url(#brand-gradient)"/>
+  </g>
+  <rect x="191" y="388" width="54" height="54" rx="10" fill="none" stroke="#078bff" stroke-width="11"/>
+  <text x="278" y="438" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700" letter-spacing="22">PTIMATE</text>
+  <rect x="956" y="388" width="54" height="54" rx="10" fill="none" stroke="#c31cff" stroke-width="11"/>
+  <line x1="250" y1="508" x2="430" y2="508" stroke="#078bff" stroke-width="3"/>
+  <text x="466" y="520" fill="url(#wordmark-gradient)" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="14">DIGITAL AGENCY</text>
+  <line x1="950" y1="508" x2="1010" y2="508" stroke="#c31cff" stroke-width="3"/>
+</svg>

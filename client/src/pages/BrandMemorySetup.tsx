@@ -122,7 +122,7 @@ export default function BrandMemorySetup({ onComplete, initialData }: Props) {
                 <div className="space-y-4">
                   <div>
                     <Label htmlFor="companyName">Název firmy *</Label>
-                    <Input id="companyName" placeholder="např. ONYX WEB" {...register("companyName", { required: true })} className="mt-1" />
+                    <Input id="companyName" placeholder="např. OPTIMATEO" {...register("companyName", { required: true })} className="mt-1" />
                   </div>
                   <div>
                     <Label htmlFor="tagline">Slogan / Tagline</Label>
@@ -134,7 +134,7 @@ export default function BrandMemorySetup({ onComplete, initialData }: Props) {
                   </div>
                   <div>
                     <Label htmlFor="website">Web</Label>
-                    <Input id="website" placeholder="https://onyxweb.cz" {...register("website")} className="mt-1" />
+                    <Input id="website" placeholder="https://www.optimateo.com" {...register("website")} className="mt-1" />
                   </div>
                 </div>
               </>
@@ -250,7 +250,7 @@ export default function BrandMemorySetup({ onComplete, initialData }: Props) {
                     <Label htmlFor="products">Produkty / Služby</Label>
                     <Textarea
                       id="products"
-                      placeholder="např. Lite Web (3 490 Kč), Basic Web (4 999 Kč), Web + Lead Gen (6 990 Kč), ONYX OS SaaS (999 Kč/měs)..."
+                      placeholder="např. konzultace, audit, realizace webu, měsíční správa..."
                       {...register("products")}
                       className="mt-1 min-h-[100px]"
                     />

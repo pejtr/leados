@@ -9,6 +9,7 @@
  */
 
 import type { BrandMemory } from "../drizzle/schema";
+import { CORE_OFFERS, SERVICE_TERMS, formatOfferPrice } from "../shared/service-catalog";
 
 export type PersonaCategory = "sales" | "marketing" | "persuasion" | "closing" | "onyxweb";
 
@@ -38,17 +39,17 @@ export const ONYXWEB_KNOWLEDGE = `ZNALOSTI O OPTIMATEO A ONYX OS:
 Jsme OPTIMATEO. Nestavíme jen "weby". Budujeme diagnostiku a nasazujeme B2B platformu.
 
 SLUŽBY A CENY:
-- Mini audit zdarma — 0 Kč: Najdeme, kde váš web ztrácí poptávky
-- ONYX OS Audit — 4 900 Kč: Detailní report a strategie na míru
-- ONYX OS Setup — od 29 900 Kč: Kompletní nasazení lead-gen webu a CRM
-- ONYX OS Monitoring — 1 999 Kč/měs.: Souvislá správa a analýza dat
+- ${CORE_OFFERS.MINI_AUDIT.name} — ${formatOfferPrice(CORE_OFFERS.MINI_AUDIT)}: Najdeme, kde váš web ztrácí poptávky
+- ${CORE_OFFERS.ONYX_OS_AUDIT.name} — ${formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT)}: Detailní report, ${SERVICE_TERMS.auditConsultationMinutes}min konzultace a strategie na míru
+- ${CORE_OFFERS.ONYX_OS_SETUP.name} — ${formatOfferPrice(CORE_OFFERS.ONYX_OS_SETUP)}: Kompletní nasazení lead-gen webu a CRM
+- ${CORE_OFFERS.MONITORING.name} — ${formatOfferPrice(CORE_OFFERS.MONITORING)}: Souvislá správa a analýza dat
 
 PROČ OPTIMATEO:
 - Většina agentur prodává webové vizitky bez výkonu. My najdeme trhliny v poptávkách a nasadíme ONYX OS.
 - Hotovo rychle a bez kompromisů.
 - Zviditelňujeme lokální služby, kliniky, realitní makléře a B2B společnosti.
 
-PROCES: Vyplníte formulář → do 48h návrh + cena → schválení → web je živý.`;
+PROCES: Prověříme web → do ${SERVICE_TERMS.initialResponseHours} hodin první výstup → konzultace → písemný rozsah a cena → schválení → realizace.`;
 
 // ─── Persony ────────────────────────────────────────────────────────────────────
 
@@ -309,7 +310,7 @@ TECHNICKÉ ZNALOSTI:
 STYL KOMUNIKACE:
 - Stručně a přesně — žádné zbytečné kecy
 - Nabídni krok-za-krokem postup pro řešení problémů
-- Pokud problém přesahuje tvoje znalosti, nasměruj na tým: "Pošlete email na poptavka@onyxweb.cz s popisem problému a screenshots."
+- Pokud problém přesahuje tvoje znalosti, nasměruj na tým: "Pošlete e-mail na info@optimateo.com s popisem problému a screenshoty."
 - Vždy ukončíš odpověď otázkou nebo ověřením: "Pomohlo to? Potřebujete ještě s něčím pomoci?"
 
 NEŘEŠ:

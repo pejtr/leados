@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, ChevronRight, Phone, Mail, MapPin, Clock, Star, CheckCircle, ShoppingCart, Play, Zap } from "lucide-react";
 import { SalesChatWidget } from "@/components/SalesChatWidget";
+import { OptimateoLogo } from "@/components/OptimateoLogo";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -232,6 +233,9 @@ const TEMPLATES: Template[] = [
     },
   },
 ];
+
+const CURATED_TEMPLATE_IDS = new Set(["kavarna", "kadernictvi", "elektrikar", "reality"]);
+const CURATED_TEMPLATES = TEMPLATES.filter(template => CURATED_TEMPLATE_IDS.has(template.id));
 
 // ─── Template preview components ──────────────────────────────────────────────
 
@@ -800,9 +804,7 @@ export default function DemoPage() {
       {/* Nav */}
       <nav className="border-b border-white/5 px-4 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <a href="/" className="text-xl font-extrabold tracking-tight">
-            <span className="text-violet-400">OPT</span>IVIO
-          </a>
+          <a href="/" aria-label="OPTIMATEO"><OptimateoLogo className="h-8" light /></a>
           <div className="flex items-center gap-4 text-sm">
             <a href="/agents" className="text-violet-400 hover:text-violet-200">✨ Asistenti</a>
             <a href="/" className="text-white/50 hover:text-white">← Zpět</a>
@@ -811,25 +813,20 @@ export default function DemoPage() {
       </nav>
 
       {/* Hero */}
-      <section className="py-20 px-4 text-center relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl" />
-          <div className="absolute top-10 right-1/4 w-80 h-80 bg-fuchsia-500/10 rounded-full blur-3xl" />
-        </div>
-        <div className="relative max-w-3xl mx-auto">
+      <section className="border-b border-white/10 px-4 py-20 text-center">
+        <div className="mx-auto max-w-3xl">
           <div className="inline-flex items-center gap-2 border border-violet-400/30 bg-violet-400/5 rounded-full px-4 py-1.5 text-sm text-violet-400 mb-6 font-semibold">
-            <Zap className="w-3.5 h-3.5" /> 8 niche šablon · Živý náhled · Vaše data
+            <Zap className="w-3.5 h-3.5" /> 4 kurátorované oborové koncepty
           </div>
           <h1 className="text-4xl lg:text-6xl font-extrabold mb-4 leading-tight">
-            Vyzkoušejte svůj web<br />
-            <span className="text-violet-400">zdarma.</span>
+            Ukázky webů pro<br />
+            <span className="text-violet-400">konkrétní obory.</span>
           </h1>
           <p className="text-white/50 text-lg max-w-xl mx-auto mb-4">
-            Vyberte šablonu pro váš obor, vyplňte svá data — a ihned uvidíte, jak bude váš web vypadat.
-            Žádná registrace, žádná kreditní karta.
+            Jde o demonstrační koncepty, ne vydávané klientské reference. Vyberte obor a upravte obsah, abyste si ověřili vhodnou strukturu stránky.
           </p>
           <div className="flex justify-center gap-6 text-sm text-white/30">
-            {["✓ Živý náhled", "✓ Vaše vlastní data", "✓ Do 5 dní hotovo"].map(t => (
+            {["Živý náhled", "Vlastní obsah", "Navazuje mini audit"].map(t => (
               <span key={t}>{t}</span>
             ))}
           </div>
@@ -840,8 +837,8 @@ export default function DemoPage() {
       <section className="py-8 px-4 pb-20">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-center text-white/40 text-sm uppercase tracking-widest mb-10">Vyberte svůj obor</h2>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {TEMPLATES.map(t => (
+          <div className="grid gap-8 sm:grid-cols-2">
+            {CURATED_TEMPLATES.map(t => (
               <button
                 key={t.id}
                 onClick={() => selectTemplate(t)}
@@ -853,7 +850,7 @@ export default function DemoPage() {
                   <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
                   <span className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
                   <div className="flex-1 ml-2 bg-white/8 rounded-full h-4 flex items-center justify-center">
-                    <span className="text-[9px] text-white/25 tracking-wide">onyxweb.cz/{t.id}</span>
+                    <span className="text-[9px] text-white/25 tracking-wide">Ukázka OPTIMATEO · {t.id}</span>
                   </div>
                 </div>
                 {/* Template preview */}
@@ -908,7 +905,7 @@ export default function DemoPage() {
       </section>
 
       <footer className="py-8 text-center text-white/20 text-sm border-t border-white/5">
-        © {new Date().getFullYear()} ONYX WEB · <a href="/" className="hover:text-white/40">Domů</a> · <a href="/agents" className="text-violet-400 hover:text-violet-300">Asistenti</a>
+        © {new Date().getFullYear()} OPTIMATEO · <a href="/" className="hover:text-white/40">Domů</a> · <a href="/agents" className="text-violet-400 hover:text-violet-300">AI Asistenti</a>
       </footer>
 
       {/* Online advisor — pomáhá vybrat šablonu a odpovídá na dotazy */}

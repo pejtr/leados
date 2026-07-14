@@ -9,6 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { OptimateoLogo } from "@/components/OptimateoLogo";
 import { ArrowLeft, Check, ShieldCheck, Database, Zap, Sparkles, MessageSquare, LayoutDashboard } from "lucide-react";
+import { isChannelConsented } from "@/components/CookieConsentBanner";
+import { trackLinkedInConversion } from "@/lib/linkedin";
+import { getAttribution } from "@/lib/attribution";
+import { trackEvent, trackFormStart } from "@/lib/ab-test";
 
 export default function CrmLeadSystem() {
     const [, setLocation] = useLocation();
@@ -33,7 +37,7 @@ export default function CrmLeadSystem() {
 
         setSubmitting(true);
         try {
-            await createInquiry.mutateAsync({
+            const result = await createInquiry.mutateAsync({
                 name: formData.name,
                 email: formData.email,
                 phone: formData.phone,
@@ -44,10 +48,14 @@ export default function CrmLeadSystem() {
                     company: formData.company,
                     description: formData.description,
                     crmLeadSystemRequested: true,
+                    ...getAttribution(),
                 },
+                linkedinConsent: isChannelConsented("linkedin"),
             } as any);
 
-            trackSklikConversion({ orderId: `crm-lead-${Date.now()}`, value: 1000 });
+            trackSklikConversion({ orderId: `crm-lead-${result.id}` });
+            trackLinkedInConversion();
+            void trackEvent("form_submit", { formName: "crm-lead-system", inquiryId: result.id });
             setSubmitted(true);
             toast.success("Vaše poptávka byla úspěšně odeslána!");
         } catch (err) {
@@ -133,7 +141,7 @@ export default function CrmLeadSystem() {
                                     <p className="text-slate-400 text-xs mt-1">Vyplňte formulář a my se ozveme s nezávaznou nabídkou.</p>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="space-y-4">
+                                <form onSubmit={handleSubmit} onFocusCapture={() => trackFormStart("crm-lead-system")} className="space-y-4">
                                     <div>
                                         <Label htmlFor="name" className="text-xs font-semibold text-slate-350">Vaše jméno *</Label>
                                         <Input

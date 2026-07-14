@@ -6,20 +6,22 @@ Priprava pro spusteni placene navstevnosti na OPTIMATEO web. Cil je ziskat merit
 
 Pred spustenim kampani nastav ve frontendu tyto verejne env promenne:
 
+- `VITE_SEZNAM_SEM_ID` - aktualni SEM ID ze Sklik Spravy mereni.
 - `VITE_SKLIK_RETARGETING_ID` - retargetingove ID ze Skliku.
 - `VITE_SKLIK_CONVERSION_ID` - ID konverze "Odeslana poptavka".
 
 Web odesila:
 
-- Retargetingovy hit na kazde strance pres `/js/rc.js`.
-- Konverzni hit po uspesnem odeslani formularu na homepage, `/web` a `/dotaznik`.
+- SEM `PageView` na verejnych routach, `Lead` po skutecnem odeslani poptavky a `Purchase` az po serverove potvrzene platbe.
+- Legacy retargetingovy hit a konverzi pres `rc.js` po dobu soubezne migrace.
+- Konverzni hit po souhlasu a uspesnem odeslani formularu na homepage, `/web`, `/dotaznik`, `/audit-zdarma` a `/crm-lead-system`.
 - Segment do URL landing page: `/lp/zivnostnici`, `/lp/b2b`, `/lp/remeslnici`, `/lp/restaurace`, `/lp/salony`, `/lp/ecommerce`.
 
-Cookie lista musi pri souhlasu s marketingem ulozit `sklik_consent=1`. Bez souhlasu web posle `consent: 0`, aby Sklik mohl hit zpracovat anonymizovane.
+Cookie lista pri souhlasu se Sklikem ulozi `sklik_consent=1`. Bez souhlasu se `sul.js` ani `rc.js` nenacita a zadny hit se neposila. Prechod na SEM lze podle oficialni dokumentace provozovat soubezne se starym merenim: https://napoveda.sklik.cz/merici-skripty/seznam-event-measurement/zaciname-se-sem/
 
 ## 2. URL a UTM sablony
 
-Zakladni final URL:
+Zakladni final URL (vzdy vcetne domeny `https://www.optimateo.com`):
 
 - Zivnostnici: `/lp/zivnostnici?utm_source=sklik&utm_medium=cpc&utm_campaign=search_zivnostnici&utm_content={creative}&utm_term={keyword}`
 - B2B: `/lp/b2b?utm_source=sklik&utm_medium=cpc&utm_campaign=search_b2b_leadgen&utm_content={creative}&utm_term={keyword}`
@@ -126,7 +128,7 @@ Reklama:
 
 - Nadpis 1: Web pro restaurace
 - Nadpis 2: Menu a rezervace
-- Nadpis 3: Od 4 990 Kc
+- Nadpis 3: Od 4 999 Kc
 - Popis: Prehledne menu, fotky, rezervacni vyzva a mereni kampani pro gastro provozy.
 
 ### SKLIK | Search | Obory | Salony
@@ -200,6 +202,13 @@ Sdeleni:
 - Spustime web pripraveny pro Sklik
 - Vyplnte kratky dotaznik, ozveme se do 24 hodin
 
+### Vylouceni publik
+
+- z akvizicniho retargetingu vyloucit odeslane leady;
+- z nabidkoveho retargetingu vyloucit `deposit_paid`;
+- klienty a administratory vyloucit podle prihlaseneho publika nebo interniho seznamu;
+- B2B a male zivnostniky drzet v oddelenych publikach i kreative.
+
 ## 5. Vylucujici slova
 
 Pouzit napric search kampanemi:
@@ -234,12 +243,52 @@ Konzervativni start na prvnich 10-14 dni:
 
 Po prvnich 30-50 proklicich na sestavu vyhodnotit CTR, cenu leadu, kvalitu poptavek a dotazy v search terms.
 
-## 7. QA checklist pred spustenim
+## 7. Rozsireni reklam a struktura uctu
 
-- Sklik retargeting ID je nastavene a hit odchazi na kazde strance.
+Odkazy:
+
+- Audit webu zdarma -> `/audit-zdarma`
+- Ceny a rozsah -> `/pricing`
+- CRM pro poptavky -> `/crm-lead-system`
+- Web pro firmy -> `/web`
+
+Popisky:
+
+- Cesky dodavatel
+- Cena a rozsah predem
+- Mereni poptavek
+- Odezva do 24 hodin
+
+Struktura nazvu:
+
+- kampan: `CZ | Search | Segment | Cil`
+- sestava: `Problem | Sluzba | Shoda`
+- reklama: `Nabidka | Varianta`
+
+Na start pouzit presnou a frazovou shodu. Volnou shodu zapnout az ve chvili, kdy ma ucet dostatek kvalitnich lead konverzi a pravidelne se kontroluji vyhledavaci dotazy.
+
+## 8. Vyhodnocení podle tržeb
+
+Kazdy tyden sledovat:
+
+- cenu za odeslany lead;
+- podil leadu s `lead_qualified`;
+- podil `call_booked`;
+- podil `proposal_sent`;
+- cenu za `deposit_paid`;
+- skutecnou hodnotu a segment zaplacene zakazky.
+
+Kampan neoptimalizovat pouze na formular. Rozhodujici je kvalifikovany lead a zaplacena zakazka.
+
+## 9. QA checklist pred spustenim
+
+- SEM ID je nastavene a `PageView` odchazi na kazde verejne SPA route po souhlasu.
+- Legacy Sklik ID jsou nastavena jen po dobu soubezne migrace.
 - Sklik konverzni ID je nastavene a konverze odchazi po uspesnem odeslani leadu.
 - Cookie lista umi nastavit `sklik_consent=1` po marketingovem souhlasu.
+- Po odmitnuti se nenacte `sul.js` ani `rc.js`.
 - Vsechny landing pages vraci HTTP 200: `/lp/zivnostnici`, `/lp/b2b`, `/lp/remeslnici`, `/lp/restaurace`, `/lp/salony`, `/lp/ecommerce`.
 - Final URL v reklamach obsahuje UTM parametry.
 - Dotaznik prijima parametr `segment` a poptavky maji ve zdroji rozliseni Sklik kampane.
 - Retargetingove publikum vylucuje uzivatele, kteri uz odeslali lead, pokud to Sklik nastaveni uctu umoznuje.
+- Testovaci `Purchase` ma skutecne `order_id`, menu `CZK` a skutecnou zaplacenou hodnotu.

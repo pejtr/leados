@@ -31,7 +31,7 @@ export function TechSupportWidget() {
       setMessages((prev) => [...prev, { role: "assistant", content: res.content }]);
     },
     onError: () => {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Omlouvám se, něco se pokazilo. Napište nám na poptavka@onyxweb.cz nebo zkuste znovu." }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "Omlouvám se, něco se pokazilo. Napište nám na info@optimateo.com nebo zkuste znovu." }]);
     },
   });
 
@@ -108,7 +108,7 @@ export function TechSupportWidget() {
                   <div className="w-14 h-14 rounded-full bg-sky-50 flex items-center justify-center text-2xl">🛠️</div>
                   <div className="text-center">
                     <p className="text-sm font-medium text-slate-800 mb-1">Ahoj! 👋 Jsem Alex.</p>
-                    <p className="text-xs text-slate-500">Jsem tu pro technické dotazy ohledně vašeho webu a služeb ONYX WEB.</p>
+                    <p className="text-xs text-slate-500">Jsem tu pro technické dotazy ohledně vašeho webu a služeb OPTIMATEO.</p>
                   </div>
                   <div className="flex flex-col gap-2 w-full max-w-[280px]">
                     {SUGGESTED.map((p) => (
@@ -185,7 +185,7 @@ export function TechSupportWidget() {
                 </Button>
               </div>
               <p className="text-[10px] text-slate-400 mt-2 text-center">
-                Pro urgentní věci: <a href="mailto:poptavka@onyxweb.cz" className="text-sky-500 hover:underline">poptavka@onyxweb.cz</a>
+                Pro urgentní věci: <a href="mailto:info@optimateo.com" className="text-sky-500 hover:underline">info@optimateo.com</a>
               </p>
             </div>
           </motion.div>

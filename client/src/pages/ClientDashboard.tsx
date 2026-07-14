@@ -8,7 +8,9 @@ import { CheckCircle, Clock, AlertCircle, Download, ChevronDown, ChevronUp, Targ
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { TechSupportWidget } from "@/components/TechSupportWidget";
-import { OnyxWebLogo } from "@/components/OnyxWebLogo";
+import { OptimateoLogo } from "@/components/OptimateoLogo";
+import { formatCzk } from "@shared/service-catalog";
+import { toast } from "sonner";
 
 function greetingForNow(): string {
   const h = new Date().getHours();
@@ -24,6 +26,7 @@ export default function ClientDashboard() {
   const { data: projects, isLoading: projectsLoading } = trpc.projects.myProjects.useQuery();
   const { data: payments } = trpc.payments.listByUser.useQuery();
   const { data: brief } = trpc.dashboard.nowBrief.useQuery();
+  const checkoutMutation = trpc.stripe.getCheckoutUrl.useMutation();
 
   if (!user) {
     return (
@@ -70,12 +73,15 @@ export default function ClientDashboard() {
     return <div className="w-4 h-4 rounded-full border-2 border-slate-300 shrink-0" />;
   };
 
-  const formatPrice = (price: number) => `${(price / 100).toLocaleString("cs-CZ")} Kč`;
+  const formatPrice = formatCzk;
 
   const formatPackageName = (pkg: string) => {
     const names: Record<string, string> = {
       lite: "Lite Web", basic: "Basic Web",
       lead_gen: "Web + Lead Gen", automation: "Web + Automatizace",
+      LITE_WEB: "Lite Web", BASIC_WEB: "Basic Web",
+      WEB_LEAD_GEN: "Web + Lead Gen", WEB_AUTOMATION: "Web + automatizace",
+      ONYX_OS_AUDIT: "ONYX OS Audit", ONYX_OS_SETUP: "ONYX OS Setup",
     };
     return names[pkg] ?? pkg;
   };
@@ -93,15 +99,15 @@ export default function ClientDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-4 py-4">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <a href="/" aria-label="ONYX WEB" className="hover:opacity-80 transition-opacity"><OnyxWebLogo className="h-7" /></a>
+            <a href="/" aria-label="OPTIMATEO" className="hover:opacity-80 transition-opacity"><OptimateoLogo className="h-7" /></a>
             <span className="text-slate-300">|</span>
             <div className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-              <LayoutDashboard className="w-4 h-4 text-violet-600" /> ADMIN
+              <LayoutDashboard className="w-4 h-4 text-violet-600" /> Klientský portál
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -345,7 +351,19 @@ export default function ClientDashboard() {
                       {/* CTA for pending payment */}
                       {project.order?.status === "pending" && (
                         <div className="pt-2 border-t">
-                          <Button className="bg-violet-600 hover:bg-violet-700 w-full md:w-auto">
+                          <Button
+                            disabled={checkoutMutation.isPending}
+                            onClick={async () => {
+                              if (!project.order) return;
+                              try {
+                                const result = await checkoutMutation.mutateAsync({ orderId: project.order.id });
+                                window.location.assign(result.checkoutUrl);
+                              } catch {
+                                toast.error("Platební odkaz už není aktivní. Kontaktujte nás prosím pro nový.");
+                              }
+                            }}
+                            className="bg-violet-600 hover:bg-violet-700 w-full md:w-auto"
+                          >
                             Zaplatit zálohu {project.order && formatPrice(project.order.depositAmount)}
                           </Button>
                         </div>

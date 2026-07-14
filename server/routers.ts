@@ -2,17 +2,77 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
-import { createInquiry, listInquiries, getPortfolioProjects, getTestimonials, getNichePackages, createNichePackage, getCustomerSubscriptions, createCustomerSubscription, cancelCustomerSubscription, getAllNichePackages, updateNichePackage, deactivateNichePackage, getAllSubscriptions, createOrder, getOrder, updateOrder, createPayment, getPaymentsByOrder, getAllOrders, getAllPayments, getBrandMemory, upsertBrandMemory, createAgentSession, getAgentSessions, getAgentSession, updateAgentSession, addAgentMessage, getAgentMessages, getAllProjects, getProjectByOrderId, getProjectsByOrderIds, createProject, updateProject, getProjectMilestones, createMilestone, updateMilestone } from "./db";
+import { createInquiry, listInquiries, getInquiryById, updateInquiry, getPortfolioProjects, getTestimonials, getNichePackages, createNichePackage, getCustomerSubscriptions, createCustomerSubscription, cancelCustomerSubscription, getAllNichePackages, updateNichePackage, deactivateNichePackage, getAllSubscriptions, createOrder, getOrder, updateOrder, getPaymentsByOrder, getAllOrders, getAllPayments, getBrandMemory, upsertBrandMemory, createAgentSession, getAgentSessions, getAgentSession, updateAgentSession, addAgentMessage, getAgentMessages, getAllProjects, getProjectByOrderId, getProjectsByOrderIds, createProject, updateProject, getProjectMilestones, createMilestone, updateMilestone } from "./db";
 import { notifyOwner } from "./notify";
-import { sendOrderConfirmationEmail, sendPaymentConfirmationEmail } from "./email-service";
+import { sendOrderConfirmationEmail } from "./email-service";
 import { invokeLLM } from "./_core/llm";
 import { SKILLS, getSkill, buildSystemPrompt } from "./agent-skills";
 import { SALES_PERSONAS, getPersona, listPersonas, personaPublicInfo, buildPersonaSystemPrompt } from "./sales-personas";
 import { getSalesConversation, upsertSalesConversation, addSalesMessage, getSalesMessages, incrementSalesMessageCount, captureSalesLead, getAllSalesConversations } from "./db";
 import Stripe from "stripe";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { ONYXWEB_PRODUCTS, calculateDeposit, calculateRemaining } from "./stripe-products";
-import { getABTestSummary, getABTestMetrics } from "./ab-analytics";
+import { ONYXWEB_PRODUCTS, calculateDeposit, calculateRemaining, toStripeMinorUnits } from "./stripe-products";
+import { getABTestSummary, getABTestMetrics, recordABTestEvent } from "./ab-analytics";
+import { trackLinkedInLead } from "./linkedin-capi";
+import { CHECKOUT_OFFER_IDS } from "../shared/service-catalog";
+import { PUBLIC_SITE_URL } from "../shared/brand-config";
+import { recordPaidCheckoutSession } from "./payment-service";
+import { enforcePublicRateLimit, hasValidSharedSecret } from "./public-request-guard";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseInquiryDetails(value: string | null): Record<string, unknown> {
+  if (!value) return {};
+
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return isRecord(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getPublicBaseUrl(requestOrigin?: string) {
+  const configured = process.env.PUBLIC_APP_URL?.trim();
+  if (configured && /^https:\/\/[^/]+/i.test(configured)) return configured.replace(/\/$/, "");
+  if (process.env.NODE_ENV !== "production" && requestOrigin && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin)) {
+    return requestOrigin;
+  }
+  return PUBLIC_SITE_URL;
+}
+
+function sameEmail(left?: string | null, right?: string | null) {
+  return Boolean(left && right && left.trim().toLowerCase() === right.trim().toLowerCase());
+}
+
+function optionalTrimmedString(maxLength: number) {
+  return z.preprocess(
+    value => typeof value === "string" && value.trim() === "" ? undefined : value,
+    z.string().trim().max(maxLength).optional()
+  );
+}
+
+const inquiryDetailsSchema = z.record(z.string(), z.unknown()).refine((details) => {
+  try {
+    return Buffer.byteLength(JSON.stringify(details), "utf8") <= 50_000;
+  } catch {
+    return false;
+  }
+}, "Inquiry details are too large");
+
+const createInquirySchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  email: z.string().trim().email().max(320),
+  phone: optionalTrimmedString(20),
+  businessDescription: optionalTrimmedString(10_000),
+  packageType: optionalTrimmedString(50),
+  details: inquiryDetailsSchema.optional(),
+  source: optionalTrimmedString(100),
+  linkedinConsent: z.boolean().optional().default(false),
+}).strict();
 
 export const appRouter = router({
   system: systemRouter,
@@ -29,28 +89,9 @@ export const appRouter = router({
 
   inquiries: router({
     create: publicProcedure
-      .input((data: unknown): {
-        name: string;
-        email: string;
-        phone?: string;
-        businessDescription?: string;
-        packageType?: string;
-        details?: Record<string, unknown>;
-        source?: string;
-      } => {
-        const obj = data as Record<string, unknown>;
-        return {
-          name: String(obj.name || ""),
-          email: String(obj.email || ""),
-          phone: obj.phone ? String(obj.phone) : undefined,
-          businessDescription: obj.businessDescription ? String(obj.businessDescription) : undefined,
-          packageType: obj.packageType ? String(obj.packageType) : undefined,
-          // Free-form questionnaire answers (goals, pages, materials, budget, deadline…)
-          details: obj.details && typeof obj.details === "object" ? (obj.details as Record<string, unknown>) : undefined,
-          source: obj.source ? String(obj.source) : undefined,
-        };
-      })
+      .input(createInquirySchema)
       .mutation(async ({ input, ctx }) => {
+        enforcePublicRateLimit(ctx.req, "inquiry-create", 5, 15 * 60_000);
         const detailsJson = input.details ? JSON.stringify(input.details) : undefined;
 
         const inquiry = await createInquiry({
@@ -62,6 +103,14 @@ export const appRouter = router({
           details: detailsJson,
           source: input.source,
         });
+
+        if (input.linkedinConsent) {
+          void trackLinkedInLead(
+            input.email,
+            input.phone,
+            input.name
+          ).catch(error => console.error("[LinkedIn CAPI] Lead tracking failed:", error));
+        }
 
         try {
           const detailLines = input.details
@@ -104,9 +153,87 @@ export const appRouter = router({
 
         return { success: true, id: (inquiry as any).insertId || 0 };
       }),
-    list: protectedProcedure.query(async () => {
+    list: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
       return await listInquiries();
     }),
+    recordLifecycle: protectedProcedure
+      .input(z.object({
+        inquiryId: z.number().int().positive(),
+        event: z.enum(["lead_qualified", "proposal_sent"]),
+        note: z.string().trim().max(2_000).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+
+        const inquiry = await getInquiryById(input.inquiryId);
+        if (!inquiry) throw new Error("Inquiry not found");
+
+        const details = parseInquiryDetails(inquiry.details);
+        const lifecycle = isRecord(details.lifecycle) ? details.lifecycle : {};
+        lifecycle[input.event] = {
+          at: new Date().toISOString(),
+          note: input.note || undefined,
+        };
+
+        return await updateInquiry(input.inquiryId, {
+          details: JSON.stringify({ ...details, lifecycle }),
+          status: "contacted",
+        });
+      }),
+    bookCall: publicProcedure
+      .input(z.object({
+        inquiryId: z.number().int().positive(),
+        email: z.string().trim().email(),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        time: z.enum(["09:00", "13:00", "16:00"]),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        enforcePublicRateLimit(ctx.req, "call-booking", 10, 15 * 60_000);
+        const inquiry = await getInquiryById(input.inquiryId);
+        if (!inquiry || !sameEmail(inquiry.email, input.email)) {
+          throw new Error("Inquiry not found");
+        }
+
+        const selectedDate = new Date(`${input.date}T12:00:00Z`);
+        const today = new Date();
+        const earliest = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+        const latest = new Date(earliest);
+        latest.setUTCDate(latest.getUTCDate() + 30);
+        const weekday = selectedDate.getUTCDay();
+        if (Number.isNaN(selectedDate.getTime()) || selectedDate < earliest || selectedDate > latest || weekday === 0 || weekday === 6) {
+          throw new Error("Invalid booking date");
+        }
+
+        const scheduledFor = `${input.date}T${input.time}`;
+        const slotOccupied = (await listInquiries()).some((candidate) => {
+          if (candidate.id === inquiry.id) return false;
+          const candidateDetails = parseInquiryDetails(candidate.details);
+          const candidateLifecycle = isRecord(candidateDetails.lifecycle) ? candidateDetails.lifecycle : {};
+          const booked = isRecord(candidateLifecycle.call_booked) ? candidateLifecycle.call_booked : {};
+          return booked.scheduledFor === scheduledFor;
+        });
+        if (slotOccupied) throw new Error("Booking slot is no longer available");
+
+        const details = parseInquiryDetails(inquiry.details);
+        const lifecycle = isRecord(details.lifecycle) ? details.lifecycle : {};
+        lifecycle.call_booked = {
+          at: new Date().toISOString(),
+          scheduledFor,
+          timezone: "Europe/Prague",
+        };
+
+        await updateInquiry(input.inquiryId, {
+          details: JSON.stringify({ ...details, lifecycle }),
+          status: "contacted",
+        });
+
+        return {
+          success: true,
+          scheduledFor,
+          timezone: "Europe/Prague" as const,
+        };
+      }),
   }),
   portfolio: router({
     list: publicProcedure.query(async () => {
@@ -209,20 +336,20 @@ export const appRouter = router({
       }),
   }),
   stripe: router({
-    createCheckoutSession: publicProcedure
-      .input((data: unknown) => {
-        const obj = data as Record<string, unknown>;
-        return {
-          packageType: String(obj.packageType || ""),
-          inquiryId: Number(obj.inquiryId || 0),
-          customerEmail: String(obj.customerEmail || ""),
-          customerName: String(obj.customerName || ""),
-        };
-      })
+    createCheckoutSession: protectedProcedure
+      .input(z.object({
+        packageType: z.enum(CHECKOUT_OFFER_IDS),
+        inquiryId: z.number().int().positive(),
+      }))
       .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+        if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe is not configured");
+
+        const inquiry = await getInquiryById(input.inquiryId);
+        if (!inquiry) throw new Error("Inquiry not found");
+
         const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
-        const packageKey = input.packageType.toUpperCase().replace(/-/g, "_") as keyof typeof ONYXWEB_PRODUCTS;
-        const product = ONYXWEB_PRODUCTS[packageKey];
+        const product = ONYXWEB_PRODUCTS[input.packageType];
 
         if (!product) {
           throw new Error("Invalid package type");
@@ -230,84 +357,173 @@ export const appRouter = router({
 
         const depositAmount = calculateDeposit(product.priceInCzk, product.depositPercentage);
         const remainingAmount = calculateRemaining(product.priceInCzk, depositAmount);
+        const existingOrder = (await getAllOrders()).find((order) =>
+          order.inquiryId === input.inquiryId
+          && order.packageType === input.packageType
+          && order.status === "pending"
+        );
+        let orderId = existingOrder?.id ?? 0;
+        let session: Stripe.Checkout.Session | null = null;
 
-        const orderResult = await createOrder({
-          inquiryId: input.inquiryId,
-          packageType: input.packageType,
-          totalPrice: product.priceInCzk,
-          depositPercentage: product.depositPercentage,
-          depositAmount,
-          remainingAmount,
-          status: "pending",
-        });
+        if (existingOrder?.stripeCheckoutSessionId) {
+          try {
+            session = await stripe.checkout.sessions.retrieve(existingOrder.stripeCheckoutSessionId);
+            if (session.payment_status === "paid") throw new Error("Checkout is already paid");
+            if (session.status !== "open") session = null;
+          } catch (error) {
+            if (error instanceof Error && error.message === "Checkout is already paid") throw error;
+            console.warn("Existing Stripe checkout could not be reused; creating a new session.");
+            session = null;
+          }
+        }
 
-        const orderId = (orderResult as any).insertId || 0;
-
-        const session = await stripe.checkout.sessions.create({
-          payment_method_types: ["card"],
-          line_items: [
-            {
-              price_data: {
-                currency: "czk",
-                product_data: {
-                  name: product.name,
-                  description: product.description,
-                },
-                unit_amount: depositAmount,
-              },
-              quantity: 1,
-            },
-          ],
-          mode: "payment",
-          success_url: `${ctx.req.headers.origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${ctx.req.headers.origin}/payment-cancel`,
-          customer_email: input.customerEmail,
-          client_reference_id: orderId.toString(),
-          metadata: {
-            orderId: orderId.toString(),
-            inquiryId: input.inquiryId.toString(),
+        if (!orderId) {
+          const orderResult = await createOrder({
+            inquiryId: input.inquiryId,
             packageType: input.packageType,
-            customerName: input.customerName,
-          },
-        });
+            totalPrice: product.priceInCzk,
+            depositPercentage: product.depositPercentage,
+            depositAmount,
+            remainingAmount,
+            status: "pending",
+          });
+          orderId = Number((orderResult as { insertId?: number | bigint }).insertId || 0);
+          if (!orderId) throw new Error("Order could not be created");
+        }
 
-        await updateOrder(orderId, {
-          stripeCheckoutSessionId: session.id,
-        });
+        if (!session) {
+          const baseUrl = getPublicBaseUrl(ctx.req.headers.origin);
+          session = await stripe.checkout.sessions.create({
+            payment_method_types: ["card"],
+            line_items: [
+              {
+                price_data: {
+                  currency: "czk",
+                  product_data: {
+                    name: product.name,
+                    description: product.description,
+                  },
+                  unit_amount: toStripeMinorUnits(depositAmount),
+                },
+                quantity: 1,
+              },
+            ],
+            mode: "payment",
+            success_url: baseUrl + "/payment-success?session_id={CHECKOUT_SESSION_ID}",
+            cancel_url: baseUrl + "/payment-cancel",
+            customer_email: inquiry.email,
+            client_reference_id: orderId.toString(),
+            metadata: {
+              orderId: orderId.toString(),
+              inquiryId: input.inquiryId.toString(),
+              packageType: input.packageType,
+              customerName: inquiry.name,
+            },
+          });
 
-        // Send confirmation email to customer
-        await sendOrderConfirmationEmail(
-          input.customerEmail,
-          input.customerName,
+          await updateOrder(orderId, {
+            stripeCheckoutSessionId: session.id,
+          });
+        }
+
+        const emailDelivered = await sendOrderConfirmationEmail(
+          inquiry.email,
+          inquiry.name,
           orderId,
-          input.packageType,
+          product.name,
           product.priceInCzk,
           depositAmount,
           session.url || undefined
         ).catch(err => console.error("Failed to send order confirmation email:", err));
 
+        const details = parseInquiryDetails(inquiry.details);
+        const lifecycle = isRecord(details.lifecycle) ? details.lifecycle : {};
+        lifecycle.payment_link_created = {
+          at: new Date().toISOString(),
+          orderId,
+          packageType: input.packageType,
+        };
+        if (emailDelivered) {
+          lifecycle.proposal_sent = {
+            at: new Date().toISOString(),
+            orderId,
+            packageType: input.packageType,
+            channel: "email",
+          };
+        }
+        await updateInquiry(inquiry.id, {
+          details: JSON.stringify({ ...details, lifecycle }),
+          status: "contacted",
+        });
+
         return {
           sessionId: session.id,
           checkoutUrl: session.url,
           orderId,
+          emailDelivered: Boolean(emailDelivered),
         };
       }),
-    getOrder: publicProcedure
+    getCheckoutUrl: protectedProcedure
+      .input(z.object({ orderId: z.number().int().positive() }))
+      .mutation(async ({ input, ctx }) => {
+        if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe is not configured");
+        const order = await getOrder(input.orderId);
+        if (!order?.stripeCheckoutSessionId || order.status !== "pending") {
+          throw new Error("Active checkout not found");
+        }
+
+        if (ctx.user?.role !== "admin") {
+          const inquiry = await getInquiryById(order.inquiryId);
+          if (!inquiry || inquiry.email.toLowerCase() !== ctx.user?.email?.toLowerCase()) {
+            throw new Error("Unauthorized");
+          }
+        }
+
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+        const session = await stripe.checkout.sessions.retrieve(order.stripeCheckoutSessionId);
+        if (session.status !== "open" || !session.url) throw new Error("Checkout is no longer active");
+        return { checkoutUrl: session.url };
+      }),
+    confirmCheckoutSession: publicProcedure
+      .input(z.object({ sessionId: z.string().trim().min(10).max(255) }))
+      .mutation(async ({ input, ctx }) => {
+        enforcePublicRateLimit(ctx.req, "checkout-confirm", 20, 10 * 60_000);
+        if (!input.sessionId.startsWith("cs_")) throw new Error("Invalid checkout session");
+        if (!process.env.STRIPE_SECRET_KEY) throw new Error("Stripe is not configured");
+
+        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+        const session = await stripe.checkout.sessions.retrieve(input.sessionId);
+        const result = await recordPaidCheckoutSession(session);
+        return { success: true, orderId: result.orderId, amount: result.amountInCzk };
+      }),
+    getOrder: protectedProcedure
       .input((data: unknown) => {
         const obj = data as Record<string, unknown>;
         return { orderId: Number(obj.orderId || 0) };
       })
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const order = await getOrder(input.orderId);
         if (!order) throw new Error("Order not found");
+        if (ctx.user?.role !== "admin") {
+          const inquiries = await listInquiries();
+          const owner = inquiries.find(inquiry => inquiry.id === order.inquiryId);
+          if (!owner || !sameEmail(owner.email, ctx.user?.email)) throw new Error("Unauthorized");
+        }
         return order;
       }),
-    getOrderPayments: publicProcedure
+    getOrderPayments: protectedProcedure
       .input((data: unknown) => {
         const obj = data as Record<string, unknown>;
         return { orderId: Number(obj.orderId || 0) };
       })
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
+        const order = await getOrder(input.orderId);
+        if (!order) throw new Error("Order not found");
+        if (ctx.user?.role !== "admin") {
+          const inquiries = await listInquiries();
+          const owner = inquiries.find(inquiry => inquiry.id === order.inquiryId);
+          if (!owner || !sameEmail(owner.email, ctx.user?.email)) throw new Error("Unauthorized");
+        }
         return await getPaymentsByOrder(input.orderId);
       }),
 
@@ -391,38 +607,91 @@ export const appRouter = router({
     }),
   }),
 
+  billing: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+
+      const [allOrders, allPayments, allInquiries] = await Promise.all([
+        getAllOrders(),
+        getAllPayments(),
+        listInquiries(),
+      ]);
+      const inquiryById = new Map(allInquiries.map(inquiry => [inquiry.id, inquiry]));
+      const paymentsByOrder = new Map<number, typeof allPayments>();
+
+      for (const payment of allPayments) {
+        const orderPayments = paymentsByOrder.get(payment.orderId) ?? [];
+        orderPayments.push(payment);
+        paymentsByOrder.set(payment.orderId, orderPayments);
+      }
+
+      return allOrders.map(order => {
+        const inquiry = inquiryById.get(order.inquiryId);
+        const orderPayments = paymentsByOrder.get(order.id) ?? [];
+        const paidAmount = orderPayments
+          .filter(payment => payment.status === "succeeded")
+          .reduce((sum, payment) => sum + (payment.type === "refund" ? -payment.amount : payment.amount), 0);
+
+        let details: Record<string, unknown> = {};
+        try {
+          details = inquiry?.details ? JSON.parse(inquiry.details) : {};
+        } catch {
+          details = {};
+        }
+
+        const createdAt = new Date(order.createdAt);
+        return {
+          orderId: order.id,
+          invoiceNumber: `${createdAt.getFullYear()}-${String(order.id).padStart(5, "0")}`,
+          variableSymbol: `${createdAt.getFullYear()}${String(order.id).padStart(5, "0")}`,
+          packageType: order.packageType,
+          totalPrice: order.totalPrice,
+          depositAmount: order.depositAmount,
+          remainingAmount: order.remainingAmount,
+          invoiceAmount: paidAmount > 0 ? paidAmount : order.depositAmount,
+          paidAmount,
+          status: paidAmount > 0 ? "paid" as const : "pending" as const,
+          createdAt: order.createdAt,
+          customer: {
+            name: inquiry?.name ?? "",
+            company: typeof details.company === "string" ? details.company : inquiry?.businessDescription ?? "",
+            email: inquiry?.email ?? "",
+            street: typeof details.street === "string" ? details.street : "",
+            city: typeof details.city === "string" ? details.city : "",
+            postalCode: typeof details.postalCode === "string" ? details.postalCode : "",
+            companyId: typeof details.companyId === "string" ? details.companyId : "",
+            vatId: typeof details.vatId === "string" ? details.vatId : "",
+          },
+        };
+      });
+    }),
+  }),
+
   orders: router({
     listByUser: protectedProcedure.query(async ({ ctx }) => {
       const inquiries = await listInquiries();
-      const userInquiries = inquiries.filter(i => i.email === ctx.user?.email);
-      const inquiryIds = userInquiries.map(i => i.id);
+      const userInquiries = inquiries.filter(i => sameEmail(i.email, ctx.user?.email));
+      const inquiryIds = new Set(userInquiries.map(i => i.id));
 
-      if (inquiryIds.length === 0) return [];
-
-      const allOrders = [];
-      for (const inquiryId of inquiryIds) {
-        const order = await getOrder(inquiryId).catch(() => null);
-        if (order) allOrders.push(order);
-      }
-      return allOrders;
+      if (inquiryIds.size === 0) return [];
+      const allOrders = await getAllOrders();
+      return allOrders.filter(order => inquiryIds.has(order.inquiryId));
     }),
   }),
 
   payments: router({
     listByUser: protectedProcedure.query(async ({ ctx }) => {
       const inquiries = await listInquiries();
-      const userInquiries = inquiries.filter(i => i.email === ctx.user?.email);
-      const inquiryIds = userInquiries.map(i => i.id);
+      const userInquiries = inquiries.filter(i => sameEmail(i.email, ctx.user?.email));
+      const inquiryIds = new Set(userInquiries.map(i => i.id));
 
-      if (inquiryIds.length === 0) return [];
+      if (inquiryIds.size === 0) return [];
 
+      const userOrders = (await getAllOrders()).filter(order => inquiryIds.has(order.inquiryId));
       const allPayments = [];
-      for (const inquiryId of inquiryIds) {
-        const order = await getOrder(inquiryId).catch(() => null);
-        if (order) {
-          const payments = await getPaymentsByOrder(order.id);
-          allPayments.push(...payments);
-        }
+      for (const order of userOrders) {
+        const payments = await getPaymentsByOrder(order.id);
+        allPayments.push(...payments);
       }
       return allPayments;
     }),
@@ -453,6 +722,9 @@ export const appRouter = router({
         }
 
         const { projects } = await import("../drizzle/schema");
+        const { createManusTask } = await import("./manus-api");
+        const { eq } = await import("drizzle-orm");
+
         const projectId = Math.random().toString(36).substring(2, 10);
         const deadline = Date.now() + 14 * 24 * 60 * 60 * 1000; // 2 weeks
 
@@ -466,13 +738,33 @@ export const appRouter = router({
           deadline,
         });
 
+        // Create Manus task via Manus API v2
+        let manusTaskId = null;
+        try {
+          const manusTask = await createManusTask({
+            title: input.title,
+            description: input.description,
+            packageType: input.packageType,
+            deadline,
+          });
+          manusTaskId = manusTask.id;
+        } catch (error) {
+          console.error("Failed to create Manus task, saving without it:", error);
+        }
+
+        if (manusTaskId) {
+          await db.update(projects)
+            .set({ leadsOsProjectId: manusTaskId })
+            .where(eq(projects.id, projectId));
+        }
+
         // Notify owner
         await notifyOwner({
           title: `🚀 Nový projekt: ${input.title}`,
-          content: `Projekt vytvořen pro objednávku #${input.orderId}. Termín: ${new Date(deadline).toLocaleDateString()}`,
+          content: `Projekt vytvořen pro objednávku #${input.orderId}. ManusTask: ${manusTaskId || 'selhalo'}. Termín: ${new Date(deadline).toLocaleDateString()}`,
         });
 
-        return { projectId, deadline };
+        return { projectId, deadline, manusTaskId };
       }),
 
     getProject: protectedProcedure
@@ -528,6 +820,10 @@ export const appRouter = router({
 
         const { projects } = await import("../drizzle/schema");
         const { eq } = await import("drizzle-orm");
+        const { updateManusTask } = await import("./manus-api");
+
+        // get current project to fetch leadsOsProjectId
+        const project = await db.select().from(projects).where(eq(projects.id, input.projectId)).limit(1);
 
         await db
           .update(projects)
@@ -538,6 +834,16 @@ export const appRouter = router({
           })
           .where(eq(projects.id, input.projectId));
 
+        if (project[0]?.leadsOsProjectId) {
+          try {
+            await updateManusTask(project[0].leadsOsProjectId, {
+              metadata: { status: input.status, completion: input.completionPercentage }
+            });
+          } catch (error) {
+            console.error("Failed to sync status to Manus Task:", error);
+          }
+        }
+
         await notifyOwner({
           title: `📊 Aktualizace projektu`,
           content: `Projekt ${input.projectId} změnil status na: ${input.status} (${input.completionPercentage}%)`,
@@ -545,6 +851,109 @@ export const appRouter = router({
 
         return { ok: true };
       }),
+
+    admin: router({
+      dashboardStats: protectedProcedure.query(async ({ ctx }) => {
+        if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
+        const db = await require("./db").getDb();
+        if (!db) throw new Error("Database not available");
+
+        const { projects, heartbeatJobs } = await import("../drizzle/schema");
+        const { desc } = await import("drizzle-orm");
+
+        const allProjects = await db.select().from(projects).orderBy(desc(projects.createdAt));
+        const allHeartbeats = await db.select().from(heartbeatJobs).orderBy(desc(heartbeatJobs.createdAt));
+
+        return {
+          projects: allProjects,
+          heartbeats: allHeartbeats,
+        };
+      })
+    })
+  }),
+
+  // ─── Manus API v2 Orchestration ──────────────────────────────────────────
+  manus: router({
+    createTask: protectedProcedure
+      .input(z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        packageType: z.string(),
+        deadline: z.number()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        const { createManusTask } = await import("./manus-api");
+        return await createManusTask(input);
+      }),
+
+    updateTask: protectedProcedure
+      .input(z.object({
+        taskId: z.string(),
+        updates: z.record(z.string(), z.any())
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        const { updateManusTask } = await import("./manus-api");
+        return await updateManusTask(input.taskId, input.updates);
+      }),
+
+    getTask: protectedProcedure
+      .input(z.object({ taskId: z.string() }))
+      .query(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        const { getManusTaskStatus } = await import("./manus-api");
+        return await getManusTaskStatus(input.taskId);
+      }),
+
+    deleteTask: protectedProcedure
+      .input(z.object({ taskId: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        const { deleteManusTask } = await import("./manus-api");
+        await deleteManusTask(input.taskId);
+        return { ok: true };
+      }),
+
+    // Webhook for receiving updates from Manus API
+    webhook: publicProcedure
+      .input(z.object({
+        taskId: z.string().trim().min(1).max(255),
+        status: z.enum(["pending", "in_progress", "completed", "failed"]),
+        completionPercentage: z.number().min(0).max(100).optional()
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!hasValidSharedSecret(ctx.req, "x-manus-webhook-secret", process.env.MANUS_WEBHOOK_SECRET)) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Unauthorized" });
+        }
+        const db = await require("./db").getDb();
+        if (!db) throw new Error("Database not available");
+        const { projects } = await import("../drizzle/schema");
+        const { eq } = await import("drizzle-orm");
+
+        const matchingProjects = await db
+          .select()
+          .from(projects)
+          .where(eq(projects.leadsOsProjectId, input.taskId));
+
+        if (!matchingProjects || matchingProjects.length === 0) {
+          throw new Error("Project not found for this Manus task");
+        }
+
+        const projectId = matchingProjects[0].id;
+        const updates: any = { status: input.status, updatedAt: new Date() };
+
+        if (input.completionPercentage !== undefined) {
+          updates.completionPercentage = input.completionPercentage;
+        }
+
+        await db
+          .update(projects)
+          .set(updates)
+          .where(eq(projects.id, projectId));
+
+        return { ok: true };
+      })
   }),
 
   // ─── Projects ───────────────────────────────────────────────────────────────
@@ -552,16 +961,10 @@ export const appRouter = router({
     // Client: get own projects with milestones
     myProjects: protectedProcedure.query(async ({ ctx }) => {
       const allInquiries = await listInquiries();
-      const userInquiries = allInquiries.filter(i => i.email === ctx.user?.email);
+      const userInquiries = allInquiries.filter(i => sameEmail(i.email, ctx.user?.email));
       if (userInquiries.length === 0) return [];
-      const orderIds = userInquiries.map(i => i.id);
-      // find orders linked to those inquiries
-      type OrderRow = NonNullable<Awaited<ReturnType<typeof getOrder>>>;
-      const allOrdersList: OrderRow[] = [];
-      for (const id of orderIds) {
-        const o = await getOrder(id).catch(() => null);
-        if (o) allOrdersList.push(o);
-      }
+      const inquiryIds = new Set(userInquiries.map(i => i.id));
+      const allOrdersList = (await getAllOrders()).filter(order => inquiryIds.has(order.inquiryId));
       if (allOrdersList.length === 0) return [];
       const projectList = await getProjectsByOrderIds(allOrdersList.map(o => o.id));
       const result = await Promise.all(
@@ -682,19 +1085,20 @@ export const appRouter = router({
 
   // ─── Sales Chat — customer-facing prodejní chatbot na landing page ─────────────
   salesChat: router({
-    // Send a message to the ONYX WEB sales bot. Public (visitors not logged in).
+    // Send a message to the OPTIMATEO sales assistant. Public for visitors.
     send: publicProcedure
       .input(z.object({
-        conversationId: z.string().min(1),
-        personaId: z.string().default("onyxweb-sales"),
+        conversationId: z.string().trim().min(8).max(100),
+        personaId: z.string().trim().min(1).max(50).default("onyxweb-sales"),
         messages: z.array(z.object({
-          role: z.enum(["system", "user", "assistant"]),
-          content: z.string(),
-        })),
+          role: z.enum(["user", "assistant"]),
+          content: z.string().trim().min(1).max(2_000),
+        })).min(1).max(20),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        enforcePublicRateLimit(ctx.req, "sales-chat", 20, 10 * 60_000);
         const persona = getPersona(input.personaId) ?? getPersona("onyxweb-sales")!;
-        const conversation = input.messages.filter(m => m.role !== "system");
+        const conversation = input.messages;
 
         const llmMessages = [
           { role: "system" as const, content: persona.systemPrompt },
@@ -708,7 +1112,7 @@ export const appRouter = router({
           if (typeof raw === "string") content = raw;
         } catch (error) {
           console.error("[SalesChat] LLM error:", error);
-          content = "Momentálně mám technické potíže. Napište nám prosím e-mail na info@onyxweb.cz nebo vyplňte formulář — ozveme se do 48 hodin.";
+          content = "Momentálně mám technické potíže. Napište nám prosím e-mail na info@optimateo.com nebo vyplňte formulář — ozveme se do 24 hodin.";
         }
 
         // Persist conversation (best-effort, non-blocking on failure)
@@ -733,13 +1137,14 @@ export const appRouter = router({
     // Capture a lead from the chat → creates an inquiry + notifies owner
     captureLead: publicProcedure
       .input(z.object({
-        conversationId: z.string().min(1),
-        name: z.string().min(1),
-        email: z.string().email(),
-        phone: z.string().optional(),
-        message: z.string().optional(),
+        conversationId: z.string().trim().min(8).max(100),
+        name: z.string().trim().min(1).max(255),
+        email: z.string().trim().email().max(320),
+        phone: optionalTrimmedString(20),
+        message: optionalTrimmedString(2_000),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        enforcePublicRateLimit(ctx.req, "sales-chat-lead", 5, 15 * 60_000);
         const inquiry = await createInquiry({
           name: input.name,
           email: input.email,
@@ -830,30 +1235,38 @@ export const appRouter = router({
     getVariant: publicProcedure
       .input(z.object({ userId: z.string().optional() }).optional())
       .query(({ input }) => {
-        const variants = ['A', 'B', 'C', 'D'];
+        const variants = ['A', 'B'] as const;
         const userId = input?.userId || 'anonymous';
         const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const variant = variants[hash % 4];
+        const variant = variants[hash % variants.length];
         return { variant };
       }),
 
     trackConversion: publicProcedure
       .input(z.object({
-        variant: z.enum(['A', 'B', 'C', 'D']),
-        event: z.string(),
-        metadata: z.record(z.string(), z.any()).optional(),
+        variant: z.enum(['A', 'B']),
+        event: z.enum([
+          "page_view", "hero_cta_click", "cta_click", "click_tel", "form_start", "form_submit",
+          "audit_start", "audit_submit", "questionnaire_start", "questionnaire_step",
+          "questionnaire_abandon", "questionnaire_submit", "call_booked", "deposit_paid",
+        ]),
+        metadata: inquiryDetailsSchema.optional(),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        enforcePublicRateLimit(ctx.req, "analytics-event", 120, 60_000);
+        recordABTestEvent(input.variant, input.event, input.metadata);
         console.log(`[AB Test] Variant ${input.variant} - Event: ${input.event}`, input.metadata);
         return { ok: true };
       }),
-    getMetrics: publicProcedure
-      .query(async () => {
+    getMetrics: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
         const metrics = await getABTestMetrics();
         return metrics;
       }),
-    getSummary: publicProcedure
-      .query(async () => {
+    getSummary: protectedProcedure
+      .query(async ({ ctx }) => {
+        if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
         const summary = await getABTestSummary();
         return summary;
       }),
@@ -1018,7 +1431,7 @@ export const appRouter = router({
 
       // Najdi objednávky a projekty patřící uživateli (přes jeho e-mail v poptávkách)
       const allInquiries = await listInquiries().catch(() => []);
-      const myInquiries = allInquiries.filter(i => i.email === ctx.user?.email);
+      const myInquiries = allInquiries.filter(i => sameEmail(i.email, ctx.user?.email));
 
       type OrderRow = NonNullable<Awaited<ReturnType<typeof getOrder>>>;
       const myOrders: OrderRow[] = [];

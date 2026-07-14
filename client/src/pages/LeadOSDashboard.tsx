@@ -20,6 +20,7 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
+import type { HeartbeatJob, Project } from "../../../drizzle/schema";
 
 // Status badge colors
 const statusColors: Record<string, string> = {
@@ -36,59 +37,8 @@ const statusLabels: Record<string, string> = {
   failed: "Selhalo",
 };
 
-// Mock data for demonstration (will be replaced with real tRPC calls)
-const mockProjects = [
-  {
-    id: "proj_001",
-    title: "Web pro Kavárnu Modrá Hvězda",
-    packageType: "basic",
-    status: "in_progress",
-    completionPercentage: 65,
-    deadline: Date.now() + 5 * 24 * 60 * 60 * 1000,
-    assignedTo: "team@onyxweb.cz",
-  },
-  {
-    id: "proj_002",
-    title: "Lead Gen systém pro Elektro Novák",
-    packageType: "lead_gen",
-    status: "pending",
-    completionPercentage: 0,
-    deadline: Date.now() + 12 * 24 * 60 * 60 * 1000,
-    assignedTo: null,
-  },
-  {
-    id: "proj_003",
-    title: "Automation Suite pro Beauty Salon",
-    packageType: "automation",
-    status: "completed",
-    completionPercentage: 100,
-    deadline: Date.now() - 2 * 24 * 60 * 60 * 1000,
-    assignedTo: "team@onyxweb.cz",
-  },
-];
-
-const mockHeartbeats = [
-  {
-    id: "hb_001",
-    name: "project-monitor-proj_001",
-    jobType: "monitoring",
-    cronExpression: "0 */6 * * * *",
-    isActive: 1,
-    lastExecutedAt: Date.now() - 2 * 60 * 60 * 1000,
-    nextExecutionAt: Date.now() + 4 * 60 * 60 * 1000,
-  },
-  {
-    id: "hb_002",
-    name: "heal-project-proj_001",
-    jobType: "healing",
-    cronExpression: "0 0 3 * * *",
-    isActive: 1,
-    lastExecutedAt: Date.now() - 8 * 60 * 60 * 1000,
-    nextExecutionAt: Date.now() + 16 * 60 * 60 * 1000,
-  },
-];
-
-function formatTimeRemaining(deadline: number): string {
+function formatTimeRemaining(deadline: number | null): string {
+  if (!deadline) return "Bez termínu";
   const diff = deadline - Date.now();
   if (diff < 0) {
     const days = Math.abs(Math.floor(diff / (1000 * 60 * 60 * 24)));
@@ -100,7 +50,8 @@ function formatTimeRemaining(deadline: number): string {
   return `${hours}h zbývá`;
 }
 
-function formatRelativeTime(ts: number): string {
+function formatRelativeTime(ts: number | null): string {
+  if (!ts) return "—";
   const diff = Date.now() - ts;
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -108,7 +59,8 @@ function formatRelativeTime(ts: number): string {
   return `před ${minutes}m`;
 }
 
-function formatNextRun(ts: number): string {
+function formatNextRun(ts: number | null): string {
+  if (!ts) return "—";
   const diff = ts - Date.now();
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -120,12 +72,28 @@ export default function LeadOSDashboard() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Fetch real stats
+  const { data: stats, isLoading } = trpc.leados.admin.dashboardStats.useQuery(undefined, {
+    enabled: !!user && user.role === "admin",
+  });
+
+  if (isLoading || !stats) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <RefreshCw className="w-8 h-8 animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  const projects = (stats.projects || []) as Project[];
+  const heartbeats = (stats.heartbeats || []) as HeartbeatJob[];
+
   // Stats
-  const totalProjects = mockProjects.length;
-  const activeProjects = mockProjects.filter(p => p.status === "in_progress").length;
-  const completedProjects = mockProjects.filter(p => p.status === "completed").length;
-  const pendingProjects = mockProjects.filter(p => p.status === "pending").length;
-  const activeHeartbeats = mockHeartbeats.filter(h => h.isActive).length;
+  const totalProjects = projects.length;
+  const activeProjects = projects.filter(p => p.status === "in_progress").length;
+  const completedProjects = projects.filter(p => p.status === "completed").length;
+  const pendingProjects = projects.filter(p => p.status === "pending").length;
+  const activeHeartbeats = heartbeats.filter(h => h.isActive).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -237,7 +205,7 @@ export default function LeadOSDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {mockProjects
+                  {projects
                     .filter(p => p.status !== "completed")
                     .map(project => (
                       <div key={project.id} className="p-3 bg-gray-50 rounded-lg">
@@ -257,13 +225,13 @@ export default function LeadOSDashboard() {
                             {statusLabels[project.status]}
                           </Badge>
                         </div>
-                        {project.completionPercentage > 0 && (
+                        {(project.completionPercentage ?? 0) > 0 && (
                           <div className="mt-2">
                             <div className="flex justify-between text-xs text-gray-500 mb-1">
                               <span>Průběh</span>
-                              <span>{project.completionPercentage}%</span>
+                              <span>{project.completionPercentage ?? 0}%</span>
                             </div>
-                            <Progress value={project.completionPercentage} className="h-1.5" />
+                            <Progress value={project.completionPercentage ?? 0} className="h-1.5" />
                           </div>
                         )}
                       </div>
@@ -339,7 +307,7 @@ export default function LeadOSDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockProjects.map(project => (
+                  {projects.map(project => (
                     <div
                       key={project.id}
                       className="p-4 border border-gray-100 rounded-xl hover:border-blue-200 hover:bg-blue-50/30 transition-all"
@@ -374,14 +342,14 @@ export default function LeadOSDashboard() {
                         </div>
                         <div className="ml-4 text-right">
                           <div className="text-lg font-bold text-gray-900">
-                            {project.completionPercentage}%
+                            {project.completionPercentage ?? 0}%
                           </div>
                           <div className="text-xs text-gray-500">hotovo</div>
                         </div>
                       </div>
-                      {project.completionPercentage > 0 && (
+                      {(project.completionPercentage ?? 0) > 0 && (
                         <div className="mt-3">
-                          <Progress value={project.completionPercentage} className="h-2" />
+                          <Progress value={project.completionPercentage ?? 0} className="h-2" />
                         </div>
                       )}
                     </div>
@@ -408,7 +376,7 @@ export default function LeadOSDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {mockHeartbeats.map(job => (
+                  {heartbeats.map(job => (
                     <div
                       key={job.id}
                       className="p-4 border border-gray-100 rounded-xl"

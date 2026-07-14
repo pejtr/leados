@@ -99,18 +99,41 @@ export async function createInquiry(data: InsertInquiry) {
 export async function listInquiries() {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
-  return await db.select().from(inquiries).orderBy(inquiries.createdAt);
+  return await db.select().from(inquiries).orderBy(desc(inquiries.createdAt));
+}
+
+export async function getInquiryById(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  const result = await db.select().from(inquiries).where(eq(inquiries.id, id)).limit(1);
+  return result[0];
+}
+
+export async function updateInquiry(
+  id: number,
+  data: Partial<Pick<InsertInquiry, "details" | "notes" | "status">>,
+) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(inquiries).set(data).where(eq(inquiries.id, id));
+  return getInquiryById(id);
 }
 
 export async function getPortfolioProjects() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) {
+    console.warn("[Database] Portfolio is unavailable; returning an empty public list.");
+    return [];
+  }
   return await db.select().from(portfolioProjects).orderBy(portfolioProjects.createdAt);
 }
 
 export async function getTestimonials() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) {
+    console.warn("[Database] Testimonials are unavailable; returning an empty public list.");
+    return [];
+  }
   return await db.select().from(testimonials).orderBy(testimonials.createdAt);
 }
 

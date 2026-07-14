@@ -35,7 +35,7 @@ export function SalesChatWidget() {
       setMessages((prev) => [...prev, { role: "assistant", content: res.content }]);
     },
     onError: () => {
-      setMessages((prev) => [...prev, { role: "assistant", content: "Omlouvám se, zkuste to prosím znovu nebo nám napište na poptavka@onyxweb.cz." }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "Omlouvám se, zkuste to prosím znovu nebo nám napište na info@optimateo.com." }]);
     },
   });
 
@@ -65,12 +65,12 @@ export function SalesChatWidget() {
   }, [messages, leadCaptured, showLeadForm]);
 
   const sendMessage = (text: string) => {
-    const trimmed = text.trim();
+    const trimmed = text.trim().slice(0, 2_000);
     if (!trimmed || chatMutation.isPending) return;
     const updated = [...messages, { role: "user" as const, content: trimmed }];
     setMessages(updated);
     setInput("");
-    chatMutation.mutate({ conversationId, personaId: "onyxweb-sales", messages: updated });
+    chatMutation.mutate({ conversationId, personaId: "onyxweb-sales", messages: updated.slice(-20) });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -206,9 +206,9 @@ export function SalesChatWidget() {
                         <Sparkles className="w-4 h-4 text-violet-500" /> Chcete nezávaznou nabídku?
                       </p>
                       <p className="text-xs text-slate-500">Nechte kontakt a ozveme se do 48 hodin.</p>
-                      <Input placeholder="Vaše jméno" value={lead.name} onChange={(e) => setLead((l) => ({ ...l, name: e.target.value }))} className="h-8 text-sm" />
-                      <Input placeholder="E-mail" type="email" value={lead.email} onChange={(e) => setLead((l) => ({ ...l, email: e.target.value }))} className="h-8 text-sm" />
-                      <Input placeholder="Telefon (volitelné)" value={lead.phone} onChange={(e) => setLead((l) => ({ ...l, phone: e.target.value }))} className="h-8 text-sm" />
+                      <Input placeholder="Vaše jméno" maxLength={255} value={lead.name} onChange={(e) => setLead((l) => ({ ...l, name: e.target.value }))} className="h-8 text-sm" />
+                      <Input placeholder="E-mail" type="email" maxLength={320} value={lead.email} onChange={(e) => setLead((l) => ({ ...l, email: e.target.value }))} className="h-8 text-sm" />
+                      <Input placeholder="Telefon (volitelné)" maxLength={20} value={lead.phone} onChange={(e) => setLead((l) => ({ ...l, phone: e.target.value }))} className="h-8 text-sm" />
                       <div className="flex gap-2">
                         <Button onClick={submitLead} disabled={!lead.name.trim() || !lead.email.trim() || captureMutation.isPending}
                           className="flex-1 bg-violet-600 hover:bg-violet-700 h-8 text-xs">
@@ -231,12 +231,13 @@ export function SalesChatWidget() {
             {/* Input */}
             <div className="border-t border-slate-100 p-3 bg-white">
               <div className="flex gap-2">
-                <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
+                <input ref={inputRef} value={input} maxLength={2_000} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
                   placeholder="Napište zprávu..."
                   className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-violet-400 focus:ring-1 focus:ring-violet-200 transition-all"
                   disabled={chatMutation.isPending}
                 />
                 <Button onClick={() => sendMessage(input)} disabled={!input.trim() || chatMutation.isPending} size="icon"
+                  aria-label="Odeslat zprávu"
                   className="shrink-0 w-10 h-10 rounded-xl bg-violet-600 hover:bg-violet-700 text-white disabled:opacity-30">
                   {chatMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 </Button>

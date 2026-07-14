@@ -5,9 +5,16 @@ import { useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { lazy, Suspense, useEffect, useState } from "react";
-import { getVariant, trackEvent } from "./lib/ab-test";
+import { getVariant, trackEvent, type Variant } from "./lib/ab-test";
+import { captureAttributionFromUrl } from "./lib/attribution";
 import { trackSklikRetargeting } from "./lib/sklik";
-import { MarketingConsentBanner } from "./components/MarketingConsentBanner";
+import { CookieConsentBanner } from "./components/CookieConsentBanner";
+import { CONSENT_UPDATED_EVENT, getConsentChannels } from "./lib/consent";
+import { ensureLinkedInInsight } from "./lib/linkedin";
+import { usePageSeo } from "./hooks/usePageSeo";
+import { CORE_OFFERS, WEB_PACKAGES } from "@shared/service-catalog";
+import { DEFAULT_SEO, ROUTE_SEO } from "@shared/seo-config";
+import { PUBLIC_SITE_URL } from "@shared/brand-config";
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const Home = lazy(() => import("./pages/Home"));
@@ -25,6 +32,10 @@ const ABTestingDashboard = lazy(() => import("./pages/ABTestingDashboard"));
 const AuditZdarma = lazy(() => import("./pages/AuditZdarma"));
 const CrmLeadSystem = lazy(() => import("./pages/CrmLeadSystem"));
 const VerticalLanding = lazy(() => import("./pages/VerticalLanding"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentCancel = lazy(() => import("./pages/PaymentCancel"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+const LegalPage = lazy(() => import("./pages/LegalPage"));
 
 function PageLoader() {
   return (
@@ -36,74 +47,154 @@ function PageLoader() {
 
 function AnalyticsScript() {
   useEffect(() => {
-    const endpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
-    const websiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
+    const initializeConsentBasedTracking = () => {
+      const consent = getConsentChannels();
 
-    if (!endpoint || !websiteId || document.querySelector("script[data-website-id]")) {
-      return;
-    }
+      if (consent.google) {
+        const endpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
+        const websiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
+        if (endpoint && websiteId && !document.querySelector("script[data-website-id]")) {
+          const script = document.createElement("script");
+          script.defer = true;
+          script.src = `${endpoint.replace(/\/$/, "")}/umami`;
+          script.dataset.websiteId = websiteId;
+          document.body.appendChild(script);
+        }
 
-    const script = document.createElement("script");
-    script.defer = true;
-    script.src = `${endpoint.replace(/\/$/, "")}/umami`;
-    script.dataset.websiteId = websiteId;
-    document.body.appendChild(script);
+        const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+        if (gaId && !document.querySelector('script[data-optimateo-ga]')) {
+          const gaScript = document.createElement("script");
+          gaScript.async = true;
+          gaScript.dataset.optimateoGa = "true";
+          gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+          document.head.appendChild(gaScript);
 
-    return () => {
-      script.remove();
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = (...args: unknown[]) => window.dataLayer.push(args);
+          window.gtag("js", new Date());
+          window.gtag("consent", "update", { analytics_storage: "granted", ad_storage: "granted" });
+          window.gtag("config", gaId);
+        }
+      } else {
+        window.gtag?.("consent", "update", { analytics_storage: "denied", ad_storage: "denied" });
+        document.querySelector("script[data-website-id]")?.remove();
+      }
+
+      ensureLinkedInInsight();
     };
+
+    initializeConsentBasedTracking();
+    window.addEventListener(CONSENT_UPDATED_EVENT, initializeConsentBasedTracking);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, initializeConsentBasedTracking);
   }, []);
 
   return null;
+}
+
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: unknown[]) => void;
+  }
 }
 
 function TrackingLayer() {
   const [location] = useLocation();
 
   useEffect(() => {
-    const category = location.startsWith("/lp/")
-      ? `sklik-${location.replace("/lp/", "")}`
-      : location === "/"
-        ? "homepage"
-        : location.replace(/^\//, "") || "homepage";
+    const trackCurrentPage = () => {
+      captureAttributionFromUrl();
+      void trackEvent("page_view", {
+        path: location,
+        page_location: window.location.href,
+      });
 
-    trackSklikRetargeting({
-      pageType: location.startsWith("/lp/") ? "landing" : "other",
-      category,
-      rtgUrl: window.location.href,
-    });
+      const category = location.startsWith("/lp/")
+        ? `sklik-${location.replace("/lp/", "")}`
+        : location === "/"
+          ? "homepage"
+          : location.replace(/^\//, "") || "homepage";
+
+      void trackSklikRetargeting({
+        pageType: location.startsWith("/lp/") ? "landing" : "other",
+        category,
+        rtgUrl: window.location.href,
+      });
+    };
+
+    trackCurrentPage();
+    window.addEventListener(CONSENT_UPDATED_EVENT, trackCurrentPage);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, trackCurrentPage);
   }, [location]);
 
   return null;
 }
 
+function PageSeo() {
+  const [location] = useLocation();
+  const routeSeo = ROUTE_SEO[location];
+  const seo = routeSeo || DEFAULT_SEO;
+  const noIndex = routeSeo?.noIndex ?? !routeSeo;
+  const schema = routeSeo?.schemaType === "OfferCatalog"
+    ? {
+        "@context": "https://schema.org",
+        "@type": "OfferCatalog",
+        name: "Ceník služeb OPTIMATEO",
+        url: `${PUBLIC_SITE_URL}/pricing`,
+        itemListElement: [...Object.values(CORE_OFFERS), ...Object.values(WEB_PACKAGES)].map((offer) => ({
+          "@type": "Offer",
+          priceCurrency: "CZK",
+          price: offer.priceInCzk,
+          itemOffered: { "@type": "Service", name: offer.name, description: offer.description },
+        })),
+      }
+    : routeSeo?.schemaType === "Service"
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: seo.title.split("|")[0].trim(),
+          description: seo.description,
+          url: PUBLIC_SITE_URL + location,
+          areaServed: { "@type": "Country", name: "Česko" },
+          provider: { "@type": "ProfessionalService", name: "OPTIMATEO", url: PUBLIC_SITE_URL },
+        }
+      : routeSeo?.schemaType === "WebPage"
+        ? {
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            name: seo.title.split("|")[0].trim(),
+            description: seo.description,
+            url: PUBLIC_SITE_URL + location,
+          }
+        : undefined;
+
+  usePageSeo({ ...seo, path: location, noIndex, schema });
+  return null;
+}
+
 function Router() {
-  const [variant, setVariant] = useState<'A' | 'B' | 'C' | 'D'>('A');
+  const [variant, setVariant] = useState<Variant>("A");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getVariant().then((v) => {
+    const loadVariant = () => getVariant().then((v) => {
       setVariant(v);
       setLoading(false);
     });
+    void loadVariant();
+    window.addEventListener(CONSENT_UPDATED_EVENT, loadVariant);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, loadVariant);
   }, []);
 
-  useEffect(() => {
-    if (!loading) {
-      trackEvent("page_view", { path: "/" });
-    }
-  }, [variant, loading]);
-
   if (loading) return <PageLoader />;
-
-  const HomeComponent = Home;
 
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
-        <Route path="/" component={HomeComponent} />
+        <Route path="/">{() => <Home variant={variant} />}</Route>
         <Route path="/v/:segment" component={VerticalLanding} />
         <Route path="/lp/:segment" component={SklikLandingPage} />
+        <Route path="/admin/invoices" component={AdminDashboard} />
         <Route path="/admin" component={AdminDashboard} />
         <Route path="/admin/projects" component={AdminProjects} />
         <Route path="/dashboard" component={ClientDashboard} />
@@ -116,6 +207,12 @@ function Router() {
         <Route path="/ab-testing" component={ABTestingDashboard} />
         <Route path="/audit-zdarma" component={AuditZdarma} />
         <Route path="/crm-lead-system" component={CrmLeadSystem} />
+        <Route path="/pricing" component={PricingPage} />
+        <Route path="/ochrana-osobnich-udaju" component={LegalPage} />
+        <Route path="/cookies" component={LegalPage} />
+        <Route path="/obchodni-podminky" component={LegalPage} />
+        <Route path="/payment-success" component={PaymentSuccess} />
+        <Route path="/payment-cancel" component={PaymentCancel} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
@@ -138,8 +235,9 @@ function App() {
         <TooltipProvider>
           <AnalyticsScript />
           <TrackingLayer />
+          <PageSeo />
           <Toaster />
-          <MarketingConsentBanner />
+          <CookieConsentBanner />
           <Router />
         </TooltipProvider>
       </ThemeProvider>

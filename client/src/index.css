@@ -42,6 +42,65 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+.legal-content h1 {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.legal-content h2 {
+  margin: 2rem 0 0.65rem;
+  font-size: 1.15rem;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.legal-content p,
+.legal-content li,
+.legal-content address {
+  color: #475569;
+  line-height: 1.75;
+}
+
+.legal-content p + p {
+  margin-top: 0.75rem;
+}
+
+.legal-content ul {
+  display: grid;
+  gap: 0.5rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.legal-content a {
+  color: #6d28d9;
+  text-decoration: underline;
+}
+
+.legal-content table {
+  width: 100%;
+  min-width: 36rem;
+  margin-top: 0.75rem;
+  border-collapse: collapse;
+}
+
+.legal-content th,
+.legal-content td {
+  padding: 0.75rem;
+  color: #475569;
+  text-align: left;
+  vertical-align: top;
+  border: 1px solid #e2e8f0;
+}
+
+.legal-content th {
+  color: #0f172a;
+  font-size: 0.8rem;
+  background: #f8fafc;
+}
+
 :root {
   --font-sans: 'Plus Jakarta Sans', Inter, sans-serif;
   --brand-night: #05071c;
