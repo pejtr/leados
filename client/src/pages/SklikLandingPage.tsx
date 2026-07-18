@@ -71,17 +71,45 @@ const SEGMENTS: Record<string, Segment> = {
   },
   restaurace: {
     slug: "restaurace",
-    eyebrow: "Web pro restaurace a kavárny",
+    eyebrow: "Web pro restaurace a bistra",
     headline: "Menu, rezervace a akce přehledně na jednom místě.",
     subheadline:
-      "Vytvoříme web, který hostům rychle ukáže, proč přijít, co si dát a jak si rezervovat místo.",
-    cta: "Chci rezervace z webu",
-    packageLabel: "Gastro web",
+      "Vytvoříme web, na kterém host rychle najde nabídku, otevírací dobu, cestu i jednoduchou rezervaci.",
+    cta: "Chci web pro restauraci",
+    packageLabel: "ONYX WEB pro gastro",
     price: formatWebPackagePrice("BASIC_WEB", true),
-    proof: "Pro restaurace, kavárny, bistra, bary a eventové prostory.",
-    pains: ["Menu je jen na sociálních sítích", "Rezervace chodí chaoticky", "Akce a novinky nejsou měřitelné"],
-    deliverables: ["Menu a fotogalerie", "Rezervační CTA", "Měření rezervací a kampaní"],
+    proof: "Pro restaurace, bistra, bary, rozvoz a menší gastro provozy.",
+    pains: ["Menu je jen na sociálních sítích", "Rezervace chodí chaoticky", "Hosté těžko hledají otevírací dobu a kontakt"],
+    deliverables: ["Menu, fotky a otevírací doba", "Rezervace nebo objednávka", "Měření rezervací a kampaní"],
     keywords: ["menu", "rezervace", "lokální kampaně"],
+  },
+  kavarny: {
+    slug: "kavarny",
+    eyebrow: "Web pro kavárny",
+    headline: "Nabídka, otevírací doba a akce, které host najde hned.",
+    subheadline:
+      "Postavíme příjemný mobilní web pro kavárnu, kde snadno ukážete menu, snídaně, vlastní produkty, akce i rezervaci stolku.",
+    cta: "Chci web pro kavárnu",
+    packageLabel: "ONYX WEB pro kavárnu",
+    price: formatWebPackagePrice("BASIC_WEB", true),
+    proof: "Pro malé kavárny, pražírny, cukrárny a snídaňová bistra.",
+    pains: ["Nabídka je roztroušená na sociálních sítích", "Host neví, zda máte otevřeno", "Akce a vlastní produkty nemají jedno místo"],
+    deliverables: ["Menu a aktuální otevírací doba", "Galerie, akce a rezervace", "Možnost prodeje kávy nebo poukazů"],
+    keywords: ["menu", "otevírací doba", "akce a rezervace"],
+  },
+  cajovny: {
+    slug: "cajovny",
+    eyebrow: "Web pro čajovny",
+    headline: "Čajová nabídka, atmosféra a rezervace na jednom místě.",
+    subheadline:
+      "Vytvoříme web, který hostům přiblíží váš prostor, čaje i akce a umožní jim snadno najít cestu nebo rezervovat místo.",
+    cta: "Chci web pro čajovnu",
+    packageLabel: "ONYX WEB pro čajovnu",
+    price: formatWebPackagePrice("BASIC_WEB", true),
+    proof: "Pro čajovny, čajové obchody, kluby a komorní kulturní prostory.",
+    pains: ["Nabídka a program se špatně hledají", "Atmosféra podniku na webu nevynikne", "Rezervace a dotazy chodí různými cestami"],
+    deliverables: ["Čajová nabídka, fotky a program", "Kontakt, mapa a rezervace", "Možnost prodeje čajů nebo poukazů"],
+    keywords: ["čajová nabídka", "program", "rezervace"],
   },
   salony: {
     slug: "salony",
@@ -169,8 +197,8 @@ export default function SklikLandingPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050816] pb-16 text-white sm:pb-0">
-      <nav className="sticky top-0 z-40 border-b border-white/10 bg-[#050816]/90 backdrop-blur">
+    <main className="min-h-screen bg-[#061421] pb-16 text-white sm:pb-0">
+      <nav className="sticky top-0 z-40 border-b border-white/10 bg-[#061421]/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <a href="/" aria-label="OPTIMATEO">
             <OptimateoLogo className="h-8" light />
@@ -194,7 +222,7 @@ export default function SklikLandingPage() {
             <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">{segment.subheadline}</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a href="#poptavka" onClick={() => trackEvent('cta_click', { label: segment.slug, cta: segment.cta })}>
-                <Button size="lg" className="w-full rounded-full bg-fuchsia-600 font-bold text-white shadow-lg shadow-fuchsia-950/30 hover:bg-fuchsia-500 sm:w-auto">
+                <Button size="lg" className="w-full rounded-full bg-sky-600 font-bold text-white shadow-lg shadow-sky-950/30 hover:bg-sky-500 sm:w-auto">
                   {segment.cta}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -214,21 +242,21 @@ export default function SklikLandingPage() {
                 <CheckCircle2 className="h-12 w-12 text-emerald-600" />
                 <h2 className="mt-5 text-2xl font-bold">Poptávka je odeslaná</h2>
                 <p className="mt-3 leading-7 text-slate-600">Ozveme se do jednoho pracovního dne. Podrobnosti můžete mezitím doplnit v krátkém dotazníku.</p>
-                <a href={dotaznikUrl} className="mt-6 font-bold text-violet-700 hover:text-violet-800">Doplnit zadání <ArrowRight className="ml-1 inline h-4 w-4" /></a>
+                <a href={dotaznikUrl} className="mt-6 font-bold text-sky-700 hover:text-sky-800">Doplnit zadání <ArrowRight className="ml-1 inline h-4 w-4" /></a>
               </div>
             ) : (
               <>
-                <p className="text-sm font-bold uppercase tracking-wider text-violet-700">Nezávazný návrh</p>
+                <p className="text-sm font-bold uppercase tracking-wider text-sky-700">Nezávazný návrh</p>
                 <h2 className="mt-2 text-2xl font-bold">{segment.packageLabel}</h2>
                 <p className="mt-2 text-lg font-bold text-slate-900">{segment.price}</p>
                 <form className="mt-6 space-y-4" onSubmit={handleSubmit} onFocus={markFormStarted}>
-                  <div><label className="text-sm font-semibold" htmlFor="lp-name">Jméno *</label><input id="lp-name" autoComplete="name" value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" /></div>
-                  <div><label className="text-sm font-semibold" htmlFor="lp-company">Firma nebo obor</label><input id="lp-company" autoComplete="organization" value={form.company} onChange={event => setForm({ ...form, company: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" /></div>
+                  <div><label className="text-sm font-semibold" htmlFor="lp-name">Jméno *</label><input id="lp-name" autoComplete="name" value={form.name} onChange={event => setForm({ ...form, name: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></div>
+                  <div><label className="text-sm font-semibold" htmlFor="lp-company">Firma nebo obor</label><input id="lp-company" autoComplete="organization" value={form.company} onChange={event => setForm({ ...form, company: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div><label className="text-sm font-semibold" htmlFor="lp-email">E-mail *</label><input id="lp-email" type="email" autoComplete="email" value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" /></div>
-                    <div><label className="text-sm font-semibold" htmlFor="lp-phone">Telefon *</label><input id="lp-phone" type="tel" autoComplete="tel" value={form.phone} onChange={event => setForm({ ...form, phone: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-100" /></div>
+                    <div><label className="text-sm font-semibold" htmlFor="lp-email">E-mail *</label><input id="lp-email" type="email" autoComplete="email" value={form.email} onChange={event => setForm({ ...form, email: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></div>
+                    <div><label className="text-sm font-semibold" htmlFor="lp-phone">Telefon *</label><input id="lp-phone" type="tel" autoComplete="tel" value={form.phone} onChange={event => setForm({ ...form, phone: event.target.value })} className="mt-1 h-11 w-full rounded-lg border border-slate-300 px-3 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-100" /></div>
                   </div>
-                  <Button type="submit" disabled={submitting} className="h-12 w-full rounded-lg bg-violet-600 font-bold text-white hover:bg-violet-700">{submitting ? "Odesílám…" : segment.cta}<ArrowRight className="ml-2 h-4 w-4" /></Button>
+                  <Button type="submit" disabled={submitting} className="h-12 w-full rounded-lg bg-sky-600 font-bold text-white hover:bg-sky-700">{submitting ? "Odesílám…" : segment.cta}<ArrowRight className="ml-2 h-4 w-4" /></Button>
                   <p className="text-xs leading-5 text-slate-500">Odesláním žádáte o kontakt k této poptávce. Marketingové měření se řídí vaším nastavením cookies.</p>
                 </form>
               </>
@@ -256,7 +284,7 @@ export default function SklikLandingPage() {
             </div>
           </div>
           <div className="flex gap-4">
-            <TrendingUp className="h-7 w-7 shrink-0 text-fuchsia-300" />
+            <TrendingUp className="h-7 w-7 shrink-0 text-sky-300" />
             <div>
               <h3 className="font-bold">Měřitelný výkon</h3>
               <p className="mt-2 text-sm leading-6 text-slate-300">Každá kampaň má vlastní URL, publikum a konverzní cíl.</p>
@@ -299,7 +327,7 @@ export default function SklikLandingPage() {
 
       <div className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-slate-200 bg-white p-2 shadow-2xl sm:hidden">
         <a href="tel:+420731348984" onClick={() => trackEvent("click_tel", { label: segment.slug, location: "mobile-sticky" })} className="flex h-11 items-center justify-center rounded-lg text-sm font-bold text-slate-800">Zavolat</a>
-        <a href="#poptavka" onClick={() => trackEvent("cta_click", { label: segment.slug, location: "mobile-sticky" })} className="flex h-11 items-center justify-center rounded-lg bg-violet-600 text-sm font-bold text-white">Poptávka</a>
+        <a href="#poptavka" onClick={() => trackEvent("cta_click", { label: segment.slug, location: "mobile-sticky" })} className="flex h-11 items-center justify-center rounded-lg bg-sky-600 text-sm font-bold text-white">Poptávka</a>
       </div>
     </main>
   );

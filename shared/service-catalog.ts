@@ -67,32 +67,73 @@ export const CORE_OFFERS = {
 
 export const WEB_PACKAGES = {
   LITE_WEB: {
-    name: "Lite Web",
-    description: "Jednostránkový web se základním měřením a kontaktním formulářem",
+    name: "ONYX WEB Start",
+    description: "Jedna přehledná stránka s nabídkou, kontaktem a základním měřením",
     priceInCzk: 3_490,
     depositPercentage: 30,
   },
   BASIC_WEB: {
-    name: "Basic Web",
-    description: "Vícestránkový firemní web se základními funkcemi",
+    name: "ONYX WEB Business",
+    description: "Firemní web s menu, ceníkem, službami nebo rezervací",
     priceInCzk: 4_999,
     depositPercentage: 30,
   },
   WEB_LEAD_GEN: {
-    name: "Web + Lead Gen",
-    description: "Web s konverzní strukturou, atribucí a napojením poptávek",
+    name: "ONYX WEB Poptávky",
+    description: "Web navržený pro získávání a měření konkrétních poptávek",
     priceInCzk: 6_990,
     depositPercentage: 30,
   },
   WEB_AUTOMATION: {
-    name: "Web + automatizace",
-    description: "Web s pokročilou automatizací a správou leadů",
+    name: "ONYX WEB Automatizace",
+    description: "Web s automatickou odpovědí a přehlednou správou zájemců",
     priceInCzk: 9_990,
     depositPercentage: 30,
   },
 } as const;
 
 export type WebPackageId = keyof typeof WEB_PACKAGES;
+
+export type SolutionPackage = {
+  id: "onyx-web" | "onyx-eshop";
+  name: string;
+  plainName: string;
+  priceFromInCzk: number;
+  priceToInCzk?: number;
+  description: string;
+  audience: string;
+  features: readonly string[];
+  cta: string;
+  href: string;
+};
+
+export const SOLUTION_PACKAGES = {
+  ONYX_WEB: {
+    id: "onyx-web",
+    name: "ONYX WEB",
+    plainName: "Web pro získávání zákazníků",
+    priceFromInCzk: WEB_PACKAGES.LITE_WEB.priceInCzk,
+    priceToInCzk: WEB_PACKAGES.WEB_AUTOMATION.priceInCzk,
+    description: "Přehledný web s nabídkou, menu, ceníkem, rezervací nebo formulářem podle vašeho podnikání.",
+    audience: "Pro živnostníky, restaurace, kavárny, čajovny, salony, řemeslníky a menší firmy.",
+    features: ["Mobilní web", "Jasná nabídka a kontakt", "Měření poptávek", "Možnost rezervace nebo menu"],
+    cta: "Chci nový web",
+    href: "/dotaznik?zdroj=pricing&segment=onyx-web",
+  },
+  ONYX_ESHOP: {
+    id: "onyx-eshop",
+    name: "ONYX E-SHOP",
+    plainName: "Jednoduchý online prodej",
+    priceFromInCzk: 14_900,
+    description: "E-shop, ve kterém zákazník snadno najde produkt, objedná a zaplatí bez zbytečných kroků.",
+    audience: "Pro menší obchody, lokální výrobce, gastro produkty, dárkové poukazy a rozvoz.",
+    features: ["Produkty a varianty", "Košík a online platba", "Správa objednávek", "Měření prodeje"],
+    cta: "Chci prodávat online",
+    href: "/dotaznik?zdroj=pricing&segment=onyx-eshop",
+  },
+} as const satisfies Record<string, SolutionPackage>;
+
+export type SolutionPackageId = keyof typeof SOLUTION_PACKAGES;
 
 export const CHECKOUT_OFFER_IDS = [
   "ONYX_OS_AUDIT",
@@ -134,4 +175,11 @@ export function formatOfferPrice(offer: CoreOffer) {
 
 export function formatWebPackagePrice(packageId: WebPackageId, from = false) {
   return `${from ? "od " : ""}${formatCzk(WEB_PACKAGES[packageId].priceInCzk)}`;
+}
+
+export function formatSolutionPackagePrice(solution: SolutionPackage) {
+  if (solution.priceToInCzk) {
+    return `${new Intl.NumberFormat("cs-CZ").format(solution.priceFromInCzk)}–${formatCzk(solution.priceToInCzk)}`;
+  }
+  return `od ${formatCzk(solution.priceFromInCzk)}`;
 }

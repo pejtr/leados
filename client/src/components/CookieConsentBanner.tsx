@@ -25,10 +25,6 @@ export function CookieConsentBanner() {
   }, []);
 
   const applyConsent = (ch: ConsentChannels) => {
-    const previous = getConsentChannels();
-    const requiresReload = (Object.keys(previous) as Array<keyof ConsentChannels>)
-      .some((key) => previous[key] && !ch[key]);
-
     saveConsentChoice(ch);
     setVisible(false);
 
@@ -57,7 +53,6 @@ export function CookieConsentBanner() {
     }
 
     window.dispatchEvent(new Event(CONSENT_UPDATED_EVENT));
-    if (requiresReload) window.location.reload();
   };
 
   const acceptAll = () => {

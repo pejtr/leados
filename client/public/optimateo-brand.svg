@@ -1,27 +1,26 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="brand-gradient" x1="15" y1="78" x2="82" y2="15" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#008cff"/>
-      <stop offset="0.5" stop-color="#2438ff"/>
-      <stop offset="1" stop-color="#e014ff"/>
-    </linearGradient>
-    <linearGradient id="wordmark-gradient" x1="466" y1="508" x2="815" y2="508" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#008cff"/>
-      <stop offset="0.5" stop-color="#4f46e5"/>
-      <stop offset="1" stop-color="#e014ff"/>
-    </linearGradient>
-  </defs>
-  <rect width="1200" height="630" fill="#020617"/>
-  <g transform="translate(480 70) scale(2.5)">
-    <path d="M29 65.5A31 31 0 0 1 63.5 22.5" fill="none" stroke="url(#brand-gradient)" stroke-width="12"/>
-    <path d="M66.5 42.5A31 31 0 0 1 44 72" fill="none" stroke="url(#brand-gradient)" stroke-width="12"/>
-    <path d="M21 75L72 24" fill="none" stroke="url(#brand-gradient)" stroke-width="11" stroke-linecap="square"/>
-    <path d="M61 17L82 12L77 33Z" fill="url(#brand-gradient)"/>
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <g transform="translate(72 62) scale(1.7)">
+    <path d="M72 20A34 34 0 1 0 72 76" fill="none" stroke="#081521" stroke-width="13"/>
+    <path d="M27 61L43 40L57 53L76 30L84 45L58 75L43 61L33 75Z" fill="#0EA5E9"/>
+    <path d="M27 61L43 40L48 56L33 75Z" fill="#0788C4"/>
+    <path d="M43 40L57 53L50 61L36 47Z" fill="#39C6F0"/>
   </g>
-  <rect x="191" y="388" width="54" height="54" rx="10" fill="none" stroke="#078bff" stroke-width="11"/>
-  <text x="278" y="438" fill="#ffffff" font-family="Arial, Helvetica, sans-serif" font-size="70" font-weight="700" letter-spacing="22">PTIMATE</text>
-  <rect x="956" y="388" width="54" height="54" rx="10" fill="none" stroke="#c31cff" stroke-width="11"/>
-  <line x1="250" y1="508" x2="430" y2="508" stroke="#078bff" stroke-width="3"/>
-  <text x="466" y="520" fill="url(#wordmark-gradient)" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="14">DIGITAL AGENCY</text>
-  <line x1="950" y1="508" x2="1010" y2="508" stroke="#c31cff" stroke-width="3"/>
+  <text x="250" y="160" fill="#081521" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="800" letter-spacing="3">OPTIMATEO</text>
+  <text x="82" y="270" fill="#081521" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="800">WEB · DATA ·</text>
+  <text x="82" y="340" fill="#0788C4" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="800">AUTOMATIZACE</text>
+  <text x="82" y="392" fill="#3E5B70" font-family="Arial, Helvetica, sans-serif" font-size="24">Digitální řešení, která šetří čas a přivádějí zákazníky.</text>
+  <rect y="440" width="1200" height="190" fill="#061421"/>
+  <g fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif">
+    <text x="82" y="505" font-size="22" font-weight="700">VÝKONNOSTNÍ WEB</text>
+    <text x="440" y="505" font-size="22" font-weight="700">DATA A CRM</text>
+    <text x="720" y="505" font-size="22" font-weight="700">AUTOMATIZACE</text>
+    <text x="82" y="542" fill="#A9C4D5" font-size="17">Jasná cesta k poptávce</text>
+    <text x="440" y="542" fill="#A9C4D5" font-size="17">Každý lead na jednom místě</text>
+    <text x="720" y="542" fill="#A9C4D5" font-size="17">Méně ruční práce</text>
+  </g>
+  <line x1="390" y1="478" x2="390" y2="555" stroke="#24506A"/>
+  <line x1="670" y1="478" x2="670" y2="555" stroke="#24506A"/>
+  <text x="82" y="597" fill="#A9C4D5" font-family="Arial, Helvetica, sans-serif" font-size="17" letter-spacing="2">POWERED BY <tspan fill="#39C6F0" font-weight="700">ONYX OS</tspan></text>
+  <text x="735" y="597" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700">VÍCE ZÁKAZNÍKŮ. MÍŇ PRÁCE. <tspan fill="#39C6F0">VÍCE RŮSTU.</tspan></text>
 </svg>

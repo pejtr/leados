@@ -12,7 +12,7 @@ import { CookieConsentBanner } from "./components/CookieConsentBanner";
 import { CONSENT_UPDATED_EVENT, getConsentChannels } from "./lib/consent";
 import { ensureLinkedInInsight } from "./lib/linkedin";
 import { usePageSeo } from "./hooks/usePageSeo";
-import { CORE_OFFERS, WEB_PACKAGES } from "@shared/service-catalog";
+import { CORE_OFFERS, SOLUTION_PACKAGES, WEB_PACKAGES } from "@shared/service-catalog";
 import { DEFAULT_SEO, ROUTE_SEO } from "@shared/seo-config";
 import { PUBLIC_SITE_URL } from "@shared/brand-config";
 
@@ -35,12 +35,13 @@ const VerticalLanding = lazy(() => import("./pages/VerticalLanding"));
 const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
 const PaymentCancel = lazy(() => import("./pages/PaymentCancel"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
+const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
 
 function PageLoader() {
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-      <div className="h-12 w-12 rounded-full border-t-2 border-b-2 border-violet-400 animate-spin" />
+      <div className="h-12 w-12 rounded-full border-t-2 border-b-2 border-sky-400 animate-spin" />
     </div>
   );
 }
@@ -137,35 +138,43 @@ function PageSeo() {
   const noIndex = routeSeo?.noIndex ?? !routeSeo;
   const schema = routeSeo?.schemaType === "OfferCatalog"
     ? {
-        "@context": "https://schema.org",
-        "@type": "OfferCatalog",
-        name: "Ceník služeb OPTIMATEO",
-        url: `${PUBLIC_SITE_URL}/pricing`,
-        itemListElement: [...Object.values(CORE_OFFERS), ...Object.values(WEB_PACKAGES)].map((offer) => ({
-          "@type": "Offer",
-          priceCurrency: "CZK",
-          price: offer.priceInCzk,
-          itemOffered: { "@type": "Service", name: offer.name, description: offer.description },
-        })),
-      }
+      "@context": "https://schema.org",
+      "@type": "OfferCatalog",
+      name: "Ceník služeb OPTIMATEO",
+      url: `${PUBLIC_SITE_URL}/pricing`,
+      itemListElement: [
+        ...Object.values(CORE_OFFERS),
+        ...Object.values(WEB_PACKAGES),
+        {
+          name: SOLUTION_PACKAGES.ONYX_ESHOP.name,
+          description: SOLUTION_PACKAGES.ONYX_ESHOP.description,
+          priceInCzk: SOLUTION_PACKAGES.ONYX_ESHOP.priceFromInCzk,
+        },
+      ].map((offer) => ({
+        "@type": "Offer",
+        priceCurrency: "CZK",
+        price: offer.priceInCzk,
+        itemOffered: { "@type": "Service", name: offer.name, description: offer.description },
+      })),
+    }
     : routeSeo?.schemaType === "Service"
       ? {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: seo.title.split("|")[0].trim(),
+        description: seo.description,
+        url: PUBLIC_SITE_URL + location,
+        areaServed: { "@type": "Country", name: "Česko" },
+        provider: { "@type": "ProfessionalService", name: "OPTIMATEO", url: PUBLIC_SITE_URL },
+      }
+      : routeSeo?.schemaType === "WebPage"
+        ? {
           "@context": "https://schema.org",
-          "@type": "Service",
+          "@type": "WebPage",
           name: seo.title.split("|")[0].trim(),
           description: seo.description,
           url: PUBLIC_SITE_URL + location,
-          areaServed: { "@type": "Country", name: "Česko" },
-          provider: { "@type": "ProfessionalService", name: "OPTIMATEO", url: PUBLIC_SITE_URL },
         }
-      : routeSeo?.schemaType === "WebPage"
-        ? {
-            "@context": "https://schema.org",
-            "@type": "WebPage",
-            name: seo.title.split("|")[0].trim(),
-            description: seo.description,
-            url: PUBLIC_SITE_URL + location,
-          }
         : undefined;
 
   usePageSeo({ ...seo, path: location, noIndex, schema });
@@ -208,6 +217,7 @@ function Router() {
         <Route path="/audit-zdarma" component={AuditZdarma} />
         <Route path="/crm-lead-system" component={CrmLeadSystem} />
         <Route path="/pricing" component={PricingPage} />
+        <Route path="/portfolio" component={PortfolioPage} />
         <Route path="/ochrana-osobnich-udaju" component={LegalPage} />
         <Route path="/cookies" component={LegalPage} />
         <Route path="/obchodni-podminky" component={LegalPage} />

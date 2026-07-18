@@ -52,7 +52,17 @@ export const ROUTE_SEO: Record<string, RouteSeo> = {
   },
   "/lp/restaurace": {
     title: "Web, menu a rezervace pro restaurace | OPTIMATEO",
-    description: "Web pro restaurace a kavárny s přehledným menu, rezervacemi, akcemi a měřením kampaní.",
+    description: "Web pro restaurace a bistra s přehledným menu, rezervacemi, otevírací dobou a měřením kampaní.",
+    schemaType: "Service",
+  },
+  "/lp/kavarny": {
+    title: "Web, menu a rezervace pro kavárny | OPTIMATEO",
+    description: "Přehledný mobilní web pro kavárny, pražírny a cukrárny s nabídkou, akcemi, otevírací dobou a rezervací.",
+    schemaType: "Service",
+  },
+  "/lp/cajovny": {
+    title: "Web, nabídka a rezervace pro čajovny | OPTIMATEO",
+    description: "Web pro čajovny a čajové obchody s nabídkou, programem, fotkami, kontaktem a jednoduchou rezervací.",
     schemaType: "Service",
   },
   "/lp/salony": {

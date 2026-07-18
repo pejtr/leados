@@ -40,4 +40,4 @@ Claude Code působí jako architekt a reviewer — finální slovo má review v 
 - Skripty: `pnpm dev` · `pnpm check` · `pnpm test` · `pnpm build`
 - Windows kompatibilita: env proměnné ve skriptech přes `cross-env`
 - Čeština v UI textech; v zákaznickém UI nepoužívat slovo "AI" pro placené funkce bez kontextu
-- Deploy: push do `main` = automatický deploy přes Manus. Proto: do `main` jde jen zreviewovaný kód.
+- Deploy: push do `main` = automatický deploy přes Railway. Proto: do `main` jde jen zreviewovaný kód.

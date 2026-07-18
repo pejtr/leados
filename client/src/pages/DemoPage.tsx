@@ -673,14 +673,23 @@ function Field({ label, value, onChange, placeholder }: { label: string; value: 
 
 // ─── Main DemoPage ─────────────────────────────────────────────────────────────
 
+
+const PROFI_STYLES = [
+  { id: 'minimal', name: 'Čisté', cls: 'bg-slate-100' },
+  { id: 'grid', name: 'Mřížka', cls: 'bg-white bg-[linear-gradient(to_right,#e5e7eb_1px,transparent_1px),linear-gradient(to_bottom,#e5e7eb_1px,transparent_1px)] bg-[size:32px_32px]' },
+  { id: 'gradient', name: 'Gradient', cls: 'bg-gradient-to-br from-indigo-100 via-white to-cyan-100' },
+  { id: 'dots', name: 'Tečky', cls: 'bg-[#fbfbfb] bg-[radial-gradient(#d1d5db_1.5px,transparent_1.5px)] [background-size:20px_20px]' },
+  { id: 'darkglow', name: 'Záře', cls: 'bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),transparent)]' },
+];
+
 export default function DemoPage() {
   const [selected, setSelected] = useState<Template | null>(null);
   const [data, setData] = useState<DemoData | null>(null);
+  const [bgStyle, setBgStyle] = useState(0);
 
   const selectTemplate = useCallback((t: Template) => {
     setSelected(t);
     setData({ ...t.defaults });
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   const updateField = useCallback(<K extends keyof DemoData>(key: K, value: DemoData[K]) => {
@@ -762,6 +771,22 @@ export default function DemoPage() {
               </div>
               <Field label="Text tlačítka" value={data.cta} onChange={v => updateField("cta", v)} placeholder="Objednat" />
 
+              
+              <div className="pb-2 border-b border-slate-100 pt-4">
+                <p className="text-xs font-bold text-slate-700 uppercase tracking-widest">Pozadí ukázky (Profi Styly)</p>
+              </div>
+              <div className="flex flex-wrap gap-2 pt-3 pb-2">
+                {PROFI_STYLES.map((style, i) => (
+                  <button
+                    key={style.id}
+                    onClick={() => setBgStyle(i)}
+                    className={`px-3 py-1.5 text-[11px] font-semibold rounded-lg border transition-all ${bgStyle === i ? 'border-violet-500 bg-violet-50 text-violet-700 shadow-sm' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+                  >
+                    {style.name}
+                  </button>
+                ))}
+              </div>
+
               <div className="pt-4 pb-2">
                 <a href={`/dotaznik?obor=${selected.id}&firma=${encodeURIComponent(data.businessName)}`} className="block w-full">
                   <Button className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl">
@@ -774,7 +799,7 @@ export default function DemoPage() {
           </div>
 
           {/* Preview panel */}
-          <div className="flex-1 overflow-auto bg-slate-100 flex flex-col items-center py-6">
+          <div className={`flex-1 overflow-auto flex flex-col items-center py-6 transition-colors duration-500 ${PROFI_STYLES[bgStyle].cls}`}>
             <div className="mb-4 flex items-center gap-2">
               <div className="flex gap-1.5">
                 {["#FF5F56", "#FFBD2E", "#27C93F"].map(c => (
@@ -839,10 +864,18 @@ export default function DemoPage() {
           <h2 className="text-center text-white/40 text-sm uppercase tracking-widest mb-10">Vyberte svůj obor</h2>
           <div className="grid gap-8 sm:grid-cols-2">
             {CURATED_TEMPLATES.map(t => (
-              <button
+              <article
                 key={t.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => selectTemplate(t)}
-                className="group relative rounded-2xl border border-white/10 bg-[#0d0f1f] overflow-hidden text-left hover:border-violet-400/40 hover:shadow-[0_0_30px_rgba(139,92,246,0.15)] transition-all duration-300 hover:-translate-y-1.5"
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    selectTemplate(t);
+                  }
+                }}
+                className="group relative cursor-pointer rounded-2xl border border-white/10 bg-[#0d0f1f] overflow-hidden text-left hover:border-sky-400/40 hover:shadow-[0_0_30px_rgba(14,165,233,0.15)] transition-all duration-300 hover:-translate-y-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
               >
                 {/* Browser chrome */}
                 <div className="flex items-center gap-1.5 px-3 py-2.5 bg-[#13152a] border-b border-white/8">
@@ -874,7 +907,7 @@ export default function DemoPage() {
                     Vyzkoušet <ChevronRight className="w-3.5 h-3.5" />
                   </div>
                 </div>
-              </button>
+              </article>
             ))}
           </div>
         </div>

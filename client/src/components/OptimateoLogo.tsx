@@ -1,72 +1,73 @@
-import { useId } from "react";
+type OptimateoLogoProps = {
+  className?: string;
+  light?: boolean;
+  withWordmark?: boolean;
+  withTagline?: boolean;
+};
 
 export function OptimateoLogo({
   className = "h-8",
   light = false,
   withWordmark = true,
   withTagline = false,
-}: {
-  className?: string;
-  light?: boolean;
-  withWordmark?: boolean;
-  withTagline?: boolean;
-}) {
-  const gradientId = `optimateo-gradient-${useId().replace(/:/g, "")}`;
-  const wordmark = light ? "text-white" : "text-slate-950";
-  const muted = light ? "text-white/70" : "text-slate-500";
+}: OptimateoLogoProps) {
+  const ink = light ? "#F8FAFC" : "#081521";
+  const muted = light ? "#A9C4D5" : "#3E5B70";
+  const viewBox = withWordmark
+    ? withTagline
+      ? "0 0 500 112"
+      : "0 0 500 96"
+    : "0 0 96 96";
 
   return (
-    <span className={`inline-flex items-center gap-[0.45em] leading-none ${className}`}>
-      <svg viewBox="0 0 96 96" className="h-full w-auto shrink-0 overflow-visible drop-shadow-[0_0_12px_rgba(124,58,237,0.35)]" aria-hidden="true">
-        <defs>
-          <linearGradient id={gradientId} x1="15" y1="78" x2="82" y2="15" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#008cff" />
-            <stop offset="48%" stopColor="#2338ff" />
-            <stop offset="100%" stopColor="#e014ff" />
-          </linearGradient>
-        </defs>
+    <svg
+      viewBox={viewBox}
+      className={`block w-auto shrink-0 ${className}`}
+      role="img"
+      aria-label={withWordmark ? "OPTIMATEO, web, data, automatizace" : "OPTIMATEO"}
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <g aria-hidden="true">
         <path
-          d="M29 65.5A31 31 0 0 1 63.5 22.5"
+          d="M72 20A34 34 0 1 0 72 76"
           fill="none"
-          stroke={`url(#${gradientId})`}
-          strokeWidth="12"
+          stroke={ink}
+          strokeWidth="13"
           strokeLinecap="butt"
         />
-        <path
-          d="M66.5 42.5A31 31 0 0 1 44 72"
-          fill="none"
-          stroke={`url(#${gradientId})`}
-          strokeWidth="12"
-          strokeLinecap="butt"
-        />
-        <path
-          d="M21 75L72 24"
-          fill="none"
-          stroke={`url(#${gradientId})`}
-          strokeWidth="11"
-          strokeLinecap="square"
-        />
-        <path d="M61 17L82 12L77 33Z" fill={`url(#${gradientId})`} />
-      </svg>
+        <path d="M27 61L43 40L57 53L76 30L84 45L58 75L43 61L33 75Z" fill="#0EA5E9" />
+        <path d="M27 61L43 40L48 56L33 75Z" fill="#0788C4" />
+        <path d="M43 40L57 53L50 61L36 47Z" fill="#39C6F0" />
+      </g>
 
       {withWordmark && (
-        <span className="flex flex-col justify-center gap-[0.15em]">
-          <span className={`flex items-center gap-[0.28em] font-extrabold uppercase tracking-[0.32em] text-[1.05em] ${wordmark}`}>
-            <span className="inline-block h-[0.75em] w-[0.75em] rounded-[0.18em] border-[0.12em] border-[#078bff]" />
-            <span>PTIMATE</span>
-            <span className="inline-block h-[0.75em] w-[0.75em] rounded-[0.18em] border-[0.12em] border-[#c31cff]" />
-          </span>
+        <g aria-hidden="true">
+          <text
+            x="112"
+            y="62"
+            fill={ink}
+            fontFamily="Plus Jakarta Sans, Inter, Arial, sans-serif"
+            fontSize="43"
+            fontWeight="800"
+            letterSpacing="1.5"
+          >
+            OPTIMATEO
+          </text>
           {withTagline && (
-            <span className={`flex items-center gap-[0.55em] pl-[0.1em] text-[0.34em] font-bold uppercase tracking-[0.8em] ${muted}`}>
-              <span className="h-px w-[5em] bg-gradient-to-r from-[#008cff] to-[#2338ff]" />
-              <span className="bg-gradient-to-r from-[#008cff] via-[#4f46e5] to-[#e014ff] bg-clip-text text-transparent">
-                Digital Agency
-              </span>
-              <span className="h-px w-[5em] bg-gradient-to-r from-[#7c2dff] to-[#e014ff]" />
-            </span>
+            <text
+              x="114"
+              y="91"
+              fill={muted}
+              fontFamily="Plus Jakarta Sans, Inter, Arial, sans-serif"
+              fontSize="15"
+              fontWeight="600"
+              letterSpacing="2.6"
+            >
+              WEB · DATA · AUTOMATIZACE
+            </text>
           )}
-        </span>
+        </g>
       )}
-    </span>
+    </svg>
   );
 }
