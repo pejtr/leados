@@ -18,7 +18,7 @@ export async function createContext(
   // Dev-only auto-login: bypass Manus OAuth when DEV_AUTO_LOGIN=true
   if (ENV.devAutoLogin && !ENV.isProduction) {
     const ownerOpenId = ENV.ownerOpenId || "dev-owner";
-    user = await db.getUserByOpenId(ownerOpenId);
+    user = await db.getUserByOpenId(ownerOpenId) ?? null;
     if (!user) {
       await db.upsertUser({
         openId: ownerOpenId,
@@ -27,7 +27,7 @@ export async function createContext(
         loginMethod: "dev",
         lastSignedIn: new Date(),
       });
-      user = await db.getUserByOpenId(ownerOpenId);
+      user = await db.getUserByOpenId(ownerOpenId) ?? null;
     }
     return { req: opts.req, res: opts.res, user };
   }

@@ -7,7 +7,7 @@ import { getDb } from "./db";
 import { dailyReportConfigs, connectedProjects, projectEvents, adCampaigns } from "../drizzle/schema";
 import { eq, and, gte, lte, desc } from "drizzle-orm";
 import { notifyOwner } from "./_core/notification";
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, extractText } from "./_core/llm";
 import { ENV } from "./_core/env";
 
 const CHECK_INTERVAL_MS = 60 * 60 * 1000; // Check every hour
@@ -33,7 +33,7 @@ async function getDailyStats(userId: string): Promise<DailyStats> {
   const projects = await db
     .select()
     .from(connectedProjects)
-    .where(eq(connectedProjects.userId, userId));
+    .where(eq(connectedProjects.userId, Number(userId)));
 
   const projectIds = projects.map((p) => p.id);
 
@@ -51,8 +51,8 @@ async function getDailyStats(userId: string): Promise<DailyStats> {
         .where(
           and(
             eq(projectEvents.projectId, pid),
-            gte(projectEvents.createdAt, yesterday),
-            lte(projectEvents.createdAt, now)
+            gte(projectEvents.createdAt, new Date(yesterday)),
+            lte(projectEvents.createdAt, new Date(now))
           )
         );
 
@@ -75,7 +75,7 @@ async function getDailyStats(userId: string): Promise<DailyStats> {
   const campaigns = await db
     .select()
     .from(adCampaigns)
-    .where(eq(adCampaigns.userId, userId))
+    .where(eq(adCampaigns.userId, Number(userId)))
     .orderBy(desc(adCampaigns.updatedAt));
 
   let totalAdSpend = 0;
@@ -139,7 +139,7 @@ Metrics:
     const response = await invokeLLM({
       messages: [{ role: "user", content: prompt }],
     });
-    return response.choices?.[0]?.message?.content ?? "";
+    return extractText(response.choices?.[0]?.message?.content) || "";
   } catch {
     return "";
   }

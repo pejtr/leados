@@ -12,6 +12,8 @@ import {
 } from "../drizzle/schema";
 import { eq, and, lte, isNotNull } from "drizzle-orm";
 import { notifyOwner } from "./_core/notification";
+import { EmailIntegrationNotConfiguredError, sendTransactionalEmail } from "./services/emailService";
+import { ENV } from "./_core/env";
 
 const CHECK_INTERVAL_MS = 60 * 60 * 1000; // Every hour
 
@@ -126,6 +128,15 @@ async function markStepSentAndAdvance(
   }
 }
 
+async function pauseEnrollment(enrollmentId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db
+    .update(emailSequenceEnrollments)
+    .set({ status: "paused", nextSendAt: null })
+    .where(eq(emailSequenceEnrollments.id, enrollmentId));
+}
+
 function personalizeEmailBody(body: string, vars: Record<string, string>): string {
   let result = body;
   for (const [key, value] of Object.entries(vars)) {
@@ -156,23 +167,39 @@ async function processEnrollment(enrollment: DueEnrollment): Promise<void> {
   const personalizedSubject = personalizeEmailBody(step.subject, vars);
   const personalizedBody = personalizeEmailBody(step.body, vars);
 
-  // Log the email send (in production this would call an email service)
-  console.log(`[SequenceScheduler] Sending step ${enrollment.currentStep} to ${enrollment.leadEmail ?? "no-email"}`);
-  console.log(`  Subject: ${personalizedSubject}`);
-  console.log(`  Lead: ${enrollment.leadName} @ ${enrollment.leadCompany}`);
-  console.log(`  Sequence: ${enrollment.sequenceId}, Enrollment: ${enrollment.enrollmentId}`);
+  if (!enrollment.leadEmail) {
+    await pauseEnrollment(enrollment.enrollmentId);
+    console.warn(`[SequenceScheduler] Enrollment ${enrollment.enrollmentId} paused: lead has no email`);
+    return;
+  }
 
-  // If the lead has an email, notify the owner that the email was "sent"
-  // In a real deployment, this would integrate with SendGrid/Resend/Mailgun
-  if (enrollment.leadEmail) {
-    try {
-      await notifyOwner({
-        title: `Sequence Email Sent: ${personalizedSubject}`,
-        content: `Step ${enrollment.currentStep}/${totalSteps} sent to ${enrollment.leadName ?? enrollment.leadEmail} at ${enrollment.leadCompany}.\n\nBody preview: ${personalizedBody.substring(0, 200)}...`,
-      });
-    } catch {
-      // Notification failure is non-critical
+  let messageId: string;
+  try {
+    const result = await sendTransactionalEmail({
+      userId: enrollment.userId,
+      to: enrollment.leadEmail,
+      subject: personalizedSubject,
+      textContent: personalizedBody,
+      senderName: enrollment.userName ?? undefined,
+    });
+    messageId = result.messageId;
+  } catch (error) {
+    if (error instanceof EmailIntegrationNotConfiguredError) {
+      await pauseEnrollment(enrollment.enrollmentId);
+      console.warn(`[SequenceScheduler] Enrollment ${enrollment.enrollmentId} paused: ${error.message}`);
+      return;
     }
+    throw error;
+  }
+
+  console.log(`[SequenceScheduler] Sent step ${enrollment.currentStep} to ${enrollment.leadEmail} (${messageId})`);
+  try {
+    await notifyOwner({
+      title: `Sequence Email Sent: ${personalizedSubject}`,
+      content: `Step ${enrollment.currentStep}/${totalSteps} sent to ${enrollment.leadName ?? enrollment.leadEmail} at ${enrollment.leadCompany}. Brevo message ID: ${messageId}.`,
+    });
+  } catch {
+    // Notification failure must not change delivery state.
   }
 
   // Advance to next step or complete
@@ -192,6 +219,10 @@ let intervalId: ReturnType<typeof setInterval> | null = null;
 
 export function startSequenceScheduler(): void {
   if (intervalId) return;
+  if (!ENV.sequenceEmailSendingEnabled) {
+    console.log("[SequenceScheduler] Disabled. Set ENABLE_SEQUENCE_EMAIL_SENDING=true to enable delivery.");
+    return;
+  }
   console.log("[SequenceScheduler] Started — checking every 60 minutes");
 
   // Run immediately on startup to catch any overdue enrollments

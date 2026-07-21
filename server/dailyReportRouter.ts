@@ -13,7 +13,7 @@ export const dailyReportRouter = router({
     const [config] = await db
       .select()
       .from(dailyReportConfigs)
-      .where(eq(dailyReportConfigs.userId, ctx.user.id))
+      .where(eq(dailyReportConfigs.userId, String(ctx.user.id)))
       .limit(1);
     return config ?? null;
   }),
@@ -36,7 +36,7 @@ export const dailyReportRouter = router({
       const [existing] = await db
         .select()
         .from(dailyReportConfigs)
-        .where(eq(dailyReportConfigs.userId, ctx.user.id))
+        .where(eq(dailyReportConfigs.userId, String(ctx.user.id)))
         .limit(1);
 
       if (existing) {
@@ -48,7 +48,7 @@ export const dailyReportRouter = router({
       } else {
         const [result] = await db
           .insert(dailyReportConfigs)
-          .values({ ...input, userId: ctx.user.id });
+          .values({ ...input, userId: String(ctx.user.id) });
         return { id: (result as any).insertId };
       }
     }),
@@ -62,7 +62,7 @@ export const dailyReportRouter = router({
       await db
         .update(dailyReportConfigs)
         .set({ isActive: input.isActive, updatedAt: Date.now() })
-        .where(eq(dailyReportConfigs.userId, ctx.user.id));
+        .where(eq(dailyReportConfigs.userId, String(ctx.user.id)));
       return { success: true };
     }),
 
@@ -73,7 +73,7 @@ export const dailyReportRouter = router({
     const [config] = await db
       .select()
       .from(dailyReportConfigs)
-      .where(eq(dailyReportConfigs.userId, ctx.user.id))
+      .where(eq(dailyReportConfigs.userId, String(ctx.user.id)))
       .limit(1);
 
     if (!config) {

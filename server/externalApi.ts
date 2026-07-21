@@ -7,7 +7,8 @@ import { Express, Request, Response, NextFunction } from "express";
 import { validateApiKey, hasPermission } from "./apiKeys";
 import { getDb } from "./db";
 import { leads, emailSequences, emailSequenceSteps } from "../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
+import { EmailDeliveryError, EmailIntegrationNotConfiguredError, sendTransactionalEmail } from "./services/emailService";
 
 /**
  * Middleware: Extract and validate Bearer token
@@ -60,12 +61,11 @@ export function registerExternalApi(app: Express) {
         return res.status(500).json({ error: "Database unavailable" });
       }
 
-      let query = db.select().from(leads).where(eq(leads.userId, userId));
-
-      // Filter by status if provided
-      if (status && typeof status === "string") {
-        query = query.where(eq(leads.status, status as any));
-      }
+      let query = db.select().from(leads).where(
+        status && typeof status === "string"
+          ? and(eq(leads.userId, userId), eq(leads.status, status as any))
+          : eq(leads.userId, userId)
+      );
 
       const results = await query.limit(Number(limit)).offset(Number(offset));
 
@@ -191,8 +191,8 @@ export function registerExternalApi(app: Express) {
           qualified: allLeads.filter(l => l.status === "qualified").length,
           disqualified: allLeads.filter(l => l.status === "disqualified").length,
         },
-        totalDeals: allLeads.filter(l => l.dealValue && l.dealValue > 0).length,
-        totalDealValue: allLeads.reduce((sum, l) => sum + (l.dealValue || 0), 0),
+        totalDeals: allLeads.filter(l => l.dealValue && Number(l.dealValue) > 0).length,
+        totalDealValue: allLeads.reduce((sum, l) => sum + Number(l.dealValue || 0), 0),
         closedDeals: allLeads.filter(l => l.dealClosed).length,
         conversionRate: allLeads.length > 0 ? (allLeads.filter(l => l.dealClosed).length / allLeads.length * 100).toFixed(2) : "0",
       };
@@ -236,32 +236,28 @@ export function registerExternalApi(app: Express) {
   // Send transactional email via Brevo
   app.post("/api/external/email/send", authMiddleware, requirePermission("write"), async (req: Request, res: Response) => {
     try {
+      const userId = (req as any).userId as number;
       const { to, subject, htmlContent, textContent, senderName, senderEmail } = req.body;
       if (!to || !subject || (!htmlContent && !textContent)) {
         return res.status(400).json({ error: "Missing required fields: to, subject, htmlContent or textContent" });
       }
-      const brevoKey = process.env.BREVO_API_KEY;
-      if (!brevoKey) {
-        return res.status(503).json({ error: "Brevo API key not configured", code: "BREVO_NOT_CONFIGURED" });
-      }
-      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
-        method: "POST",
-        headers: { "api-key": brevoKey, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sender: { name: senderName || "OPTIHUB", email: senderEmail || "noreply@leados.com" },
-          to: Array.isArray(to) ? to : [{ email: to }],
-          subject,
-          htmlContent: htmlContent || undefined,
-          textContent: textContent || undefined,
-        }),
+      const result = await sendTransactionalEmail({
+        userId,
+        to,
+        subject,
+        htmlContent,
+        textContent,
+        senderName,
+        senderEmail,
       });
-      if (!response.ok) {
-        const errBody = await response.text();
-        return res.status(502).json({ error: "Brevo API error", details: errBody });
-      }
-      const result = await response.json();
       res.json({ success: true, messageId: result.messageId });
     } catch (error) {
+      if (error instanceof EmailIntegrationNotConfiguredError) {
+        return res.status(503).json({ error: error.message, code: "BREVO_NOT_CONFIGURED" });
+      }
+      if (error instanceof EmailDeliveryError) {
+        return res.status(502).json({ error: error.message, status: error.status });
+      }
       console.error("[ExternalAPI] POST /email/send error:", error);
       res.status(500).json({ error: "Internal server error" });
     }
@@ -279,18 +275,19 @@ export function registerExternalApi(app: Express) {
       const db = await getDb();
       if (!db) return res.status(500).json({ error: "Database unavailable" });
       const now = new Date();
+      const supportedDataSources = new Set(["linkedin_apify", "xing_apify", "google_maps", "web_audit"] as const);
+      const dataSource = supportedDataSources.has(source) ? source : "mock";
       const [inserted] = await db.insert(leads).values({
         userId,
-        firstName: firstName || "",
-        lastName: lastName || "",
+        sessionId: 0,
+        companyName: company || "",
+        industry: "",
         email,
-        company: company || "",
-        position: position || "",
+        contactName: [firstName, lastName].filter(Boolean).join(" ") || "",
         linkedinUrl: linkedinUrl || "",
-        source: source || "external_api",
+        dataSource,
         status: "new",
         createdAt: now,
-        updatedAt: now,
       });
       res.status(201).json({ success: true, id: (inserted as any).insertId });
     } catch (error) {

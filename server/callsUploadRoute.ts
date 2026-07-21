@@ -48,6 +48,7 @@ export function registerCallsUploadRoute(app: Express) {
 
         // Insert initial record
         const db = await getDb();
+        if (!db) return res.status(500).json({ error: "Database unavailable" });
         const [record] = await db.insert(callRecordings).values({
           userId: user.id,
           leadId: leadId ? parseInt(leadId) : null,
@@ -61,19 +62,27 @@ export function registerCallsUploadRoute(app: Express) {
         transcribeAudio({ audioUrl, language: "en" })
           .then(async (result) => {
             const dbInner = await getDb();
-            await dbInner.update(callRecordings)
-              .set({
-                transcription: result.text,
-                duration: result.segments && result.segments.length > 0
-                  ? Math.round(result.segments[result.segments.length - 1]?.end ?? 0)
-                  : null,
-                callStatus: "done",
-              })
-              .where(eq(callRecordings.id, record.id));
+            if (!dbInner) return;
+            if ("text" in result) {
+              await dbInner.update(callRecordings)
+                .set({
+                  transcription: result.text,
+                  duration: result.segments && result.segments.length > 0
+                    ? Math.round(result.segments[result.segments.length - 1]?.end ?? 0)
+                    : null,
+                  callStatus: "done",
+                })
+                .where(eq(callRecordings.id, record.id));
+            } else {
+              await dbInner.update(callRecordings)
+                .set({ callStatus: "error" })
+                .where(eq(callRecordings.id, record.id));
+            }
           })
           .catch(async (err) => {
             console.error("[CallUpload] Transcription failed:", err);
             const dbErr = await getDb();
+            if (!dbErr) return;
             await dbErr.update(callRecordings)
               .set({ callStatus: "error" })
               .where(eq(callRecordings.id, record.id));

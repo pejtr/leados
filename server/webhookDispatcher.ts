@@ -302,7 +302,7 @@ export async function dispatchWebhooks(
       } catch (logErr) {
         console.error("[Webhook] Failed to log integration event:", logErr);
       }
-    });
+    }).catch(err => console.error("[Webhook] dispatch failed:", err));
   }
 }
 

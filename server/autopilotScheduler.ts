@@ -46,8 +46,12 @@ function computeNextRunAt(
   return next;
 }
 
-async function processAutopilotConfig(config: Awaited<ReturnType<typeof getDueAutopilotConfigs>>[0]) {
-  console.log(`[Autopilot] Starting run for config "${config.name}" (id=${config.id})`);
+async function processAutopilotConfig(
+  config: Awaited<ReturnType<typeof getDueAutopilotConfigs>>[0]
+) {
+  console.log(
+    `[Autopilot] Starting run for config "${config.name}" (id=${config.id})`
+  );
 
   const runId = await createAutopilotRun({
     configId: config.id,
@@ -64,7 +68,11 @@ async function processAutopilotConfig(config: Awaited<ReturnType<typeof getDueAu
       segment: config.segment ?? undefined,
     });
 
-    const nextRunAt = computeNextRunAt(config.scheduleType, config.scheduleDayOfWeek, config.scheduleHour);
+    const nextRunAt = computeNextRunAt(
+      config.scheduleType,
+      config.scheduleDayOfWeek,
+      config.scheduleHour
+    );
 
     await updateAutopilotRun(runId, {
       status: "completed",
@@ -84,7 +92,9 @@ async function processAutopilotConfig(config: Awaited<ReturnType<typeof getDueAu
       dispatchWebhooks(config.userId, "generate", result.leads as any, {
         source: "autopilot",
         configName: config.name,
-      }).catch((err) => console.error("[Autopilot] Webhook dispatch error:", err));
+      }).catch(err =>
+        console.error("[Autopilot] Webhook dispatch error:", err)
+      );
     }
 
     // Notify owner
@@ -93,7 +103,9 @@ async function processAutopilotConfig(config: Awaited<ReturnType<typeof getDueAu
       content: `Generated ${result.leads.length} leads for ${config.industry} in ${config.location}. Next run: ${nextRunAt.toISOString()}`,
     }).catch(() => {});
 
-    console.log(`[Autopilot] Run completed: ${result.leads.length} leads generated for config "${config.name}"`);
+    console.log(
+      `[Autopilot] Run completed: ${result.leads.length} leads generated for config "${config.name}"`
+    );
   } catch (err: any) {
     console.error(`[Autopilot] Run failed for config "${config.name}":`, err);
 
@@ -103,7 +115,11 @@ async function processAutopilotConfig(config: Awaited<ReturnType<typeof getDueAu
       completedAt: new Date(),
     });
 
-    const nextRunAt = computeNextRunAt(config.scheduleType, config.scheduleDayOfWeek, config.scheduleHour);
+    const nextRunAt = computeNextRunAt(
+      config.scheduleType,
+      config.scheduleDayOfWeek,
+      config.scheduleHour
+    );
     await updateAutopilotConfig(config.id, config.userId, {
       lastRunAt: new Date(),
       nextRunAt,
@@ -112,6 +128,7 @@ async function processAutopilotConfig(config: Awaited<ReturnType<typeof getDueAu
 }
 
 let intervalId: ReturnType<typeof setInterval> | null = null;
+let isProcessingTick = false;
 
 export function startAutopilotScheduler() {
   if (intervalId) return;
@@ -119,6 +136,14 @@ export function startAutopilotScheduler() {
   console.log("[Autopilot] Scheduler started — checking every 60s");
 
   intervalId = setInterval(async () => {
+    if (isProcessingTick) {
+      console.warn(
+        "[Autopilot] Previous tick is still running; skipping overlap"
+      );
+      return;
+    }
+
+    isProcessingTick = true;
     try {
       const dueConfigs = await getDueAutopilotConfigs();
       if (dueConfigs.length > 0) {
@@ -129,6 +154,8 @@ export function startAutopilotScheduler() {
       }
     } catch (err) {
       console.error("[Autopilot] Scheduler error:", err);
+    } finally {
+      isProcessingTick = false;
     }
   }, CHECK_INTERVAL_MS);
 }
@@ -137,6 +164,7 @@ export function stopAutopilotScheduler() {
   if (intervalId) {
     clearInterval(intervalId);
     intervalId = null;
+    isProcessingTick = false;
     console.log("[Autopilot] Scheduler stopped");
   }
 }
