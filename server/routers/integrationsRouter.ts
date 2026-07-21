@@ -19,6 +19,73 @@ const VALID_INTEGRATIONS = [
 ] as const;
 
 export const integrationsRouter = router({
+  health: protectedProcedure.query(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new Error("Database unavailable");
+
+    const settings = await db
+      .select()
+      .from(integrationSettings)
+      .where(eq(integrationSettings.userId, ctx.user.id));
+    const byId = new Map(settings.map((setting) => [setting.integrationId, setting]));
+    const configuredByEnvironment = (name: string) => Boolean(process.env[name]);
+    const settingStatus = (id: string) => {
+      const setting = byId.get(id);
+      if (!setting?.apiKey) return "action_required" as const;
+      return setting.status === "error" ? "error" as const : "ready" as const;
+    };
+
+    return [
+      {
+        id: "ai-core",
+        name: "HERMES AI",
+        capability: "Plány, texty a analýzy",
+        status: configuredByEnvironment("BUILT_IN_FORGE_API_KEY") || configuredByEnvironment("ANTHROPIC_API_KEY") || configuredByEnvironment("DEEPSEEK_API_KEY")
+          ? "ready" as const
+          : "action_required" as const,
+        source: "environment" as const,
+        route: "/ai-constitution",
+        lastTestedAt: null,
+      },
+      {
+        id: "google-maps",
+        name: "Google Maps / Apify",
+        capability: "Vyhledání lokálních firem",
+        status: configuredByEnvironment("APIFY_TOKEN") ? "ready" as const : "action_required" as const,
+        source: "environment" as const,
+        route: "/google-maps-scraper",
+        lastTestedAt: null,
+      },
+      {
+        id: "brevo",
+        name: "Brevo",
+        capability: "Skutečné odesílání e-mailů",
+        status: configuredByEnvironment("BREVO_API_KEY") ? "ready" as const : settingStatus("brevo"),
+        source: configuredByEnvironment("BREVO_API_KEY") ? "environment" as const : "user_setting" as const,
+        route: "/admin/integrations",
+        lastTestedAt: byId.get("brevo")?.lastTestedAt ?? null,
+      },
+      {
+        id: "social-publishing",
+        name: "Sociální publikování",
+        capability: "Meta, TikTok a další kanály",
+        status: "not_available" as const,
+        source: "product" as const,
+        route: "/admin/integrations",
+        lastTestedAt: null,
+      },
+      {
+        id: "voice",
+        name: "Hlasový agent",
+        capability: "Telefonie a inbound recepce",
+        status: "not_available" as const,
+        source: "product" as const,
+        route: "/calls",
+        lastTestedAt: null,
+      },
+    ];
+  }),
+
   /**
    * Get all integration settings for the current user
    */
@@ -76,7 +143,7 @@ export const integrationsRouter = router({
         integrationId: z.enum(VALID_INTEGRATIONS),
         apiKey: z.string().optional(),
         apiSecret: z.string().optional(),
-        config: z.record(z.any()).optional(),
+        config: z.record(z.string(), z.any()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

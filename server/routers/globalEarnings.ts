@@ -10,7 +10,7 @@
 import { protectedProcedure, router } from "../_core/trpc";
 import { z } from "zod";
 
-const DSR_BASE = "https://deepsleepreset.manus.space/api/v1";
+const DSR_BASE = "https://deep-sleep-reset.com/api/v1";
 
 function dsrHeaders() {
   const key = process.env.DEEP_SLEEP_RESET_API_KEY;

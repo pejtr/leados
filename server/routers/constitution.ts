@@ -42,6 +42,7 @@ export const constitutionRouter = router({
   get: protectedProcedure.query(async ({ ctx }) => {
     const userId = String(ctx.user.id);
     const db = await getDb();
+    if (!db) return null;
     const rows = await db
       .select()
       .from(aiConstitutions)
@@ -57,6 +58,7 @@ export const constitutionRouter = router({
       const userId = String(ctx.user.id);
       const now = Date.now();
       const db = await getDb();
+      if (!db) throw new Error("Database not available");
 
       // Check if exists
       const existing = await db
@@ -94,6 +96,7 @@ export const constitutionRouter = router({
 export async function getConstitutionContext(userId: string): Promise<string> {
   try {
     const db = await getDb();
+    if (!db) return "";
     const rows = await db
       .select()
       .from(aiConstitutions)

@@ -112,17 +112,16 @@ export const aresRouter = router({
       if (!db) throw new Error("Database unavailable");
       const { leads } = await import("../../drizzle/schema");
 
-      const now = Date.now();
+      const now = new Date();
       await db.insert(leads).values({
         userId: ctx.user.id,
+        sessionId: 0,
         companyName: input.obchodniJmeno,
+        industry: "",
         location: input.adresa ?? input.obec ?? null,
-        source: "ares",
+        dataSource: "mock",
         status: "new",
-        score: 50,
-        notes: `IČO: ${input.ico}`,
         createdAt: now,
-        updatedAt: now,
       });
 
       return { success: true };

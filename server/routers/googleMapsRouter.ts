@@ -3,7 +3,8 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { googleMapsLeads, leads } from "../../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM, extractText } from "../_core/llm";
+import { TRPCError } from "@trpc/server";
 
 const APIFY_TOKEN = process.env.APIFY_TOKEN;
 const GOOGLE_MAPS_ACTOR = "compass/crawler-google-places";
@@ -89,6 +90,7 @@ export const googleMapsRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       const sessionId = `gms_${Date.now()}_${ctx.user.id}`;
       let places: Record<string, unknown>[];
 
@@ -99,8 +101,15 @@ export const googleMapsRouter = router({
           maxResults: input.maxResults,
         });
       } catch (err) {
-        console.warn("[GoogleMaps] Apify unavailable, using demo data:", err);
-        places = generateDemoPlaces(input.searchTerm, input.location, input.maxResults);
+        console.error("[GoogleMaps] Apify search failed:", err);
+        throw new TRPCError({
+          code: "BAD_GATEWAY",
+          message:
+            err instanceof Error && err.message === "APIFY_TOKEN not configured"
+              ? "Google Maps vyhledávání není nakonfigurováno. Doplňte APIFY_TOKEN."
+              : "Google Maps vyhledávání se nezdařilo. Nebyla uložena žádná náhradní demo data.",
+          cause: err,
+        });
       }
 
       const results = [];
@@ -143,6 +152,7 @@ export const googleMapsRouter = router({
     .input(z.object({ sessionId: z.string() }))
     .query(async ({ input, ctx }) => {
       const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       return db
         .select()
         .from(googleMapsLeads)
@@ -157,6 +167,7 @@ export const googleMapsRouter = router({
 
   getSessions: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
     const rows = await db
       .select()
       .from(googleMapsLeads)
@@ -191,6 +202,7 @@ export const googleMapsRouter = router({
     )
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       await db
         .update(googleMapsLeads)
         .set({ status: input.status, notes: input.notes, updatedAt: Date.now() })
@@ -204,6 +216,7 @@ export const googleMapsRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ input, ctx }) => {
       const db = await getDb();
+      if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database unavailable" });
       const [gml] = await db
         .select()
         .from(googleMapsLeads)
@@ -225,7 +238,7 @@ export const googleMapsRouter = router({
             },
           ],
         });
-        icebreaker = res.choices?.[0]?.message?.content || "";
+        icebreaker = extractText(res.choices?.[0]?.message?.content) || "";
       } catch { }
 
       await db.insert(leads).values({
@@ -235,7 +248,7 @@ export const googleMapsRouter = router({
         industry: gml.category || "Google Maps",
         email: "",
         website: gml.website || "",
-        dataSource: "mock",
+        dataSource: "google_maps",
         status: "new",
         icebreaker,
         companyDescription: `Zdroj: Google Maps | Hodnocení: ${gml.rating} (${gml.reviewsCount} recenzí)\nAdresa: ${gml.address}\n\nAI Icebreaker:\n${icebreaker}`,
@@ -249,20 +262,3 @@ export const googleMapsRouter = router({
       return { success: true, icebreaker };
     }),
 });
-
-function generateDemoPlaces(searchTerm: string, location: string, count: number) {
-  const names = ["Restaurace U Zlatého Jelena", "Pizzeria Napoli", "Café Central", "Bistro Praha", "Sushi Bar Zen", "Burger House", "Thai Garden", "La Bella Italia", "Hospoda Na Rohu", "Kavárna Slunce"];
-  const categories = ["Restaurant", "Café", "Pizzeria", "Bistro", "Bar"];
-  return Array.from({ length: Math.min(count, names.length) }, (_, i) => ({
-    placeId: `demo_${i}`,
-    title: names[i] || `${searchTerm} ${i + 1}`,
-    categoryName: categories[i % categories.length],
-    address: `Ulice ${i + 1}, ${location}`,
-    phone: `+420 ${600 + i} ${100 + i} ${200 + i}`,
-    website: i % 3 === 0 ? "" : i % 2 === 0 ? `https://wix.com/site${i}` : `https://${(names[i] || "").toLowerCase().replace(/\s/g, "")}.cz`,
-    totalScore: (3.5 + Math.random() * 1.5).toFixed(1),
-    reviewsCount: Math.floor(Math.random() * 200),
-    location: { lat: 50.08 + Math.random() * 0.1, lng: 14.42 + Math.random() * 0.1 },
-    url: `https://maps.google.com/?q=${encodeURIComponent(names[i] || "")}`,
-  }));
-}

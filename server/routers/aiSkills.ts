@@ -3,7 +3,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { aiSkills } from "../../drizzle/schema";
 import { eq, and, desc, or, sql } from "drizzle-orm";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM, extractText } from "../_core/llm";
 import { TRPCError } from "@trpc/server";
 
 const SKILL_CATEGORIES = ["general", "lead-gen", "outreach", "research", "sdr", "analysis", "content", "sop"] as const;
@@ -213,7 +213,7 @@ export const aiSkillsRouter = router({
       skillType: z.enum(SKILL_TYPES).default("prompt"),
       content: z.string().min(1),
       variables: z.array(z.string()).optional(),
-      exampleInput: z.record(z.string()).optional(),
+      exampleInput: z.record(z.string(), z.string()).optional(),
       tags: z.string().optional(),
       isShared: z.boolean().default(false),
     }))
@@ -249,7 +249,7 @@ export const aiSkillsRouter = router({
       skillType: z.enum(SKILL_TYPES).optional(),
       content: z.string().min(1).optional(),
       variables: z.array(z.string()).optional(),
-      exampleInput: z.record(z.string()).optional(),
+      exampleInput: z.record(z.string(), z.string()).optional(),
       tags: z.string().optional(),
       isShared: z.boolean().optional(),
     }))
@@ -279,7 +279,7 @@ export const aiSkillsRouter = router({
   execute: protectedProcedure
     .input(z.object({
       id: z.number(),
-      variables: z.record(z.string()).optional(),
+      variables: z.record(z.string(), z.string()).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
@@ -305,7 +305,7 @@ export const aiSkillsRouter = router({
             { role: "user", content: prompt },
           ],
         });
-        result = response.choices?.[0]?.message?.content || prompt;
+        result = extractText(response.choices?.[0]?.message?.content) || prompt;
       }
 
       // Increment usage count

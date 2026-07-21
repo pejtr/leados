@@ -3,7 +3,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { roiAuditSessions } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM, extractText } from "../_core/llm";
 import { TRPCError } from "@trpc/server";
 
 const ProcessSchema = z.object({
@@ -122,7 +122,7 @@ Prioritize by ROI score descending. Be realistic and specific.`;
 
       let analysis: any[] = [];
       try {
-        const content = response.choices?.[0]?.message?.content || "[]";
+        const content = extractText(response.choices?.[0]?.message?.content) || "[]";
         const jsonMatch = content.match(/\[[\s\S]*\]/);
         analysis = JSON.parse(jsonMatch ? jsonMatch[0] : content);
       } catch {

@@ -5,7 +5,7 @@
  * Scheduled to run every day at 08:00 CET (07:00 UTC).
  */
 
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, extractText } from "./_core/llm";
 import { notifyOwner } from "./_core/notification";
 import { getDb } from "./db";
 import { hermesSessions, hermesMessages } from "../drizzle/schema";
@@ -80,10 +80,10 @@ async function fetchLeadOsStats(): Promise<{
 } | null> {
   try {
     const { getLeadStats } = await import("./db");
-    // getLeadStats returns { total, enriched, enrichmentRate, sessions }
-    const stats = await getLeadStats("1"); // owner id
+    // getLeadStats returns { totalLeads, enrichedLeads, ... }
+    const stats = await getLeadStats(1); // owner id
     return {
-      totalLeads: stats?.total ?? 0,
+      totalLeads: stats.totalLeads,
       newToday: 0, // simplified — no per-day breakdown in getLeadStats
       pipelineValue: "N/A",
     };
@@ -152,7 +152,7 @@ DŮLEŽITÉ: Celý přehled piš VÝHRADNĚ česky. Žádná anglická slova ani
     ],
   });
 
-  return result.choices?.[0]?.message?.content ?? "Digest se nepodařilo vygenerovat.";
+  return extractText(result.choices?.[0]?.message?.content ?? "") || "Digest se nepodařilo vygenerovat.";
 }
 
 // ─── Send Digest ─────────────────────────────────────────────────────────────
@@ -175,6 +175,7 @@ export async function sendDailyDigest(): Promise<void> {
     try {
       // Find or create the digest session
       const db = await getDb();
+      if (!db) return;
       let digestSession = await db
         .select()
         .from(hermesSessions)
@@ -189,9 +190,7 @@ export async function sendDailyDigest(): Promise<void> {
           .values({
             userId: 1, // owner
             intent: "daily_digest",
-            plan: "Automatický denní přehled výkonu projektů",
-            result: null,
-            subAgentsUsed: JSON.stringify(["Data Analyst", "Strategic Orchestrator"]),
+            subAgentsUsed: ["Data Analyst", "Strategic Orchestrator"],
           })
           .$returningId();
         digestSession = await db
@@ -204,10 +203,11 @@ export async function sendDailyDigest(): Promise<void> {
       if (digestSession) {
         await db.insert(hermesMessages).values({
           sessionId: digestSession.id,
+          userId: 1,
           role: "hermes",
           content,
           agentName: "HERMES Daily Digest",
-          metadata: JSON.stringify({ type: "daily_digest", date: now.toISOString() }),
+          metadata: { type: "daily_digest", date: now.toISOString() },
         });
       }
     } catch (dbErr) {

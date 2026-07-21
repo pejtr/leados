@@ -5,7 +5,7 @@
  * Apify actor used: harvestapi/linkedin-company-search
  * Docs: https://apify.com/harvestapi/linkedin-company-search
  */
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, extractText } from "./_core/llm";
 
 // ─── Segment Presets ────────────────────────────────────────────
 
@@ -186,8 +186,8 @@ export async function validateIndustry(input: string): Promise<{ industry: strin
         },
       },
     });
-    const content = response.choices[0]?.message?.content;
-    if (content && typeof content === "string") return JSON.parse(content);
+    const content = extractText(response.choices[0]?.message?.content || '');
+    if (content) return JSON.parse(content);
   } catch (e) {
     console.warn("[validateIndustry] LLM error, falling back:", e);
   }
@@ -656,7 +656,7 @@ Return ONLY the icebreaker text, no quotes or extra formatting.`,
       ],
     });
     const msg = response.choices[0]?.message?.content;
-    return (typeof msg === "string" ? msg.trim() : "") || "";
+    return (extractText(msg || '')).trim() || "";
   } catch (e) {
     console.warn("[generateIcebreaker] LLM error:", e);
     return `I came across ${lead.companyName} and was impressed by your work in ${lead.industry}. I'd love to explore how we might collaborate.`;

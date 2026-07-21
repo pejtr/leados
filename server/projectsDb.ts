@@ -224,3 +224,44 @@ export async function getProjectAdSummary(projectId: number) {
   const cpa = totalConversions > 0 ? totalSpend / totalConversions : null;
   return { totalSpend, totalRevenue, totalConversions, roas, pno, cpa, campaignCount: campaigns.length, campaigns };
 }
+
+// ─── Project Tasks & Milestones ────────────────────────────────────────
+
+import { projectTasks, projectMilestones, heartbeatJobs } from "../drizzle/schema";
+
+export async function createProjectTask(input: { projectId: number; title: string; description?: string; manusTaskId?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const [result] = await db.insert(projectTasks).values({
+    projectId: input.projectId,
+    title: input.title,
+    description: input.description,
+    manusTaskId: input.manusTaskId,
+    status: "todo"
+  });
+  return result.insertId;
+}
+
+export async function listProjectTasks(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(projectTasks).where(eq(projectTasks.projectId, projectId)).orderBy(desc(projectTasks.createdAt));
+}
+
+export async function createProjectMilestone(input: { projectId: number; name: string; dueDate?: Date }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const [result] = await db.insert(projectMilestones).values({
+    projectId: input.projectId,
+    name: input.name,
+    dueDate: input.dueDate,
+    status: "pending"
+  });
+  return result.insertId;
+}
+
+export async function listProjectMilestones(projectId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(projectMilestones).where(eq(projectMilestones.projectId, projectId)).orderBy(desc(projectMilestones.createdAt));
+}

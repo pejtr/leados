@@ -3,7 +3,7 @@ import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { capturedLeads } from "../../drizzle/schema";
 import { eq, desc, count } from "drizzle-orm";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM, extractText } from "../_core/llm";
 import { notifyOwner } from "../_core/notification";
 
 // ─── Helper: send welcome email via LLM-generated content ────────────────────
@@ -34,7 +34,7 @@ Return ONLY the email body (no subject line), plain text format.`,
       ],
     });
 
-    const emailBody = (emailContent as any)?.choices?.[0]?.message?.content || "";
+    const emailBody = extractText((emailContent as any)?.choices?.[0]?.message?.content) || "";
 
     // Notify owner about new lead capture
     await notifyOwner({
@@ -69,7 +69,8 @@ export const leadsRouter = router({
       })
     )
     .mutation(async ({ input }) => {
-      const db = getDb();
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
 
       // Check for duplicate email (same source)
       const existing = await db
@@ -109,7 +110,7 @@ export const leadsRouter = router({
             .set({ welcomeEmailSent: true, welcomeEmailSentAt: Date.now() })
             .where(eq(capturedLeads.email, input.email.toLowerCase().trim()));
         }
-      });
+      }).catch(err => console.error("[Leads] Welcome email send failed:", err));
 
       return {
         success: true,
@@ -127,7 +128,8 @@ export const leadsRouter = router({
       })
     )
     .query(async ({ input }) => {
-      const db = getDb();
+      const db = await getDb();
+      if (!db) return { leads: [], total: 0 };
       const rows = await db
         .select()
         .from(capturedLeads)
@@ -144,7 +146,8 @@ export const leadsRouter = router({
 
   // Protected: get stats summary
   stats: protectedProcedure.query(async () => {
-    const db = getDb();
+    const db = await getDb();
+    if (!db) return { total: 0, emailsSent: 0, converted: 0 };
     const [{ total }] = await db.select({ total: count() }).from(capturedLeads);
     const [{ emailsSent }] = await db
       .select({ emailsSent: count() })

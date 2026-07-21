@@ -20,7 +20,7 @@
 
 import { z } from "zod";
 import { protectedProcedure, router } from "../_core/trpc";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM, extractText } from "../_core/llm";
 import { getConstitutionContext } from "./constitution";
 import { getDb } from "../db";
 import { benchmarkRuns, brainAnalyses } from "../../drizzle/schema";
@@ -299,7 +299,7 @@ Evaluate the agent's response against each criterion. Return a JSON object with:
     },
   });
 
-  const parsed = JSON.parse(result.choices[0].message.content as string);
+  const parsed = JSON.parse(extractText(result.choices[0].message.content));
 
   // Weighted score calculation
   let totalScore = 0;
@@ -348,7 +348,7 @@ export const benchmarkRouter = router({
       const task = BENCHMARK_TASKS.find((t) => t.id === input.taskId);
       if (!task) throw new Error(`Task ${input.taskId} not found`);
 
-      const constitutionContext = await getConstitutionContext(ctx.user.id);
+      const constitutionContext = await getConstitutionContext(String(ctx.user.id));
 
       // Agent persona definitions
       const agentPersonas: Record<string, string> = {
@@ -377,7 +377,7 @@ export const benchmarkRouter = router({
         ],
       });
 
-      const agentResponse = agentResult.choices[0].message.content as string;
+      const agentResponse = extractText(agentResult.choices[0].message.content);
 
       // Score the response
       const scoreResult = await scoreAgentResponse(task, agentResponse, constitutionContext);
@@ -406,7 +406,7 @@ export const benchmarkRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const constitutionContext = await getConstitutionContext(ctx.user.id);
+      const constitutionContext = await getConstitutionContext(String(ctx.user.id));
 
       const agentPersonas: Record<string, string> = {
         strategist: "You are the Strategic Orchestrator — expert in B2B sales strategy, ICP definition, and go-to-market planning.",
@@ -419,7 +419,7 @@ export const benchmarkRouter = router({
       };
 
       const persona = agentPersonas[input.agentId];
-      const results = [];
+      const results: Array<{ taskId: string; taskName: string; category: string; difficulty: string; tier: number; score: number; passed: boolean; feedback: string }> = [];
 
       for (const task of BENCHMARK_TASKS) {
         const agentResult = await invokeLLM({
@@ -435,7 +435,7 @@ export const benchmarkRouter = router({
           ],
         });
 
-        const agentResponse = agentResult.choices[0].message.content as string;
+      const agentResponse = extractText(agentResult.choices[0].message.content);
         const scoreResult = await scoreAgentResponse(task, agentResponse, constitutionContext);
 
         results.push({
@@ -466,7 +466,8 @@ export const benchmarkRouter = router({
         };
       });
 
-      const db = getDb();
+      const db = await getDb();
+      if (!db) throw new Error("Database not available");
       // Persist benchmark run to DB for correlation analysis
       const tierScores: Record<string, number> = {};
       tierBreakdown.forEach((t) => { tierScores[`tier${t.tier}`] = t.avgScore; });
@@ -493,7 +494,8 @@ export const benchmarkRouter = router({
 
   // Get correlation data: benchmark scores vs confidence scores over time
   getCorrelation: protectedProcedure.query(async ({ ctx }) => {
-    const db = getDb();
+    const db = await getDb();
+    if (!db) return { benchmarkRuns: [], confidenceHistory: [], avgBenchmark: 0, avgConfidence: 0, tierReliability: [], correlationStrength: 0 };
 
     // Get last 20 benchmark runs for this user
     const runs = await db
@@ -560,14 +562,15 @@ export const benchmarkRouter = router({
       avgConfidence,
       tierReliability,
       correlationStrength: avgBenchmark > 0 && avgConfidence > 0
-        ? Math.round(Math.abs(avgBenchmark - avgConfidence) < 15 ? 85 + Math.random() * 10 : 60 + Math.random() * 20)
+        ? Math.max(0, 100 - Math.abs(avgBenchmark - avgConfidence))
         : 0,
     };
   }),
 
   // Get benchmark history for this user
   getHistory: protectedProcedure.query(async ({ ctx }) => {
-    const db = getDb();
+    const db = await getDb();
+    if (!db) return [];
     const runs = await db
       .select()
       .from(benchmarkRuns)

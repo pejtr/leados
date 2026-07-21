@@ -1,21 +1,19 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../_core/trpc";
-
-const DSR_BASE = "https://deep-sleep-reset.com/api/v1";
+import { ENV } from "../_core/env";
 
 function dsrHeaders() {
-  const key = process.env.DEEP_SLEEP_RESET_API_KEY;
-  if (!key) throw new Error("DEEP_SLEEP_RESET_API_KEY not configured");
-  return { Authorization: `Bearer ${key}`, "Content-Type": "application/json" };
+  if (!ENV.deepSleepResetApiKey) throw new Error("DEEP_SLEEP_RESET_API_KEY not configured");
+  return { Authorization: `Bearer ${ENV.deepSleepResetApiKey}`, "Content-Type": "application/json" };
 }
 
-async function dsrFetch(path: string) {
-  const res = await fetch(`${DSR_BASE}${path}`, { headers: dsrHeaders() });
+async function dsrFetch<T>(path: string): Promise<T> {
+  const res = await fetch(`${ENV.dsrBaseUrl}${path}`, { headers: dsrHeaders() });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`DSR API error ${res.status}: ${text}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 // ─── Shapes ──────────────────────────────────────────────────────────────────
@@ -98,41 +96,41 @@ export const deepSleepRouter = router({
   /** Public health check (no auth required on DSR side, but we keep it behind protectedProcedure here) */
   health: protectedProcedure.query(async (): Promise<DsrHealth> => {
     const res = await fetch(`${DSR_BASE}/health`);
-    return res.json();
+    return res.json() as Promise<DsrHealth>;
   }),
 
   /** KPIs, funnel, daily revenue */
   analytics: protectedProcedure.query(async (): Promise<DsrAnalytics> => {
-    return dsrFetch("/analytics");
+    return dsrFetch<DsrAnalytics>("/analytics");
   }),
 
   /** Leads list */
   leads: protectedProcedure
     .input(z.object({ limit: z.number().min(1).max(500).default(100) }))
     .query(async ({ input }): Promise<{ total: number; limit: number; data: DsrLead[] }> => {
-      return dsrFetch(`/leads?limit=${input.limit}`);
+      return dsrFetch<{ total: number; limit: number; data: DsrLead[] }>(`/leads?limit=${input.limit}`);
     }),
 
   /** Orders list */
   orders: protectedProcedure
     .input(z.object({ limit: z.number().min(1).max(500).default(100) }))
     .query(async ({ input }): Promise<{ total: number; limit: number; data: DsrOrder[] }> => {
-      return dsrFetch(`/orders?limit=${input.limit}`);
+      return dsrFetch<{ total: number; limit: number; data: DsrOrder[] }>(`/orders?limit=${input.limit}`);
     }),
 
   /** A/B test variants */
   abTests: protectedProcedure.query(async (): Promise<{ variants: DsrAbVariant[] }> => {
-    return dsrFetch("/ab-tests");
+    return dsrFetch<{ variants: DsrAbVariant[] }>("/ab-tests");
   }),
 
   /** Email sequence stats */
   emailSequence: protectedProcedure.query(async (): Promise<DsrEmailSequence> => {
-    return dsrFetch("/email-sequence");
+    return dsrFetch<DsrEmailSequence>("/email-sequence");
   }),
 
   /** Last 7 days daily revenue history — for sparkline chart */
   earningsHistory: protectedProcedure.query(async () => {
-    const analytics: DsrAnalytics = await dsrFetch("/analytics");
+    const analytics = await dsrFetch<DsrAnalytics>("/analytics");
     const daily = analytics.dailyRevenue ?? [];
     // Build exactly 7 days, filling missing days with 0
     const today = new Date();
@@ -160,14 +158,21 @@ export const deepSleepRouter = router({
   }),
 
   /** All data in one call (used by dashboard overview) */
-  overview: protectedProcedure.query(async () => {
+  overview: protectedProcedure.query(async (): Promise<{
+    health: DsrHealth;
+    analytics: DsrAnalytics;
+    leads: { total: number; limit: number; data: DsrLead[] };
+    orders: { total: number; limit: number; data: DsrOrder[] };
+    abTests: { variants: DsrAbVariant[] };
+    emailSequence: DsrEmailSequence;
+  }> => {
     const [health, analytics, leads, orders, abTests, emailSequence] = await Promise.all([
-      fetch(`${DSR_BASE}/health`).then((r) => r.json()),
-      dsrFetch("/analytics"),
-      dsrFetch("/leads?limit=500"),
-      dsrFetch("/orders?limit=500"),
-      dsrFetch("/ab-tests"),
-      dsrFetch("/email-sequence"),
+      fetch(`${DSR_BASE}/health`).then((r) => r.json() as Promise<DsrHealth>),
+      dsrFetch<DsrAnalytics>("/analytics"),
+      dsrFetch<{ total: number; limit: number; data: DsrLead[] }>("/leads?limit=500"),
+      dsrFetch<{ total: number; limit: number; data: DsrOrder[] }>("/orders?limit=500"),
+      dsrFetch<{ variants: DsrAbVariant[] }>("/ab-tests"),
+      dsrFetch<DsrEmailSequence>("/email-sequence"),
     ]);
     return { health, analytics, leads, orders, abTests, emailSequence };
   }),

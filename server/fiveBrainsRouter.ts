@@ -17,7 +17,7 @@ import { protectedProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
 import { brainAnalyses } from "../drizzle/schema";
 import { eq, and, desc } from "drizzle-orm";
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, extractText } from "./_core/llm";
 import { getConstitutionContext } from "./routers/constitution";
 
 // ─── Expert Definitions ──────────────────────────────────────────────────────
@@ -97,7 +97,7 @@ async function callExpert(
         },
       ],
     });
-    return (result as any)?.choices?.[0]?.message?.content || "Analýza nedostupná.";
+    return extractText((result as any)?.choices?.[0]?.message?.content) || "Analýza nedostupná.";
   } catch (err: any) {
     return `Chyba při generování analýzy: ${err?.message || "Unknown error"}`;
   }
@@ -135,7 +135,7 @@ Buď konkrétní, syntetizuj konflikty mezi experty, maximálně 800 slov.${cons
         },
       ],
     });
-    return (result as any)?.choices?.[0]?.message?.content || "Syntéza nedostupná.";
+    return extractText((result as any)?.choices?.[0]?.message?.content) || "Syntéza nedostupná.";
   } catch (err: any) {
     return `Chyba při syntéze: ${err?.message || "Unknown error"}`;
   }
@@ -229,11 +229,11 @@ Score 80-100 = analýza nemá zásadní slabiny, 60-79 = drobné mezery, 40-59 =
       }),
     ]);
 
-    const advocateContent = (advocateRaw as any)?.choices?.[0]?.message?.content || "{}";
-    const skepticContent = (skepticRaw as any)?.choices?.[0]?.message?.content || "{}";
+    const advocateContent = extractText((advocateRaw as any)?.choices?.[0]?.message?.content) || "{}";
+    const skepticContent = extractText((skepticRaw as any)?.choices?.[0]?.message?.content) || "{}";
 
-    const advocate = JSON.parse(typeof advocateContent === "string" ? advocateContent : JSON.stringify(advocateContent));
-    const skeptic = JSON.parse(typeof skepticContent === "string" ? skepticContent : JSON.stringify(skepticContent));
+    const advocate = JSON.parse(advocateContent);
+    const skeptic = JSON.parse(skepticContent);
 
     const advocateScore = Math.min(100, Math.max(0, Number(advocate.score) || 70));
     const skepticScore = Math.min(100, Math.max(0, Number(skeptic.score) || 70));
@@ -256,6 +256,7 @@ export const fiveBrainsRouter = router({
   // List all analyses for the current user
   list: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
+    if (!db) return [];
     return db
       .select()
       .from(brainAnalyses)
@@ -269,6 +270,7 @@ export const fiveBrainsRouter = router({
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
       const db = await getDb();
+      if (!db) return null;
       const [analysis] = await db
         .select()
         .from(brainAnalyses)
@@ -290,6 +292,7 @@ export const fiveBrainsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
+      if (!db) throw new Error("Database unavailable");
 
       // Create the analysis record in "running" state
       const [inserted] = await db.insert(brainAnalyses).values({
@@ -311,6 +314,7 @@ export const fiveBrainsRouter = router({
 
       // Run all 5 experts in parallel (fire-and-forget, update DB when done)
       (async () => {
+        if (!db) return;
         try {
           const [pa, cv, ci, tp, gh] = await Promise.all([
             callExpert(EXPERTS[0], input.contextData, constitutionContext),
@@ -367,6 +371,7 @@ export const fiveBrainsRouter = router({
     .input(z.object({ id: z.number() }))
     .mutation(async ({ ctx, input }) => {
       const db = await getDb();
+      if (!db) throw new Error("Database unavailable");
       await db
         .delete(brainAnalyses)
         .where(

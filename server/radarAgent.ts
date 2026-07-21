@@ -9,7 +9,7 @@
  * and signals keep flowing in without prompting.
  */
 
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, extractText } from "./_core/llm";
 
 // ─── Reddit fetching (public JSON listing, no auth required) ────────────────────
 
@@ -138,8 +138,8 @@ Respond with JSON only: {"signals": [{"postId": string, "isSignal": boolean, "pa
       },
     });
 
-    const raw = result.choices[0].message.content;
-    const parsed = JSON.parse(typeof raw === "string" ? raw : "{}") as { signals?: ExtractedSignal[] };
+    const raw = extractText(result.choices[0].message.content);
+    const parsed = JSON.parse(raw || "{}") as { signals?: ExtractedSignal[] };
     return (parsed.signals ?? []).filter((s) => s.isSignal && s.score >= minScore);
   } catch {
     return [];

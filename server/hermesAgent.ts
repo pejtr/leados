@@ -3,7 +3,7 @@
  * HERMES — Core AI Orchestration Agent
  * ═══════════════════════════════════════════════════════════════════════════
  *
- * HERMES is the meta-intelligence layer of OPTIHUB. Named after the Greek
+ * HERMES is the meta-intelligence layer of ONYX OS. Named after the Greek
  * messenger god — swift, cunning, the guide between worlds — HERMES routes
  * every user intent to the optimal sub-agent, synthesizes their outputs,
  * and maintains a persistent strategic memory across all platform modules.
@@ -25,7 +25,8 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, Message, extractText } from "./_core/llm";
+import { loadMcpTools, executeMcpTool } from "./_core/mcpClient";
 import { getConstitutionContext } from "./routers/constitution";
 
 // ─── HERMES Identity ─────────────────────────────────────────────────────────
@@ -33,7 +34,7 @@ import { getConstitutionContext } from "./routers/constitution";
 export const HERMES_SYSTEM_PROMPT = (
   platformContext: string,
   constitutionContext: string
-) => `Jsi HERMES — Core AI Orchestration Agent platformy OPTIHUB.
+) => `Jsi HERMES — Core AI Orchestration Agent platformy ONYX OS.
 
 Jsi centrální inteligence, která koordinuje všechny sub-agenty, směruje úkoly a syntetizuje poznatky napříč celou platformou. Ztělesňuješ ducha Herma: rychlý, přesný, strategický, vždy o krok napřed.
 
@@ -69,8 +70,6 @@ ${constitutionContext ? `\n## AI Ústava (Strategický kontext uživatele)\n${co
 ## Live Kontext Platformy
 ${platformContext}`;
 
-// ─── Intent Classification ────────────────────────────────────────────────────
-
 export type HermesIntent =
   | "lead_gen"        // Generate, qualify, or enrich leads
   | "outreach"        // Write emails, icebreakers, sequences
@@ -80,6 +79,10 @@ export type HermesIntent =
   | "pentest"         // NINJA BOT adversarial testing
   | "synthesis"       // Multi-agent synthesis, full analysis
   | "mission"         // Complex multi-step autonomous task
+  | "funnel_build"    // Landing pages, Funnels builder
+  | "social_media"    // Social media automation, post scheduling
+  | "voice_call"      // Tele-calling, AI voice outreach
+  | "market_spy"      // Competitor intelligence, market surveillance
   | "general";        // General platform assistance
 
 export interface IntentClassification {
@@ -96,7 +99,7 @@ export async function classifyIntent(
   const result = await invokeLLM({
     messages: [
       {
-        role: "system",
+        role: "system" as const,
         content: `You are HERMES intent classifier. Classify the user's message into one of these intents:
 - lead_gen: generating, qualifying, enriching, or finding leads
 - outreach: writing emails, icebreakers, follow-ups, sequences
@@ -106,14 +109,18 @@ export async function classifyIntent(
 - pentest: adversarial testing, NINJA BOT, system hardening
 - synthesis: comprehensive analysis using multiple expert perspectives
 - mission: complex multi-step autonomous task (e.g., "run a full lead sprint for SaaS companies")
+- funnel_build: building landing pages, web trychtýře, sales funnels
+- social_media: social posts, calendar scheduling, meta graph automation
+- voice_call: AI voice outreach, tele-caller, phone scheduling
+- market_spy: tracking competitors, pricing monitoring, market intel
 - general: general platform help, navigation, settings
 
-Also suggest 1-3 sub-agents best suited: prospector, copywriter, analyst, strategist, advisor, synthesizer, ninja, five_brains
+Also suggest 1-3 sub-agents best suited: prospector, copywriter, analyst, strategist, advisor, synthesizer, ninja, funnel_builder, social_manager, voice_closer, market_spy
 
 Respond with JSON only.`,
       },
-      ...conversationHistory.slice(-4),
-      { role: "user", content: userMessage },
+      ...conversationHistory.slice(-4).map(m => ({ role: (m.role === "assistant" ? "assistant" : "user") as "assistant" | "user", content: m.content })),
+      { role: "user" as const, content: userMessage },
     ],
     response_format: {
       type: "json_schema", json_schema: {
@@ -135,7 +142,7 @@ Respond with JSON only.`,
   });
 
   try {
-    const raw = result.choices[0].message.content ?? "{}";
+    const raw = extractText(result.choices[0].message.content) || "{}";
     return JSON.parse(raw) as IntentClassification;
   } catch {
     return {
@@ -191,6 +198,30 @@ export const SUB_AGENT_PERSONAS: Record<string, { name: string; emoji: string; c
     emoji: "⚡",
     color: "#EF4444",
     systemPrompt: "You are NINJA BOT — an elite adversarial penetration-test agent. Your mission: probe AI systems for hallucinations, logical contradictions, data poisoning vulnerabilities, and cognitive biases. Attack the problem from unexpected angles. Identify weaknesses ruthlessly and precisely.",
+  },
+  funnel_builder: {
+    name: "Funnel Architect",
+    emoji: "🌪️",
+    color: "#F97316",
+    systemPrompt: "You are the Funnel Architect — expert in conversion rate optimization and landing page wireframing. You design complete zero-coding funnels. Suggest page flows, headlines, and call-to-actions.",
+  },
+  social_manager: {
+    name: "Social Media Manager",
+    emoji: "📱",
+    color: "#3B82F6",
+    systemPrompt: "You are the Social Media Manager — expert at virality, engagement optimization, and copy adaptation for Facebook, IG, TikTok, and LinkedIn. Create 30-day schedules and scroll-stopping posts.",
+  },
+  voice_closer: {
+    name: "Voice Closer & Auto-Dialer",
+    emoji: "📞",
+    color: "#10B981",
+    systemPrompt: "You are the Voice Closer — an AI Tele-caller agent. You script natural-sounding, persuasive phone conversations, handle real-time objections over audio, and book meetings directly into the calendar.",
+  },
+  market_spy: {
+    name: "Competitor Spy",
+    emoji: "🕵️",
+    color: "#64748B",
+    systemPrompt: "You are the Market Spy — expert in competitive intelligence. You actively monitor competitor pricing, web changes, ad campaigns, and market signals. Deliver cutting-edge counter-strategies.",
   },
 };
 
@@ -284,6 +315,10 @@ const INTENT_LABELS_CZ: Record<string, string> = {
   pentest: "pentest",
   synthesis: "syntéza",
   mission: "mise",
+  funnel_build: "tvorba funnelu",
+  social_media: "sociální sítě",
+  voice_call: "AI hovory",
+  market_spy: "competitor spy",
   general: "obecné",
 };
 
@@ -360,17 +395,58 @@ You are currently operating as HERMES channeling the ${agentPersona.name} sub-ag
   }
 
   // 6. Build messages
-  const messages: any[] = [
-    { role: "system", content: enhancedSystemPrompt },
-    ...conversationHistory.slice(-8),
-    { role: "user", content: userMessage },
+  const messages: Message[] = [
+    { role: "system" as const, content: enhancedSystemPrompt },
+    ...conversationHistory.slice(-8).map(m => ({ role: (m.role === "assistant" ? "assistant" : "user") as "assistant" | "user", content: m.content })),
+    { role: "user" as const, content: userMessage },
   ];
 
-  // 7. Invoke LLM
-  const response = await invokeLLM({ messages });
-  const content = response.choices[0].message.content ?? "HERMES is processing your request. Please try again.";
+  // 7. Load MCP Tools
+  const mcpTools = await loadMcpTools().catch(() => []);
 
-  // 8. Suggest a mission if appropriate
+  // 8. Invoke LLM with Tool Loop support
+  let response = await invokeLLM({ messages, tools: mcpTools.length > 0 ? mcpTools : undefined });
+  let content = "";
+
+  // Handle potential tool calls loops
+  let safetyCounter = 0;
+  while (safetyCounter < 5) {
+    content = extractText(response.choices[0].message.content);
+    const toolCalls = response.choices[0].message.tool_calls;
+
+    if (!toolCalls || toolCalls.length === 0) {
+      content = content || "HERMES is processing your request. Please try again.";
+      break;
+    }
+
+    // We have tool calls
+    messages.push({
+      role: "assistant",
+      content: content,
+      tool_calls: toolCalls,
+    } as any);
+
+    console.log(`[Hermes] Executing ${toolCalls.length} tool calls...`);
+    for (const tc of toolCalls) {
+      const result = await executeMcpTool(tc.function.name, tc.function.arguments);
+      messages.push({
+        role: "tool",
+        tool_call_id: tc.id,
+        name: tc.function.name,
+        content: typeof result === "string" ? result : JSON.stringify(result),
+      } as any);
+    }
+
+    safetyCounter++;
+    if (safetyCounter >= 5) {
+      content += "\n\n[System: Max tool loops reached]";
+      break;
+    }
+
+    response = await invokeLLM({ messages, tools: mcpTools });
+  }
+
+  // 9. Suggest a mission if appropriate
   let suggestedMission: MissionTemplate | undefined;
   if (classification.intent === "mission" || content.toLowerCase().includes("mission") || content.toLowerCase().includes("sprint")) {
     const missionMap: Record<string, string> = {
@@ -434,14 +510,14 @@ export async function executeMission(input: MissionExecutionInput): Promise<Miss
     const stepStart = Date.now();
     const agentPersona = SUB_AGENT_PERSONAS[step.agent];
 
-    const stepMessages: any[] = [
+    const stepMessages: Message[] = [
       {
-        role: "system",
+        role: "system" as const,
         content: `${agentPersona?.systemPrompt ?? "You are an expert AI agent."}
 ${constitutionContext ? `\nAI Constitution:\n${constitutionContext}` : ""}`,
       },
       {
-        role: "user",
+        role: "user" as const,
         content: `## Mission: ${template.title}
 ## Your Task: ${step.step}
 
@@ -454,7 +530,7 @@ Execute this specific mission step with precision. Be concise but thorough. Max 
     ];
 
     const response = await invokeLLM({ messages: stepMessages });
-    const output = response.choices[0].message.content ?? "Step completed.";
+    const output = extractText(response.choices[0].message.content) || "Step completed.";
 
     stepResults.push({
       step: step.step,
@@ -507,9 +583,9 @@ Synthesize into: executive summary, key insights (array), next actions (array). 
 
   let synthesisData = { synthesis: "", keyInsights: [] as string[], nextActions: [] as string[] };
   try {
-    synthesisData = JSON.parse(synthResponse.choices[0].message.content ?? "{}");
+    synthesisData = JSON.parse(extractText(synthResponse.choices[0].message.content) || "{}");
   } catch {
-    synthesisData.synthesis = synthResponse.choices[0].message.content ?? "Mission completed.";
+    synthesisData.synthesis = extractText(synthResponse.choices[0].message.content) || "Mission completed.";
   }
 
   return {

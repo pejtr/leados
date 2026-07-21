@@ -4,8 +4,13 @@
 import { z } from "zod";
 import { protectedProcedure, router } from "./_core/trpc";
 import { getDb } from "./db";
-import { hermesSessions, hermesMessages, hermesMissions } from "../drizzle/schema";
+import {
+  hermesSessions,
+  hermesMessages,
+  hermesMissions,
+} from "../drizzle/schema";
 import { eq, desc, and } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 import {
   hermesChat,
   executeMission,
@@ -14,6 +19,14 @@ import {
   HERMES_SYSTEM_PROMPT,
 } from "./hermesAgent";
 import { getLeadStats } from "./db";
+import {
+  buildCommandCenterPrompt,
+  getCommandCenterTemplate,
+} from "../shared/commandCenterTemplates";
+import { createPlatformIntegrationArtifacts } from "../shared/platformIntegrationContracts";
+import { karrReview } from "./karrAgent";
+import { insertKarrReview } from "./db/karr";
+import { ENV } from "./_core/env";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -26,14 +39,14 @@ async function fetchDsrAnalytics(): Promise<string> {
       signal: AbortSignal.timeout(5000),
     });
     if (!res.ok) return "";
-    const data = await res.json() as any;
+    const data = (await res.json()) as any;
     const k = data.kpis ?? data;
     return `\n## Projekt: DeepSleepReset (live data)
 - Celkové tržby: $${parseFloat(k.totalRevenueUsd ?? 0).toFixed(2)}
 - Dnes: $${parseFloat(k.todayRevenueUsd ?? 0).toFixed(2)} | Posledních 7 dní: $${parseFloat(k.last7DaysRevenueUsd ?? 0).toFixed(2)} | 30 dní: $${parseFloat(k.last30DaysRevenueUsd ?? 0).toFixed(2)}
 - Objednávky celkem: ${k.totalOrders ?? 0} | Průměrná hodnota: $${parseFloat(k.avgOrderValueUsd ?? 0).toFixed(2)}
 - Leady: ${k.totalLeads ?? 0} celkem | Konverzní poměr: ${parseFloat(k.conversionRatePct ?? 0).toFixed(1)}%
-- Stav webu: ${k.healthStatus ?? 'unknown'}`;
+- Stav webu: ${k.healthStatus ?? "unknown"}`;
   } catch {
     return "";
   }
@@ -46,10 +59,15 @@ export async function buildPlatformContext(userId: number): Promise<string> {
       fetchDsrAnalytics(),
     ]);
     return `User ID: ${userId}
-## OPTIHUB — Live statistiky platformy
+## ONYX OS — Live statistiky platformy
 - Celkem leadů: ${stats.totalLeads} | Obohaceno: ${stats.enrichedLeads} | Sezení: ${stats.totalSessions}
 - Pipeline: ${stats.statusBreakdown?.map((s: any) => `${s.status}(${s.count})`).join(", ") || "prázdná"}
-- Top odvětví: ${stats.industryBreakdown?.slice(0, 3).map((i: any) => `${i.industry}(${i.count})`).join(", ") || "žádná"}
+- Top odvětví: ${
+      stats.industryBreakdown
+        ?.slice(0, 3)
+        .map((i: any) => `${i.industry}(${i.count})`)
+        .join(", ") || "žádná"
+    }
 - Tržby: $${stats.roiStats?.totalRevenue?.toFixed(0) ?? 0} z ${stats.roiStats?.closedDeals ?? 0} uzavřených dealů
 - Míra uzavření: ${stats.roiStats?.closeRate?.toFixed(1) ?? 0}%
 - Kvalita: ${stats.qualityBreakdown?.good ?? 0} dobrých / ${stats.qualityBreakdown?.bad ?? 0} špatných / ${stats.qualityBreakdown?.unrated ?? 0} nehodnocených${dsrContext}`;
@@ -65,16 +83,18 @@ export const hermesRouter = router({
   getIdentity: protectedProcedure.query(async () => {
     return {
       name: "HERMES",
-      fullName: "Hierarchical Execution & Routing Meta-Intelligence Engine System",
+      fullName:
+        "Hierarchical Execution & Routing Meta-Intelligence Engine System",
       version: "1.0.0",
-      description: "Core AI Orchestration Agent — routes tasks, synthesizes sub-agents, executes autonomous missions",
+      description:
+        "Core AI Orchestration Agent — routes tasks, synthesizes sub-agents, executes autonomous missions",
       subAgents: Object.entries(SUB_AGENT_PERSONAS).map(([id, agent]) => ({
         id,
         name: agent.name,
         emoji: agent.emoji,
         color: agent.color,
       })),
-      missionTemplates: MISSION_TEMPLATES.map((m) => ({
+      missionTemplates: MISSION_TEMPLATES.map(m => ({
         type: m.type,
         title: m.title,
         description: m.description,
@@ -96,7 +116,12 @@ export const hermesRouter = router({
         const rows = await db
           .select()
           .from(hermesSessions)
-          .where(and(eq(hermesSessions.id, input.sessionId), eq(hermesSessions.userId, ctx.user.id)))
+          .where(
+            and(
+              eq(hermesSessions.id, input.sessionId),
+              eq(hermesSessions.userId, ctx.user.id)
+            )
+          )
           .limit(1);
         if (rows[0]) return rows[0];
       }
@@ -243,8 +268,11 @@ export const hermesRouter = router({
       const platformContext = await buildPlatformContext(ctx.user.id);
 
       // Create mission record
-      const template = MISSION_TEMPLATES.find((m) => m.type === input.missionType);
-      if (!template) throw new Error(`Unknown mission type: ${input.missionType}`);
+      const template = MISSION_TEMPLATES.find(
+        m => m.type === input.missionType
+      );
+      if (!template)
+        throw new Error(`Unknown mission type: ${input.missionType}`);
 
       await db.insert(hermesMissions).values({
         userId: ctx.user.id,
@@ -252,8 +280,12 @@ export const hermesRouter = router({
         missionType: input.missionType,
         title: template.title,
         status: "running",
-        plan: template.steps.map((s) => ({ step: s.step, agent: s.agent, status: "pending" })),
-        subAgentsInvolved: template.steps.map((s) => s.agent),
+        plan: template.steps.map(s => ({
+          step: s.step,
+          agent: s.agent,
+          status: "pending",
+        })),
+        subAgentsInvolved: template.steps.map(s => s.agent),
         startedAt: Date.now(),
         createdAt: Date.now(),
       });
@@ -287,7 +319,11 @@ export const hermesRouter = router({
                 nextActions: result.nextActions,
                 totalDuration: result.totalDuration,
               },
-              plan: result.steps.map((s) => ({ step: s.step, agent: s.agent, status: "completed" })),
+              plan: result.steps.map(s => ({
+                step: s.step,
+                agent: s.agent,
+                status: "completed",
+              })),
               completedAt: Date.now(),
             })
             .where(eq(hermesMissions.id, missionId));
@@ -347,6 +383,380 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
       .limit(20);
   }),
 
+  createWorkflowDraft: protectedProcedure
+    .input(
+      z.object({
+        templateId: z.string().min(1),
+        values: z.record(z.string(), z.string()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database unavailable",
+        });
+
+      const template = getCommandCenterTemplate(input.templateId);
+      if (!template)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workflow šablona neexistuje.",
+        });
+
+      const missingFields = template.fields.filter(
+        field => field.required && !input.values[field.key]?.trim()
+      );
+      if (missingFields.length > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Doplňte povinná pole: ${missingFields.map(field => field.label).join(", ")}.`,
+        });
+      }
+
+      const now = Date.now();
+      const prompt = buildCommandCenterPrompt(template, input.values);
+      const [inserted] = await db.insert(hermesMissions).values({
+        userId: ctx.user.id,
+        missionType: `command-center:${template.id}`,
+        title: template.title,
+        status: "awaiting_approval",
+        plan: template.steps.map((step, index) => ({
+          step,
+          agent:
+            template.agentIds[index % template.agentIds.length] ?? "hermes",
+          status: "pending",
+        })),
+        result: {
+          workflowVersion: 1,
+          templateId: template.id,
+          profitEngineId: template.profitEngineId ?? null,
+          capability: template.status,
+          governance: template.governance ?? null,
+          values: input.values,
+          prompt,
+          approval: { status: "pending", requestedAt: now },
+          artifacts: createPlatformIntegrationArtifacts(template.id, now),
+        },
+        subAgentsInvolved: template.agentIds,
+        createdAt: now,
+      });
+
+      return {
+        missionId: Number((inserted as any).insertId),
+        status: "awaiting_approval" as const,
+      };
+    }),
+
+  approveWorkflow: protectedProcedure
+    .input(z.object({ missionId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database unavailable",
+        });
+      const [mission] = await db
+        .select()
+        .from(hermesMissions)
+        .where(
+          and(
+            eq(hermesMissions.id, input.missionId),
+            eq(hermesMissions.userId, ctx.user.id)
+          )
+        )
+        .limit(1);
+      if (!mission)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workflow nebylo nalezeno.",
+        });
+      if (mission.status !== "awaiting_approval") {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Workflow už není ve stavu čekajícím na schválení.",
+        });
+      }
+
+      const result = (mission.result ?? {}) as Record<string, any>;
+
+      // Fire-and-forget KARR review (advisory only, never blocks)
+      const template = result.templateId ? getCommandCenterTemplate(result.templateId) : undefined;
+      if (template && ENV.karrEnabled) {
+        const promptText = typeof result.prompt === "string" ? result.prompt : "";
+        if (promptText) {
+          karrReview({
+            content: promptText,
+            contentType: "workflow",
+            context: `Šablona: ${template.title}\nHodnoty: ${JSON.stringify(result.values ?? {})}`,
+          }).then(async (review) => {
+            try {
+              await insertKarrReview({
+                userId: ctx.user.id,
+                targetType: "workflow",
+                targetId: mission.id,
+                contentPreview: promptText.slice(0, 500),
+                reviewResult: review.result,
+                issues: review.issues as any,
+                summary: review.summary,
+                reviewerModel: "karr-agent",
+              });
+            } catch (e) {
+              console.error("[KARR] Failed to persist review:", e);
+            }
+          }).catch((e) => {
+            console.error("[KARR] Review failed:", e);
+          });
+        }
+      }
+
+      await db
+        .update(hermesMissions)
+        .set({
+          status: "approved",
+          result: {
+            ...result,
+            approval: {
+              status: "approved",
+              approvedAt: Date.now(),
+              approvedBy: ctx.user.id,
+            },
+          },
+        })
+        .where(eq(hermesMissions.id, mission.id));
+      return { success: true, status: "approved" as const };
+    }),
+
+  rejectWorkflow: protectedProcedure
+    .input(
+      z.object({
+        missionId: z.number().int().positive(),
+        reason: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database unavailable",
+        });
+      const [mission] = await db
+        .select()
+        .from(hermesMissions)
+        .where(
+          and(
+            eq(hermesMissions.id, input.missionId),
+            eq(hermesMissions.userId, ctx.user.id)
+          )
+        )
+        .limit(1);
+      if (!mission)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workflow nebylo nalezeno.",
+        });
+      if (mission.status !== "awaiting_approval") {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Workflow už není ve stavu čekajícím na schválení.",
+        });
+      }
+
+      const result = (mission.result ?? {}) as Record<string, any>;
+      await db
+        .update(hermesMissions)
+        .set({
+          status: "rejected",
+          result: {
+            ...result,
+            approval: {
+              status: "rejected",
+              rejectedAt: Date.now(),
+              reason: input.reason ?? null,
+            },
+          },
+          completedAt: Date.now(),
+        })
+        .where(eq(hermesMissions.id, mission.id));
+      return { success: true, status: "rejected" as const };
+    }),
+
+  executeWorkflow: protectedProcedure
+    .input(z.object({ missionId: z.number().int().positive() }))
+    .mutation(async ({ ctx, input }) => {
+      const db = await getDb();
+      if (!db)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database unavailable",
+        });
+      const [mission] = await db
+        .select()
+        .from(hermesMissions)
+        .where(
+          and(
+            eq(hermesMissions.id, input.missionId),
+            eq(hermesMissions.userId, ctx.user.id)
+          )
+        )
+        .limit(1);
+      if (!mission)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Workflow nebylo nalezeno.",
+        });
+      if (!["approved", "failed"].includes(mission.status)) {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message: "Workflow musí být nejprve schváleno.",
+        });
+      }
+
+      const workflowResult = (mission.result ?? {}) as Record<string, any>;
+      const template = getCommandCenterTemplate(
+        String(workflowResult.templateId ?? "")
+      );
+      if (!template)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Zdrojová šablona už neexistuje.",
+        });
+      if (template.status === "roadmap") {
+        throw new TRPCError({
+          code: "PRECONDITION_FAILED",
+          message:
+            "Tento scénář vyžaduje externí integraci, která zatím není dostupná. Návrh zůstává uložený, ale nebude označen jako provedený.",
+        });
+      }
+
+      const startedAt = Date.now();
+      await db
+        .update(hermesMissions)
+        .set({
+          status: "running",
+          startedAt,
+          completedAt: null,
+          plan: (mission.plan ?? []).map(step => ({
+            ...step,
+            status: "running",
+          })),
+        })
+        .where(eq(hermesMissions.id, mission.id));
+
+      try {
+        const platformContext = await buildPlatformContext(ctx.user.id);
+        const response = await hermesChat({
+          userMessage: String(workflowResult.prompt ?? ""),
+          conversationHistory: [],
+          platformContext,
+          userId: ctx.user.id,
+          compactMode: false,
+          cavemanMode: false,
+        });
+        const completedAt = Date.now();
+        const artifacts = [
+          ...((workflowResult.artifacts as
+            | Array<Record<string, unknown>>
+            | undefined) ?? []),
+          {
+            id: `hermes-plan-${completedAt}`,
+            type: "plan",
+            title: `${template.title} — HERMES výstup`,
+            content: response.content,
+            source: "hermes",
+            createdAt: completedAt,
+          },
+        ];
+
+        for (const integrationArtifact of createPlatformIntegrationArtifacts(
+          template.id,
+          completedAt
+        )) {
+          if (
+            !artifacts.some(artifact => artifact.id === integrationArtifact.id)
+          ) {
+            artifacts.push(integrationArtifact);
+          }
+        }
+
+        if (template.id === "local-growth-system") {
+          const values = workflowResult.values as Record<string, string>;
+          const targetLocation = [values.location, values.market]
+            .filter(Boolean)
+            .join(", ");
+          const query = new URLSearchParams({
+            searchTerm: values.segment ?? "",
+            location: targetLocation,
+            maxResults: values.leadCount ?? "20",
+          });
+          artifacts.push({
+            id: `google-maps-action-${completedAt}`,
+            type: "action",
+            title: "Spustit ověřené hledání firem",
+            route: `/google-maps-scraper?${query.toString()}`,
+            source: "google_maps",
+            createdAt: completedAt,
+          });
+        }
+
+        await db
+          .update(hermesMissions)
+          .set({
+            status: "completed",
+            plan: (mission.plan ?? []).map(step => ({
+              ...step,
+              status: "completed",
+            })),
+            result: {
+              ...workflowResult,
+              artifacts,
+              execution: {
+                status: "completed",
+                startedAt,
+                completedAt,
+                agentsUsed: response.agentsUsed,
+                routingDecision: response.routingDecision,
+              },
+            },
+            completedAt,
+          })
+          .where(eq(hermesMissions.id, mission.id));
+        return {
+          success: true,
+          status: "completed" as const,
+          artifactCount: artifacts.length,
+        };
+      } catch (error) {
+        await db
+          .update(hermesMissions)
+          .set({
+            status: "failed",
+            plan: (mission.plan ?? []).map(step => ({
+              ...step,
+              status: "failed",
+            })),
+            result: {
+              ...workflowResult,
+              execution: {
+                status: "failed",
+                startedAt,
+                failedAt: Date.now(),
+                error:
+                  error instanceof Error
+                    ? error.message
+                    : "Unknown execution error",
+              },
+            },
+            completedAt: Date.now(),
+          })
+          .where(eq(hermesMissions.id, mission.id));
+        throw error;
+      }
+    }),
+
   // ── HERMES-powered AI Chat (drop-in replacement for aiChat.sendMessage) ────
   aiChat: protectedProcedure
     .input(
@@ -366,8 +776,10 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
 
       if (!input.hermesMode) {
         // Fallback: direct LLM without HERMES routing
-        const { invokeLLM } = await import("./_core/llm");
-        const { getPersonaById, DEFAULT_PERSONA_ID } = await import("./aiPersonas");
+        const { invokeLLM, extractText } = await import("./_core/llm");
+        const { getPersonaById, DEFAULT_PERSONA_ID } = await import(
+          "./aiPersonas"
+        );
         const persona = getPersonaById(input.personaId ?? DEFAULT_PERSONA_ID);
         const systemPrompt = persona
           ? persona.systemPrompt(platformContext)
@@ -378,7 +790,8 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
           { role: "user", content: input.message },
         ];
         const response = await invokeLLM({ messages });
-        const content = response.choices[0].message.content ?? "No response.";
+        const content =
+          extractText(response.choices[0].message.content) || "No response.";
         return {
           content,
           role: "assistant" as const,
@@ -386,7 +799,11 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
           intent: "general",
           agentsUsed: [] as string[],
           routingDecision: "Direct LLM (HERMES mode off)",
-          activeAgent: null as null | { name: string; emoji: string; color: string },
+          activeAgent: null as null | {
+            name: string;
+            emoji: string;
+            color: string;
+          },
           stats: { totalLeads: 0, closedDeals: 0, revenue: 0 },
         };
       }
@@ -413,7 +830,12 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
           const existing = await db
             .select()
             .from(hermesSessions)
-            .where(and(eq(hermesSessions.userId, ctx.user.id), eq(hermesSessions.intent, "widget")))
+            .where(
+              and(
+                eq(hermesSessions.userId, ctx.user.id),
+                eq(hermesSessions.intent, "widget")
+              )
+            )
             .orderBy(desc(hermesSessions.lastActivity))
             .limit(1);
 
@@ -434,7 +856,12 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
             const created = await db
               .select()
               .from(hermesSessions)
-              .where(and(eq(hermesSessions.userId, ctx.user.id), eq(hermesSessions.intent, "widget")))
+              .where(
+                and(
+                  eq(hermesSessions.userId, ctx.user.id),
+                  eq(hermesSessions.intent, "widget")
+                )
+              )
               .orderBy(desc(hermesSessions.createdAt))
               .limit(1);
             sessionId = created[0].id;
@@ -466,7 +893,7 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
           await db
             .update(hermesSessions)
             .set({
-              intent: result.intent === "widget" ? "widget" : result.intent,
+              intent: result.intent,
               messageCount: (existing[0]?.messageCount ?? 0) + 1,
               subAgentsUsed: result.agentsUsed,
               lastActivity: Date.now(),
@@ -485,7 +912,11 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
         agentsUsed: result.agentsUsed,
         routingDecision: result.routingDecision,
         activeAgent: agentInfo
-          ? { name: agentInfo.name, emoji: agentInfo.emoji, color: agentInfo.color }
+          ? {
+              name: agentInfo.name,
+              emoji: agentInfo.emoji,
+              color: agentInfo.color,
+            }
           : null,
         stats: { totalLeads: 0, closedDeals: 0, revenue: 0 },
       };
@@ -511,8 +942,13 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
         .limit(5),
     ]);
 
-    const totalMessages = sessions.reduce((sum, s) => sum + (s.messageCount ?? 0), 0);
-    const completedMissions = missions.filter((m) => m.status === "completed").length;
+    const totalMessages = sessions.reduce(
+      (sum, s) => sum + (s.messageCount ?? 0),
+      0
+    );
+    const completedMissions = missions.filter(
+      m => m.status === "completed"
+    ).length;
     return {
       totalSessions: sessions.length,
       totalMessages,
@@ -533,34 +969,46 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
 
   /** HERMES Mastermind — multi-expert virtual board chat */
   mastermindChat: protectedProcedure
-    .input(z.object({
-      message: z.string().min(1).max(4000),
-      expertIds: z.array(z.string()).min(1).max(8),
-      conversationHistory: z.array(z.object({ role: z.string(), content: z.string() })).default([]),
-      userContext: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        message: z.string().min(1).max(4000),
+        expertIds: z.array(z.string()).min(1).max(8),
+        conversationHistory: z
+          .array(z.object({ role: z.string(), content: z.string() }))
+          .default([]),
+        userContext: z.string().optional(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
-      const { invokeLLM } = await import("./_core/llm");
-      const { buildMastermindPrompt } = await import("../shared/hermesMastermind");
-      const systemPrompt = buildMastermindPrompt(input.expertIds, input.userContext);
+      const { invokeLLM, extractText } = await import("./_core/llm");
+      const { buildMastermindPrompt } = await import(
+        "../shared/hermesMastermind"
+      );
+      const systemPrompt = buildMastermindPrompt(
+        input.expertIds,
+        input.userContext
+      );
       const messages: any[] = [
         { role: "system", content: systemPrompt },
         ...input.conversationHistory.slice(-10),
         { role: "user", content: input.message },
       ];
       const response = await invokeLLM({ messages });
-      const content = response.choices[0].message.content ?? "No response.";
+      const content =
+        extractText(response.choices[0].message.content) || "No response.";
       return { content, expertIds: input.expertIds };
     }),
 
   /** COMPUTER FLOW — Perplexity-style multi-brain parallel orchestration */
   computerFlow: protectedProcedure
-    .input(z.object({
-      query: z.string().min(1).max(4000),
-      domain: z.string().optional().default("general"),
-      maxSubTasks: z.number().min(2).max(5).optional().default(4),
-      enableDeepThink: z.boolean().optional().default(false),
-    }))
+    .input(
+      z.object({
+        query: z.string().min(1).max(4000),
+        domain: z.string().optional().default("general"),
+        maxSubTasks: z.number().min(2).max(5).optional().default(4),
+        enableDeepThink: z.boolean().optional().default(false),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const { runComputerFlow } = await import("./computerFlow");
       const platformContext = await buildPlatformContext(ctx.user.id);
@@ -601,11 +1049,17 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
   /** Get digest history from hermes_messages (role: hermes, type: daily_digest) */
   getDigestHistory: protectedProcedure.query(async ({ ctx }) => {
     const db = await getDb();
+    if (!db) return [];
     // Find the digest session for this user
     const digestSessions = await db
       .select()
       .from(hermesSessions)
-      .where(and(eq(hermesSessions.userId, ctx.user.id), eq(hermesSessions.intent, "daily_digest")))
+      .where(
+        and(
+          eq(hermesSessions.userId, ctx.user.id),
+          eq(hermesSessions.intent, "daily_digest")
+        )
+      )
       .orderBy(desc(hermesSessions.createdAt))
       .limit(1);
     if (!digestSessions.length) return [];
@@ -615,11 +1069,14 @@ ${result.nextActions.map((a, n) => `${n + 1}. ${a}`).join("\n")}`;
       .where(eq(hermesMessages.sessionId, digestSessions[0].id))
       .orderBy(desc(hermesMessages.createdAt))
       .limit(30);
-    return messages.map((m) => ({
+    return messages.map(m => ({
       id: m.id,
       content: m.content,
       createdAt: m.createdAt,
-      metadata: m.metadata ? JSON.parse(m.metadata as string) : null,
+      metadata:
+        typeof m.metadata === "string"
+          ? JSON.parse(m.metadata)
+          : (m.metadata ?? null),
     }));
   }),
 });

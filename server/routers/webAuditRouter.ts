@@ -3,7 +3,7 @@ import { protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { webAudits } from "../../drizzle/schema";
 import { eq, desc } from "drizzle-orm";
-import { invokeLLM } from "../_core/llm";
+import { invokeLLM, extractText } from "../_core/llm";
 
 interface AuditIssue {
   severity: "critical" | "warning" | "info";
@@ -149,7 +149,7 @@ export const webAuditRouter = router({
             },
           ],
         });
-        aiSummary = String(res.choices?.[0]?.message?.content || "");
+        aiSummary = extractText(res.choices?.[0]?.message?.content) || "";
       } catch (err) {
         console.error("Failed to generate AI summary", err);
       }
@@ -252,7 +252,7 @@ export const webAuditRouter = router({
             },
           ],
         });
-        icebreaker = String(res.choices?.[0]?.message?.content || "");
+        icebreaker = extractText(res.choices?.[0]?.message?.content) || "";
       } catch (err) {
         console.error("Failed to generate icebreaker", err);
       }
@@ -264,7 +264,7 @@ export const webAuditRouter = router({
         industry: "Web Audit",
         email: "",
         website: audit.url,
-        dataSource: "mock",
+        dataSource: "web_audit",
         status: "new",
         icebreaker: icebreaker,
         companyDescription: `Zdroj: Web Audit\nSkóre webu: ${audit.overallScore}/100\n\nAI Icebreaker:\n${icebreaker}`,

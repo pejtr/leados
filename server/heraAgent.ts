@@ -10,7 +10,7 @@
  * grounded in the user's real pipeline data.
  */
 
-import { invokeLLM } from "./_core/llm";
+import { invokeLLM, extractText } from "./_core/llm";
 import { AI_PERSONAS, getPersonaById, type AiPersona } from "./aiPersonas";
 
 // ─── Marketing intents ─────────────────────────────────────────────────────────
@@ -108,8 +108,8 @@ Respond with JSON only.`,
       },
     });
 
-    const raw = result.choices[0].message.content;
-    const parsed = JSON.parse(typeof raw === "string" ? raw : "{}") as HeraClassification;
+    const raw = extractText(result.choices[0].message.content);
+    const parsed = JSON.parse(raw || "{}") as HeraClassification;
     if (!HERA_INTENTS.includes(parsed.intent)) {
       return { intent: "general_marketing", confidence: 0.5, reasoning: "Unknown intent — fallback" };
     }
@@ -159,8 +159,8 @@ export async function heraChat(input: HeraChatInput): Promise<HeraChatOutput> {
     ],
   });
 
-  const raw = response.choices[0].message.content;
-  const content = typeof raw === "string" && raw.length > 0 ? raw : "Omlouvám se, zkuste to prosím znovu.";
+  const raw = extractText(response.choices[0].message.content);
+  const content = raw.length > 0 ? raw : "Omlouvám se, zkuste to prosím znovu.";
 
   return {
     content,
@@ -299,11 +299,11 @@ Proveď přesně tento krok mise. Česky, konkrétně, max 400 slov.`,
     ];
 
     const response = await invokeLLM({ messages: stepMessages });
-    const raw = response.choices[0].message.content;
+    const raw = extractText(response.choices[0].message.content);
     stepResults.push({
       step: step.step,
       coach: step.coach,
-      output: typeof raw === "string" && raw.length > 0 ? raw : "Krok dokončen.",
+      output: raw.length > 0 ? raw : "Krok dokončen.",
       duration: Date.now() - stepStart,
     });
   }
@@ -343,8 +343,8 @@ Proveď přesně tento krok mise. Česky, konkrétně, max 400 slov.`,
         },
       },
     });
-    const raw = synthResponse.choices[0].message.content;
-    synthesisData = JSON.parse(typeof raw === "string" ? raw : "{}");
+    const raw = extractText(synthResponse.choices[0].message.content);
+    synthesisData = JSON.parse(raw || "{}");
   } catch {
     synthesisData.synthesis = "Mise dokončena — viz výstupy jednotlivých kroků.";
   }
@@ -389,12 +389,12 @@ export async function heraPanel(input: {
             { role: "user", content: input.message },
           ] as any[],
         });
-        const raw = response.choices[0].message.content;
+        const raw = extractText(response.choices[0].message.content);
         return {
           coachId: coach.id,
           name: coach.name,
           emoji: coach.emoji,
-          content: typeof raw === "string" && raw.length > 0 ? raw : "Bez odpovědi.",
+          content: raw.length > 0 ? raw : "Bez odpovědi.",
         };
       } catch {
         return { coachId: coach.id, name: coach.name, emoji: coach.emoji, content: "Kouč není dostupný." };
@@ -419,8 +419,8 @@ export async function heraPanel(input: {
         },
       ] as any[],
     });
-    const raw = synthResponse.choices[0].message.content;
-    synthesis = typeof raw === "string" ? raw : "";
+    const raw = extractText(synthResponse.choices[0].message.content);
+    synthesis = raw || "";
   } catch {
     synthesis = "";
   }
@@ -447,8 +447,8 @@ Format (Czech, markdown):
     ],
   });
 
-  const raw = response.choices[0].message.content;
-  return typeof raw === "string" && raw.length > 0
+  const raw = extractText(response.choices[0].message.content);
+  return raw.length > 0
     ? raw
     : "## 🎯 HERA\nDnes nejsou k dispozici data pro doporučení.";
 }
