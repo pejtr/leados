@@ -226,3 +226,14 @@ export {
   getCompetitiveMaps,
   saveCompetitiveMap,
 } from "./intel";
+
+export {
+  insertProvenance,
+  getProvenanceEntries,
+  getProvenanceById,
+  updateProvenance,
+  getProvenanceStats,
+  insertAttribution,
+  getAttributionsByProvenance,
+  getAttributionsByEntity,
+} from "./source-data-harmonizer";

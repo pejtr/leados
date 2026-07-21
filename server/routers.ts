@@ -48,6 +48,7 @@ import { redditRouter } from "./routers/redditRouter";
 import { auditRouter } from "./routers/audit";
 import { llmUsageRouter } from "./routers/llmUsage";
 import { karrRouter } from "./routers/karr";
+import { sourceDataHarmonizerRouter } from "./routers/sourceDataHarmonizer";
 
 export const appRouter = router({
   system: systemRouter,
@@ -127,5 +128,6 @@ export const appRouter = router({
   audit: auditRouter,
   llmUsage: llmUsageRouter,
   karr: karrRouter,
+  sourceDataHarmonizer: sourceDataHarmonizerRouter,
 });
 export type AppRouter = typeof appRouter;
