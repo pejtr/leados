@@ -50,6 +50,9 @@ import { llmUsageRouter } from "./routers/llmUsage";
 import { karrRouter } from "./routers/karr";
 import { sourceDataHarmonizerRouter } from "./routers/sourceDataHarmonizer";
 import { omnicoreRouter } from "./routers/omnicore";
+import { cmsRouter } from "./routers/cms";
+import { seoEngineRouter } from "./routers/seoEngine";
+import { marketplaceRouter } from "./routers/marketplace";
 
 export const appRouter = router({
   system: systemRouter,
@@ -131,5 +134,8 @@ export const appRouter = router({
   karr: karrRouter,
   sourceDataHarmonizer: sourceDataHarmonizerRouter,
   omnicore: omnicoreRouter,
+  cms: cmsRouter,
+  seo: seoEngineRouter,
+  marketplace: marketplaceRouter,
 });
 export type AppRouter = typeof appRouter;

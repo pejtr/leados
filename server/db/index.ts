@@ -237,3 +237,54 @@ export {
   getAttributionsByProvenance,
   getAttributionsByEntity,
 } from "./source-data-harmonizer";
+
+export {
+  listPages,
+  getPage,
+  getPageBySlug,
+  createPage,
+  updatePage,
+  deletePage,
+  listArticles,
+  getArticle,
+  getArticleBySlug,
+  createArticle,
+  updateArticle,
+  deleteArticle,
+  listCategories,
+  getCategory,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "./cms";
+
+export {
+  listKeywords,
+  getKeyword,
+  createKeyword,
+  updateKeyword,
+  deleteKeyword,
+  listContentScores,
+  getContentScore,
+  createContentScore,
+  getKeywordStats,
+} from "./seo-engine";
+
+export {
+  listCategories as listCatalogCategories,
+  getCategory as getCatalogCategory,
+  createCategory as createCatalogCategory,
+  updateCategory as updateCatalogCategory,
+  deleteCategory as deleteCatalogCategory,
+  listProducts,
+  getProduct,
+  getProductBySku,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  listOrders,
+  getOrder,
+  createOrder,
+  updateOrderStatus,
+  getCatalogStats,
+} from "./marketplace";

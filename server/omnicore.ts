@@ -11,10 +11,9 @@ export interface OmnicoreModule {
 
 const MODULE_REGISTRY: OmnicoreModule[] = [
   { id: "hub", name: "Hub", description: "Central API gateway for external projects", status: "active", entrypoint: "/api/hub", docs: "/docs/omnicore-architecture" },
-  { id: "cms", name: "CMS", description: "Content management for websites and articles", status: "planned" },
-  { id: "seo", name: "SEO Engine", description: "Keyword analysis, meta tags, content scoring", status: "planned" },
-  { id: "affiliate", name: "Affiliate Tracking", description: "Affiliate links, commissions, reports", status: "active", entrypoint: "/affiliate" },
-  { id: "marketplace", name: "Marketplace / Catalog", description: "Product catalog, pricing, inventory", status: "planned" },
+  { id: "cms", name: "CMS", description: "Content management for websites and articles", status: "active", entrypoint: "/cms" },
+  { id: "seo", name: "SEO Engine", description: "Keyword analysis, meta tags, content scoring", status: "active", entrypoint: "/seo" },
+  { id: "marketplace", name: "Marketplace / Catalog", description: "Product catalog, pricing, inventory", status: "active", entrypoint: "/marketplace" },
   { id: "ai-assistants", name: "AI Assistants", description: "AI chatbots for lead qualification & support", status: "active", entrypoint: "/hermes" },
   { id: "leadgen", name: "Leadgen", description: "Forms, landing pages, scoring, CRM", status: "active", entrypoint: "/generate" },
   { id: "analytics", name: "Analytics", description: "BI dashboards, reporting, visualization", status: "active", entrypoint: "/stats" },
