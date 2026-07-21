@@ -78,6 +78,7 @@ import { trpc } from "@/lib/trpc";
 
 const OnboardingWizard = lazy(() => import("./OnboardingWizard"));
 const AIChatWidget = lazy(() => import("./AIChatWidget"));
+import { PageBackground } from "./PageBackground";
 
 // ─── Dock item definitions (ordered by business impact DESC) ─────────────────
 const dockItems = [
@@ -1365,7 +1366,7 @@ export default function DashboardLayout({
 
       {/* Main content — padded for menubar (top 8) and dock (bottom ~80px) */}
       <main
-        className="onyx-workspace flex-1 overflow-y-auto p-4 md:p-6 md:pl-[84px]"
+        className="onyx-workspace relative flex-1 overflow-y-auto p-4 md:p-6 md:pl-[84px]"
         style={{
           paddingTop: "calc(2rem + env(safe-area-inset-top, 0px) + 16px)",
           paddingBottom: "calc(72px + env(safe-area-inset-bottom, 0px))",
@@ -1373,6 +1374,7 @@ export default function DashboardLayout({
           overflowX: "hidden",
         }}
       >
+        <PageBackground />
         {children}
       </main>
 
