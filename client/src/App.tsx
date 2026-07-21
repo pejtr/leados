@@ -76,6 +76,7 @@ const DailyRoutines = lazy(() => import("./pages/DailyRoutines"));
 const GlobalSignalDesk = lazy(() => import("./pages/GlobalSignalDesk"));
 const MasterCommandCenter = lazy(() => import("./pages/MasterCommandCenter"));
 const Governance = lazy(() => import("./pages/Governance"));
+const OmnicoreHub = lazy(() => import("./pages/OmnicoreHub"));
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -159,6 +160,7 @@ function Router() {
       <Route path="/global-signal-desk" component={GlobalSignalDesk} />
       <Route path="/command-center" component={MasterCommandCenter} />
       <Route path="/governance" component={Governance} />
+      <Route path="/omnicore" component={OmnicoreHub} />
       <Route path="*" component={NotFound} />
     </Switch>
   );

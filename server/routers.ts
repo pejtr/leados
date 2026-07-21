@@ -49,6 +49,7 @@ import { auditRouter } from "./routers/audit";
 import { llmUsageRouter } from "./routers/llmUsage";
 import { karrRouter } from "./routers/karr";
 import { sourceDataHarmonizerRouter } from "./routers/sourceDataHarmonizer";
+import { omnicoreRouter } from "./routers/omnicore";
 
 export const appRouter = router({
   system: systemRouter,
@@ -129,5 +130,6 @@ export const appRouter = router({
   llmUsage: llmUsageRouter,
   karr: karrRouter,
   sourceDataHarmonizer: sourceDataHarmonizerRouter,
+  omnicore: omnicoreRouter,
 });
 export type AppRouter = typeof appRouter;
