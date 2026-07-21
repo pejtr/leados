@@ -597,8 +597,8 @@ export default function Hermes() {
 
   // Set page title
   useEffect(() => {
-    document.title = "HERA — Core AI | OPTIHUB";
-    return () => { document.title = "OPTIHUB — AI Lead Generation Platform"; };
+    document.title = "HERA — Core AI | ONYX OS";
+    return () => { document.title = "ONYX OS — AI Lead Generation Platform"; };
   }, []);
 
   const handleSend = useCallback(async () => {

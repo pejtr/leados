@@ -209,8 +209,8 @@ export default function FiveBrains() {
 
   const quickContextTemplates = [
     {
-      label: "OPTIHUB \u2014 celkov\u00fd projekt",
-      value: `Projekt: OPTIHUB (crmleadsystem.com)
+      label: "ONYX OS \u2014 celkov\u00fd projekt",
+      value: `Projekt: ONYX OS (crmleadsystem.com)
 Typ: B2B SaaS platforma pro AI-driven lead generation
 Stack: React 19 + tRPC + Drizzle ORM + MySQL + Gemini AI
 Funkce: Lead scraping (Apify), AI scoring, icebreaker generov\u00e1n\u00ed, CRM pipeline, Ad Campaigns ROAS tracking, Portfolio ROAS dashboard, 5 Brains analytics, Projects Hub, Autopilot, Email sequences, Webhook integrace
@@ -225,7 +225,7 @@ C\u00edl: 100k+ CZK MRR do konce roku 2026`
 Typ: Digit\u00e1ln\u00ed info-produkt ($37 one-time)
 Platforma: deepsleepreset.manus.space
 Funnel: Meta Ads \u2192 Landing page \u2192 Stripe checkout \u2192 Email sekvence
-C\u00edl: Demonstrovat OPTIHUB ROAS tracking jako alpha case study pro 100k+ CZK revenue`
+C\u00edl: Demonstrovat ONYX OS ROAS tracking jako alpha case study pro 100k+ CZK revenue`
     },
   ];
 
@@ -457,7 +457,7 @@ C\u00edl: Demonstrovat OPTIHUB ROAS tracking jako alpha case study pro 100k+ CZK
             <div>
               <Label className="text-xs font-medium mb-1.5 block">N\u00e1zev anal\u00fdzy</Label>
               <Input
-                placeholder="nap\u0159. OPTIHUB Q2 2026 \u2014 strategick\u00e1 anal\u00fdza"
+                placeholder="nap\u0159. ONYX OS Q2 2026 \u2014 strategick\u00e1 anal\u00fdza"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="text-sm"

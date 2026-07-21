@@ -1,4 +1,4 @@
-# AGENTS.md — OPTIHUB / ONYX OS
+# AGENTS.md — ONYX OS / ONYX OS
 
 ## Commands
 

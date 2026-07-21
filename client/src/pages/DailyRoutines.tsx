@@ -477,7 +477,7 @@ export default function DailyRoutines() {
                     borderRadius: 8, fontSize: 11, color: "#475569",
                 }}>
                     <strong style={{ color: "#64748b" }}>ℹ️ Daily Routines</strong> — Automatický ranní přehled generovaný HERMES AI.
-                    Spouští se při prvním přihlášení dne. Data jsou načítána z OPTIHUB platformy v reálném čase.
+                    Spouští se při prvním přihlášení dne. Data jsou načítána z ONYX OS platformy v reálném čase.
                     {" "}Caveman Mode šetří tokeny eliminací zdvořilostních frází v AI odpovědích (~65% úspora).
                 </div>
 

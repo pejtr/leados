@@ -1,6 +1,6 @@
 /**
  * External REST API Endpoints
- * OPTIHUB CRM Integration — allows third-party systems to access leads, sequences, and analytics
+ * ONYX OS CRM Integration — allows third-party systems to access leads, sequences, and analytics
  * All endpoints require Bearer token authentication (API key)
  */
 import { Express, Request, Response, NextFunction } from "express";

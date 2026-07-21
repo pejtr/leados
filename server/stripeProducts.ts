@@ -1,6 +1,6 @@
 export const STRIPE_PRODUCTS = {
   starter: {
-    name: "OPTIHUB Starter",
+    name: "ONYX OS Starter",
     description: "Ideální pro freelancery a malé obchodní týmy",
     priceMonthly: 14900, // €149/month in cents
     priceYearly: 119000, // €1190/year in cents (~€99/mo)
@@ -16,7 +16,7 @@ export const STRIPE_PRODUCTS = {
     priceIdYearly: process.env.STRIPE_PRICE_STARTER_YEARLY ?? "price_starter_yearly",
   },
   growth: {
-    name: "OPTIHUB Growth",
+    name: "ONYX OS Growth",
     description: "Pro rostouci obchodní týmy, které potřebují více výkonu",
     priceMonthly: 39900, // €399/month in cents
     priceYearly: 319000, // €3190/year in cents (~€266/mo)
@@ -33,7 +33,7 @@ export const STRIPE_PRODUCTS = {
     priceIdYearly: process.env.STRIPE_PRICE_GROWTH_YEARLY ?? "price_growth_yearly",
   },
   pro: {
-    name: "OPTIHUB Pro",
+    name: "ONYX OS Pro",
     description: "Pro agentury a enterprise obchodní týmy",
     priceMonthly: 79900, // €799/month in cents
     priceYearly: 639000, // €6390/year in cents (~€532/mo)

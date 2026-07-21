@@ -1,6 +1,6 @@
-# OPTIHUB — Deployment Guide
+# ONYX OS — Deployment Guide
 
-**Cíl:** Nasadit OPTIHUB na produkční server s maximální bezpečností, výkonem a spolehlivostí.
+**Cíl:** Nasadit ONYX OS na produkční server s maximální bezpečností, výkonem a spolehlivostí.
 
 ---
 
@@ -301,7 +301,7 @@ jobs:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
           payload: |
             {
-              "text": "OPTIHUB deployed to production ✅"
+              "text": "ONYX OS deployed to production ✅"
             }
 ```
 

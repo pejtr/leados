@@ -71,7 +71,7 @@ async function fetchDsrData(): Promise<{
   }
 }
 
-// ─── OPTIHUB Stats ─────────────────────────────────────────────────────────────
+// ─── ONYX OS Stats ─────────────────────────────────────────────────────────────
 
 async function fetchLeadOsStats(): Promise<{
   totalLeads: number;
@@ -122,12 +122,12 @@ ${dsr.abTests.length > 0 ? `- A/B testy: ${dsr.abTests.map((t) => `${t.name} (${
 
   const leadOsSection = leadOs
     ? `
-**OPTIHUB — aktuální stav:**
+**ONYX OS — aktuální stav:**
 - Celkem leadů v systému: ${leadOs.totalLeads}
 `
     : "";
 
-  const systemPrompt = `Jsi HERMES — core AI orchestrační agent platformy OPTIHUB. VŽDY píšeš VÝHRADNĚ v češtině. Nikdy nepoužíváš angličtinu ani žádný jiný jazyk. Jsi stručný, přímý, analytický. Bez pozdravu, bez zbytečných frází. Celý výstup musí být česky — každé slovo.`;
+  const systemPrompt = `Jsi HERMES — core AI orchestrační agent platformy ONYX OS. VŽDY píšeš VÝHRADNĚ v češtině. Nikdy nepoužíváš angličtinu ani žádný jiný jazyk. Jsi stručný, přímý, analytický. Bez pozdravu, bez zbytečných frází. Celý výstup musí být česky — každé slovo.`;
 
   const userPrompt = `Dnes je ${dateStr}. Vygeneruj ranní přehled výkonu projektů na základě těchto dat:
 
@@ -137,7 +137,7 @@ ${leadOsSection}
 Struktura přehledu:
 1. **Klíčové číslo dne** — jedno nejdůležitější číslo s krátkým komentářem
 2. **DeepSleepReset** — 3-4 věty: co funguje, co je slabé, trend
-3. **OPTIHUB** — 1-2 věty o stavu platformy
+3. **ONYX OS** — 1-2 věty o stavu platformy
 4. **Priorita dnes** — 2-3 konkrétní akce pro maximalizaci výkonu
 5. **Rizika** — 1-2 věci, na které si dát pozor
 

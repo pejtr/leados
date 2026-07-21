@@ -87,7 +87,7 @@ export const roiAuditRouter = router({
 
       const prompt = `You are an AI automation consultant specializing in B2B sales and lead generation workflows.
 
-Analyze these business processes and determine automation feasibility using current AI tools (Claude, n8n, Make, Zapier, OPTIHUB).
+Analyze these business processes and determine automation feasibility using current AI tools (Claude, n8n, Make, Zapier, ONYX OS).
 
 Processes to analyze:
 ${processes.map((p, i) => `${i + 1}. **${p.name}**

@@ -651,7 +651,7 @@ export default function Integrations() {
                 <div className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Architektura Security Gateway</div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {[
-                    { icon: <Zap className="h-4 w-4" />, label: "OPTIHUB AI", color: "bg-blue-100 text-blue-700 border-blue-200" },
+                    { icon: <Zap className="h-4 w-4" />, label: "ONYX OS AI", color: "bg-blue-100 text-blue-700 border-blue-200" },
                     { icon: <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />, label: "", color: "" },
                     { icon: <ShieldCheck className="h-4 w-4" />, label: "n8n Gateway", color: "bg-orange-100 text-orange-700 border-orange-200" },
                     { icon: <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />, label: "", color: "" },
@@ -679,7 +679,7 @@ export default function Integrations() {
                     icon: <Eye className="h-4 w-4" />,
                     color: "bg-blue-50 border-blue-200 text-blue-800",
                     iconColor: "text-blue-600",
-                    status: "Aktivní v OPTIHUB",
+                    status: "Aktivní v ONYX OS",
                     statusColor: "bg-emerald-100 text-emerald-700",
                   },
                   {
@@ -732,7 +732,7 @@ export default function Integrations() {
                   {[
                     { step: "1", text: "Nainstaluj n8n (cloud nebo self-hosted): n8n.io" },
                     { step: "2", text: "Vytvoř Webhook trigger workflow v n8n" },
-                    { step: "3", text: "Přidej Webhook URL do OPTIHUB Integrace → Nový Webhook (typ: generic)" },
+                    { step: "3", text: "Přidej Webhook URL do ONYX OS Integrace → Nový Webhook (typ: generic)" },
                     { step: "4", text: "V n8n přidej IF node: pokud data.security.requires_approval = true → pošli Slack notifikaci" },
                     { step: "5", text: "Schválení přes Slack button spustí další akce (CRM update, email, task)" },
                   ].map(item => (

@@ -240,7 +240,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 Vítejte{userName ? `, ${userName.split(" ")[0]}` : ""}! 👋
               </h2>
               <p className="text-zinc-400 text-sm mb-6 max-w-md mx-auto">
-                Pojďme to nastavit. Zabere to sotva 2 minuty. OPTIHUB naprosto změní váš způsob vyhledávání B2B klientů, obohatí data díky umělé inteligenci a zautomatizuje oslovení.
+                Pojďme to nastavit. Zabere to sotva 2 minuty. ONYX OS naprosto změní váš způsob vyhledávání B2B klientů, obohatí data díky umělé inteligenci a zautomatizuje oslovení.
               </p>
 
               {/* Feature highlights */}

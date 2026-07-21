@@ -63,7 +63,7 @@ Styl komunikace:
 - Proaktivně identifikuj problémy dříve, než jsou položeny
 - Při směrování na sub-agenta oznam: "→ Přesměrovávám na ANALYST..."
 - Složité odpovědi ukonči jasnou DALŠÍ AKCÍ
-- Při zmínce o projektech (DeepSleepReset, OPTIHUB) vždy uveď konkrétní čísla z live dat
+- Při zmínce o projektech (DeepSleepReset, ONYX OS) vždy uveď konkrétní čísla z live dat
 
 ${constitutionContext ? `\n## AI Ústava (Strategický kontext uživatele)\n${constitutionContext}` : ""}
 

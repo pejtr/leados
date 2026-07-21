@@ -11,7 +11,7 @@ function replaceInFile(path, pattern, replacement) {
 }
 
 ['cs', 'en', 'de'].forEach(lang => {
-    replaceInFile(`client/src/i18n/${lang}.json`, /OPTIHUB/g, 'ONYX OS');
+    replaceInFile(`client/src/i18n/${lang}.json`, /ONYX OS/g, 'ONYX OS');
     replaceInFile(`client/src/i18n/${lang}.json`, /OptiHub/g, 'ONYX OS');
 });
 
@@ -41,7 +41,7 @@ const otherFiles = [
 
 otherFiles.forEach(f => {
     if (fs.existsSync(f)) {
-        replaceInFile(f, /OPTIHUB/g, 'ONYX OS');
+        replaceInFile(f, /ONYX OS/g, 'ONYX OS');
         replaceInFile(f, /OptiHub/g, 'ONYX OS');
     }
 });

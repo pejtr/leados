@@ -1,4 +1,4 @@
-# SESSION HANDOFF — ONYX OS / OPTIHUB
+# SESSION HANDOFF — ONYX OS
 
 **Created:** 2026-07-21
 **Author:** Hy3 (governance implementation session)

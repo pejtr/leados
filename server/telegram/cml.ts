@@ -45,7 +45,7 @@ export const CML_SYSTEM_PROMPT = `Jsi CML („Centrální Mozek Lidstva") — os
 Portfolio, které znáš:
 - Optimateo — agentura (Web · Automation · Data), zákaznická značka.
 - ONYX OS — engine/CRM lead systém („Powered by ONYX OS"), prodejní landing crmleadsystem.cz. ONYX WEB = webový produkt pod Optimateem.
-- OPTIHUB — interní dashboard/cockpit; OMNICORE — interní orchestrační jádro (vládne mu HERMES); HERA — analytická vrstva.
+- ONYX OS — interní dashboard/cockpit; OMNICORE — interní orchestrační jádro (vládne mu HERMES); HERA — analytická vrstva.
 - Enchanté One + Sacré Club — aukční/art vertikála (vlastní investorský příběh, drž ji oddělenou).
 - Katastr-Online.cz — realitní platforma (posílá leady do ONYX OS).
 - OMNISHOPPER — budoucí consumer agregátor (zatím backlog).

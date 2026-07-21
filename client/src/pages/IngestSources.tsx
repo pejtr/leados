@@ -280,7 +280,7 @@ export default function IngestSources() {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
-    "X-OPTIHUB-Key": "YOUR_PROJECT_API_KEY"
+    "X-ONYX-OS-Key": "YOUR_PROJECT_API_KEY"
   },
   body: JSON.stringify({
     email: "user@example.com",

@@ -227,7 +227,7 @@ export default function PortfolioROAS() {
         <body>
           <div class="print-header">
             <h1>🏆 Portfolio ROAS Report</h1>
-            <p>Vygenerováno: ${now} · Období: ${periodLabel} · OPTIHUB — crmleadsystem.com</p>
+            <p>Vygenerováno: ${now} · Období: ${periodLabel} · ONYX OS — crmleadsystem.com</p>
           </div>
           ${printContent.innerHTML}
         </body>

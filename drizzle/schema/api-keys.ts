@@ -6,7 +6,7 @@ import {
   bigint,
 } from "drizzle-orm/mysql-core";
 
-// ─── API Keys Management (OPTIHUB CRM Integration) ─────────────────────────────
+// ─── API Keys Management (ONYX OS CRM Integration) ─────────────────────────────
 export const apiKeys = mysqlTable("api_keys", {
   id: int("id").primaryKey().autoincrement(),
   userId: int("user_id").notNull(),

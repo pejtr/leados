@@ -52,7 +52,7 @@ export default function Datenschutz() {
           <Section icon={Globe} title="1. Verantwortlicher">
             <p>Verantwortlicher im Sinne der Datenschutz-Grundverordnung (DSGVO) ist:</p>
             <div className="mt-3 p-4 rounded-xl" style={{ background: "oklch(0.93 0.008 240)", border: "1px solid oklch(0.88 0.010 240)" }}>
-              <p className="font-semibold" style={{ color: "oklch(0.25 0.04 250)" }}>OPTIHUB</p>
+              <p className="font-semibold" style={{ color: "oklch(0.25 0.04 250)" }}>ONYX OS</p>
               <p>E-Mail: <a href="mailto:datenschutz@crmleadsystem.com" className="underline" style={{ color: "oklch(0.50 0.20 192)" }}>datenschutz@crmleadsystem.com</a></p>
               <p>Website: <a href="https://crmleadsystem.com" className="underline" style={{ color: "oklch(0.50 0.20 192)" }}>crmleadsystem.com</a></p>
             </div>
@@ -82,7 +82,7 @@ export default function Datenschutz() {
             <p>Die Verarbeitung Ihrer personenbezogenen Daten erfolgt auf folgenden Rechtsgrundlagen gemäß DSGVO:</p>
             <div className="mt-3 grid gap-3">
               {[
-                { art: "Art. 6 Abs. 1 lit. b", text: "Vertragserfüllung — Bereitstellung der OPTIHUB-Plattform und ihrer Funktionen" },
+                { art: "Art. 6 Abs. 1 lit. b", text: "Vertragserfüllung — Bereitstellung der ONYX OS-Plattform und ihrer Funktionen" },
                 { art: "Art. 6 Abs. 1 lit. a", text: "Einwilligung — für Marketing-E-Mails und optionale Analyse-Cookies" },
                 { art: "Art. 6 Abs. 1 lit. f", text: "Berechtigte Interessen — Sicherheit, Betrugsprävention, Produktverbesserung" },
                 { art: "Art. 6 Abs. 1 lit. c", text: "Rechtliche Verpflichtung — Aufbewahrungspflichten nach Steuerrecht" },

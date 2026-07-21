@@ -1,7 +1,7 @@
 {
-  "name": "OPTIHUB — AI Lead-Gen · CRM · Autonomous System",
-  "short_name": "OPTIHUB",
-  "description": "OPTIHUB — autonomní AI systém pro B2B lead generation, CRM pipeline a marketing, řízený orchestrátory HERMES a HERA.",
+  "name": "ONYX OS — AI Lead-Gen · CRM · Autonomous System",
+  "short_name": "ONYX OS",
+  "description": "ONYX OS — autonomní AI systém pro B2B lead generation, CRM pipeline a marketing, řízený orchestrátory HERMES a HERA.",
   "start_url": "/dashboard",
   "display": "standalone",
   "orientation": "any",
