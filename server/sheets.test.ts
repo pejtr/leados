@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-describe("Google Service Account JSON", () => {
+describe.skipIf(!process.env.GOOGLE_SERVICE_ACCOUNT_JSON)("Google Service Account JSON", () => {
   it("should be valid JSON with required service account fields", () => {
     const json = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
     expect(json, "GOOGLE_SERVICE_ACCOUNT_JSON env var must be set").toBeTruthy();

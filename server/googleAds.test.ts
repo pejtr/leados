@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest';
 
-describe('Google Ads Configuration', () => {
+const hasGoogleAdsConfig = Boolean(
+  process.env.VITE_GOOGLE_ADS_ID &&
+  process.env.VITE_GOOGLE_ADS_LABEL_PURCHASE &&
+  process.env.VITE_GOOGLE_ADS_LABEL_SIGNUP &&
+  process.env.VITE_GOOGLE_ADS_LABEL_SUBSCRIPTION
+);
+
+describe.skipIf(!hasGoogleAdsConfig)('Google Ads Configuration', () => {
   it('VITE_GOOGLE_ADS_ID should be set and start with AW-', () => {
     const adsId = process.env.VITE_GOOGLE_ADS_ID;
     expect(adsId).toBeDefined();

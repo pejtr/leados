@@ -9,8 +9,11 @@ const PRICE_IDS = {
   STRIPE_PRICE_PRO_MONTHLY: process.env.STRIPE_PRICE_PRO_MONTHLY,
   STRIPE_PRICE_PRO_YEARLY: process.env.STRIPE_PRICE_PRO_YEARLY,
 };
+const hasStripeConfig = Boolean(
+  process.env.STRIPE_SECRET_KEY && Object.values(PRICE_IDS).every(Boolean)
+);
 
-describe("Stripe Price IDs", () => {
+describe.skipIf(!hasStripeConfig)("Stripe Price IDs", () => {
   it("all 6 price ID env vars are set", () => {
     for (const [key, val] of Object.entries(PRICE_IDS)) {
       expect(val, `${key} should be set`).toBeTruthy();

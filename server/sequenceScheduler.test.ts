@@ -19,6 +19,15 @@ vi.mock("./_core/notification", () => ({
   notifyOwner: vi.fn().mockResolvedValue(true),
 }));
 
+vi.mock("./services/emailService", () => ({
+  EmailIntegrationNotConfiguredError: class extends Error {},
+  sendTransactionalEmail: vi.fn().mockResolvedValue({ messageId: "mock-id" }),
+}));
+
+vi.mock("./_core/env", () => ({
+  ENV: { sequenceEmailSendingEnabled: false },
+}));
+
 describe("Sequence Scheduler", () => {
   it("starts and stops without errors", async () => {
     const { startSequenceScheduler, stopSequenceScheduler } = await import("./sequenceScheduler");

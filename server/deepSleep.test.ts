@@ -2,8 +2,9 @@ import { describe, it, expect } from "vitest";
 
 const BASE_URL = "https://deep-sleep-reset.com/api/v1";
 const API_KEY = process.env.DEEP_SLEEP_RESET_API_KEY;
+const runLiveIntegrationTests = process.env.RUN_LIVE_INTEGRATION_TESTS === "true";
 
-describe("DeepSleepReset API connectivity", () => {
+describe.skipIf(!runLiveIntegrationTests)("DeepSleepReset API connectivity", () => {
   it("health endpoint returns 200 without auth", async () => {
     const res = await fetch(`${BASE_URL}/health`);
     expect(res.status).toBe(200);

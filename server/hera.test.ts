@@ -3,7 +3,8 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-vi.mock("./_core/llm", () => ({
+vi.mock("./_core/llm", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./_core/llm")>()),
   invokeLLM: vi.fn(),
 }));
 

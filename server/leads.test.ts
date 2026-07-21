@@ -2,7 +2,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { generateMockLeads, validateIndustry, SUPPORTED_INDUSTRIES, enrichEmailsWithApify } from "./leadPipeline";
 
 // ─── Mock invokeLLM ───────────────────────────────────────────────
-vi.mock("./_core/llm", () => ({
+vi.mock("./_core/llm", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./_core/llm")>()),
   invokeLLM: vi.fn().mockResolvedValue({
     choices: [
       {

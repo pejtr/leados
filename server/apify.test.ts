@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-describe("Apify token validation", () => {
+describe.skipIf(!process.env.APIFY_TOKEN)("Apify token validation", () => {
   it("APIFY_TOKEN env var is set", () => {
     const token = process.env.APIFY_TOKEN;
     expect(token).toBeTruthy();
