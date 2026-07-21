@@ -106,6 +106,9 @@ temp/
 *.sqlite
 *.sqlite3
 
+# Codex AI preview/temp artifacts
+.codex/
+
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
 .project-config.json
