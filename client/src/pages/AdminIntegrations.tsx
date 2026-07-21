@@ -146,14 +146,14 @@ function ConfigModal({
 }) {
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
-  const saveMutation = trpc.integrations.save.useMutation({
+  const saveMutation = trpc.connectedApps.save.useMutation({
     onSuccess: (data) => {
       toast.success(data.action === "created" ? `${integration?.name} nakonfigurován.` : "Aktualizováno");
       setApiKey(""); onClose(); onSaved();
     },
     onError: (err) => toast.error(err.message),
   });
-  const testMutation = trpc.integrations.test.useMutation({
+  const testMutation = trpc.connectedApps.test.useMutation({
     onSuccess: (data) => {
       if (data.success) toast.success((data as any).message || "Test OK");
       else toast.error((data as any).error || "Test selhal");
@@ -233,7 +233,7 @@ export default function AdminIntegrations() {
   const [newWebhookName, setNewWebhookName] = useState("");
   const [newWebhookUrl, setNewWebhookUrl] = useState("");
   const [newWebhookEvents, setNewWebhookEvents] = useState("new_lead,new_order");
-  const { data: integrationsList, refetch: refetchIntegrations } = trpc.integrations.list.useQuery();
+  const { data: integrationsList, refetch: refetchIntegrations } = trpc.connectedApps.list.useQuery();
   const { data: apiKeys, refetch: refetchKeys } = trpc.apiKeys.list.useQuery();
   const { data: webhooks, refetch: refetchWebhooks } = trpc.webhooks.list.useQuery();
 
@@ -252,7 +252,7 @@ export default function AdminIntegrations() {
   });
   const testWebhookMutation = trpc.webhooks.test.useMutation({
     onSuccess: (data) => {
-      if (data.success) toast.success(`Test OK (HTTP ${data.statusCode})`);
+      if (data.success) toast.success(`Test OK (HTTP ${data.status})`);
       else toast.error(data.error || "Test selhal");
     },
   });
@@ -267,7 +267,7 @@ export default function AdminIntegrations() {
 
   const copyToClipboard = (text: string, label = "Zkopírováno") => {
     navigator.clipboard.writeText(text);
-    toast({ title: label });
+    toast.success(label);
   };
 
   const activeIntegration = INTEGRATIONS.find((i) => i.id === configTarget) || null;

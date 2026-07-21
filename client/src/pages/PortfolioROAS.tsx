@@ -143,7 +143,7 @@ export default function PortfolioROAS() {
   const { data: allCampaigns = [], isLoading: loadingCampaigns, refetch: refetchCampaigns } = trpc.adCampaigns.list.useQuery();
   const { data: rawHistory = [] } = trpc.adCampaigns.getHistory.useQuery(
     { days: historyDays, campaignIds: selectedCampaignIds.length > 0 ? selectedCampaignIds : undefined },
-    { keepPreviousData: true }
+    { placeholderData: (previousData) => previousData }
   );
 
   const isLoading = loadingStats || loadingCampaigns;

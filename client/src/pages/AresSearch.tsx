@@ -555,7 +555,7 @@ export default function AresSearch() {
               </div>
             ) : (
               <div className="space-y-2">
-                {data.subjects.map((subject) => (
+                {data.subjects.map((subject: AresSubject) => (
                   <SubjectCard
                     key={subject.ico}
                     subject={subject}

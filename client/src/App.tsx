@@ -1,77 +1,81 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Landing from "./pages/Landing";
-import Home from "./pages/Home";
-import Generate from "./pages/Generate";
-import History from "./pages/History";
-import Stats from "./pages/Stats";
-import Templates from "./pages/Templates";
-import Team from "./pages/Team";
-import Kanban from "./pages/Kanban";
-import ROI from "./pages/ROI";
-import Autopilot from "./pages/Autopilot";
-import Integrations from "./pages/Integrations";
-import Matching from "./pages/Matching";
-import SdrAgent from "./pages/SdrAgent";
-import NextActions from "./pages/NextActions";
-import SocialListening from "./pages/SocialListening";
-import TrackingPixel from "./pages/TrackingPixel";
-import SmartAlerts from "./pages/SmartAlerts";
-import SmartLists from "./pages/SmartLists";
-import EmailVerification from "./pages/EmailVerification";
-import CampaignRules from "./pages/CampaignRules";
-import AgencyPanel from "./pages/AgencyPanel";
-import SpeedToLead from "./pages/SpeedToLead";
-import IcpBuilder from "./pages/IcpBuilder";
-import TechStack from "./pages/TechStack";
-import AiAgentBuilder from "./pages/AiAgentBuilder";
-import LandingB from "./pages/LandingB";
-import Sequences from "./pages/Sequences";
-import Tasks from "./pages/Tasks";
-import CapturePlanning from "./pages/CapturePlanning";
-import MarketIntel from "./pages/MarketIntel";
-import KnowledgeBase from "./pages/KnowledgeBase";
-import CompetitiveMap from "./pages/CompetitiveMap";
-import Billing from "./pages/Billing";
-import AiAdvisor from "./pages/AiAdvisor";
-import MeetingScheduler from "./pages/MeetingScheduler";
-import CallIntelligence from "./pages/CallIntelligence";
-import DealPipeline from "./pages/DealPipeline";
-import SalesDashboard from "./pages/SalesDashboard";
-import ProjectsHub from "./pages/ProjectsHub";
-import AdCampaigns from "./pages/AdCampaigns";
-import PortfolioROAS from "./pages/PortfolioROAS";
-import PublicPortfolioROAS from "./pages/PublicPortfolioROAS";
-import FiveBrains from "./pages/FiveBrains";
-import DailyReport from "./pages/DailyReport";
-import AIConstitution from "./pages/AIConstitution";
-import AgentBenchmark from "./pages/AgentBenchmark";
-import Hermes from "./pages/Hermes";
-import DeepSleepDashboard from "./pages/DeepSleepDashboard";
-import DeepSleepReset from "./pages/DeepSleepReset";
-import IngestSources from "./pages/IngestSources";
-import Datenschutz from "./pages/Datenschutz";
-import AiSkills from "./pages/AiSkills";
-import RoiAudit from "./pages/RoiAudit";
-import ComputerFlow from "./pages/ComputerFlow";
-import { GlobalEarnings } from "./pages/GlobalEarnings";
-import AdminIntegrations from "./pages/AdminIntegrations";
-import AffiliateDashboard from "./pages/AffiliateDashboard";
-import RevenueIntelligence from "./pages/RevenueIntelligence";
 import { FloatingUpgradeNudge } from "./components/UpgradeNudge";
-import ProfessionalDashboard from "./pages/ProfessionalDashboard";
-import WebhookActivity from "./pages/WebhookActivity";
-import GoogleMapsScraper from "./pages/GoogleMapsScraper";
-import WebAudit from "./pages/WebAudit";
-import Sluzby from "./pages/Sluzby";
-import AresSearch from "./pages/AresSearch";
-import DailyRoutines from "./pages/DailyRoutines";
-import GlobalSignalDesk from "./pages/GlobalSignalDesk";
+
+const NotFound = lazy(() => import("@/pages/NotFound"));
+const Landing = lazy(() => import("./pages/Landing"));
+const Home = lazy(() => import("./pages/Home"));
+const Today = lazy(() => import("./pages/Today"));
+const Generate = lazy(() => import("./pages/Generate"));
+const History = lazy(() => import("./pages/History"));
+const Stats = lazy(() => import("./pages/Stats"));
+const Templates = lazy(() => import("./pages/Templates"));
+const Team = lazy(() => import("./pages/Team"));
+const Kanban = lazy(() => import("./pages/Kanban"));
+const ROI = lazy(() => import("./pages/ROI"));
+const Autopilot = lazy(() => import("./pages/Autopilot"));
+const Integrations = lazy(() => import("./pages/Integrations"));
+const Matching = lazy(() => import("./pages/Matching"));
+const SdrAgent = lazy(() => import("./pages/SdrAgent"));
+const NextActions = lazy(() => import("./pages/NextActions"));
+const SocialListening = lazy(() => import("./pages/SocialListening"));
+const TrackingPixel = lazy(() => import("./pages/TrackingPixel"));
+const SmartAlerts = lazy(() => import("./pages/SmartAlerts"));
+const SmartLists = lazy(() => import("./pages/SmartLists"));
+const EmailVerification = lazy(() => import("./pages/EmailVerification"));
+const CampaignRules = lazy(() => import("./pages/CampaignRules"));
+const AgencyPanel = lazy(() => import("./pages/AgencyPanel"));
+const SpeedToLead = lazy(() => import("./pages/SpeedToLead"));
+const IcpBuilder = lazy(() => import("./pages/IcpBuilder"));
+const TechStack = lazy(() => import("./pages/TechStack"));
+const AiAgentBuilder = lazy(() => import("./pages/AiAgentBuilder"));
+const LandingB = lazy(() => import("./pages/LandingB"));
+const Sequences = lazy(() => import("./pages/Sequences"));
+const Tasks = lazy(() => import("./pages/Tasks"));
+const CapturePlanning = lazy(() => import("./pages/CapturePlanning"));
+const MarketIntel = lazy(() => import("./pages/MarketIntel"));
+const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
+const CompetitiveMap = lazy(() => import("./pages/CompetitiveMap"));
+const Billing = lazy(() => import("./pages/Billing"));
+const MeetingScheduler = lazy(() => import("./pages/MeetingScheduler"));
+const CallIntelligence = lazy(() => import("./pages/CallIntelligence"));
+const DealPipeline = lazy(() => import("./pages/DealPipeline"));
+const SalesDashboard = lazy(() => import("./pages/SalesDashboard"));
+const ProjectsHub = lazy(() => import("./pages/ProjectsHub"));
+const AdCampaigns = lazy(() => import("./pages/AdCampaigns"));
+const PortfolioROAS = lazy(() => import("./pages/PortfolioROAS"));
+const PublicPortfolioROAS = lazy(() => import("./pages/PublicPortfolioROAS"));
+const FiveBrains = lazy(() => import("./pages/FiveBrains"));
+const DailyReport = lazy(() => import("./pages/DailyReport"));
+const AIConstitution = lazy(() => import("./pages/AIConstitution"));
+const AgentBenchmark = lazy(() => import("./pages/AgentBenchmark"));
+const DeepSleepDashboard = lazy(() => import("./pages/DeepSleepDashboard"));
+const DeepSleepReset = lazy(() => import("./pages/DeepSleepReset"));
+const IngestSources = lazy(() => import("./pages/IngestSources"));
+const Datenschutz = lazy(() => import("./pages/Datenschutz"));
+const AiSkills = lazy(() => import("./pages/AiSkills"));
+const RoiAudit = lazy(() => import("./pages/RoiAudit"));
+const ComputerFlow = lazy(() => import("./pages/ComputerFlow"));
+const GlobalEarnings = lazy(() =>
+  import("./pages/GlobalEarnings").then(module => ({ default: module.GlobalEarnings }))
+);
+const AdminIntegrations = lazy(() => import("./pages/AdminIntegrations"));
+const AffiliateDashboard = lazy(() => import("./pages/AffiliateDashboard"));
+const RevenueIntelligence = lazy(() => import("./pages/RevenueIntelligence"));
+const ProfessionalDashboard = lazy(() => import("./pages/ProfessionalDashboard"));
+const WebhookActivity = lazy(() => import("./pages/WebhookActivity"));
+const GoogleMapsScraper = lazy(() => import("./pages/GoogleMapsScraper"));
+const WebAudit = lazy(() => import("./pages/WebAudit"));
+const Sluzby = lazy(() => import("./pages/Sluzby"));
+const AresSearch = lazy(() => import("./pages/AresSearch"));
+const DailyRoutines = lazy(() => import("./pages/DailyRoutines"));
+const GlobalSignalDesk = lazy(() => import("./pages/GlobalSignalDesk"));
+const MasterCommandCenter = lazy(() => import("./pages/MasterCommandCenter"));
+const Governance = lazy(() => import("./pages/Governance"));
 
 function ScrollToTop() {
   const [location] = useLocation();
@@ -84,10 +88,11 @@ function ScrollToTop() {
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
+      <Route path="/" component={Today} />
       <Route path="/landing" component={Landing} />
       <Route path="/landing-b" component={LandingB} />
-      <Route path="/dashboard" component={Home} />
+      <Route path="/dashboard" component={Today} />
+      <Route path="/overview" component={Home} />
       <Route path="/generate" component={Generate} />
       <Route path="/history" component={History} />
       <Route path="/stats" component={Stats} />
@@ -118,7 +123,7 @@ function Router() {
       <Route path="/knowledge" component={KnowledgeBase} />
       <Route path="/competitive" component={CompetitiveMap} />
       <Route path="/billing" component={Billing} />
-      <Route path="/chat-agent" component={AiAdvisor} />
+      <Route path="/chat-agent" component={MasterCommandCenter} />
       <Route path="/meetings" component={MeetingScheduler} />
       <Route path="/calls" component={CallIntelligence} />
       <Route path="/deal-pipeline" component={DealPipeline} />
@@ -131,8 +136,8 @@ function Router() {
       <Route path="/daily-report" component={DailyReport} />
       <Route path="/ai-constitution" component={AIConstitution} />
       <Route path="/agent-benchmark" component={AgentBenchmark} />
-      <Route path="/hermio" component={Hermes} />
-      <Route path="/hermes" component={Hermes} />
+      <Route path="/hermio" component={MasterCommandCenter} />
+      <Route path="/hermes" component={MasterCommandCenter} />
       <Route path="/deep-sleep" component={DeepSleepDashboard} />
       <Route path="/dsr" component={DeepSleepReset} />
       <Route path="/external-leads" component={IngestSources} />
@@ -152,6 +157,8 @@ function Router() {
       <Route path="/ares" component={AresSearch} />
       <Route path="/daily-routines" component={DailyRoutines} />
       <Route path="/global-signal-desk" component={GlobalSignalDesk} />
+      <Route path="/command-center" component={MasterCommandCenter} />
+      <Route path="/governance" component={Governance} />
       <Route path="*" component={NotFound} />
     </Switch>
   );
@@ -160,12 +167,14 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark" switchable={true}>
+      <ThemeProvider>
         <TooltipProvider>
           <Toaster />
           <ScrollToTop />
           <FloatingUpgradeNudge />
-          <Router />
+          <Suspense fallback={<div className="min-h-screen bg-background" aria-label="Načítání stránky" />}>
+            <Router />
+          </Suspense>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

@@ -5,9 +5,9 @@ export type Theme = "dark-teal" | "light-classic" | "midnight-purple";
 export const THEMES: { id: Theme; label: string; icon: string; description: string }[] = [
   {
     id: "dark-teal",
-    label: "Dark Teal",
+    label: "Royal Blue",
     icon: "🌊",
-    description: "Atlantis — tmavé pozadí, tyrkysový akcent",
+    description: "Královsky modré pozadí s jemným nebeským glow",
   },
   {
     id: "light-classic",
@@ -26,6 +26,7 @@ export const THEMES: { id: Theme; label: string; icon: string; description: stri
 interface ThemeContextType {
   theme: Theme;
   setTheme: (t: Theme) => void;
+  toggleTheme: () => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -53,9 +54,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme]);
 
   const setTheme = (t: Theme) => setThemeState(t);
+  const toggleTheme = () => setThemeState((current) => current === "light-classic" ? "dark-teal" : "light-classic");
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );

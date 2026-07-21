@@ -2,6 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 
 type AuditResult = {
+  id?: number;
   url: string;
   businessName?: string;
   scores: { overall: number; performance: number; seo: number; mobile: number; design: number };
@@ -64,8 +66,10 @@ const SEVERITY_ICON = {
 };
 
 export default function WebAudit() {
-  const [url, setUrl] = useState("");
-  const [businessName, setBusinessName] = useState("");
+  const initialParams = new URLSearchParams(typeof window === "undefined" ? "" : window.location.search);
+  const linkedGoogleMapsLeadId = Number(initialParams.get("linkedGoogleMapsLeadId")) || undefined;
+  const [url, setUrl] = useState(initialParams.get("url") || "");
+  const [businessName, setBusinessName] = useState(initialParams.get("businessName") || "");
   const [result, setResult] = useState<AuditResult | null>(null);
 
   const auditMutation = trpc.webAudit.audit.useMutation({
@@ -88,21 +92,30 @@ export default function WebAudit() {
 
   const handleAudit = () => {
     if (!url.trim()) { toast.error("Zadej URL webu"); return; }
-    auditMutation.mutate({ url, businessName: businessName || undefined });
+    auditMutation.mutate({
+      url,
+      businessName: businessName || undefined,
+      linkedGoogleMapsLeadId,
+    });
   };
 
   return (
     <DashboardLayout>
       <div className="p-6 max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Globe className="w-6 h-6 text-blue-400" />
-            Web Audit Tool
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            AI analýza kvality webu — ideální jako lead magnet pro web agency
-          </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+              <Globe className="w-6 h-6 text-blue-400" />
+              Web Audit Tool
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              AI analýza kvality webu — ideální jako lead magnet pro web agency
+            </p>
+          </div>
+          <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+            Live web
+          </Badge>
         </div>
 
         {/* Input */}
@@ -201,7 +214,7 @@ export default function WebAudit() {
               </Button>
               {result.id && (
                 <Button
-                  onClick={() => convertToLeadMutation.mutate({ id: result.id })}
+                  onClick={() => convertToLeadMutation.mutate({ id: result.id! })}
                   disabled={convertToLeadMutation.isPending}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 >

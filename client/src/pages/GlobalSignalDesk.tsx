@@ -1,20 +1,10 @@
 import { useEffect, useState, useMemo } from 'react';
 import { trpc } from '../lib/trpc';
-import type { GlobalSignal, SignalCategory, SignalSeverity, SignalStatus } from '../../../shared/globalSignals';
+import { CATEGORY_META, type GlobalSignal, type SignalCategory, type SignalSeverity, type SignalStatus } from '../../../shared/globalSignals';
 import { formatDistanceToNow } from 'date-fns';
 import { cs } from 'date-fns/locale';
 import { ExternalLink, Filter, Search, X, Radio, Activity, Eye, RefreshCw, Loader2, Lock, Clock, ChevronRight } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
-
-const CATEGORY_META: Record<SignalCategory, { color: string; label: string; emoji: string }> = {
-    infrastructure: { color: "#3b82f6", label: "Infrastructure", emoji: "⚡" },
-    cyber: { color: "#8b5cf6", label: "Cyber Security", emoji: "🛡️" },
-    social: { color: "#ec4899", label: "Social/Political", emoji: "👥" },
-    environment: { color: "#10b981", label: "Environment", emoji: "🌿" },
-    conflict: { color: "#ef4444", label: "Conflict", emoji: "⚔️" },
-    health: { color: "#14b8a6", label: "Health", emoji: "🏥" },
-    economic: { color: "#f59e0b", label: "Economic", emoji: "📈" },
-};
 
 const SEVERITY_META: Record<SignalSeverity, { color: string; label: string; bg: string }> = {
     critical: { color: "#ff0040", label: "CRITICAL", bg: "rgba(255,0,64,0.15)" },

@@ -1,4 +1,25 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+
+// Browser Speech Recognition type declarations
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+  message: string;
+}
+interface SpeechRecognitionInstance extends EventTarget {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -163,7 +184,7 @@ export default function AIChatWidget() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [speechSupported] = useState(() => typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window));
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const [ratings, setRatings] = useState<Record<number, "up" | "down">>({});
 
   // ── Drag & drop state ──────────────────────────────────────────────────
@@ -957,7 +978,7 @@ export default function AIChatWidget() {
                 <div className="rounded-xl rounded-tl-sm bg-muted px-3 py-2.5 border border-primary/10">
                   <div className="flex gap-1 items-center">
                     {hermesMode && (
-                      <span className="text-[9px] text-primary/60 mr-1">HERMES routuje…</span>
+                      <span className="text-[9px] text-primary/60 mr-1">HERMES píše…</span>
                     )}
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:0ms]" />
                     <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce [animation-delay:150ms]" />

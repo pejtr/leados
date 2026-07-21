@@ -352,7 +352,7 @@ export default function ROI() {
               onClick={() => {
                 if (dealModal) {
                   closeDealMutation.mutate({
-                    id: dealModal.id,
+                    leadId: dealModal.id,
                     dealValue: dealValue || "0",
                     currency,
                   });

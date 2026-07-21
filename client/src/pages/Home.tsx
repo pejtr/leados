@@ -133,7 +133,7 @@ function PipelineFlow({ stats }: { stats: any }) {
 // --- Activity Pulse ------------------------------------------
 function ActivityPulse({ sessions }: { sessions: any[] }) {
   const recent = sessions?.slice(0, 7) ?? [];
-  const maxLeads = Math.max(...recent.map(s => s.leadsFound ?? 0), 1);
+  const maxLeads = Math.max(...recent.map(s => s.generatedCount ?? 0), 1);
   const { t } = useTranslation();
 
   return (
@@ -142,13 +142,13 @@ function ActivityPulse({ sessions }: { sessions: any[] }) {
         <div className="flex-1 flex items-center justify-center text-muted-foreground/50 text-xs">{t('dashboard.noSessionsYet')}</div>
       ) : (
         recent.map((s, i) => {
-          const h = Math.max(((s.leadsFound ?? 0) / maxLeads) * 100, 8);
+          const h = Math.max(((s.generatedCount ?? 0) / maxLeads) * 100, 8);
           return (
             <div key={i} className="flex-1 flex flex-col items-center gap-1 group cursor-default">
               <div
                 className="w-full rounded-t-sm bg-[oklch(0.55_0.20_192_/_60%)] group-hover:bg-[oklch(0.55_0.20_192)] transition-all duration-300"
                 style={{ height: `${h}%` }}
-                title={`${s.leadsFound ?? 0} leads`}
+                title={`${s.generatedCount ?? 0} leads`}
               />
             </div>
           );
@@ -461,7 +461,7 @@ export default function Home() {
                 <span className="text-xs text-[oklch(0.93_0.008_240_/_50%)]">{t('dashboard.avgPerSession')}</span>
                 <span className="text-xs font-bold text-[oklch(0.93_0.008_240)]">
                   {sessions && sessions.length > 0
-                    ? Math.round(sessions.reduce((a, s) => a + (s.leadsFound ?? 0), 0) / sessions.length)
+                    ? Math.round(sessions.reduce((a, s) => a + (s.generatedCount ?? 0), 0) / sessions.length)
                     : 0} leads
                 </span>
               </div>
@@ -516,19 +516,19 @@ export default function Home() {
             </div>
             {stlConfig ? (
               <div className="space-y-3">
-                <div className={`flex items-center gap-2 p-2.5 rounded-xl ${stlConfig.isEnabled ? "bg-[oklch(0.68_0.18_162_/_12%)] border border-[oklch(0.68_0.18_162_/_25%)]" : "bg-muted border border-border"}`}>
-                  <div className={`h-2 w-2 rounded-full ${stlConfig.isEnabled ? "bg-[oklch(0.68_0.18_162)] animate-pulse" : "bg-muted-foreground/30"}`} />
-                  <span className={`text-xs font-semibold ${stlConfig.isEnabled ? "text-[oklch(0.45_0.18_162)]" : "text-muted-foreground"}`}>
-                    {stlConfig.isEnabled ? t('dashboard.active') : t('dashboard.inactive')}
+                <div className={`flex items-center gap-2 p-2.5 rounded-xl ${stlConfig.isActive ? "bg-[oklch(0.68_0.18_162_/_12%)] border border-[oklch(0.68_0.18_162_/_25%)]" : "bg-muted border border-border"}`}>
+                  <div className={`h-2 w-2 rounded-full ${stlConfig.isActive ? "bg-[oklch(0.68_0.18_162)] animate-pulse" : "bg-muted-foreground/30"}`} />
+                  <span className={`text-xs font-semibold ${stlConfig.isActive ? "text-[oklch(0.45_0.18_162)]" : "text-muted-foreground"}`}>
+                    {stlConfig.isActive ? t('dashboard.active') : t('dashboard.inactive')}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div className="p-2.5 rounded-xl bg-card/60 text-center border border-border">
-                    <p className="text-lg font-black text-foreground">{stlConfig.responseTimeMinutes ?? "—"}</p>
+                    <p className="text-lg font-black text-foreground">{stlConfig.responseDelaySeconds ? `${Math.round(stlConfig.responseDelaySeconds / 60)}m` : "—"}</p>
                     <p className="text-[10px] text-muted-foreground">{t('dashboard.minResponse')}</p>
                   </div>
                   <div className="p-2.5 rounded-xl bg-card/60 text-center border border-border">
-                    <p className="text-lg font-black text-foreground">{stlConfig.maxFollowUps ?? "—"}</p>
+                    <p className="text-lg font-black text-foreground">{stlConfig.autoEmailEnabled ? "Yes" : "No"}</p>
                     <p className="text-[10px] text-muted-foreground">{t('dashboard.followUps')}</p>
                   </div>
                 </div>
@@ -617,9 +617,9 @@ export default function Home() {
             </div>
             {insightsLoading ? (
               <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" /></div>
-            ) : insights?.recentActions?.length > 0 ? (
+            ) : (insights?.recentActions?.length ?? 0) > 0 ? (
               <div className="space-y-2">
-                {insights.recentActions.map((action: any, i: number) => (
+                {insights?.recentActions?.map((action: any, i: number) => (
                   <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-card/60 border border-[oklch(0.55_0.20_192_/_10%)]">
                     <div className="h-5 w-5 rounded-full bg-[oklch(0.55_0.20_192_/_15%)] flex items-center justify-center shrink-0 mt-0.5">
                       <Cpu className="h-2.5 w-2.5 text-[oklch(0.50_0.20_192)]" />
@@ -650,9 +650,9 @@ export default function Home() {
             </div>
             {insightsLoading ? (
               <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" /></div>
-            ) : insights?.learnings?.length > 0 ? (
+            ) : (insights?.learnings?.length ?? 0) > 0 ? (
               <div className="space-y-2">
-                {insights.learnings.map((item: any) => (
+                {insights?.learnings?.map((item: any) => (
                   <div key={item.id} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-card/60 border border-[oklch(0.72_0.18_60_/_10%)]">
                     <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold shrink-0 mt-0.5 ${
                       item.type === "preference" ? "bg-[oklch(0.55_0.20_192_/_12%)] text-[oklch(0.45_0.20_192)]" :

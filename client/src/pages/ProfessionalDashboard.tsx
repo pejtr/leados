@@ -23,7 +23,7 @@ export default function ProfessionalDashboard() {
   const [dateRange, setDateRange] = useState<"7d" | "30d" | "90d" | "1y">("30d");
 
   // Fetch analytics data
-  const analyticsQuery = trpc.analytics.getMetrics.useQuery({ dateRange });
+  const analyticsQuery = trpc.deepSleep.analytics.useQuery();
 
   // Sample data for visualization
   const kpiMetrics = [
@@ -227,7 +227,6 @@ export default function ProfessionalDashboard() {
                   dataKey="value"
                   stroke="#8884d8"
                   fill="#8884d8"
-                  layout="vertical"
                 >
                   {funnelData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

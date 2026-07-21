@@ -72,7 +72,8 @@ export default function Integrations() {
   const [, navigate] = useLocation();
 
   const utils = trpc.useUtils();
-  const { data: configs = [], isLoading } = trpc.integrations.list.useQuery();
+  const { data: rawConfigs = [], isLoading } = trpc.integrations.list.useQuery();
+  const configs = rawConfigs as Array<typeof rawConfigs[number] & { isActive?: boolean; webhookUrl?: string; triggerOnGenerate?: boolean; triggerOnStatusChange?: boolean; triggerOnDealClose?: boolean }>;
   const { data: logs = [] } = trpc.integrations.logs.useQuery({ limit: 50 });
 
   const createMutation = trpc.integrations.create.useMutation({
@@ -436,7 +437,7 @@ export default function Integrations() {
                           </div>
                           <div className="flex items-center gap-2">
                             <Switch
-                              checked={config.isActive}
+                              checked={config.isActive ?? config.status === "active"}
                               onCheckedChange={(v) =>
                                 toggleMutation.mutate({ id: config.id, isActive: v })
                               }

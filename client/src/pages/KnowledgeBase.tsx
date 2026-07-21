@@ -21,7 +21,7 @@ export default function KnowledgeBase() {
 
   const { data: articles = [], isLoading } = trpc.knowledge.list.useQuery();
 
-  const categories = [...new Set(articles.map(a => a.category))];
+  const categories = Array.from(new Set(articles.map(a => a.category)));
   const filtered = articles.filter(a => {
     const matchesSearch = !search || a.title.toLowerCase().includes(search.toLowerCase()) || a.content.toLowerCase().includes(search.toLowerCase());
     const matchesCat = !selectedCategory || a.category === selectedCategory;

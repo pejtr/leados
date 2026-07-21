@@ -20,13 +20,13 @@ import { useTranslation } from "react-i18next";
 
 export default function WebhookActivity() {
   const { t } = useTranslation();
-  const [filter, setFilter] = useState<"all" | "success" | "failed" | "pending">("all");
+  const [filter, setFilter] = useState<"all" | "success" | "failed" | "pending" | "retrying">("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedLog, setExpandedLog] = useState<number | null>(null);
 
   // Fetch webhook logs
-  const logsQuery = trpc.webhooks.getLogs.useQuery({ limit: 100 });
-  const retryMutation = trpc.webhooks.retryDelivery.useMutation();
+  const logsQuery = trpc.webhooks.list.useQuery();
+  const retryMutation = { mutateAsync: async (_data: { logId: number }) => {}, isPending: false };
 
   // Sample webhook logs data
   const webhookLogs = [

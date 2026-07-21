@@ -412,7 +412,13 @@ function ProjectCard({ project, onDelete, onRegenKey }: {
 // ─── Main Page ────────────────────────────────────────────────────
 export default function ProjectsHub() {
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ name: "", description: "", url: "", category: "ecommerce", currency: "CZK" });
+  const [form, setForm] = useState<{
+    name: string;
+    description: string;
+    url: string;
+    category: "ecommerce" | "saas" | "content" | "affiliate" | "other";
+    currency: string;
+  }>({ name: "", description: "", url: "", category: "ecommerce", currency: "CZK" });
 
   const utils = trpc.useUtils();
   const { data: projects = [], isLoading } = trpc.projects.list.useQuery();
@@ -567,7 +573,7 @@ export default function ProjectsHub() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label>Kategorie</Label>
-                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v as typeof form.category })}>
                   <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ecommerce">E-commerce</SelectItem>

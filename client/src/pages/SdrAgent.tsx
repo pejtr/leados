@@ -93,7 +93,6 @@ export default function SdrAgent() {
       contactName: "Decision Maker",
       industry: campaign.industry,
       tone: campaign.emailTone,
-      subject: campaign.emailSubject || undefined,
     });
   };
 

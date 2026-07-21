@@ -18,7 +18,7 @@ import {
   ChevronRight, MessageSquare, UserCheck, Lightbulb, Ear, Bot,
   Menu, X, Rocket, Brain, Calendar, Phone, Award,
   Bell, Building2, Factory, ShoppingCart, Code2, Stethoscope,
-  TrendingDown, Activity, BadgeCheck, Flame, Play,
+  TrendingDown, Activity, BadgeCheck, Flame, Play, XCircle,
 } from "lucide-react";
 
 // ── Color tokens ──────────────────────────────────────────────────────────────

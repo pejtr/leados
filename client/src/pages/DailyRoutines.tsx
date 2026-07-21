@@ -148,7 +148,7 @@ export default function DailyRoutines() {
     const [cavemanMode, setCavemanMode] = useState(false);
 
     // ── Data queries ─────────────────────────────────────────────────────────
-    const statsQuery = trpc.leads.getStats.useQuery(undefined, { staleTime: 60_000 });
+    const statsQuery = trpc.leads.stats.useQuery(undefined, { staleTime: 60_000 });
     const tasksQuery = trpc.tasks?.list?.useQuery?.(undefined, { staleTime: 60_000 });
     const adsQuery = trpc.adCampaigns?.list?.useQuery?.(undefined, { staleTime: 60_000 });
     const morningBriefQuery = trpc.morningBriefing?.getLatest?.useQuery?.();

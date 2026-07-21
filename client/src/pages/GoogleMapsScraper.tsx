@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/DashboardLayout";
+import { useLocation } from "wouter";
 
 import {
   MapPin, Search, Globe, Phone, Star, TrendingUp, CheckCircle, XCircle, ArrowRight, Loader2, Building2, Filter
@@ -27,9 +28,14 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default function GoogleMapsScraper() {
-  const [searchTerm, setSearchTerm] = useState("restaurace");
-  const [location, setLocation] = useState("Praha");
-  const [maxResults, setMaxResults] = useState(20);
+  const initialParams = new URLSearchParams(typeof window === "undefined" ? "" : window.location.search);
+  const [, navigate] = useLocation();
+  const [searchTerm, setSearchTerm] = useState(initialParams.get("searchTerm") || "restaurace");
+  const [location, setLocation] = useState(initialParams.get("location") || "Praha");
+  const [maxResults, setMaxResults] = useState(() => {
+    const requested = Number(initialParams.get("maxResults") || 20);
+    return Math.max(5, Math.min(100, Number.isFinite(requested) ? requested : 20));
+  });
   const [filterNoWebsite, setFilterNoWebsite] = useState(false);
   const [filterLowScore, setFilterLowScore] = useState(false);
   const [activeSession, setActiveSession] = useState<string | null>(null);
@@ -87,11 +93,16 @@ export default function GoogleMapsScraper() {
             Najdi firmy bez webu nebo se slabým webem — ideální pro web agency outreach
           </p>
         </div>
-        {sessions && sessions.length > 0 && (
-          <div className="text-sm text-muted-foreground">
-            {sessions.length} předchozích vyhledávání
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-300">
+            Live · Apify
+          </Badge>
+          {sessions && sessions.length > 0 && (
+            <div className="text-sm text-muted-foreground">
+              {sessions.length} předchozích vyhledávání
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Search Form */}
@@ -290,6 +301,24 @@ export default function GoogleMapsScraper() {
                         </select>
                       </td>
                       <td className="p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                        {r.website && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              const params = new URLSearchParams({
+                                url: r.website || "",
+                                businessName: r.name,
+                                linkedGoogleMapsLeadId: String(r.id),
+                              });
+                              navigate(`/web-audit?${params.toString()}`);
+                            }}
+                            className="text-xs h-7"
+                          >
+                            <Globe className="w-3 h-3 mr-1" /> Audit
+                          </Button>
+                        )}
                         {r.status !== "converted" && (
                           <Button
                             size="sm"
@@ -310,6 +339,7 @@ export default function GoogleMapsScraper() {
                             <CheckCircle className="w-3 h-3" /> V CRM
                           </span>
                         )}
+                        </div>
                       </td>
                     </tr>
                   ))}

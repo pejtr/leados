@@ -114,42 +114,74 @@
   /* Dark card surfaces — like "Savings Over Time" card */
   --dark-card: oklch(0.14 0.04 240);
   --dark-card-2: oklch(0.10 0.05 250);
+
+  /* ONYX OS shell — royal blue with a restrained sky-blue glow */
+  --shell-surface: oklch(0.20 0.11 258 / 94%);
+  --shell-surface-strong: oklch(0.17 0.11 260 / 98%);
+  --shell-elevated: oklch(0.25 0.11 255 / 98%);
+  --shell-control: oklch(0.27 0.09 255);
+  --shell-border: oklch(0.78 0.10 235 / 18%);
+  --shell-shadow: oklch(0.08 0.08 265 / 32%);
+  --shell-glow: oklch(0.76 0.13 230 / 16%);
 }
 
-/* Dark mode — deep Atlantis underwater */
+/* Dark mode — royal blue ONYX OS */
 .dark {
-  --background: oklch(0.10 0.04 248);
+  --background: oklch(0.19 0.09 258);
   --foreground: oklch(0.93 0.008 240);
-  --card: oklch(0.13 0.04 248);
+  --card: oklch(0.23 0.085 256);
   --card-foreground: oklch(0.93 0.008 240);
-  --popover: oklch(0.13 0.04 248);
+  --popover: oklch(0.24 0.09 256);
   --popover-foreground: oklch(0.93 0.008 240);
-  --primary: oklch(0.65 0.20 192);
-  --primary-foreground: oklch(0.10 0.04 248);
-  --secondary: oklch(0.17 0.04 248);
+  --primary: oklch(0.72 0.16 230);
+  --primary-foreground: oklch(0.16 0.08 258);
+  --secondary: oklch(0.28 0.085 256);
   --secondary-foreground: oklch(0.82 0.012 240);
-  --muted: oklch(0.17 0.04 248);
-  --muted-foreground: oklch(0.52 0.018 248);
-  --accent: oklch(0.19 0.04 248);
+  --muted: oklch(0.27 0.075 256);
+  --muted-foreground: oklch(0.69 0.035 240);
+  --accent: oklch(0.31 0.10 250);
   --accent-foreground: oklch(0.93 0.008 240);
   --destructive: oklch(0.58 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.65 0.20 192);
+  --border: oklch(0.78 0.10 235 / 15%);
+  --input: oklch(0.78 0.10 235 / 18%);
+  --ring: oklch(0.76 0.14 230);
   --chart-1: oklch(0.65 0.20 192);
   --chart-2: oklch(0.62 0.22 278);
   --chart-3: oklch(0.72 0.18 162);
   --chart-4: oklch(0.65 0.22 290);
   --chart-5: oklch(0.75 0.18 60);
-  --sidebar: oklch(0.085 0.04 248);
-  --sidebar-foreground: oklch(0.82 0.012 240);
-  --sidebar-primary: oklch(0.65 0.20 192);
-  --sidebar-primary-foreground: oklch(0.10 0.04 248);
-  --sidebar-accent: oklch(0.17 0.04 248);
+  --sidebar: oklch(0.18 0.105 260);
+  --sidebar-foreground: oklch(0.86 0.02 240);
+  --sidebar-primary: oklch(0.74 0.15 230);
+  --sidebar-primary-foreground: oklch(0.16 0.08 258);
+  --sidebar-accent: oklch(0.28 0.09 255);
   --sidebar-accent-foreground: oklch(0.93 0.008 240);
-  --sidebar-border: oklch(1 0 0 / 6%);
-  --sidebar-ring: oklch(0.65 0.20 192);
+  --sidebar-border: oklch(0.78 0.10 235 / 16%);
+  --sidebar-ring: oklch(0.76 0.14 230);
+}
+
+/* Light operational canvas inside the royal-blue application shell. */
+.onyx-workspace {
+  --background: oklch(0.965 0.012 245);
+  --foreground: oklch(0.22 0.045 255);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.22 0.045 255);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.22 0.045 255);
+  --primary: oklch(0.60 0.19 245);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.94 0.018 245);
+  --secondary-foreground: oklch(0.28 0.055 255);
+  --muted: oklch(0.94 0.014 245);
+  --muted-foreground: oklch(0.48 0.035 250);
+  --accent: oklch(0.91 0.035 238);
+  --accent-foreground: oklch(0.24 0.07 250);
+  --border: oklch(0.86 0.025 245);
+  --input: oklch(0.84 0.03 245);
+  --ring: oklch(0.66 0.17 235);
+  color: var(--foreground);
+  background: var(--background);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -179,8 +211,8 @@
 
   .dark body {
     background-image:
-      radial-gradient(ellipse 70% 40% at 15% 10%, oklch(0.55 0.20 192 / 12%) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 35% at 85% 85%, oklch(0.55 0.24 278 / 10%) 0%, transparent 50%);
+      radial-gradient(ellipse 100% 58% at 50% -12%, oklch(0.76 0.13 230 / 22%) 0%, transparent 64%),
+      radial-gradient(ellipse 70% 45% at 100% 80%, oklch(0.62 0.16 205 / 10%) 0%, transparent 58%);
   }
 
   h1, h2, h3, h4, h5, h6 {

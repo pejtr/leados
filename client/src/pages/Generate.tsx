@@ -310,7 +310,7 @@ export default function Generate() {
   const [seniorityLevel, setSeniorityLevel] = useState("Manager");
   const [apifyToken, setApifyToken] = useState("");
   const { t } = useTranslation();
-  const [dataSource, setDataSource] = useState<'linkedin' | 'xing' | 'demo'>('linkedin');
+  const [dataSource, setDataSource] = useState<'linkedin' | 'xing' | 'demo' | 'reddit'>('linkedin');
   const [xingKeywords, setXingKeywords] = useState("");
   const [xingCompanySize, setXingCompanySize] = useState("11-50");
   const useApify = dataSource === 'linkedin' || dataSource === 'xing';
@@ -320,6 +320,7 @@ export default function Generate() {
   const [sheetsModalOpen, setSheetsModalOpen] = useState(false);
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [redditResults, setRedditResults] = useState<any[]>([]);
 
   const { data: industries } = trpc.leads.industries.useQuery();
   const utils = trpc.useUtils();
@@ -343,10 +344,33 @@ export default function Generate() {
     },
   });
 
+  const searchReddit = trpc.reddit.searchDiscussions.useMutation({
+    onSuccess: (data) => {
+      setRedditResults(data);
+      setCurrentStep(0);
+      toast.success(t('generate.redditSuccess', `Nalezeno ${data.length} diskusí na Redditu!`));
+    },
+    onError: (err) => {
+      setCurrentStep(0);
+      toast.error(`Reddit search failed: ${err.message}`);
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setResults([]);
+    setRedditResults([]);
     setCurrentStep(1);
+
+    if (dataSource === 'reddit') {
+      searchReddit.mutate({
+        keyword: xingKeywords || industry,
+        subreddit: selectedLocations.includes("SaaS") ? "SaaS" : undefined,
+        limit: count
+      });
+      return;
+    }
+
     generate.mutate({
       industry,
       location: selectedLocations.join(', '),
@@ -429,13 +453,13 @@ export default function Generate() {
                       onClick={() => setDataSource('linkedin')}
                       className={cn(
                         "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs font-medium transition-all",
-        dataSource === 'linkedin'
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-border bg-input text-muted-foreground hover:border-border/80"
-      )}
-    >
-      <Linkedin className="h-4 w-4" />
-      <span>LinkedIn</span>
+                        dataSource === 'linkedin'
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-input text-muted-foreground hover:border-border/80"
+                      )}
+                    >
+                      <Linkedin className="h-4 w-4" />
+                      <span>LinkedIn</span>
                       <span className={cn("text-[10px]", useApify ? "text-primary/70" : "text-muted-foreground/60")}>
                         via Apify · {t('generate.liveData', 'Živá data')}
                       </span>
@@ -445,13 +469,13 @@ export default function Generate() {
                       onClick={() => setDataSource('demo')}
                       className={cn(
                         "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs font-medium transition-all",
-        dataSource === 'demo'
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-border bg-input text-muted-foreground hover:border-border/80"
-      )}
-    >
-      <Database className="h-4 w-4" />
-      <span>{t('generate.demoData', 'Demo data')}</span>
+                        dataSource === 'demo'
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-input text-muted-foreground hover:border-border/80"
+                      )}
+                    >
+                      <Database className="h-4 w-4" />
+                      <span>{t('generate.demoData', 'Demo data')}</span>
                       <span className={cn("text-[10px]", !useApify ? "text-primary/70" : "text-muted-foreground/60")}>
                         Mock · {t('generate.noTokenNeeded', 'Bez tokenu')}
                       </span>
@@ -473,6 +497,24 @@ export default function Generate() {
                       </div>
                       <span className={cn("text-[10px]", dataSource === 'xing' ? "text-blue-500/70" : "text-muted-foreground/60")}>
                         via Apify · {t('generate.liveData', 'Živá data')} · DE/AT/CH
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDataSource('reddit')}
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs font-medium transition-all col-span-2",
+                        dataSource === 'reddit'
+                          ? "border-orange-500 bg-orange-500/10 text-orange-600"
+                          : "border-border bg-input text-muted-foreground hover:border-border/80"
+                      )}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <MessageSquare className="h-4 w-4" />
+                        <span className="font-semibold">Reddit Social Listening</span>
+                      </div>
+                      <span className={cn("text-[10px]", dataSource === 'reddit' ? "text-orange-500/70" : "text-muted-foreground/60")}>
+                        Free JSON API · {t('generate.liveData', 'Živá data')} · B2B Discussions
                       </span>
                     </button>
                   </div>
@@ -658,17 +700,17 @@ export default function Generate() {
                 <Button
                   type="submit"
                   className="w-full gap-2"
-                  disabled={generate.isPending}
+                  disabled={generate.isPending || searchReddit.isPending}
                 >
-                  {generate.isPending ? (
+                  {generate.isPending || searchReddit.isPending ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Generating...
+                      {dataSource === 'reddit' ? "Searching Reddit..." : "Generating..."}
                     </>
                   ) : (
                     <>
                       <Zap className="h-4 w-4" />
-                      Generate Leads
+                      {dataSource === 'reddit' ? "Search Reddit Leads" : "Generate Leads"}
                     </>
                   )}
                 </Button>
@@ -730,7 +772,7 @@ export default function Generate() {
                     </span>
                   )}
                   <span className="text-xs text-muted-foreground">
-                     {results.filter((l) => l.isEnriched).length} enriched with AI
+                    {results.filter((l) => l.isEnriched).length} enriched with AI
                   </span>
                   {emailsFound > 0 && (
                     <span className="text-xs text-muted-foreground">· {emailsFound} emails found</span>
@@ -759,7 +801,23 @@ export default function Generate() {
             )}
 
             {/* Lead cards */}
-            {results.length > 0 ? (
+            {dataSource === 'reddit' ? (
+              redditResults.length > 0 ? (
+                <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
+                  {redditResults.map((post) => (
+                    <RedditCard key={post.id} post={post} />
+                  ))}
+                </div>
+              ) : !searchReddit.isPending ? (
+                <Card className="bg-card border-border border-dashed">
+                  <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <MessageSquare className="h-10 w-10 mb-3 opacity-20" />
+                    <p className="text-sm font-medium">Nejsou nalezena žádná Reddit vlákna</p>
+                    <p className="text-xs mt-1">Zkuste rozšířit klíčová slova nebo upravit hledání</p>
+                  </CardContent>
+                </Card>
+              ) : null
+            ) : results.length > 0 ? (
               <div className="space-y-3 max-h-[700px] overflow-y-auto pr-1">
                 {results.map((lead) => (
                   <LeadCard key={lead.id} lead={lead} />
@@ -769,8 +827,8 @@ export default function Generate() {
               <Card className="bg-card border-border border-dashed">
                 <CardContent className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                   <Zap className="h-10 w-10 mb-3 opacity-20" />
-                  <p className="text-sm font-medium">No leads yet</p>
-                  <p className="text-xs mt-1">Configure your criteria and click Generate Leads</p>
+                  <p className="text-sm font-medium">Zatím žádné leady</p>
+                  <p className="text-xs mt-1">Nastavte parametry a klikněte na Generovat</p>
                 </CardContent>
               </Card>
             ) : null}
@@ -898,6 +956,80 @@ function LeadCard({ lead }: { lead: Lead }) {
                 <p className="text-xs text-foreground/90 leading-relaxed italic">"{lead.icebreaker}"</p>
               </div>
             )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function RedditCard({ post }: { post: any }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <Card className="bg-card border-border hover:border-orange-500/30 transition-colors">
+      <CardContent className="pt-4 pb-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="h-9 w-9 rounded-lg bg-orange-500/10 flex items-center justify-center shrink-0">
+              <MessageSquare className="h-4 w-4 text-orange-500" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-semibold text-sm text-foreground">{post.title}</span>
+              </div>
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                <span className="text-xs text-muted-foreground">u/{post.author}</span>
+                <span className="flex items-center gap-0.5 text-xs font-semibold text-orange-500/90">
+                  {post.subreddit}
+                </span>
+                <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                  🔥 {post.score} bodů
+                </span>
+                <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
+                  💬 {post.numComments} komentářů
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {post.url && (
+              <a
+                href={post.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1.5 rounded-md text-muted-foreground hover:text-orange-400 hover:bg-orange-500/10 transition-colors"
+                title="Open on Reddit"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            )}
+            <button
+              onClick={() => setExpanded(!expanded)}
+              className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            >
+              {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+          </div>
+        </div>
+
+        {expanded && (
+          <div className="mt-4 space-y-3 border-t border-border pt-3">
+            <div className="flex gap-2 text-xs">
+              <span className="text-foreground/80 leading-relaxed whitespace-pre-wrap">
+                {post.content || <span className="italic text-muted-foreground">(Žádný textový obsah, pouze titulek nebo odkaz)</span>}
+              </span>
+            </div>
+            <div className="rounded-lg bg-primary/5 border border-primary/20 p-3 mt-2">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-medium text-primary">Nápad na odpověď</span>
+              </div>
+              <p className="text-xs text-foreground/90 leading-relaxed italic">
+                Pošli toto vlákno AI agentovi zprávou na hlavní obrazovce s instrukcí ať rovnou vytvoří cílenou prodejní odpověď pro konverzaci do Direct Messages!
+              </p>
+            </div>
           </div>
         )}
       </CardContent>

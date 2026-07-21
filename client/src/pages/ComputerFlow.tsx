@@ -255,9 +255,9 @@ export default function ComputerFlow() {
 
   // Placeholder nodes while decomposing
   const placeholderLayers = ["scout", "analyst", "strategist", "analyst"];
-  const graphNodes = graphTasks.length > 0
+  const graphNodes: SubTaskState[] = graphTasks.length > 0
     ? graphTasks
-    : (isRunning ? placeholderLayers.slice(0, maxSubTasks).map((l, i) => ({
+    : (isRunning ? placeholderLayers.slice(0, maxSubTasks).map((l, i): SubTaskState => ({
         id: `p${i}`, title: "...", layer: l, status: "pending" as const, expanded: false,
       })) : []);
 

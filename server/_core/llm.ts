@@ -1,4 +1,68 @@
 import { ENV } from "./env";
+import { getDb } from "../db/core";
+import { and, gte, sum, eq } from "drizzle-orm";
+import { llmUsage } from "../../drizzle/schema";
+import { getUserTokenLimits } from "../db/users";
+import { insertLlmUsage } from "../db/llm-usage";
+
+// ─── Retry configuration ─────────────────────────────────────────────────────
+const LLM_MAX_RETRIES = ENV.llmMaxRetries;
+const LLM_RETRY_BASE_MS = ENV.llmRetryBaseMs;
+
+/** HTTP status codes eligible for automatic retry. */
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504]);
+
+export function isRetryableError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const msg = error.message;
+    // Match "LLM invoke failed: <status>" pattern
+    const statusMatch = msg.match(/LLM invoke failed: (\d{3})/);
+    if (statusMatch) {
+      return RETRYABLE_STATUSES.has(parseInt(statusMatch[1], 10));
+    }
+    // Network / fetch failures
+    if (msg.includes("fetch failed") || msg.includes("ECONNRESET") || msg.includes("ETIMEDOUT")) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function parseRetryAfter(error: unknown): number | null {
+  if (error instanceof Error) {
+    const match = error.message.match(/retry[_-]after:\s*(\d+)/i);
+    if (match) return parseInt(match[1], 10) * 1000;
+  }
+  return null;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export async function retryWithBackoff<T>(
+  fn: () => Promise<T>,
+  label: string
+): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= LLM_MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (attempt >= LLM_MAX_RETRIES || !isRetryableError(err)) {
+        throw err;
+      }
+      const retryAfterMs = parseRetryAfter(err);
+      const delay = retryAfterMs ?? LLM_RETRY_BASE_MS * Math.pow(2, attempt);
+      console.warn(
+        `[LLM:${label}] Attempt ${attempt + 1}/${LLM_MAX_RETRIES} failed, retrying in ${delay}ms…`
+      );
+      await sleep(delay);
+    }
+  }
+  throw lastError;
+}
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -66,6 +130,8 @@ export type InvokeParams = {
   output_schema?: OutputSchema;
   responseFormat?: ResponseFormat;
   response_format?: ResponseFormat;
+  userId?: number;
+  route?: string;
 };
 
 export type ToolCall = {
@@ -96,6 +162,15 @@ export type InvokeResult = {
     total_tokens: number;
   };
 };
+
+/** Extract plain text from LLM response content (handles both string and content array forms). */
+export function extractText(content: string | Array<TextContent | ImageContent | FileContent>): string {
+  if (typeof content === "string") return content;
+  return content
+    .filter((c): c is TextContent => c.type === "text")
+    .map((c) => c.text)
+    .join("");
+}
 
 export type JsonSchema = {
   name: string;
@@ -405,12 +480,91 @@ const normalizeResponseFormat = ({
   };
 };
 
+const COST_PER_1K_TOKENS: Record<string, { input: number; output: number }> = {
+  "claude-sonnet-5": { input: 0.003, output: 0.015 },
+  "claude-3-haiku-20240307": { input: 0.00025, output: 0.00125 },
+  "claude-3-sonnet-20240229": { input: 0.003, output: 0.015 },
+  "claude-3-opus-20240229": { input: 0.015, output: 0.075 },
+  "deepseek-chat": { input: 0.00027, output: 0.0011 },
+  "deepseek-reasoner": { input: 0.00055, output: 0.00219 },
+  "gemini-2.5-flash": { input: 0.0001, output: 0.0004 },
+  "gemini-2.0-flash": { input: 0.0001, output: 0.0004 },
+  "gemini-1.5-pro": { input: 0.00125, output: 0.005 },
+};
+
+function estimateCost(model: string, provider: string, promptTokens: number, completionTokens: number): number {
+  let pricing = COST_PER_1K_TOKENS[model];
+  if (!pricing) {
+    if (provider === "forge") pricing = { input: 0.0001, output: 0.0004 };
+    else if (provider === "deepseek") pricing = { input: 0.00027, output: 0.0011 };
+    else pricing = { input: 0.003, output: 0.015 };
+  }
+  return (promptTokens * pricing.input + completionTokens * pricing.output) / 1000;
+}
+
+// In-memory TTL cache for budget limits to avoid a DB read on every LLM call.
+const budgetCache = new Map<number, { limits: { dailyTokenLimit: number | null; monthlyTokenLimit: number | null }; expires: number }>();
+const BUDGET_CACHE_TTL_MS = 60_000;
+
+async function getCachedBudgetLimits(userId: number): Promise<{ dailyTokenLimit: number | null; monthlyTokenLimit: number | null }> {
+  const cached = budgetCache.get(userId);
+  const now = Date.now();
+  if (cached && cached.expires > now) return cached.limits;
+  const limits = await getUserTokenLimits(userId);
+  budgetCache.set(userId, { limits, expires: now + BUDGET_CACHE_TTL_MS });
+  return limits;
+}
+
+async function checkLlmBudget(userId: number): Promise<void> {
+  const limits = await getCachedBudgetLimits(userId);
+  if (!limits.dailyTokenLimit && !limits.monthlyTokenLimit) return;
+
+  const db = await getDb();
+  if (!db) return;
+
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  if (limits.dailyTokenLimit) {
+    const [result] = await db.select({ used: sum(llmUsage.totalTokens) })
+      .from(llmUsage)
+      .where(and(eq(llmUsage.userId, userId), gte(llmUsage.createdAt, startOfDay)));
+    const used = Number(result?.used ?? 0);
+    if (used >= limits.dailyTokenLimit) {
+      throw new Error(`BUDGET_EXCEEDED: Daily token limit of ${limits.dailyTokenLimit} reached (used ${used})`);
+    }
+  }
+
+  if (limits.monthlyTokenLimit) {
+    const [result] = await db.select({ used: sum(llmUsage.totalTokens) })
+      .from(llmUsage)
+      .where(and(eq(llmUsage.userId, userId), gte(llmUsage.createdAt, startOfMonth)));
+    const used = Number(result?.used ?? 0);
+    if (used >= limits.monthlyTokenLimit) {
+      throw new Error(`BUDGET_EXCEEDED: Monthly token limit of ${limits.monthlyTokenLimit} reached (used ${used})`);
+    }
+  }
+}
+
 export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   assertApiKey();
+  const startTime = Date.now();
+  const { userId, route, ...llmParams } = params;
+
+  // Budget check: skip for admin users
+  if (userId && ENV.llmBudgetEnforcementEnabled) {
+    await checkLlmBudget(userId).catch((err) => {
+      if (err.message?.includes("BUDGET_EXCEEDED")) throw err;
+      console.error("[llm] Budget check failed:", err);
+    });
+  }
 
   // Prefer the direct Anthropic path (Manus-independent) whenever a key is set.
   if (ENV.anthropicApiKey) {
-    return invokeAnthropic(params);
+    const result = await retryWithBackoff(() => invokeAnthropic(llmParams), "anthropic");
+    recordLlmUsage(userId, route, "anthropic", startTime, result, undefined).catch(() => {});
+    return result;
   }
 
   const {
@@ -422,7 +576,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     output_schema,
     responseFormat,
     response_format,
-  } = params;
+  } = llmParams;
 
   // OpenAI-compatible path: DeepSeek direct (Manus-independent) when its key
   // is set, otherwise the legacy Manus Forge gateway.
@@ -479,21 +633,66 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     }
   }
 
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  const provider = useDeepseek ? "deepseek" : "forge";
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(
-      `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
-    );
+  const result = await retryWithBackoff(async () => {
+    const response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
+      );
+    }
+
+    return (await response.json()) as InvokeResult;
+  }, provider);
+
+  if (ENV.llmCostTrackingEnabled) {
+    recordLlmUsage(userId, route, provider, startTime, result, undefined).catch(() => {});
   }
 
-  return (await response.json()) as InvokeResult;
+  return result;
+}
+
+async function recordLlmUsage(
+  userId: number | undefined,
+  route: string | undefined,
+  provider: string,
+  startTime: number,
+  result: InvokeResult,
+  error: string | undefined,
+): Promise<void> {
+  if (!userId) return;
+  const durationMs = Date.now() - startTime;
+  const usage = result.usage;
+  const promptTokens = usage?.prompt_tokens ?? 0;
+  const completionTokens = usage?.completion_tokens ?? 0;
+  const totalTokens = usage?.total_tokens ?? 0;
+  const cost = estimateCost(result.model, provider, promptTokens, completionTokens);
+
+  try {
+    await insertLlmUsage({
+      userId,
+      model: result.model,
+      provider,
+      promptTokens,
+      completionTokens,
+      totalTokens,
+      estimatedCostCents: String(cost * 100),
+      durationMs,
+      route: route ?? null,
+      success: error ? 0 : 1,
+      errorMessage: error ?? null,
+    });
+  } catch (err) {
+    console.error("[llm] Failed to record usage:", err);
+  }
 }

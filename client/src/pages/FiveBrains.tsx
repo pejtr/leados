@@ -146,7 +146,7 @@ export default function FiveBrains() {
   const { data: analyses, refetch } = trpc.fiveBrains.list.useQuery(undefined, { refetchInterval: 5000 });
   const { data: selected } = trpc.fiveBrains.get.useQuery(
     { id: selectedId! },
-    { enabled: !!selectedId, refetchInterval: (data) => data?.status === "running" ? 3000 : false }
+    { enabled: !!selectedId, refetchInterval: (query) => query.state.data?.status === "running" ? 3000 : false }
   );
   const startMutation  = trpc.fiveBrains.start.useMutation();
   const deleteMutation = trpc.fiveBrains.delete.useMutation();

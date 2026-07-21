@@ -355,7 +355,7 @@ function CreateSkillModal({ onClose, onCreated }: { onClose: () => void; onCreat
   });
 
   // Auto-detect variables from content
-  const detectedVars = [...new Set((content.match(/\{\{(\w+)\}\}/g) || []).map(m => m.slice(2, -2)))];
+  const detectedVars = Array.from(new Set((content.match(/\{\{(\w+)\}\}/g) || []).map(m => m.slice(2, -2))));
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

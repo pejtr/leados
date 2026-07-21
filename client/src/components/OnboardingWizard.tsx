@@ -23,6 +23,7 @@ import {
   Webhook,
   ArrowRight,
   Star,
+  Brain,
 } from "lucide-react";
 
 interface OnboardingWizardProps {
@@ -31,10 +32,10 @@ interface OnboardingWizardProps {
 }
 
 const STEPS = [
-  { id: 1, label: "Welcome", icon: Sparkles },
-  { id: 2, label: "Your ICP", icon: Target },
-  { id: 3, label: "Integrations", icon: Plug },
-  { id: 4, label: "All Set!", icon: CheckCircle2 },
+  { id: 1, label: "Vítejte", icon: Sparkles },
+  { id: 2, label: "Váš ICP (Zákazník)", icon: Target },
+  { id: 3, label: "Integrace", icon: Plug },
+  { id: 4, label: "Hotovo!", icon: CheckCircle2 },
 ];
 
 const INDUSTRIES = [
@@ -67,10 +68,10 @@ const SENIORITY_LEVELS = [
 ];
 
 const FEATURES = [
-  { icon: Zap, title: "AI Lead Generation", desc: "Generate 100s of qualified B2B leads in seconds from LinkedIn" },
-  { icon: Target, title: "ICP Matching", desc: "AI matches leads to your ideal customer profile automatically" },
-  { icon: TrendingUp, title: "Pipeline Tracking", desc: "Kanban board, ROI tracking, and deal management built-in" },
-  { icon: Users, title: "AI SDR Agent", desc: "Autonomous outreach agent that generates and sends personalized emails" },
+  { icon: Zap, title: "AI Generování Leadů", desc: "Získejte stovky kvalifikovaných B2B kontaktů (tzv. leadů) během několika vteřin." },
+  { icon: Target, title: "ICP Párování", desc: "Nastavíte 'Ideální Profil Zákazníka' (ICP) a AI bude hledat ty správné firmy a lidi." },
+  { icon: TrendingUp, title: "Pipeline & Analytika", desc: "Kompletní přehled, Kanban nástěnka a sledování ROI domluvených obchodů." },
+  { icon: Users, title: "AI Obchodník (SDR)", desc: "Autonomní agent, který sám vymyslí personalizovanou zprávu a s osobním přístupem vaši cílovku osloví." },
 ];
 
 export default function OnboardingWizard({ userName, onComplete }: OnboardingWizardProps) {
@@ -87,7 +88,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
   // Integration state
   const [webhookUrl, setWebhookUrl] = useState("");
   const [webhookName, setWebhookName] = useState("My Webhook");
-  const [skipIntegrations, setSkipIntegrations] = useState(false);
+  const [skipIntegrations, setPřeskočitIntegrations] = useState(false);
 
   const [saving, setSaving] = useState(false);
 
@@ -130,7 +131,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
           });
           toast.success("Webhook integration saved!");
         } catch {
-          toast.error("Invalid webhook URL. Skipping integration setup.");
+          toast.error("Invalid webhook URL. Přeskočitping integration setup.");
         } finally {
           setSaving(false);
         }
@@ -151,7 +152,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
     }
   };
 
-  const handleSkip = async () => {
+  const handlePřeskočit = async () => {
     if (step === 3) {
       setSaving(true);
       try { await completeMut.mutateAsync(); } catch { /* ignore */ } finally { setSaving(false); }
@@ -196,13 +197,12 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
               return (
                 <div key={s.id} className="flex items-center gap-1.5">
                   <div
-                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
-                      isDone
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${isDone
                         ? "bg-emerald-500 text-white"
                         : isActive
-                        ? "bg-violet-500 text-white"
-                        : "bg-zinc-700 text-zinc-400"
-                    }`}
+                          ? "bg-violet-500 text-white"
+                          : "bg-zinc-700 text-zinc-400"
+                      }`}
                   >
                     {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
                   </div>
@@ -215,12 +215,12 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
             })}
           </div>
 
-          {/* Skip/Close */}
+          {/* Přeskočit/Close */}
           {step < 4 && (
             <button
               onClick={handleDismiss}
               className="text-zinc-500 hover:text-zinc-300 transition-colors p-1 rounded-lg hover:bg-zinc-800"
-              title="Skip setup"
+              title="Přeskočit"
             >
               <X className="w-4 h-4" />
             </button>
@@ -237,10 +237,10 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 <Zap className="w-8 h-8 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-white mb-2">
-                Welcome{userName ? `, ${userName.split(" ")[0]}` : ""}! 👋
+                Vítejte{userName ? `, ${userName.split(" ")[0]}` : ""}! 👋
               </h2>
               <p className="text-zinc-400 text-sm mb-6 max-w-md mx-auto">
-                Let's get you set up in under 2 minutes. OPTIHUB will help you generate qualified B2B leads, enrich them with AI, and automate your outreach.
+                Pojďme to nastavit. Zabere to sotva 2 minuty. OPTIHUB naprosto změní váš způsob vyhledávání B2B klientů, obohatí data díky umělé inteligenci a zautomatizuje oslovení.
               </p>
 
               {/* Feature highlights */}
@@ -267,7 +267,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                 <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
                 <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                <span className="text-zinc-400 text-xs ml-1">Trusted by 500+ B2B teams</span>
+                <span className="text-zinc-400 text-xs ml-1">Důvěřují nám stovky B2B společností</span>
               </div>
             </div>
           )}
@@ -276,20 +276,27 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
           {step === 2 && (
             <div className="pt-2">
               <div className="mb-5">
-                <h2 className="text-xl font-bold text-white mb-1">Define Your Ideal Customer</h2>
-                <p className="text-zinc-400 text-sm">
-                  This helps OPTIHUB generate leads that match your exact target profile.
-                </p>
+                <h2 className="text-xl font-bold text-white mb-1">Definujte svého ideálního zákazníka (ICP)</h2>
+
+                <div className="bg-violet-500/10 border border-violet-500/20 p-3 rounded-xl mt-3 flex items-start gap-2.5">
+                  <Brain className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-violet-300 text-xs font-semibold mb-1">Co v tomto kroku nastavujeme?</h3>
+                    <p className="text-zinc-300 text-[11px] leading-relaxed">
+                      <strong>ICP (Ideální zákazník)</strong> funguje jako „hlava“ pro naši AI. Říká systému, v jakém oboru má vyhledávat, na koho cílit a v jakých lokalitách. Následně systém začne vyhledávat <strong>Leady</strong> (např. konkrétní majitele a jednatele), kterým začne generovat personalizované obchodní nabídky.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-4">
                 {/* ICP Name */}
                 <div>
-                  <Label className="text-zinc-300 text-sm mb-1.5 block">Profile Name</Label>
+                  <Label className="text-zinc-300 text-sm mb-1.5 block">Název Profilu</Label>
                   <Input
                     value={icpName}
                     onChange={(e) => setIcpName(e.target.value)}
-                    placeholder="e.g. SaaS Decision Makers"
+                    placeholder="např. SaaS Decision Makers"
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
                 </div>
@@ -297,18 +304,17 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 {/* Industry */}
                 <div>
                   <Label className="text-zinc-300 text-sm mb-1.5 block">
-                    Target Industry <span className="text-red-400">*</span>
+                    Cílové Odvětví <span className="text-red-400">*</span>
                   </Label>
                   <div className="flex flex-wrap gap-2">
                     {INDUSTRIES.map((ind) => (
                       <button
                         key={ind}
                         onClick={() => setIndustry(ind)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                          industry === ind
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${industry === ind
                             ? "bg-violet-500 border-violet-400 text-white"
                             : "bg-zinc-800 border-zinc-700 text-zinc-300 hover:border-zinc-500"
-                        }`}
+                          }`}
                       >
                         {ind}
                       </button>
@@ -317,19 +323,18 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  {/* Company Size */}
+                  {/* Velikost Firmy */}
                   <div>
-                    <Label className="text-zinc-300 text-sm mb-1.5 block">Company Size</Label>
+                    <Label className="text-zinc-300 text-sm mb-1.5 block">Velikost Firmy</Label>
                     <div className="space-y-1.5">
                       {COMPANY_SIZES.map((size) => (
                         <button
                           key={size}
                           onClick={() => setCompanySize(size)}
-                          className={`w-full px-3 py-1.5 rounded-lg text-xs text-left border transition-all ${
-                            companySize === size
+                          className={`w-full px-3 py-1.5 rounded-lg text-xs text-left border transition-all ${companySize === size
                               ? "bg-violet-500/20 border-violet-500/50 text-violet-300"
                               : "bg-zinc-800 border-zinc-700 text-zinc-300 hover:border-zinc-500"
-                          }`}
+                            }`}
                         >
                           {size}
                         </button>
@@ -339,17 +344,16 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
 
                   {/* Seniority */}
                   <div>
-                    <Label className="text-zinc-300 text-sm mb-1.5 block">Decision Maker Level</Label>
+                    <Label className="text-zinc-300 text-sm mb-1.5 block">Úroveň Rozhodovatele</Label>
                     <div className="space-y-1.5">
                       {SENIORITY_LEVELS.map((level) => (
                         <button
                           key={level}
                           onClick={() => setSeniorityLevel(level)}
-                          className={`w-full px-3 py-1.5 rounded-lg text-xs text-left border transition-all ${
-                            seniorityLevel === level
+                          className={`w-full px-3 py-1.5 rounded-lg text-xs text-left border transition-all ${seniorityLevel === level
                               ? "bg-violet-500/20 border-violet-500/50 text-violet-300"
                               : "bg-zinc-800 border-zinc-700 text-zinc-300 hover:border-zinc-500"
-                          }`}
+                            }`}
                         >
                           {level}
                         </button>
@@ -362,12 +366,12 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 <div>
                   <Label className="text-zinc-300 text-sm mb-1.5 block">
                     <Globe className="w-3.5 h-3.5 inline mr-1" />
-                    Target Location
+                    Cílová Lokalita
                   </Label>
                   <Input
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g. United States, New York, Europe"
+                    placeholder="např. Česká republika, Praha, Evropa"
                     className="bg-zinc-800 border-zinc-700 text-white"
                   />
                 </div>
@@ -379,9 +383,9 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
           {step === 3 && (
             <div className="pt-2">
               <div className="mb-5">
-                <h2 className="text-xl font-bold text-white mb-1">Connect Your Tools</h2>
+                <h2 className="text-xl font-bold text-white mb-1">Propojte Své Nástroje</h2>
                 <p className="text-zinc-400 text-sm">
-                  Optionally connect a webhook to push leads to Zapier, Make, n8n, or your CRM automatically.
+                  Můžete volitelně napojit webhook a posílat leady do aplikací Zapier, Make, n8n nebo CRM automaticky.
                 </p>
               </div>
 
@@ -392,11 +396,11 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                     <div className="flex items-center gap-2 mb-3">
                       <Webhook className="w-4 h-4 text-violet-400" />
                       <span className="text-white text-sm font-medium">Webhook / Zapier / Make</span>
-                      <Badge variant="outline" className="text-zinc-400 border-zinc-600 text-xs">Optional</Badge>
+                      <Badge variant="outline" className="text-zinc-400 border-zinc-600 text-xs">Volitelné</Badge>
                     </div>
                     <div className="space-y-3">
                       <div>
-                        <Label className="text-zinc-400 text-xs mb-1 block">Webhook Name</Label>
+                        <Label className="text-zinc-400 text-xs mb-1 block">Název Webhooku</Label>
                         <Input
                           value={webhookName}
                           onChange={(e) => setWebhookName(e.target.value)}
@@ -405,7 +409,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                         />
                       </div>
                       <div>
-                        <Label className="text-zinc-400 text-xs mb-1 block">Webhook URL</Label>
+                        <Label className="text-zinc-400 text-xs mb-1 block">URL Webhooku</Label>
                         <Input
                           value={webhookUrl}
                           onChange={(e) => setWebhookUrl(e.target.value)}
@@ -432,10 +436,10 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                   </div>
 
                   <button
-                    onClick={() => setSkipIntegrations(true)}
+                    onClick={() => setPřeskočitIntegrations(true)}
                     className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors"
                   >
-                    Skip integrations for now →
+                    Zatím přeskočit integrace →
                   </button>
                 </div>
               ) : (
@@ -443,13 +447,13 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                   <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-3">
                     <Plug className="w-5 h-5 text-zinc-400" />
                   </div>
-                  <p className="text-zinc-400 text-sm">Integrations skipped.</p>
-                  <p className="text-zinc-500 text-xs mt-1">You can set them up anytime in the Integrations page.</p>
+                  <p className="text-zinc-400 text-sm">Integrace přeskočeny.</p>
+                  <p className="text-zinc-500 text-xs mt-1">Můžete je kdykoliv nastavit na stránce Integrace.</p>
                   <button
-                    onClick={() => setSkipIntegrations(false)}
+                    onClick={() => setPřeskočitIntegrations(false)}
                     className="text-violet-400 text-xs mt-3 hover:text-violet-300 transition-colors"
                   >
-                    ← Go back to integrations
+                    ← Zpět na integrace
                   </button>
                 </div>
               )}
@@ -467,9 +471,9 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 </div>
               </div>
 
-              <h2 className="text-2xl font-bold text-white mb-2">You're all set! 🎉</h2>
+              <h2 className="text-2xl font-bold text-white mb-2">A je to. Máte hotovo! 🎉</h2>
               <p className="text-zinc-400 text-sm mb-6 max-w-md mx-auto">
-                Your ICP is saved and OPTIHUB is ready to generate your first batch of qualified leads. Let's go!
+                Váš ideální zákaznický profil (ICP) je uložený. Systém je teď plně připravený začít vyhledávat první várku vysoce kvalitních leadů pro váš byznys!
               </p>
 
               {/* Summary badges */}
@@ -507,7 +511,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                   className="bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 text-white gap-2"
                 >
                   <Zap className="w-4 h-4" />
-                  Generate First Leads
+                  Vygenerovat První Leady
                 </Button>
                 <Button
                   variant="outline"
@@ -515,7 +519,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                   className="border-zinc-600 text-zinc-300 hover:border-zinc-400 gap-2"
                 >
                   <BarChart3 className="w-4 h-4" />
-                  Go to Dashboard
+                  Přejít na Nástěnku
                 </Button>
               </div>
 
@@ -523,7 +527,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 onClick={() => handleFinish("/icp-builder")}
                 className="mt-3 text-zinc-500 text-xs hover:text-zinc-300 transition-colors flex items-center gap-1 mx-auto"
               >
-                Fine-tune my ICP later <ArrowRight className="w-3 h-3" />
+                Vyladit ICP později <ArrowRight className="w-3 h-3" />
               </button>
             </div>
           )}
@@ -538,18 +542,18 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                 disabled={saving}
               >
                 <ChevronLeft className="w-4 h-4" />
-                {step === 1 ? "Skip setup" : "Back"}
+                {step === 1 ? "Přeskočit" : "Zpět"}
               </Button>
 
               <div className="flex items-center gap-3">
                 {step > 1 && step < 4 && (
                   <Button
                     variant="ghost"
-                    onClick={handleSkip}
+                    onClick={handlePřeskočit}
                     className="text-zinc-500 hover:text-zinc-300 text-sm"
                     disabled={saving}
                   >
-                    Skip
+                    Přeskočit
                   </Button>
                 )}
                 <Button
@@ -557,7 +561,7 @@ export default function OnboardingWizard({ userName, onComplete }: OnboardingWiz
                   disabled={saving}
                   className="bg-violet-600 hover:bg-violet-500 text-white gap-2 px-6"
                 >
-                  {saving ? "Saving..." : step === 3 ? "Finish Setup" : "Continue"}
+                  {saving ? "Saving..." : step === 3 ? "Dokončit nastavení" : "Pokračovat"}
                   {!saving && <ChevronRight className="w-4 h-4" />}
                 </Button>
               </div>
