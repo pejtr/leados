@@ -16,12 +16,12 @@ export type ScraperProvider = z.infer<typeof ScraperProviderSchema>;
 
 export const ScrapeUrlOptionsSchema = z.object({
   provider: ScraperProviderSchema.optional(),
-  waitForSelector: z.string().optional(),
-  timeoutMs: z.number().optional(),
+  waitForSelector: z.string().max(500).optional(),
+  timeoutMs: z.number().int().min(1_000).max(30_000).optional(),
   extractMarkdown: z.boolean().optional(),
   extractMetadata: z.boolean().optional(),
   stealth: z.boolean().optional(),
-  maxDepth: z.number().optional(),
+  maxDepth: z.number().int().min(0).max(5).optional(),
 });
 
 export type ScrapeUrlOptions = z.infer<typeof ScrapeUrlOptionsSchema>;
@@ -58,9 +58,9 @@ export const ScrapeResultSchema = z.object({
 export type ScrapeResult = z.infer<typeof ScrapeResultSchema>;
 
 export const BrowserAgentTaskSchema = z.object({
-  taskPrompt: z.string().min(3),
+  taskPrompt: z.string().min(3).max(4_000),
   startUrl: z.string().url().optional(),
-  maxSteps: z.number().optional(),
+  maxSteps: z.number().int().min(1).max(50).optional(),
   headless: z.boolean().optional(),
 });
 

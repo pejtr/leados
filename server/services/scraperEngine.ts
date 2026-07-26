@@ -1,4 +1,5 @@
 import { ENV } from "../_core/env";
+import { assertPublicHttpUrl, safeFetch } from "../_core/ssrfGuard";
 import {
   ScraperProvider,
   ScrapeUrlOptions,
@@ -21,6 +22,18 @@ export class ScraperEngineService {
     const startTime = Date.now();
     const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
     const preferredProvider = options.provider;
+
+    try {
+      await assertPublicHttpUrl(normalizedUrl);
+    } catch (err) {
+      return {
+        url: normalizedUrl,
+        success: false,
+        providerUsed: preferredProvider ?? "fallback_fetch",
+        error: err instanceof Error ? err.message : String(err),
+        durationMs: Date.now() - startTime,
+      };
+    }
 
     // Execute based on preferred provider or default priority chain
     if (preferredProvider === "firecrawl") {
@@ -138,6 +151,16 @@ export class ScraperEngineService {
     options: ScrapeUrlOptions,
     startTime: number
   ): Promise<ScrapeResult> {
+    if (!ENV.crawl4aiServiceUrl) {
+      return {
+        url,
+        success: false,
+        providerUsed: "crawl4ai",
+        error: "CRAWL4AI_SERVICE_URL is not configured",
+        durationMs: Date.now() - startTime,
+      };
+    }
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 15000);
@@ -224,7 +247,7 @@ export class ScraperEngineService {
         },
       };
 
-      const res = await fetch(url, fetchOptions);
+      const res = await safeFetch(url, fetchOptions);
       clearTimeout(timeout);
 
       if (!res.ok) {
@@ -279,48 +302,43 @@ export class ScraperEngineService {
     const taskId = `agent_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
     try {
-      if (ENV.browserUseAgentUrl && ENV.browserUseAgentUrl.startsWith("http")) {
-        try {
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 5000);
-
-          const response = await fetch(`${ENV.browserUseAgentUrl}/run-task`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(task),
-            signal: controller.signal,
-          });
-          clearTimeout(timeout);
-
-          if (response.ok) {
-            const json = (await response.json()) as {
-              success?: boolean;
-              finalOutput?: string;
-              steps?: Array<{ stepNumber: number; action: string; status: "pending" | "running" | "success" | "failed" }>;
-            };
-            return {
-              taskId,
-              success: json.success ?? true,
-              finalOutput: json.finalOutput ?? "Browser task completed successfully.",
-              steps: json.steps ?? [],
-              durationMs: Date.now() - startTime,
-            };
-          }
-        } catch {
-          // Service unreachable - fallback to internal browser agent engine
-        }
+      if (task.startUrl) {
+        await assertPublicHttpUrl(task.startUrl);
       }
 
-      // Simulated Browser-Use Agent Execution Engine
+      if (!ENV.browserUseAgentUrl) {
+        throw new Error("BROWSER_USE_AGENT_URL is not configured");
+      }
+
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const response = await fetch(`${ENV.browserUseAgentUrl}/run-task`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(task),
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        throw new Error(`Browser-Use service returned HTTP ${response.status}`);
+      }
+
+      const json = (await response.json()) as {
+        success?: boolean;
+        finalOutput?: string;
+        steps?: Array<{
+          stepNumber: number;
+          action: string;
+          status: "pending" | "running" | "success" | "failed";
+        }>;
+      };
       return {
         taskId,
-        success: true,
-        finalOutput: `[Browser-Use Engine] Executed task: "${task.taskPrompt}". Analyzed initial state, completed action sequence.`,
-        steps: [
-          { stepNumber: 1, action: `Navigate to ${task.startUrl ?? "target site"}`, thought: "Opening browser context", status: "success" },
-          { stepNumber: 2, action: `Execute user prompt instructions: ${task.taskPrompt.substring(0, 50)}...`, thought: "Evaluating DOM elements", status: "success" },
-          { stepNumber: 3, action: "Complete task verification", thought: "Extracting output data", status: "success" },
-        ],
+        success: json.success === true,
+        finalOutput: json.finalOutput ?? "",
+        steps: json.steps ?? [],
+        error: json.success === true ? undefined : "Browser task failed",
         durationMs: Date.now() - startTime,
       };
     } catch (err: unknown) {
@@ -334,7 +352,6 @@ export class ScraperEngineService {
         durationMs: Date.now() - startTime,
       };
     }
-
   }
 
   /**
@@ -379,7 +396,7 @@ export class ScraperEngineService {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), options.timeoutMs ?? 10000);
 
-      const res = await fetch(url, {
+      const res = await safeFetch(url, {
         signal: controller.signal,
         headers: { "User-Agent": "Mozilla/5.0 (compatible; ONYX OS-Scraper/1.0)" },
       });
@@ -418,50 +435,50 @@ export class ScraperEngineService {
       {
         id: "firecrawl",
         name: "Firecrawl API",
-        status: ENV.firecrawlApiKey ? "active" : "configured_mock",
+        status: ENV.firecrawlApiKey ? "active" : "offline",
         description: "AI Markdown extraction & clean LLM page parsing",
       },
       {
         id: "crawl4ai",
         name: "Crawl4AI Service",
-        status: ENV.crawl4aiServiceUrl ? "active" : "configured_mock",
+        status: ENV.crawl4aiServiceUrl ? "active" : "offline",
         description: "Self-hosted AI markdown crawler & content chunking",
       },
       {
         id: "browser_use",
         name: "Browser-Use Agent",
-        status: ENV.browserUseAgentUrl ? "active" : "configured_mock",
+        status: ENV.browserUseAgentUrl ? "active" : "offline",
         description: "Interactive AI agent driving browser tasks",
       },
       {
         id: "crawlee",
         name: "Crawlee Engine",
-        status: "active",
-        description: "High-throughput Node.js web crawler for deep site analysis",
+        status: "degraded",
+        description: "Compatibility adapter using the guarded HTTP scraper",
       },
       {
         id: "scrapy",
         name: "Scrapy Pipeline Bridge",
-        status: "active",
-        description: "Large-scale async crawler pipeline bridge",
+        status: "offline",
+        description: "External Scrapy worker is not connected",
       },
       {
         id: "scrapling",
         name: "Scrapling Adaptive Parser",
-        status: "active",
-        description: "DOM-break resistant flexible layout parser",
+        status: "degraded",
+        description: "Heuristic parsing only; external Scrapling worker is not connected",
       },
       {
         id: "autoscraper",
         name: "AutoScraper Pattern Matcher",
-        status: "active",
-        description: "Pattern-learned extraction engine",
+        status: "degraded",
+        description: "Built-in price pattern matching without a trained external model",
       },
       {
         id: "curl_impersonate",
         name: "curl-impersonate Client",
-        status: "active",
-        description: "TLS fingerprint & browser HTTP/2 headers impersonation client",
+        status: "degraded",
+        description: "Browser headers over guarded fetch; native TLS impersonation is not connected",
       },
     ];
   }

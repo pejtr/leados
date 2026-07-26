@@ -45,7 +45,7 @@ describe("ONYX Scraper Engine Service", () => {
     } as unknown as Response);
 
     try {
-      const result = await scraperEngine.scrapeUrl("https://example-test.com", {
+      const result = await scraperEngine.scrapeUrl("https://example.com", {
         extractMarkdown: true,
         stealth: true,
       });
@@ -62,16 +62,23 @@ describe("ONYX Scraper Engine Service", () => {
     }
   });
 
-  it("executes simulated Browser-Use agent task", async () => {
+  it("reports Browser-Use as unavailable when the service is not configured", async () => {
     const result = await scraperEngine.runBrowserAgent({
       taskPrompt: "Navigate to booking form and check input fields",
       startUrl: "https://example.com/booking",
     });
 
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
     expect(result.taskId).toBeDefined();
-    expect(result.steps.length).toBeGreaterThan(0);
-    expect(result.finalOutput).toContain("Browser-Use Engine");
+    expect(result.steps).toEqual([]);
+    expect(result.error).toContain("BROWSER_USE_AGENT_URL");
+  });
+
+  it("rejects private network targets", async () => {
+    const result = await scraperEngine.scrapeUrl("http://127.0.0.1/internal");
+
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("priv");
   });
 
   it("monitors offer prices via pattern matcher", async () => {
