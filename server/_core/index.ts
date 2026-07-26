@@ -14,6 +14,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { ENV } from "./env";
 import { serveStatic, setupVite } from "./vite";
+import { securityHeaders, rateLimit } from "./securityHeaders";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -36,6 +37,11 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 
 async function startServer() {
   const app = express();
+  // Trust the first proxy hop (Manus edge) so req.ip / X-Forwarded-For are correct
+  app.set("trust proxy", 1);
+  // Disable framework fingerprint + set hardening headers on every response
+  app.disable("x-powered-by");
+  app.use(securityHeaders());
   const server = createServer(app);
   // Configure body parser with larger size limit for file uploads
   // Stripe webhook must be registered BEFORE express.json() to get raw body
@@ -57,6 +63,10 @@ async function startServer() {
   registerHubRoute(app);
   // Google OAuth routes
   registerGoogleOAuthRoutes(app);
+  // Travel Revenue Network routes (/api/travel/*)
+  const { registerTravelRoutes } = await import("../travelRoute");
+  registerTravelRoutes(app);
+
   // Webhook retry scheduler (Heartbeat cron endpoint)
   app.post("/api/scheduled/webhook-retry", async (req, res) => {
     const { webhookRetryHandler } = await import("../webhookRetryScheduler");
@@ -66,8 +76,25 @@ async function startServer() {
   // External API endpoints (Bearer token auth)
   const { registerExternalApi } = await import("../externalApi");
   registerExternalApi(app);
+  // Katastr Online system-to-system integration contract
+  const { registerKatastrIntegrationRoute } = await import(
+    "../katastrIntegrationRoute"
+  );
+  registerKatastrIntegrationRoute(app);
 
-  // tRPC API
+  // tRPC API — rate limited per IP to blunt brute-force + LLM cost-DoS.
+  // Generous default (600 req / 60s) so normal dashboard usage is unaffected;
+  // tune via RATE_LIMIT_TRPC_MAX / RATE_LIMIT_WINDOW_MS, disable with RATE_LIMIT_DISABLED=true.
+  if (process.env.RATE_LIMIT_DISABLED !== "true") {
+    app.use(
+      "/api/trpc",
+      rateLimit({
+        name: "trpc",
+        windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS) || 60_000,
+        max: Number(process.env.RATE_LIMIT_TRPC_MAX) || 600,
+      })
+    );
+  }
   app.use(
     "/api/trpc",
     createExpressMiddleware({

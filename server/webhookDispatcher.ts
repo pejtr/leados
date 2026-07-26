@@ -5,6 +5,7 @@
 
 import type { WebhookConfig, Lead } from "../drizzle/schema";
 import { createIntegrationLog, createWebhookLog } from "./db";
+import { safeFetch } from "./_core/ssrfGuard";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAYS = [1000, 5000, 15000]; // ms
@@ -64,7 +65,7 @@ async function sendGenericWebhook(
 ): Promise<{ status: number; body: string }> {
   if (!config.url) throw new Error("Webhook URL is required");
 
-  const response = await fetch(config.url, {
+  const response = await safeFetch(config.url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -148,6 +149,8 @@ async function sendToSlack(
   payload: WebhookPayload
 ): Promise<{ status: number; body: string }> {
   if (!config.url) throw new Error("Slack webhook URL is required");
+  // Note: Slack hooks are public (hooks.slack.com); safeFetch still guards against
+  // a misconfigured/internal URL slipping through.
 
   const leadSummary = payload.leads
     .slice(0, 10)
@@ -182,7 +185,7 @@ async function sendToSlack(
     ],
   };
 
-  const response = await fetch(config.url, {
+  const response = await safeFetch(config.url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(slackPayload),

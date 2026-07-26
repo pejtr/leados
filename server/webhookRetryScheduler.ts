@@ -8,6 +8,7 @@ import { getDb } from "./db";
 import { webhookLogs, webhookConfigs } from "../drizzle/schema";
 import { eq, and, lt, lte, isNotNull } from "drizzle-orm";
 import crypto from "crypto";
+import { safeFetch } from "./_core/ssrfGuard";
 
 const MAX_RETRIES = 3;
 const RETRY_DELAYS_MS = [5 * 60_000, 15 * 60_000, 45 * 60_000]; // 5min, 15min, 45min
@@ -93,7 +94,7 @@ export async function webhookRetryHandler(req: Request, res: Response) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 30_000); // 30s timeout
 
-        const response = await fetch(config.url, {
+        const response = await safeFetch(config.url, {
           method: "POST",
           headers,
           body: payload,
@@ -171,11 +172,13 @@ export async function webhookRetryHandler(req: Request, res: Response) {
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {
-    console.error("[WebhookRetry] Scheduler error:", error);
+    // Log full detail server-side; never leak stack traces / internals to the client.
+    console.error("[WebhookRetry] Scheduler error:", error, {
+      url: req.url,
+      taskUid: req.headers["x-manus-cron-task-uid"],
+    });
     return res.status(500).json({
-      error: error.message,
-      stack: error.stack,
-      context: { url: req.url, taskUid: req.headers["x-manus-cron-task-uid"] },
+      error: "Webhook retry processing failed",
       timestamp: new Date().toISOString(),
     });
   }

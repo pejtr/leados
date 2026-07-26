@@ -6,7 +6,11 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { FloatingUpgradeNudge } from "./components/UpgradeNudge";
 
+const TravelOverview = lazy(() => import("./pages/travel/TravelOverview"));
+const TravelCampaignManager = lazy(() => import("./pages/travel/CampaignManager"));
+
 const NotFound = lazy(() => import("@/pages/NotFound"));
+
 const Landing = lazy(() => import("./pages/Landing"));
 const Home = lazy(() => import("./pages/Home"));
 const Today = lazy(() => import("./pages/Today"));
@@ -111,7 +115,10 @@ function Router() {
       <Route path="/alerts" component={SmartAlerts} />
       <Route path="/smart-lists" component={SmartLists} />
       <Route path="/email-verify" component={EmailVerification} />
+      <Route path="/dashboard/travel" component={TravelOverview} />
+      <Route path="/dashboard/travel/campaigns" component={TravelCampaignManager} />
       <Route path="/campaigns" component={CampaignRules} />
+
       <Route path="/agency" component={AgencyPanel} />
       <Route path="/speed-to-lead" component={SpeedToLead} />
       <Route path="/icp" component={IcpBuilder} />

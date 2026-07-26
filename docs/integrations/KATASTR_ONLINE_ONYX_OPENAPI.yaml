@@ -1,0 +1,440 @@
+openapi: 3.1.0
+info:
+  title: Katastr Online to ONYX OS Integration API
+  version: 1.0.0
+  description: >
+    Contract for consent-gated CRM ingestion and partner handoff. Katastr Online
+    remains the source of truth for property data and match evidence. ONYX OS
+    remains the source of truth for CRM, approvals, partner cases and revenue.
+servers:
+  - url: https://{onyxHost}/api/integrations/katastr/v1
+    variables:
+      onyxHost:
+        default: onyx.example.invalid
+security:
+  - bearerAuth: []
+paths:
+  /manifest:
+    get:
+      security: []
+      operationId: getKatastrIntegrationManifest
+      responses:
+        "200":
+          description: Integration contract metadata
+  /leads/upsert:
+    post:
+      operationId: upsertKatastrLead
+      x-required-permission: katastr:lead:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadUpsert"
+      responses:
+        "200":
+          description: Existing lead updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "201":
+          description: Lead created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessEnvelope"
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "401":
+          $ref: "#/components/responses/AuthError"
+        "403":
+          $ref: "#/components/responses/PermissionError"
+  /matches:
+    post:
+      operationId: upsertKatastrMatch
+      x-required-permission: katastr:match:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MatchUpsert"
+      responses:
+        "200":
+          description: Existing match returned or updated
+        "201":
+          description: Match candidate created with contact release disabled
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+  /consents:
+    post:
+      operationId: appendKatastrConsentEvidence
+      x-required-permission: katastr:consent:write
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsentEvidence"
+      responses:
+        "200":
+          description: Existing evidence returned idempotently
+        "201":
+          description: Append-only consent evidence created
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          $ref: "#/components/responses/ConflictError"
+  /handoffs:
+    post:
+      operationId: requestKatastrPartnerHandoff
+      x-required-permission: katastr:handoff:request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HandoffRequest"
+      responses:
+        "200":
+          description: Existing handoff request returned idempotently
+        "202":
+          description: Human approval request accepted
+        "400":
+          $ref: "#/components/responses/ValidationError"
+        "409":
+          description: Match or valid bilateral consent is missing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+  /approvals/{approvalId}:
+    get:
+      operationId: getKatastrHandoffApproval
+      x-required-permission: onyx:approval:read
+      parameters:
+        - name: approvalId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Current approval state
+        "404":
+          description: Approval not found
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Hashed ONYX API key with endpoint-specific permissions.
+  schemas:
+    RequestContext:
+      type: object
+      additionalProperties: false
+      required:
+        - tenantId
+        - correlationId
+        - idempotencyKey
+        - schemaVersion
+      properties:
+        tenantId:
+          type: string
+          minLength: 1
+          maxLength: 128
+        correlationId:
+          type: string
+          format: uuid
+        idempotencyKey:
+          type: string
+          minLength: 8
+          maxLength: 191
+        schemaVersion:
+          type: string
+          const: "1.0"
+    LeadUpsert:
+      allOf:
+        - $ref: "#/components/schemas/RequestContext"
+        - type: object
+          additionalProperties: false
+          required:
+            - externalPersonId
+            - leadType
+          properties:
+            externalPersonId:
+              type: string
+              maxLength: 191
+            leadType:
+              type: string
+              enum: [buyer, seller]
+            displayName:
+              type: string
+              maxLength: 256
+            email:
+              type: string
+              format: email
+              maxLength: 320
+            phone:
+              type: string
+              maxLength: 64
+            location:
+              type: string
+              maxLength: 256
+            demandId:
+              type: string
+              maxLength: 191
+            sellerListingId:
+              type: string
+              maxLength: 191
+            propertyId:
+              type: string
+              maxLength: 191
+            consentStatus:
+              type: string
+              enum: [unknown, granted, revoked]
+          anyOf:
+            - required: [email]
+            - required: [phone]
+    MatchFactors:
+      type: object
+      additionalProperties: false
+      required:
+        - locality
+        - budget
+        - propertyParameters
+        - timing
+        - financing
+        - investmentPreference
+      properties:
+        locality:
+          type: number
+          minimum: 0
+          maximum: 100
+        budget:
+          type: number
+          minimum: 0
+          maximum: 100
+        propertyParameters:
+          type: number
+          minimum: 0
+          maximum: 100
+        timing:
+          type: number
+          minimum: 0
+          maximum: 100
+        financing:
+          type: number
+          minimum: 0
+          maximum: 100
+        investmentPreference:
+          type: number
+          minimum: 0
+          maximum: 100
+    MatchUpsert:
+      allOf:
+        - $ref: "#/components/schemas/RequestContext"
+        - type: object
+          additionalProperties: false
+          required:
+            - matchId
+            - buyerExternalPersonId
+            - sellerExternalPersonId
+            - propertyId
+            - buyerDemandId
+            - sellerListingId
+            - score
+            - factors
+            - explanation
+            - modelVersion
+          properties:
+            matchId:
+              type: string
+              maxLength: 191
+            buyerExternalPersonId:
+              type: string
+              maxLength: 191
+            sellerExternalPersonId:
+              type: string
+              maxLength: 191
+            propertyId:
+              type: string
+              maxLength: 191
+            buyerDemandId:
+              type: string
+              maxLength: 191
+            sellerListingId:
+              type: string
+              maxLength: 191
+            score:
+              type: number
+              minimum: 0
+              maximum: 100
+            factors:
+              $ref: "#/components/schemas/MatchFactors"
+            hardConstraints:
+              type: object
+              additionalProperties:
+                type: boolean
+            explanation:
+              type: string
+              maxLength: 4000
+            modelVersion:
+              type: string
+              maxLength: 64
+    ConsentEvidence:
+      allOf:
+        - $ref: "#/components/schemas/RequestContext"
+        - type: object
+          additionalProperties: false
+          required:
+            - externalConsentId
+            - subjectType
+            - subjectExternalPersonId
+            - purpose
+            - scopes
+            - status
+            - policyVersion
+            - captureMethod
+            - evidenceHash
+            - occurredAt
+          properties:
+            externalConsentId:
+              type: string
+              maxLength: 191
+            subjectType:
+              type: string
+              enum: [buyer, seller]
+            subjectExternalPersonId:
+              type: string
+              maxLength: 191
+            purpose:
+              type: string
+              enum:
+                - match_processing
+                - partner_handoff
+                - property_monitoring
+            scopes:
+              type: array
+              minItems: 1
+              maxItems: 20
+              items:
+                type: string
+                maxLength: 128
+            status:
+              type: string
+              enum: [granted, revoked]
+            policyVersion:
+              type: string
+              maxLength: 64
+            captureMethod:
+              type: string
+              enum: [web_form, signed_document, operator, api]
+            evidenceHash:
+              type: string
+              pattern: "^[a-fA-F0-9]{64}$"
+            occurredAt:
+              type: string
+              format: date-time
+            expiresAt:
+              type: string
+              format: date-time
+    HandoffRequest:
+      allOf:
+        - $ref: "#/components/schemas/RequestContext"
+        - type: object
+          additionalProperties: false
+          required:
+            - matchId
+            - buyerConsentId
+            - sellerConsentId
+          properties:
+            matchId:
+              type: string
+              maxLength: 191
+            buyerConsentId:
+              type: string
+              maxLength: 191
+            sellerConsentId:
+              type: string
+              maxLength: 191
+            requestedPartnerId:
+              type: integer
+              minimum: 1
+            notes:
+              type: string
+              maxLength: 2000
+    SuccessEnvelope:
+      type: object
+      required: [ok, data, meta]
+      properties:
+        ok:
+          type: boolean
+          const: true
+        data:
+          type: object
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ErrorEnvelope:
+      type: object
+      required: [ok, error]
+      properties:
+        ok:
+          type: boolean
+          const: false
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+        meta:
+          $ref: "#/components/schemas/ResponseMeta"
+    ResponseMeta:
+      type: object
+      required: [correlationId, schemaVersion, processedAt]
+      properties:
+        correlationId:
+          type: [string, "null"]
+          format: uuid
+        schemaVersion:
+          type: string
+          const: "1.0"
+        processedAt:
+          type: string
+          format: date-time
+  responses:
+    ValidationError:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    AuthError:
+      description: Missing or invalid API key
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    PermissionError:
+      description: API key lacks the required permission
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    ConflictError:
+      description: Idempotency or domain-state conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"

@@ -53,8 +53,11 @@ import { omnicoreRouter } from "./routers/omnicore";
 import { cmsRouter } from "./routers/cms";
 import { seoEngineRouter } from "./routers/seoEngine";
 import { marketplaceRouter } from "./routers/marketplace";
+import { travelNetworkRouter } from "./routers/travelNetwork";
+import { scraperEngineRouter } from "./routers/scraperEngineRouter";
 
 export const appRouter = router({
+
   system: systemRouter,
 
   auth: router({
@@ -137,5 +140,8 @@ export const appRouter = router({
   cms: cmsRouter,
   seo: seoEngineRouter,
   marketplace: marketplaceRouter,
+  travelNetwork: travelNetworkRouter,
+  scraperEngine: scraperEngineRouter,
 });
+
 export type AppRouter = typeof appRouter;

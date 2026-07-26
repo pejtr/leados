@@ -17,7 +17,7 @@ function startCleanup(): void {
   if (cleanupInterval) return;
   cleanupInterval = setInterval(() => {
     const now = Date.now();
-    for (const [key, entry] of store) {
+    for (const [key, entry] of Array.from(store.entries())) {
       if (entry.resetAt <= now) store.delete(key);
     }
     if (store.size === 0 && cleanupInterval) {

@@ -38,6 +38,14 @@ export const ENV = {
   manusApiBaseUrl: process.env.MANUS_API_BASE_URL ?? "https://api.manus.space/v2",
   manusApiKey: process.env.MANUS_API_KEY ?? "",
 
+  // ─── AI Scraper Suite ────────────────────────────────────────────────────
+  firecrawlApiKey: process.env.FIRECRAWL_API_KEY ?? "",
+  firecrawlApiUrl: process.env.FIRECRAWL_API_URL ?? "https://api.firecrawl.dev",
+  crawl4aiServiceUrl: process.env.CRAWL4AI_SERVICE_URL ?? "",
+  crawl4aiApiKey: process.env.CRAWL4AI_API_KEY ?? "",
+  browserUseAgentUrl: process.env.BROWSER_USE_AGENT_URL ?? "",
+  scraperStealthProxyUrl: process.env.SCRAPER_STEALTH_PROXY_URL ?? "",
+
   // ─── Google ────────────────────────────────────────────────────────────
   googleClientId: process.env.GOOGLE_CLIENT_ID ?? "",
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",

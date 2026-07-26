@@ -1,6 +1,5 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import type { User } from "../../drizzle/schema";
-import * as db from "../db";
 import { ENV } from "./env";
 import { sdk } from "./sdk";
 
@@ -18,17 +17,25 @@ export async function createContext(
   // Dev-only auto-login: bypass Manus OAuth when DEV_AUTO_LOGIN=true
   if (ENV.devAutoLogin && !ENV.isProduction) {
     const ownerOpenId = ENV.ownerOpenId || "dev-owner";
-    user = await db.getUserByOpenId(ownerOpenId) ?? null;
-    if (!user) {
-      await db.upsertUser({
-        openId: ownerOpenId,
-        name: "Dev User",
-        email: "dev@local.test",
-        loginMethod: "dev",
-        lastSignedIn: new Date(),
-      });
-      user = await db.getUserByOpenId(ownerOpenId) ?? null;
-    }
+    const now = new Date();
+    user = {
+      id: 1,
+      openId: ownerOpenId,
+      name: "Dev User",
+      email: "dev@local.test",
+      loginMethod: "dev",
+      role: "admin",
+      createdAt: now,
+      updatedAt: now,
+      lastSignedIn: now,
+      onboardingCompleted: true,
+      stripeCustomerId: null,
+      stripeSubscriptionId: null,
+      subscriptionStatus: "free",
+      subscriptionPlan: "free",
+      dailyTokenLimit: null,
+      monthlyTokenLimit: null,
+    };
     return { req: opts.req, res: opts.res, user };
   }
 
