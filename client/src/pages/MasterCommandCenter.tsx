@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUp,
   Bot,
+  BrainCircuit,
   Building2,
   CalendarDays,
   CheckCircle2,
@@ -107,6 +108,7 @@ const platformLabels: Record<PlatformId, string> = {
   forge: "FORGE",
   youtube: "YouTube",
   patreon: "Patreon",
+  katastr_online: "Katastr Online",
 };
 
 const integrationStateLabels: Record<PlatformIntegrationState, string> = {
@@ -415,41 +417,79 @@ export default function MasterCommandCenter() {
                 <h1 className="text-2xl font-semibold text-foreground">
                   Řídicí centrum
                 </h1>
-                <div
-                  className="flex items-center gap-1 rounded-lg border border-border/70 bg-background/60 p-1"
-                  role="group"
-                  aria-label="Volba orchestrátoru"
-                >
-                  <button
-                    type="button"
-                    onClick={() => switchOrchestrator("hermes")}
-                    className={cn(
-                      "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
-                      orchestratorMode === "hermes"
-                        ? "bg-cyan-500/15 text-cyan-200"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                    aria-pressed={orchestratorMode === "hermes"}
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-card p-1 shadow-sm">
+                  <div className="hidden items-center gap-1.5 px-2 text-xs font-medium text-muted-foreground md:flex">
+                    <BrainCircuit
+                      className={cn(
+                        "size-4 transition-colors",
+                        orchestratorMode === "hermes"
+                          ? "text-sky-600"
+                          : "text-fuchsia-600"
+                      )}
+                      aria-hidden="true"
+                    />
+                    <span>AI uvažování</span>
+                  </div>
+                  <div
+                    className="grid grid-cols-2 rounded-md bg-muted p-0.5"
+                    role="group"
+                    aria-label="Režim AI uvažování"
                   >
-                    <Command className="size-3.5" />
-                    <span>HERMES</span>
-                    <span className="hidden sm:inline">Operace</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => switchOrchestrator("hera")}
-                    className={cn(
-                      "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
-                      orchestratorMode === "hera"
-                        ? "bg-violet-500/15 text-violet-200"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                    aria-pressed={orchestratorMode === "hera"}
-                  >
-                    <Sparkles className="size-3.5" />
-                    <span>HERA</span>
-                    <span className="hidden sm:inline">Marketing</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => switchOrchestrator("hermes")}
+                      className={cn(
+                        "flex min-h-9 items-center justify-center gap-2 rounded-[5px] px-3 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        orchestratorMode === "hermes"
+                          ? "bg-sky-600 text-white shadow-sm"
+                          : "text-muted-foreground hover:bg-background hover:text-foreground"
+                      )}
+                      aria-pressed={orchestratorMode === "hermes"}
+                      title="HERMES: operativní uvažování, orchestrace a řízení workflow"
+                    >
+                      <Command className="size-3.5" aria-hidden="true" />
+                      <span className="flex flex-col items-start leading-tight">
+                        <span>HERMES</span>
+                        <span
+                          className={cn(
+                            "hidden text-[10px] font-normal sm:block",
+                            orchestratorMode === "hermes"
+                              ? "text-sky-100"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          Operativní
+                        </span>
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => switchOrchestrator("hera")}
+                      className={cn(
+                        "flex min-h-9 items-center justify-center gap-2 rounded-[5px] px-3 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        orchestratorMode === "hera"
+                          ? "bg-fuchsia-600 text-white shadow-sm"
+                          : "text-muted-foreground hover:bg-background hover:text-foreground"
+                      )}
+                      aria-pressed={orchestratorMode === "hera"}
+                      title="HERA: marketingové uvažování, kampaně, obsah a růst"
+                    >
+                      <Sparkles className="size-3.5" aria-hidden="true" />
+                      <span className="flex flex-col items-start leading-tight">
+                        <span>HERA</span>
+                        <span
+                          className={cn(
+                            "hidden text-[10px] font-normal sm:block",
+                            orchestratorMode === "hera"
+                              ? "text-fuchsia-100"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          Marketingové
+                        </span>
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">

@@ -95,7 +95,7 @@ export type DsrEmailSequence = {
 export const deepSleepRouter = router({
   /** Public health check (no auth required on DSR side, but we keep it behind protectedProcedure here) */
   health: protectedProcedure.query(async (): Promise<DsrHealth> => {
-    const res = await fetch(`${DSR_BASE}/health`);
+    const res = await fetch(`${ENV.dsrBaseUrl}/health`);
     return res.json() as Promise<DsrHealth>;
   }),
 
@@ -167,7 +167,7 @@ export const deepSleepRouter = router({
     emailSequence: DsrEmailSequence;
   }> => {
     const [health, analytics, leads, orders, abTests, emailSequence] = await Promise.all([
-      fetch(`${DSR_BASE}/health`).then((r) => r.json() as Promise<DsrHealth>),
+      fetch(`${ENV.dsrBaseUrl}/health`).then((r) => r.json() as Promise<DsrHealth>),
       dsrFetch<DsrAnalytics>("/analytics"),
       dsrFetch<{ total: number; limit: number; data: DsrLead[] }>("/leads?limit=500"),
       dsrFetch<{ total: number; limit: number; data: DsrOrder[] }>("/orders?limit=500"),

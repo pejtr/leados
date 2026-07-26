@@ -18,46 +18,38 @@ interface AuditRecommendation {
   impact: string;
 }
 
+import { scraperEngine } from "../services/scraperEngine";
+
 async function fetchUrlMetadata(url: string) {
   try {
-    const normalizedUrl = url.startsWith("http") ? url : `https://${url}`;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(normalizedUrl, {
-      signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; ONYX OS-Audit/1.0)" },
-    });
-    clearTimeout(timeout);
-    const html = await res.text();
-    const hasSsl = normalizedUrl.startsWith("https://");
-    const hasContactForm = /contact|kontakt|form|formulář/i.test(html);
-    const hasMobileMenu = /hamburger|mobile-menu|nav-toggle|navbar-toggler/i.test(html);
-    const hasOnlineBooking = /reservation|rezervace|booking|objednat/i.test(html);
-    const hasGoogleAnalytics = /gtag|google-analytics|UA-|G-[A-Z0-9]/i.test(html);
-    const hasSocialLinks = /facebook\.com|instagram\.com|linkedin\.com/i.test(html);
-    const techStack: string[] = [];
-    if (/wp-content|wordpress/i.test(html)) techStack.push("WordPress");
-    if (/wix\.com/i.test(html)) techStack.push("Wix");
-    if (/webnode/i.test(html)) techStack.push("Webnode");
-    if (/react|next\.js|__NEXT_DATA__/i.test(html)) techStack.push("React/Next.js");
-    if (/shopify/i.test(html)) techStack.push("Shopify");
-    if (/bootstrap/i.test(html)) techStack.push("Bootstrap");
-    const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
-    const title = titleMatch?.[1] || "";
-    const descMatch = html.match(/<meta[^>]+name="description"[^>]+content="([^"]+)"/i);
-    const description = descMatch?.[1] || "";
+    const result = await scraperEngine.scrapeUrl(url, { stealth: true, extractMarkdown: true });
+    if (!result.success || !result.metadata) {
+      return null;
+    }
+    const meta = result.metadata;
+    const html = result.html ?? "";
     const hasMetaViewport = /<meta[^>]+name="viewport"/i.test(html);
+
     return {
-      hasSsl, hasContactForm, hasMobileMenu, hasOnlineBooking,
-      hasGoogleAnalytics, hasSocialLinks, techStack,
-      title, description, hasMetaViewport,
-      statusCode: res.status,
+      hasSsl: meta.hasSsl ?? false,
+      hasContactForm: meta.hasContactForm ?? false,
+      hasMobileMenu: meta.hasMobileMenu ?? false,
+      hasOnlineBooking: meta.hasOnlineBooking ?? false,
+      hasGoogleAnalytics: meta.hasGoogleAnalytics ?? false,
+      hasSocialLinks: (meta.hasSocialLinks?.length ?? 0) > 0,
+      techStack: meta.techStack ?? [],
+      title: meta.title ?? "",
+      description: meta.description ?? "",
+      hasMetaViewport,
+      statusCode: meta.statusCode ?? 200,
       htmlLength: html.length,
+      markdown: result.markdown ?? "",
     };
   } catch {
     return null;
   }
 }
+
 
 function calculateScores(meta: Awaited<ReturnType<typeof fetchUrlMetadata>>) {
   if (!meta) return { overall: 0, performance: 0, seo: 0, mobile: 0, design: 0 };

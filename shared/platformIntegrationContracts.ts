@@ -4,7 +4,8 @@ export type PlatformId =
   | "optimateo"
   | "forge"
   | "youtube"
-  | "patreon";
+  | "patreon"
+  | "katastr_online";
 
 export type PlatformIntegrationTransport =
   | "local_route"
@@ -269,6 +270,46 @@ const globalEarningsModule: PlatformIntegrationPoint = {
     "ONYX agreguje a zobrazuje revenue; zdrojový provider zůstává autoritou částky.",
 };
 
+const katastrContextModule: PlatformIntegrationPoint = {
+  id: "katastr-property-context",
+  platform: "katastr_online",
+  label: "Katastr Online property context",
+  description:
+    "Reads property identity, reports, monitoring and provenance through guarded MCP tools.",
+  transport: "mcp_tool",
+  state: "contract_ready",
+  toolName: "katastr.get_property",
+  requiredInputs: [
+    "tenantId",
+    "propertyId or normalized address",
+    "correlationId",
+  ],
+  outputs: ["property context", "report references", "data provenance"],
+  ownerBoundary:
+    "Katastr Online owns property data and reports; ONYX consumes minimal context.",
+};
+
+const katastrMatchHandoffModule: PlatformIntegrationPoint = {
+  id: "katastr-match-handoff",
+  platform: "katastr_online",
+  label: "Katastr Match to ONYX",
+  description:
+    "Creates an explainable match candidate and a consent-gated human approval request.",
+  transport: "local_route",
+  state: "contract_ready",
+  route: "/api/integrations/katastr/v1",
+  requiredInputs: [
+    "tenantId",
+    "matchId",
+    "buyerConsentId",
+    "sellerConsentId",
+    "idempotencyKey",
+  ],
+  outputs: ["ONYX lead", "match candidate", "approvalId", "partnerCaseId"],
+  ownerBoundary:
+    "Katastr Online owns match evidence; ONYX owns approval, partner case and commission.",
+};
+
 const youtubeDailyEarnings: PlatformIntegrationPoint = {
   id: "youtube-daily-earnings",
   platform: "youtube",
@@ -358,6 +399,11 @@ export const platformIntegrationsByTemplateId: Record<
   "social-calendar": [omniAssetPack, forgeSchedule, projectsModule],
   "ugc-ad-pack": [omniAssetPack, omniVideoWorkflow, projectsModule],
   "video-repurpose": [omniVideoWorkflow, finalVideoReadyEvent, projectsModule],
+  "katastr-match-pilot": [
+    katastrContextModule,
+    katastrMatchHandoffModule,
+    projectsModule,
+  ],
 };
 
 export function getPlatformIntegrationPoints(

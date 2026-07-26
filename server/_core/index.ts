@@ -57,6 +57,10 @@ async function startServer() {
   registerHubRoute(app);
   // Google OAuth routes
   registerGoogleOAuthRoutes(app);
+  // Travel Revenue Network routes (/api/travel/*)
+  const { registerTravelRoutes } = await import("../travelRoute");
+  registerTravelRoutes(app);
+
   // Webhook retry scheduler (Heartbeat cron endpoint)
   app.post("/api/scheduled/webhook-retry", async (req, res) => {
     const { webhookRetryHandler } = await import("../webhookRetryScheduler");
@@ -66,6 +70,11 @@ async function startServer() {
   // External API endpoints (Bearer token auth)
   const { registerExternalApi } = await import("../externalApi");
   registerExternalApi(app);
+  // Katastr Online system-to-system integration contract
+  const { registerKatastrIntegrationRoute } = await import(
+    "../katastrIntegrationRoute"
+  );
+  registerKatastrIntegrationRoute(app);
 
   // tRPC API
   app.use(

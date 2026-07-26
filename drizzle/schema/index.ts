@@ -44,3 +44,5 @@ export * from "./source-data-harmonizer";
 export * from "./cms";
 export * from "./seo-engine";
 export * from "./marketplace";
+export * from "./travel-network";
+export * from "./katastr-integration";
