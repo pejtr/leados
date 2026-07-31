@@ -24,7 +24,7 @@ const PILLARS = [
   { icon: <Calendar className="w-5 h-5" />, t: "Booking", d: "Rezervace a kapacity v reálném čase." },
   { icon: <Users className="w-5 h-5" />, t: "CRM", d: "360° pohled na klienta a jeho historii." },
   { icon: <Database className="w-5 h-5" />, t: "Data", d: "Reporting a predikce na jednom místě." },
-  { icon: <Zap className="w-5 h-5" />, t: "Automatizace", d: "Asistenti na obsah, kampaně a rutinu." },
+  { icon: <Zap className="w-5 h-5" />, t: "Automatizace", d: "Obsah, kampaně a sociální sítě bez ruční rutiny." },
   { icon: <Globe className="w-5 h-5" />, t: "MCP / API", d: "Napojení na vaše stávající nástroje." },
 ];
 
@@ -42,7 +42,7 @@ const AGENTS = [
 const MODULES = [
   { icon: <Calendar className="w-5 h-5" />, t: "Rezervace", d: "Online booking a správa kapacit." },
   { icon: <MessageSquare className="w-5 h-5" />, t: "Komunikace", d: "E-maily, Telegram, WhatsApp." },
-  { icon: <Megaphone className="w-5 h-5" />, t: "Marketing", d: "Meta/Google Ads, retargeting." },
+  { icon: <Megaphone className="w-5 h-5" />, t: "Marketing", d: "Facebook a Instagram: obsah, plánování, publikace a reporting." },
   { icon: <ShoppingBag className="w-5 h-5" />, t: "Prodej", d: "E-shop, předplatné, upsell." },
   { icon: <Rocket className="w-5 h-5" />, t: "Prodejní web", d: "Funnel pro infoprodukty a kurzy." },
   { icon: <TrendingUp className="w-5 h-5" />, t: "Reporting", d: "Dashboardy, LTV, insights." },

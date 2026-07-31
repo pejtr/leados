@@ -57,6 +57,7 @@ const faqs = [
   { q: "Mám už nový web od jiné agentury. Můžete zapojit ONYX OS?", a: "Ano. Pomocí ONYX OS můžeme integrovat poptávkový formulář, follow-up sekvence a CRM vrstvu na váš existující web, aby neutíkal provoz." },
   { q: "Kolik mě tedy bude audit stát?", a: "Mini Audit je zdarma a dá vám indikaci trhlin. Kompletní ONYX OS Audit stojí fixních 4 900 Kč." },
   { q: "Co vše ONYX OS pokrývá?", a: "Akvizici leadů do vlastního CRM (nepřijdete tak o poptávky z kontaktních formulářů), automatický follow-up, zasílání reportů o reálném růstu vašeho businessu a bezúdržbové fungování." },
+  { q: "Umíte automatizovat Facebook a Instagram?", a: "Ano. Umíme nastavit tvorbu obsahu, schvalování, plánování a publikaci příspěvků na Facebooku a Instagramu včetně základního reportingu. Konkrétní rozsah závisí na oprávněních vašich Meta účtů." },
   { q: "Děláte e-shopy?", a: "Náš systém je určený striktně pro generování a správu B2B nebo lokálních poptávek. Klasické e-shopy neděláme." },
   { q: "Jak dlouho nasazení trvá?", a: "Po auditu (který máme hotový do 48 hodin), samotný Setup trvá dle složitosti od 1 do 3 týdnů s testováním funkcí." },
   { q: "Co je zahrnuto v měsíčním monitoringu za 1 999 Kč?", a: "Zabezpečený provoz systému, aktivní vyhodnocování trhlin, opravy rychlosti a drobný support." },
@@ -76,7 +77,7 @@ const packages = [
   },
   {
     name: "03. ONYX OS Setup", price: "od 29 900 Kč", proKomu: "Implementace řešení",
-    features: ["Kompletní přepracování na ONYX OS", "CRM pro správu poptávek", "Virtual SDR pro follow-upy", "Integrovaná analytika"],
+    features: ["Kompletní přepracování na ONYX OS", "CRM pro správu poptávek", "Virtual SDR pro follow-upy", "Automatizace Facebooku a Instagramu", "Integrovaná analytika"],
     cta: "Kontaktujte nás", href: "#contact", badge: "Nasazení"
   },
   {
@@ -207,13 +208,15 @@ export default function Home() {
               <p className="text-lg text-slate-600 mb-8 leading-relaxed">
                 Po dokončení Diagnostického ONYX OS Auditu nasazujeme kompletní infrastrukturu. Web se napojí na centrální
                 mozek: ONYX OS zachytí lead, odešle jménem firmy automatický "follow-up", uloží jej do CRM a notifikuje majitele.
-                Výsledkem jsou měřitelná růstová data, žádné odhadování.
+                Umí také připravit, naplánovat a po schválení publikovat obsah na Facebook a Instagram. Výsledkem jsou měřitelná
+                růstová data, žádné odhadování.
               </p>
               <ul className="space-y-4 mb-8">
                 {[
                   "Návštěvník vidí jasnou hodnotu (Vyřešeno Auditem)",
                   "Odesílá unikátní lead form (Zachyceno ONYX OS)",
                   "Automaticky dostává email od Vás (Virtual SDR)",
+                  "Obsah pro Facebook a Instagram se plánuje a publikuje po schválení",
                   "Dohoda a záchrana až 40% ztracených zakázek (Zisk)"
                 ].map((item, i) => (
                   <li key={i} className="flex items-start gap-3">
