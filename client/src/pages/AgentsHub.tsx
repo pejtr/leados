@@ -41,6 +41,14 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   reklama: Megaphone,
   "lead gen": Magnet,
   konverze: Zap,
+  strategie: Brain,
+  výzkum: Search,
+  automatizace: Zap,
+  produkt: Target,
+  video: FileText,
+  růst: Target,
+  vedení: Brain,
+  interní: Settings,
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -51,6 +59,14 @@ const CATEGORY_COLORS: Record<string, string> = {
   reklama: "bg-red-100 text-red-700 border-red-200",
   "lead gen": "bg-pink-100 text-pink-700 border-pink-200",
   konverze: "bg-orange-100 text-orange-700 border-orange-200",
+  strategie: "bg-indigo-100 text-indigo-700 border-indigo-200",
+  výzkum: "bg-cyan-100 text-cyan-700 border-cyan-200",
+  automatizace: "bg-sky-100 text-sky-700 border-sky-200",
+  produkt: "bg-teal-100 text-teal-700 border-teal-200",
+  video: "bg-rose-100 text-rose-700 border-rose-200",
+  růst: "bg-emerald-100 text-emerald-700 border-emerald-200",
+  vedení: "bg-slate-200 text-slate-800 border-slate-300",
+  interní: "bg-slate-100 text-slate-700 border-slate-200",
 };
 
 export default function AgentsHub() {
@@ -112,7 +128,7 @@ export default function AgentsHub() {
       setView("chat");
       refetchSessions();
     } catch {
-      toast.error("Nepodařilo se spustit agenta");
+      toast.error("Nepodařilo se spustit specialistu");
     }
   };
 
@@ -126,7 +142,7 @@ export default function AgentsHub() {
       const response = await chatMutation.mutateAsync({ sessionId: activeSessionId, message: msg });
       setLocalMessages(prev => [...prev, { role: "assistant", content: response.content }]);
     } catch {
-      toast.error("Chyba při komunikaci s agentem");
+      toast.error("Chyba při komunikaci se specialistou");
       setLocalMessages(prev => prev.slice(0, -1));
     } finally {
       setIsSending(false);
@@ -219,7 +235,7 @@ export default function AgentsHub() {
         <div className="max-w-2xl mx-auto mb-6">
           <Button variant="ghost" onClick={() => setView("hub")} className="gap-2 text-slate-600">
             <ArrowLeft className="w-4 h-4" />
-            Zpět na agenty
+            Zpět na specialisty
           </Button>
         </div>
         <BrandMemorySetup
@@ -483,7 +499,7 @@ export default function AgentsHub() {
           <div className="flex items-center justify-between mb-6">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3 py-1.5 rounded-full text-sm">
               <Sparkles className="w-3.5 h-3.5 text-violet-300" />
-              <span className="text-violet-200">AI Marketing Suite</span>
+              <span className="text-violet-200">OPTIMATEO specialisté</span>
             </div>
             <Button
               variant="outline"
@@ -497,11 +513,11 @@ export default function AgentsHub() {
           </div>
 
           <h1 className="text-4xl md:text-5xl font-bold mb-3">
-            Váš tým AI agentů
+            Váš digitální tým
           </h1>
           <p className="text-violet-200 text-lg max-w-xl mb-6">
-            Specializovaní agenti s přístupy od nejlepších světových marketérů.
-            Říkáte CO — oni vědí JAK.
+            Specializovaní asistenti pro marketing, web, automatizaci a řízení firmy.
+            Popíšete cíl, správný expert navrhne další krok.
           </p>
 
           {/* Brand Memory status */}
@@ -509,7 +525,7 @@ export default function AgentsHub() {
             <div className="inline-flex items-center gap-2 bg-green-500/20 border border-green-400/30 px-4 py-2 rounded-xl text-sm">
               <CheckCircle className="w-4 h-4 text-green-400" />
               <span className="text-green-300">
-                <strong>{brandMemory.companyName}</strong> — agenti znají váš brand
+                <strong>{brandMemory.companyName}</strong> — specialisté znají váš brand
               </span>
             </div>
           ) : (
@@ -567,7 +583,7 @@ export default function AgentsHub() {
                 <Target className="w-3 h-3 mr-1" />
                 Prodejní kouči
               </Badge>
-              <span className="text-sm text-slate-400">Chatujte s AI verzemi legend prodeje a marketingu</span>
+              <span className="text-sm text-slate-400">Praktické konzultace podle ověřených prodejních přístupů</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {personas.filter(p => p.category !== "onyxweb").map(persona => (
@@ -634,7 +650,7 @@ export default function AgentsHub() {
                           )}
                           <p className="text-sm text-slate-500 leading-snug">{skill.description}</p>
                           <div className="flex items-center gap-1 mt-3 text-violet-600 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                            Spustit agenta
+                            Spustit specialistu
                             <ChevronRight className="w-3.5 h-3.5" />
                           </div>
                         </div>
@@ -648,7 +664,7 @@ export default function AgentsHub() {
         })}
 
         {!skills && (
-          <div className="text-center py-16 text-slate-400">Načítám agenty...</div>
+          <div className="text-center py-16 text-slate-400">Načítám specialisty...</div>
         )}
       </div>
     </div>
