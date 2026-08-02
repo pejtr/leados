@@ -40,6 +40,9 @@ const LegalPage = lazy(() => import("./pages/LegalPage"));
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
 const KalkulackaPage = lazy(() => import("./pages/KalkulackaPage"));
 const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
+const RoiKalkulackaPage = lazy(() => import("./pages/RoiKalkulackaPage"));
+const PartnerPage = lazy(() => import("./pages/PartnerPage"));
+const SalesChatWidget = lazy(() => import("./components/SalesChatWidget").then(m => ({ default: m.SalesChatWidget })));
 
 function PageLoader() {
   return (
@@ -224,6 +227,8 @@ function Router() {
         <Route path="/checkout" component={CheckoutPage} />
         <Route path="/kalkulacka" component={KalkulackaPage} />
         <Route path="/onboarding" component={OnboardingPage} />
+        <Route path="/roi-kalkulacka" component={RoiKalkulackaPage} />
+        <Route path="/partner" component={PartnerPage} />
         <Route path="/ochrana-osobnich-udaju" component={LegalPage} />
         <Route path="/cookies" component={LegalPage} />
         <Route path="/obchodni-podminky" component={LegalPage} />
@@ -255,6 +260,9 @@ function App() {
           <Toaster />
           <CookieConsentBanner />
           <Router />
+          <Suspense fallback={null}>
+            <SalesChatWidget />
+          </Suspense>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
