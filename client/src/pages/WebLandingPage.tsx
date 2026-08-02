@@ -127,7 +127,7 @@ export default function WebLandingPage() {
             </a>
             <div className="flex items-center gap-1.5 mt-5 text-sm text-slate-500">
               <div className="flex">{[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />)}</div>
-              50+ realizovaných projektů
+              Prověřené postupy a živé koncepty
             </div>
           </div>
 

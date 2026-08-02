@@ -185,16 +185,16 @@ export default function AuditZdarma() {
                     {/* ── Hero ── */}
                     <div className="text-center mb-12">
                         <span className="bg-violet-500/20 text-violet-300 border border-violet-500/30 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                            Diagnóza webu zdarma
+                            Bezplatný audit vašeho webu
                         </span>
                         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mt-4 mb-4 leading-tight">
-                            Zjistěte, kde váš web{" "}
+                            5 konkrétních chyb do 24 hodin, kde váš web{" "}
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">
-                                ztrácí zákazníky.
+                                ztrácí poptávky.
                             </span>
                         </h1>
-                        <p className="text-slate-400 text-base max-w-xl mx-auto leading-relaxed">
-                            Prověříme nabídku, rychlost, mobilní zobrazení a cestu ke kontaktu. Dostanete 3 konkrétní bariéry na vašem webu — zdarma a nezávazně.
+                        <p className="text-slate-400 text-base max-w-2xl mx-auto leading-relaxed">
+                            Zjistěte, kde váš web ztrácí poptávky. Ruční QA kontrola SEO, formulářů, mobilního zobrazení, měření a konverzí. Bez závazku.
                         </p>
                     </div>
 
@@ -345,7 +345,7 @@ export default function AuditZdarma() {
                                     disabled={submitting}
                                     className="w-full bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-bold rounded-xl py-3.5 text-sm active:scale-95 transition-all shadow-lg shadow-violet-900/20 mt-4"
                                 >
-                                    {submitting ? "Odesílám..." : "Zjistit, kde ztrácím zákazníky →"}
+                                    {submitting ? "Odesílám..." : "Získat audit zdarma →"}
                                 </Button>
 
                                 <p className="flex items-center justify-center gap-1.5 text-center text-[10px] text-slate-500 mt-2">

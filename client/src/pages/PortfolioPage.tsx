@@ -182,7 +182,7 @@ export default function PortfolioPage() {
     const [scrolled, setScrolled] = useState(false);
     const [activeCategory, setActiveCategory] = useState("Vše");
 
-    const { data: dbProjects = [] } = trpc.portfolio.list.useQuery();
+    const { data: dbProjects = [] } = trpc.portfolio.list.useQuery(undefined);
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
@@ -192,7 +192,7 @@ export default function PortfolioPage() {
 
     // Merge DB projects with static fallback — DB wins if populated
     const allProjects: Project[] = dbProjects.length > 0
-        ? dbProjects.map((p) => ({
+        ? dbProjects.map((p: any) => ({
             id: p.id,
             title: p.title,
             description: p.description,
@@ -245,7 +245,7 @@ export default function PortfolioPage() {
                     <Reveal>
                         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-100 text-violet-800 text-xs font-bold uppercase tracking-wider mb-6">
                             <Users className="w-3.5 h-3.5" />
-                            {allProjects.length}+ realizovaných projektů
+                            Ukázky živých projektů a konceptů
                         </div>
                         <h1 className="text-4xl lg:text-6xl font-extrabold tracking-tight text-slate-950 mb-6 leading-[1.08]">
                             Realizované{" "}

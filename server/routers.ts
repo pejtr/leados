@@ -5,6 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { createInquiry, listInquiries, getInquiryById, updateInquiry, getPortfolioProjects, getTestimonials, getNichePackages, createNichePackage, getCustomerSubscriptions, createCustomerSubscription, cancelCustomerSubscription, getAllNichePackages, updateNichePackage, deactivateNichePackage, getAllSubscriptions, createOrder, getOrder, updateOrder, getPaymentsByOrder, getAllOrders, getAllPayments, getBrandMemory, upsertBrandMemory, createAgentSession, getAgentSessions, getAgentSession, updateAgentSession, addAgentMessage, getAgentMessages, getAllProjects, getProjectByOrderId, getProjectsByOrderIds, createProject, updateProject, getProjectMilestones, createMilestone, updateMilestone } from "./db";
 import { notifyOwner } from "./notify";
 import { sendOrderConfirmationEmail } from "./email-service";
+import { generateAuditNurtureSequence } from "./audit-nurture";
 import { invokeLLM } from "./_core/llm";
 import { SKILLS, getSkill, buildSystemPrompt } from "./agent-skills";
 import { SALES_PERSONAS, getPersona, listPersonas, personaPublicInfo, buildPersonaSystemPrompt } from "./sales-personas";
@@ -128,6 +129,15 @@ export const appRouter = router({
         }
 
         // --- PROFIT PLAYBOOK: Odeslat do n8n/Make webhooku ---
+        const isAuditInquiry = input.packageType === "audit-zdarma" || (input.details as any)?.webUrl || (input.details as any)?.auditRequested;
+        const nurtureSequence = isAuditInquiry ? generateAuditNurtureSequence({
+          webUrl: (input.details as any)?.webUrl || input.name,
+          email: input.email,
+          name: input.name,
+          businessType: (input.details as any)?.businessType || input.businessDescription,
+          mainGoal: (input.details as any)?.mainGoal,
+        }) : null;
+
         const webhookUrl = process.env.N8N_WEBHOOK_URL || process.env.MAKE_WEBHOOK_URL;
         if (webhookUrl) {
           try {
@@ -143,6 +153,7 @@ export const appRouter = router({
                 businessDescription: input.businessDescription,
                 source: input.source,
                 details: input.details,
+                nurtureSequence,
                 timestamp: new Date().toISOString()
               })
             });
