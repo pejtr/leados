@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { trackSklikConversion } from "@/lib/sklik";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { OptimateoLogo } from "@/components/OptimateoLogo";
-import { ArrowLeft, ArrowRight, Check, ShieldCheck, ChevronDown, ChevronUp, TrendingDown, Zap, BarChart3 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ShieldCheck, ChevronDown, ChevronUp, TrendingDown, Zap, BarChart3, Calendar, Clock, Sparkles, X, Gift } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { isChannelConsented } from "@/components/CookieConsentBanner";
 import { trackLinkedInConversion } from "@/lib/linkedin";
@@ -93,6 +93,10 @@ export default function AuditZdarma() {
     const [submitted, setSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [showReport, setShowReport] = useState(false);
+    const [formStep, setFormStep] = useState<1 | 2>(1);
+    const [showExitModal, setShowExitModal] = useState(false);
+    const [exitModalDismissed, setExitModalDismissed] = useState(false);
+
     const [formData, setFormData] = useState({
         webUrl: "",
         email: "",
@@ -102,6 +106,27 @@ export default function AuditZdarma() {
     });
 
     const createInquiry = trpc.inquiries.create.useMutation();
+
+    // Exit Intent Handler
+    useEffect(() => {
+        const handleMouseLeave = (e: MouseEvent) => {
+            if (e.clientY <= 10 && !submitted && !exitModalDismissed) {
+                setShowExitModal(true);
+            }
+        };
+        document.addEventListener("mouseleave", handleMouseLeave);
+        return () => document.removeEventListener("mouseleave", handleMouseLeave);
+    }, [submitted, exitModalDismissed]);
+
+    const handleNextStep = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!formData.webUrl.trim()) {
+            toast.error("Zadejte prosím URL vašeho webu.");
+            return;
+        }
+        setFormStep(2);
+        toast.info("Zadejte e-mail pro zaslání výsledků.");
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -147,24 +172,48 @@ export default function AuditZdarma() {
             <div className="min-h-screen flex flex-col relative bg-[#06070a] text-white">
                 <AuroraBackground />
                 <Header />
-                <div className="flex-1 flex items-center justify-center px-4">
-                    <div className="max-w-md w-full text-center bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-10 shadow-2xl shadow-black/50">
+                <div className="flex-1 flex items-center justify-center px-4 py-12">
+                    <div className="max-w-lg w-full text-center bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-8 md:p-10 shadow-2xl shadow-black/50">
                         <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto mb-6">
                             <Check className="w-8 h-8" />
                         </div>
                         <h1 className="text-2xl font-extrabold mb-3 text-white">Žádost přijata!</h1>
-                        <p className="text-slate-400 text-sm mb-8 leading-relaxed">
-                            Náš specialista se pustí do analýzy webu <strong className="text-white">{formData.webUrl}</strong>. Výsledek se 3–5 konkrétními body vám pošleme na <strong className="text-white">{formData.email}</strong> do 24 hodin.
+                        <p className="text-slate-400 text-sm mb-6 leading-relaxed">
+                            Náš specialista se pustí do ruční QA analýzy webu <strong className="text-white">{formData.webUrl}</strong>. Výsledek se 3–5 konkrétními body vám pošleme na <strong className="text-white">{formData.email}</strong> do 24 hodin.
                         </p>
 
-                        {/* Upsell suggestion */}
-                        <div className="bg-violet-500/10 border border-violet-400/30 rounded-2xl p-4 mb-6 text-left">
-                            <p className="text-xs font-bold text-violet-300 uppercase tracking-wider mb-1">Následující krok</p>
-                            <p className="text-sm text-white/80">Po obdržení mini auditu vám můžeme nabídnout <strong className="text-white">{CORE_OFFERS.ONYX_OS_AUDIT.name} za {formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT)}</strong> — kompletní PDF report s plánem oprav a {SERVICE_TERMS.auditConsultationMinutes}min konzultací.</p>
+                        {/* Fast-Track Booking Upsell */}
+                        <div className="bg-gradient-to-br from-violet-600/20 to-indigo-600/20 border border-violet-500/30 rounded-2xl p-5 mb-6 text-left relative overflow-hidden">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Calendar className="w-4 h-4 text-violet-300" />
+                                <p className="text-xs font-bold text-violet-300 uppercase tracking-wider">⚡ Nechcete čekat 24 hodin?</p>
+                            </div>
+                            <p className="text-sm text-white/90 leading-relaxed mb-3">
+                                Vyberte si termín pro 15minutový živý rozbor auditu na obrazovce. Projdeme zjištění společně a ukážeme konkrétní návod na opravu.
+                            </p>
+                            <a
+                                href="https://cal.com/optimateo/15min"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-md shadow-violet-900/40"
+                            >
+                                <Clock className="w-3.5 h-3.5" /> Rezervovat 15min hovor →
+                            </a>
+                        </div>
+
+                        {/* Fix Sprint Offer */}
+                        <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-4 mb-6 text-left">
+                            <div className="flex items-center gap-2 mb-1">
+                                <Gift className="w-4 h-4 text-emerald-400" />
+                                <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">Akční sleva 1 000 Kč na Fix Sprint</span>
+                            </div>
+                            <p className="text-xs text-slate-300 leading-relaxed">
+                                Při objednání balíčku <strong>Fix Sprint (oprava konverzí a mobilu)</strong> do 48 hodin získáte slevu 1 000 Kč (8 900 Kč místo 9 900 Kč).
+                            </p>
                         </div>
 
                         <div className="flex flex-col gap-3">
-                            <Button onClick={() => setLocation("/")} className="bg-violet-600 hover:bg-violet-700 text-white rounded-xl py-3 font-semibold transition-colors">
+                            <Button onClick={() => setLocation("/")} className="bg-slate-800 hover:bg-slate-700 text-white rounded-xl py-3 font-semibold transition-colors">
                                 Zpět na hlavní web
                             </Button>
                         </div>
@@ -193,9 +242,25 @@ export default function AuditZdarma() {
                                 ztrácí poptávky.
                             </span>
                         </h1>
-                        <p className="text-slate-400 text-base max-w-2xl mx-auto leading-relaxed">
+                        <p className="text-slate-400 text-base max-w-2xl mx-auto leading-relaxed mb-6">
                             Zjistěte, kde váš web ztrácí poptávky. Ruční QA kontrola SEO, formulářů, mobilního zobrazení, měření a konverzí. Bez závazku.
                         </p>
+
+                        {/* Instant 1-Click Micro-commitment input */}
+                        {formStep === 1 && (
+                            <form onSubmit={handleNextStep} className="max-w-md mx-auto flex flex-col sm:flex-row gap-2 bg-white/5 border border-white/15 p-2 rounded-2xl shadow-xl">
+                                <Input
+                                    placeholder="www.vasweb.cz"
+                                    value={formData.webUrl}
+                                    onChange={e => setFormData({ ...formData, webUrl: e.target.value })}
+                                    className="bg-slate-900/80 border-slate-700 text-white rounded-xl placeholder:text-slate-500 text-sm flex-1"
+                                    required
+                                />
+                                <Button type="submit" className="bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl px-5 py-2.5 text-xs whitespace-nowrap">
+                                    Spustit analýzu zdarma →
+                                </Button>
+                            </form>
+                        )}
                     </div>
 
                     {/* ── Mock report preview toggle ── */}
@@ -268,11 +333,20 @@ export default function AuditZdarma() {
                     </div>
 
                     {/* ── Main grid: form + sidebar ── */}
-                    <div className="grid md:grid-cols-12 gap-8 items-start mb-20">
+                    <div className="grid md:grid-cols-12 gap-8 items-start mb-20" id="audit-form">
                         {/* Form */}
                         <div className="md:col-span-7 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl shadow-black/30">
-                            <h2 className="text-lg font-bold mb-1 text-white">Údaje pro vypracování auditu</h2>
-                            <p className="text-xs text-slate-500 mb-5">Vyplňte formulář a do 24 hodin vám pošleme analýzu.</p>
+                            {/* Step Indicator */}
+                            <div className="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                                <div>
+                                    <h2 className="text-lg font-bold text-white">Údaje pro vypracování auditu</h2>
+                                    <p className="text-xs text-slate-500">Vyplňte formulář a do 24 hodin vám pošleme analýzu.</p>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-violet-500/10 border border-violet-500/30 px-2.5 py-1 rounded-full text-[10px] font-bold text-violet-300">
+                                    <span>Krok {formStep} ze 2</span>
+                                </div>
+                            </div>
+
                             <form onSubmit={handleSubmit} onFocusCapture={() => trackFormStart("audit-zdarma", "audit_start")} className="space-y-4">
                                 <div>
                                     <Label htmlFor="webUrl" className="text-xs font-semibold text-slate-300">URL vašeho webu *</Label>
@@ -427,6 +501,55 @@ export default function AuditZdarma() {
 
                 </div>
             </main>
+
+            {/* Exit Intent Modal */}
+            <AnimatePresence>
+                {showExitModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            className="bg-[#0f172a] border border-violet-500/30 rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl relative"
+                        >
+                            <button
+                                onClick={() => { setShowExitModal(false); setExitModalDismissed(true); }}
+                                className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-full bg-white/5"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                            <div className="w-12 h-12 rounded-2xl bg-violet-500/20 border border-violet-500/30 text-violet-300 flex items-center justify-center mb-4">
+                                <Sparkles className="w-6 h-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">Chcete jen 3 nejčastější tipy?</h3>
+                            <p className="text-xs text-slate-400 leading-relaxed mb-5">
+                                Pokud nechcete vyplňovat formulář, pošleme vám e-mailem stručný přehled 3 konverzních chyb, které nejčastěji odrazují zákazníky z českých webů.
+                            </p>
+                            <form
+                                onSubmit={(e) => {
+                                    e.preventDefault();
+                                    setShowExitModal(false);
+                                    setExitModalDismissed(true);
+                                    toast.success("Tipy byly odeslány na e-mail.");
+                                }}
+                                className="space-y-3"
+                            >
+                                <Input
+                                    type="email"
+                                    placeholder="vas@email.cz"
+                                    value={formData.email}
+                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                    className="bg-slate-900 border-slate-800 text-white text-xs rounded-xl"
+                                    required
+                                />
+                                <Button type="submit" className="w-full bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs py-2.5 rounded-xl">
+                                    Získat 3 konverzní tipy zdarma →
+                                </Button>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
