@@ -7,7 +7,7 @@ import { notifyOwner } from "./notify";
 import { sendOrderConfirmationEmail } from "./email-service";
 import { generateAuditNurtureSequence } from "./audit-nurture";
 import { invokeLLM } from "./_core/llm";
-import { SKILLS, getSkill, buildSystemPrompt } from "./agent-skills";
+import { PUBLIC_SKILLS, getPublicSkill, getRoutedSkill, getSkill, buildSystemPrompt } from "./agent-skills";
 import { SALES_PERSONAS, getPersona, listPersonas, personaPublicInfo, buildPersonaSystemPrompt } from "./sales-personas";
 import { getSalesConversation, upsertSalesConversation, addSalesMessage, getSalesMessages, incrementSalesMessageCount, captureSalesLead, getAllSalesConversations } from "./db";
 import Stripe from "stripe";
@@ -1315,7 +1315,7 @@ export const appRouter = router({
   // AI Agents — skills library + orchestrated chat
   agents: router({
     listSkills: protectedProcedure.query(() => {
-      return SKILLS.map(s => ({
+      return PUBLIC_SKILLS.map(s => ({
         id: s.id,
         name: s.name,
         description: s.description,
@@ -1335,6 +1335,10 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         if (!ctx.user) throw new Error("Unauthorized");
+        const requestedSkillId = input.skillId || input.agentType;
+        if (!getPublicSkill(requestedSkillId)) {
+          throw new Error("Unknown or unavailable specialist");
+        }
         const result = await createAgentSession({
           userId: ctx.user.id,
           agentType: input.agentType,
@@ -1378,8 +1382,11 @@ export const appRouter = router({
 
         // Get skill system prompt
         const skill = getSkill(session.skillId || session.agentType);
+        const delegatedSkill = skill?.id === "cmo"
+          ? getRoutedSkill(input.message)
+          : undefined;
         const systemPrompt = skill
-          ? buildSystemPrompt(skill, brandMemory)
+          ? buildSystemPrompt(skill, brandMemory, delegatedSkill)
           : buildSystemPrompt({ id: 'custom', name: 'AI Agent', systemPrompt: 'Jsi pomocný AI asistent pro marketing a podnikání.', suggestedPrompts: [], category: '', icon: '🤖', description: '' }, brandMemory);
 
         // Load conversation history

@@ -292,7 +292,7 @@ export default function Home({ variant = "A" }: HomeProps) {
               <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6 leading-tight">Poptávky, rezervace a objednávky bez chaosu</h2>
               <p className="text-lg text-slate-600 mb-8 leading-relaxed">
                 ONYX OS je zázemí, které propojí web s vaším každodenním provozem. Nový zájemce dostane rychlé potvrzení,
-                vy uvidíte vše důležité na jednom místě a žádný další krok nemusíte lovit mezi e-maily a poznámkami.
+                vy uvidíte vše důležité na jednom místě a žádný další krok nemusíte lovit mezi e-maily a poznámky.
               </p>
               <ul className="space-y-4 mb-8">
                 {[
