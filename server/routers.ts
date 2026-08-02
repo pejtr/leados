@@ -20,6 +20,9 @@ import { CHECKOUT_OFFER_IDS } from "../shared/service-catalog";
 import { PUBLIC_SITE_URL } from "../shared/brand-config";
 import { recordPaidCheckoutSession } from "./payment-service";
 import { enforcePublicRateLimit, hasValidSharedSecret } from "./public-request-guard";
+import { addProspect, qualifyProspect, getQualifiedProspects, getProspectStats, importProspectsFromCsv, type LinkedInProfile, type IcpCriteria } from "./prospecting";
+import { createSequence, activateSequence, sendStepMessage, executeSequences, getSequenceStats, createOutreachTemplate, getTemplatesByCategory, updateTemplatePerformance } from "./sequence-engine";
+import { generateOutreachMessage } from "./outreach-agent";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -1523,6 +1526,184 @@ export const appRouter = router({
           : null,
       };
     }),
+  }),
+
+  // ─── LinkedIn Outreach System ──────────────────────────────────────────────
+  outreach: router({
+    // Admin: import prospects from CSV
+    importProspects: protectedProcedure
+      .input(z.object({
+        csvData: z.string().min(1),
+        icp: z.object({
+          industries: z.array(z.string()).optional(),
+          titles: z.array(z.string()).optional(),
+          revenueRange: z.string().optional(),
+          employeeCount: z.string().optional(),
+          location: z.string().optional(),
+          minScore: z.number().min(0).max(100).default(50),
+        }),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await importProspectFromCsv(input.csvData, input.icp as IcpCriteria);
+      }),
+
+    // Admin: get prospect stats
+    getProspectStats: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+      return await getProspectStats();
+    }),
+
+    // Admin: get qualified prospects
+    getQualifiedProspects: protectedProcedure
+      .input(z.object({
+        icp: z.object({
+          industries: z.array(z.string()).optional(),
+          titles: z.array(z.string()).optional(),
+          revenueRange: z.string().optional(),
+          employeeCount: z.string().optional(),
+          location: z.string().optional(),
+          minScore: z.number().min(0).max(100).default(50),
+        }),
+        limit: z.number().default(50),
+      }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await getQualifiedProspects(input.icp as IcpCriteria, input.limit);
+      }),
+
+    // Admin: qualify a prospect
+    qualifyProspect: protectedProcedure
+      .input(z.object({
+        prospectId: z.number().int().positive(),
+        icp: z.object({
+          industries: z.array(z.string()).optional(),
+          titles: z.array(z.string()).optional(),
+          revenueRange: z.string().optional(),
+          employeeCount: z.string().optional(),
+          location: z.string().optional(),
+          minScore: z.number().min(0).max(100).default(50),
+        }),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await qualifyProspect(input.prospectId, input.icp as IcpCriteria);
+      }),
+
+    // Admin: create outreach sequence
+    createSequence: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        description: z.string().optional(),
+        targetIndustry: z.string().optional(),
+        targetTitle: z.string().optional(),
+        targetRevenue: z.string().optional(),
+        steps: z.array(z.object({
+          stepNumber: z.number().int().positive(),
+          stepType: z.enum(["linkedin_connect", "linkedin_message", "email", "sms", "whatsapp", "wait"]),
+          delayDays: z.number().default(0),
+          delayHours: z.number().default(0),
+          messageTemplate: z.string().optional(),
+          messageSubject: z.string().optional(),
+          condition: z.string().optional(),
+        })),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await createSequence({
+          name: input.name,
+          description: input.description,
+          targetIndustry: input.targetIndustry,
+          targetTitle: input.targetTitle,
+          targetRevenue: input.targetRevenue,
+          steps: input.steps.map(s => ({
+            stepNumber: s.stepNumber,
+            stepType: s.stepType,
+            delayDays: s.delayDays,
+            delayHours: s.delayHours,
+            messageTemplate: s.messageTemplate,
+            messageSubject: s.messageSubject,
+            condition: s.condition,
+          })),
+        });
+      }),
+
+    // Admin: activate sequence
+    activateSequence: protectedProcedure
+      .input(z.object({ sequenceId: z.number().int().positive() }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await activateSequence(input.sequenceId);
+      }),
+
+    // Admin: send step message
+    sendStepMessage: protectedProcedure
+      .input(z.object({
+        sequenceId: z.number().int().positive(),
+        stepId: z.number().int().positive(),
+        prospectId: z.number().int().positive(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await sendStepMessage(input);
+      }),
+
+    // Admin: execute sequences (cron job)
+    executeSequences: protectedProcedure
+      .mutation(async ({ ctx }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await executeSequences();
+      }),
+
+    // Admin: get sequence stats
+    getSequenceStats: protectedProcedure
+      .input(z.object({ sequenceId: z.number().int().positive() }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await getSequenceStats(input.sequenceId);
+      }),
+
+    // Admin: create outreach template
+    createTemplate: protectedProcedure
+      .input(z.object({
+        name: z.string().min(1).max(255),
+        category: z.enum(["connection_request", "first_message", "follow_up", "breakup"]),
+        industry: z.string().optional(),
+        title: z.string().min(1).max(255),
+        content: z.string().min(1),
+        variables: z.array(z.string()).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await createOutreachTemplate(input);
+      }),
+
+    // Admin: get templates by category
+    getTemplates: protectedProcedure
+      .input(z.object({
+        category: z.enum(["connection_request", "first_message", "follow_up", "breakup"]),
+        industry: z.string().optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await getTemplatesByCategory(input.category, input.industry);
+      }),
+
+    // Admin: generate AI message for prospect
+    generateMessage: protectedProcedure
+      .input(z.object({
+        prospectId: z.number().int().positive(),
+        messageType: z.enum(["connection_request", "first_message", "follow_up", "breakup"]),
+        templateId: z.number().int().positive().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
+        return await generateOutreachMessage({
+          prospectId: input.prospectId,
+          messageType: input.messageType,
+          templateId: input.templateId,
+        });
+      }),
   }),
 });
 

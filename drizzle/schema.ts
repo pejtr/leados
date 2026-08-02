@@ -277,3 +277,114 @@ export const salesMessages = mysqlTable("sales_messages", {
 
 export type SalesMessage = typeof salesMessages.$inferSelect;
 export type InsertSalesMessage = typeof salesMessages.$inferInsert;
+
+// ─── LinkedIn Outreach System ─────────────────────────────────────────────────
+
+export const prospects = mysqlTable("prospects", {
+  id: int("id").autoincrement().primaryKey(),
+  linkedinUrl: varchar("linkedinUrl", { length: 500 }),
+  linkedinId: varchar("linkedinId", { length: 100 }), // LinkedIn profile ID
+  name: varchar("name", { length: 255 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  phone: varchar("phone", { length: 20 }),
+  company: varchar("company", { length: 255 }),
+  companyWebsite: varchar("companyWebsite", { length: 500 }),
+  title: varchar("title", { length: 255 }), // Job title
+  industry: varchar("industry", { length: 100 }),
+  employeeCount: varchar("employeeCount", { length: 50 }), // e.g., "1-10", "11-50"
+  revenue: varchar("revenue", { length: 50 }), // e.g., "2-5 mil. Kč"
+  location: varchar("location", { length: 255 }),
+  about: text("about"), // LinkedIn "About" section
+  currentRole: text("currentRole"), // Current job description
+  painPoints: text("painPoints"), // AI-identified pain points
+  icpScore: int("icpScore").default(0).notNull(), // 0-100 ICP match score
+  icpReason: text("icpReason"), // Why they match ICP
+  status: mysqlEnum("status", ["new", "qualified", "contacted", "replied", "converted", "rejected", "unqualified"]).default("new").notNull(),
+  source: varchar("source", { length: 100 }), // how they were found
+  tags: text("tags"), // JSON array of tags
+  notes: text("notes"),
+  lastContactedAt: timestamp("lastContactedAt"),
+  lastRepliedAt: timestamp("lastRepliedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Prospect = typeof prospects.$inferSelect;
+export type InsertProspect = typeof prospects.$inferInsert;
+
+export const outreachSequences = mysqlTable("outreach_sequences", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  targetIndustry: varchar("targetIndustry", { length: 100 }),
+  targetTitle: varchar("targetTitle", { length: 255 }),
+  targetRevenue: varchar("targetRevenue", { length: 50 }),
+  status: mysqlEnum("status", ["draft", "active", "paused", "completed"]).default("draft").notNull(),
+  totalSteps: int("totalSteps").default(0).notNull(),
+  totalProspects: int("totalProspects").default(0).notNull(),
+  totalContacted: int("totalContacted").default(0).notNull(),
+  totalReplied: int("totalReplied").default(0).notNull(),
+  totalConverted: int("totalConverted").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type OutreachSequence = typeof outreachSequences.$inferSelect;
+export type InsertOutreachSequence = typeof outreachSequences.$inferInsert;
+
+export const outreachSteps = mysqlTable("outreach_steps", {
+  id: int("id").autoincrement().primaryKey(),
+  sequenceId: int("sequenceId").notNull().references(() => outreachSequences.id),
+  stepNumber: int("stepNumber").notNull(), // 1, 2, 3...
+  stepType: mysqlEnum("stepType", ["linkedin_connect", "linkedin_message", "email", "sms", "whatsapp", "wait"]).notNull(),
+  delayDays: int("delayDays").default(0).notNull(), // Days to wait before this step
+  delayHours: int("delayHours").default(0).notNull(), // Hours to wait
+  messageTemplate: text("messageTemplate"), // AI prompt or template
+  messageSubject: varchar("messageSubject", { length: 500 }), // For email steps
+  condition: varchar("condition", { length: 100 }), // e.g., "no_reply", "replied", "connected"
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type OutreachStep = typeof outreachSteps.$inferSelect;
+export type InsertOutreachStep = typeof outreachSteps.$inferInsert;
+
+export const outreachMessages = mysqlTable("outreach_messages", {
+  id: int("id").autoincrement().primaryKey(),
+  sequenceId: int("sequenceId").notNull().references(() => outreachSequences.id),
+  stepId: int("stepId").notNull().references(() => outreachSteps.id),
+  prospectId: int("prospectId").notNull().references(() => prospects.id),
+  stepType: varchar("stepType", { length: 50 }).notNull(),
+  subject: varchar("subject", { length: 500 }),
+  content: text("content").notNull(),
+  status: mysqlEnum("status", ["pending", "sent", "delivered", "opened", "clicked", "replied", "bounced", "failed"]).default("pending").notNull(),
+  sentAt: timestamp("sentAt"),
+  deliveredAt: timestamp("deliveredAt"),
+  openedAt: timestamp("openedAt"),
+  repliedAt: timestamp("repliedAt"),
+  replyContent: text("replyContent"),
+  errorMessage: text("errorMessage"),
+  metadata: text("metadata"), // JSON: linkedin_message_id, email_id, etc.
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type OutreachMessage = typeof outreachMessages.$inferSelect;
+export type InsertOutreachMessage = typeof outreachMessages.$inferInsert;
+
+export const outreachTemplates = mysqlTable("outreach_templates", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  category: varchar("category", { length: 100 }), // connection_request, first_message, follow_up, breakup
+  industry: varchar("industry", { length: 100 }),
+  title: varchar("title", { length: 255 }),
+  content: text("content").notNull(), // AI prompt or template
+  variables: text("variables"), // JSON array of variable names
+  performanceScore: int("performanceScore").default(0).notNull(), // 0-100 based on reply rate
+  totalUses: int("totalUses").default(0).notNull(),
+  totalReplies: int("totalReplies").default(0).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type OutreachTemplate = typeof outreachTemplates.$inferSelect;
+export type InsertOutreachTemplate = typeof outreachTemplates.$inferInsert;

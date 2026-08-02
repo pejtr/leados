@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { OptimateoLogo } from "@/components/OptimateoLogo";
-import { ArrowLeft, ArrowRight, Check, ShieldCheck, ChevronDown, ChevronUp, TrendingDown, Zap, BarChart3, Calendar, Clock, Sparkles, X, Gift } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ShieldCheck, ChevronDown, ChevronUp, TrendingDown, Zap, BarChart3, Calendar, Clock, Sparkles, X, Gift, Star, Users, Target, Eye, Timer, FileText, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { isChannelConsented } from "@/components/CookieConsentBanner";
 import { trackLinkedInConversion } from "@/lib/linkedin";
@@ -88,6 +88,25 @@ const mockIssues = [
     },
 ];
 
+// ─── Authority data ───────────────────────────────────────────────────────────
+const authorityStats = [
+    { icon: Users, value: "100+", label: "provedených auditů" },
+    { icon: Star, value: "4,9", label: "průměrné hodnocení" },
+    { icon: Target, value: "73 %", label: "klientů pokračuje v opravě" },
+];
+
+const authorityLogos = [
+    "PPL", "Efekta", "ŠKODA", "E.ON", "ČEZ", "ČSOB leasing",
+];
+
+// ─── Segment data ─────────────────────────────────────────────────────────────
+const segments = [
+    { id: "eshopy", label: "E-shopy", desc: "Ztrácíte objednávky kvůli chybám v košíku nebo checkoutu?" },
+    { id: "sluzby", label: "Služby & firmy", desc: "Zákazníci volají místo aby poptali online?" },
+    { id: "restaurace", label: "Restaurace & gastro", desc: "Menu, rezervace a objednávky nefungují jak mají?" },
+    { id: "obecne", label: "Obecně", desc: "Obecný audit pro jakýkoliv typ webu." },
+];
+
 export default function AuditZdarma() {
     const [, setLocation] = useLocation();
     const [submitted, setSubmitted] = useState(false);
@@ -96,6 +115,7 @@ export default function AuditZdarma() {
     const [formStep, setFormStep] = useState<1 | 2>(1);
     const [showExitModal, setShowExitModal] = useState(false);
     const [exitModalDismissed, setExitModalDismissed] = useState(false);
+    const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         webUrl: "",
@@ -106,6 +126,15 @@ export default function AuditZdarma() {
     });
 
     const createInquiry = trpc.inquiries.create.useMutation();
+
+    // Detect segment from URL query param
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const segment = params.get("segment");
+        if (segment && segments.some(s => s.id === segment)) {
+            setSelectedSegment(segment);
+        }
+    }, []);
 
     // Exit Intent Handler
     useEffect(() => {
@@ -141,13 +170,14 @@ export default function AuditZdarma() {
                 name: `Audit: ${formData.webUrl}`,
                 email: formData.email,
                 phone: formData.phone,
-                businessDescription: `Obor: ${formData.businessType || "neuvedeno"}. Cíl: ${formData.mainGoal || "neuvedeno"}`,
+                businessDescription: `Obor: ${formData.businessType || "neuvedeno"}. Cíl: ${formData.mainGoal || "neuvedeno"}. Segment: ${selectedSegment || "obecne"}`,
                 packageType: "audit-zdarma",
-                source: "audit-zdarma-landing",
+                source: `audit-zdarma-landing${selectedSegment ? `-${selectedSegment}` : ""}`,
                 details: {
                     webUrl: formData.webUrl,
                     businessType: formData.businessType,
                     mainGoal: formData.mainGoal,
+                    segment: selectedSegment,
                     auditRequested: true,
                     ...getAttribution(),
                 },
@@ -237,14 +267,45 @@ export default function AuditZdarma() {
                             Bezplatný audit vašeho webu
                         </span>
                         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mt-4 mb-4 leading-tight">
-                            5 konkrétních chyb do 24 hodin, kde váš web{" "}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-400 to-cyan-400">
-                                ztrácí poptávky.
+                            Vaším webem prochází{" "}
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">
+                                100 lidí. 95 odejde bez poptávky.
                             </span>
                         </h1>
                         <p className="text-slate-400 text-base max-w-2xl mx-auto leading-relaxed mb-6">
-                            Zjistěte, kde váš web ztrácí poptávky. Ruční QA kontrola SEO, formulářů, mobilního zobrazení, měření a konverzí. Bez závazku.
+                            Zjistěte přesně, kde a proč ztrácíte zákazníky. Ruční QA kontrola SEO, formulářů, mobilního zobrazení, měření a konverzí. Výsledek do 24 hodin.
                         </p>
+
+                        {/* Price anchor */}
+                        <div className="flex items-center justify-center gap-3 mb-6">
+                            <span className="text-slate-500 text-sm line-through">Běžná cena: {formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT)}</span>
+                            <span className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full text-sm font-bold">DNES ZDARMA</span>
+                        </div>
+
+                        {/* What you get - clear format */}
+                        <div className="flex flex-wrap items-center justify-center gap-4 mb-8 text-xs text-slate-400">
+                            <span className="flex items-center gap-1.5"><FileText className="w-3.5 h-3.5 text-violet-400" /> 5 konkrétních bodů</span>
+                            <span className="flex items-center gap-1.5"><Timer className="w-3.5 h-3.5 text-violet-400" /> Do 24 hodin</span>
+                            <span className="flex items-center gap-1.5"><Eye className="w-3.5 h-3.5 text-violet-400" /> Screenshots problémů</span>
+                            <span className="flex items-center gap-1.5"><MessageSquare className="w-3.5 h-3.5 text-violet-400" /> Bez závazků</span>
+                        </div>
+
+                        {/* Segment selector */}
+                        <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+                            {segments.map((seg) => (
+                                <button
+                                    key={seg.id}
+                                    onClick={() => setSelectedSegment(seg.id)}
+                                    className={`px-4 py-2 rounded-full text-xs font-semibold transition-all border ${
+                                        selectedSegment === seg.id
+                                            ? "bg-violet-600 text-white border-violet-500"
+                                            : "bg-white/5 text-slate-400 border-white/10 hover:bg-white/10 hover:text-white"
+                                    }`}
+                                >
+                                    {seg.label}
+                                </button>
+                            ))}
+                        </div>
 
                         {/* Instant 1-Click Micro-commitment input */}
                         {formStep === 1 && (
@@ -261,6 +322,31 @@ export default function AuditZdarma() {
                                 </Button>
                             </form>
                         )}
+                    </div>
+
+                    {/* ── Authority Section ── */}
+                    <div className="mb-12">
+                        <div className="text-center mb-6">
+                            <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Komu už jsme pomohli</p>
+                        </div>
+                        <div className="flex flex-wrap items-center justify-center gap-6 mb-6">
+                            {authorityLogos.map((logo) => (
+                                <span key={logo} className="text-slate-500 text-sm font-semibold opacity-60 hover:opacity-100 transition-opacity">
+                                    {logo}
+                                </span>
+                            ))}
+                        </div>
+                        <div className="flex items-center justify-center gap-8">
+                            {authorityStats.map((stat) => (
+                                <div key={stat.label} className="text-center">
+                                    <div className="flex items-center justify-center gap-1.5 mb-1">
+                                        <stat.icon className="w-4 h-4 text-violet-400" />
+                                        <span className="text-2xl font-extrabold text-white">{stat.value}</span>
+                                    </div>
+                                    <p className="text-xs text-slate-500">{stat.label}</p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     {/* ── Mock report preview toggle ── */}
@@ -294,9 +380,9 @@ export default function AuditZdarma() {
 
                                         <div className="grid grid-cols-3 gap-3 mb-6 text-center">
                                             {[
-                                                { v: "2.1 %", l: "Konverzní poměr", trend: "↓ pod průměr" },
-                                                { v: "6.2 s", l: "Rychlost načítání", trend: "↓ příliš pomalé" },
-                                                { v: "8", l: "Polí ve formuláři", trend: "↓ příliš mnoho" },
+                                                { v: "2.1 %", l: "Konverzní poměr", trend: "↓ 95 % odchází" },
+                                                { v: "6.2 s", l: "Rychlost načítání", trend: "↓ 53 % ztráta" },
+                                                { v: "8", l: "Polí ve formuláři", trend: "↓ 40 % nedokončí" },
                                             ].map((m, i) => (
                                                 <div key={i} className="bg-white/5 rounded-2xl p-3 border border-white/10">
                                                     <div className="text-xl font-extrabold text-white">{m.v}</div>
@@ -454,9 +540,13 @@ export default function AuditZdarma() {
                                 <h3 className="font-bold text-sm mb-2 flex items-center gap-2 text-violet-300">
                                     <span>⏰</span> Proč to děláme zdarma?
                                 </h3>
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                <p className="text-xs text-slate-400 leading-relaxed mb-3">
                                     Chceme vám ukázat konkrétní slabá místa vašeho webu. Pokud vám výstup dává smysl, rádi probereme <strong className="text-white">{CORE_OFFERS.ONYX_OS_AUDIT.name}</strong> za {formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT)} — kompletní report s plánem oprav. Pokud ne, tipy si nechte a předejte svému programátorovi.
                                 </p>
+                                <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+                                    <span className="text-[10px] text-slate-500 line-through">{formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT)}</span>
+                                    <span className="text-[10px] font-bold text-emerald-400">DNES ZDARMA</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -465,7 +555,7 @@ export default function AuditZdarma() {
                     <div className="mb-12">
                         <div className="text-center mb-8">
                             <span className="text-xs font-bold text-violet-400 uppercase tracking-widest bg-violet-500/10 border border-violet-500/20 px-3 py-1 rounded-full">
-                                Cenový schod
+                                Co dostanete v auditu
                             </span>
                             <h2 className="text-2xl font-extrabold text-white mt-4 mb-2">Od zájmu k systému</h2>
                             <p className="text-slate-500 text-sm">Začněte zdarma. Každý další krok přináší měřitelný výsledek.</p>

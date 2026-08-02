@@ -1,0 +1,174 @@
+name: Project management / JIRA-style task
+description: Epic, story, Kanban task, DevOps work item, release coordination or delivery blocker.
+title: "[PM]: "
+labels:
+  - "type:pm"
+  - "status:planned"
+body:
+  - type: dropdown
+    id: work_item_type
+    attributes:
+      label: Work item type
+      description: Choose the closest JIRA/Kanban style work item type.
+      options:
+        - Epic
+        - User story
+        - Engineering task
+        - QA task
+        - DevOps task
+        - Release task
+        - Incident follow-up
+        - Delivery blocker
+        - Backlog grooming item
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What should be true when this work item is completed?
+      placeholder: "Example: Users can complete onboarding without support, and the activation event is tracked reliably."
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Product, business, technical and release context.
+      placeholder: "Product area, affected users, linked PRs, staging URL, KPI, release deadline, known constraints."
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and out of scope
+      description: Define what is included and explicitly excluded.
+      placeholder: |
+        In scope:
+        - ...
+
+        Out of scope:
+        - ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance criteria
+      description: Define testable acceptance criteria.
+      placeholder: |
+        - [ ] AC1: ...
+        - [ ] AC2: ...
+        - [ ] AC3: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: definition_of_done
+    attributes:
+      label: Definition of Done
+      description: What evidence is required before this item can move to Done?
+      placeholder: |
+        - [ ] PR opened and linked
+        - [ ] Build/lint/test evidence attached
+        - [ ] QA checklist completed
+        - [ ] Staging verified if relevant
+        - [ ] Rollback plan documented
+        - [ ] Dashboard/board updated
+    validations:
+      required: true
+
+  - type: input
+    id: owner_agent
+    attributes:
+      label: Owner / agent
+      description: Human owner or AI agent responsible for the next action.
+      placeholder: "Example: frontend_implementer, qa_brand_reviewer, release_manager, Petr"
+    validations:
+      required: true
+
+  - type: input
+    id: branch
+    attributes:
+      label: Suggested branch
+      description: Recommended branch/worktree name.
+      placeholder: "agent/project-manager/20260613-onboarding-story-split"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: kanban_status
+    attributes:
+      label: Kanban status
+      description: Current board status.
+      options:
+        - Backlog
+        - Ready
+        - Agent Running / In Progress
+        - PR / Review
+        - Staging
+        - Ready to Merge
+        - Done
+        - Blocked
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - priority:p0
+        - priority:p1
+        - priority:p2
+        - priority:p3
+    validations:
+      required: true
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and blockers
+      description: List technical, product, access, review, QA or release dependencies.
+      placeholder: |
+        Dependencies:
+        - ...
+
+        Blockers:
+        - ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: qa_release
+    attributes:
+      label: QA, DevOps and release notes
+      description: Tests, release gates, monitoring, rollout and rollback notes.
+      placeholder: |
+        QA:
+        - ...
+
+        DevOps/release:
+        - ...
+
+        Rollback:
+        - ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: links
+    attributes:
+      label: Links
+      description: Related PRs, issues, designs, staging URLs, logs, dashboards or docs.
+      placeholder: |
+        - PR:
+        - Staging:
+        - Dashboard:
+        - Related issues:
+    validations:
+      required: false
