@@ -21,8 +21,10 @@ import { PUBLIC_SITE_URL } from "../shared/brand-config";
 import { recordPaidCheckoutSession } from "./payment-service";
 import { enforcePublicRateLimit, hasValidSharedSecret } from "./public-request-guard";
 import { addProspect, qualifyProspect, getQualifiedProspects, getProspectStats, importProspectsFromCsv, type LinkedInProfile, type IcpCriteria } from "./prospecting";
-import { createSequence, activateSequence, sendStepMessage, executeSequences, getSequenceStats, createOutreachTemplate, getTemplatesByCategory, updateTemplatePerformance } from "./sequence-engine";
-import { generateOutreachMessage } from "./outreach-agent";
+import { createSequence, activateSequence, sendStepMessage, executeSequences, getSequenceStats } from "./sequence-engine";
+import { generateOutreachMessage, createOutreachTemplate, getTemplatesByCategory, updateTemplatePerformance } from "./outreach-agent";
+import { runDailyProspectingQueue, advanceLeadState, markManuallySent } from "./leados/engine";
+import { type IcpContract } from "./prospecting";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -866,6 +868,70 @@ export const appRouter = router({
         return { ok: true };
       }),
 
+      linkedin: router({
+        /** Spustí denní queue: výzkum → scoring → zpráva → Creep Guard → fronta k ručnímu odeslání. */
+        runQueue: protectedProcedure
+          .input((data: unknown) => {
+            const obj = data as Record<string, unknown>;
+            const icp: IcpContract = {
+              offer: String(obj.offer || "ONYX WEB Audit"),
+              segment: String(obj.segment || "české B2B firmy a lokální služby"),
+              size: obj.size ? String(obj.size) : undefined,
+              decisionMaker: Array.isArray(obj.decisionMaker) ? (obj.decisionMaker as string[]) : undefined,
+              signals: Array.isArray(obj.signals) ? (obj.signals as string[]) : undefined,
+              exclude: Array.isArray(obj.exclude) ? (obj.exclude as string[]) : undefined,
+              minScore: obj.minScore != null ? Number(obj.minScore) : 50,
+              maxCandidatesPerDay: obj.maxCandidatesPerDay != null ? Number(obj.maxCandidatesPerDay) : 10,
+            };
+            return icp;
+          })
+          .mutation(async ({ input }) => {
+            return await runDailyProspectingQueue(input);
+          }),
+
+        /** Seznam prospectů s aktuálním stavem (leadState uložen v notes). */
+        listProspects: protectedProcedure.query(async () => {
+          const db = await require("./db").getDb();
+          if (!db) throw new Error("Database not available");
+          const { prospects } = await import("../drizzle/schema");
+          const { desc } = await import("drizzle-orm");
+
+          const all = await db.select().from(prospects).orderBy(desc(prospects.createdAt));
+          return all.map((p: any) => {
+            let leadState = "DISCOVERED";
+            try {
+              const notes = p.notes ? JSON.parse(p.notes) : {};
+              leadState = notes.leadState || "DISCOVERED";
+            } catch { /* ignoruj */ }
+            return { ...p, leadState };
+          });
+        }),
+
+        /** Deterministický přechod stavu podle stavového automatu. */
+        advanceState: protectedProcedure
+          .input((data: unknown) => {
+            const obj = data as Record<string, unknown>;
+            return { prospectId: Number(obj.prospectId || 0), to: String(obj.to || "") };
+          })
+          .mutation(async ({ input }) => {
+            const ok = await advanceLeadState(input.prospectId, input.to as any);
+            if (!ok) throw new Error(`Neplatný přechod stavu do ${input.to}`);
+            return { ok: true };
+          }),
+
+        /** Volá člověk po ručním odeslání zprávy na LinkedInu. */
+        markSent: protectedProcedure
+          .input((data: unknown) => {
+            const obj = data as Record<string, unknown>;
+            return { prospectId: Number(obj.prospectId || 0) };
+          })
+          .mutation(async ({ input }) => {
+            const ok = await markManuallySent(input.prospectId);
+            if (!ok) throw new Error("Nepodařilo se označit jako odeslané");
+            return { ok: true };
+          }),
+      }),
+
     admin: router({
       dashboardStats: protectedProcedure.query(async ({ ctx }) => {
         if (ctx.user?.role !== "admin") throw new Error("Unauthorized");
@@ -1545,7 +1611,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         if (ctx.user?.role !== 'admin') throw new Error('Unauthorized');
-        return await importProspectFromCsv(input.csvData, input.icp as IcpCriteria);
+        return await importProspectsFromCsv(input.csvData, input.icp as IcpCriteria);
       }),
 
     // Admin: get prospect stats
