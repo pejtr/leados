@@ -37,6 +37,9 @@ const PaymentCancel = lazy(() => import("./pages/PaymentCancel"));
 const PricingPage = lazy(() => import("./pages/PricingPage"));
 const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const KalkulackaPage = lazy(() => import("./pages/KalkulackaPage"));
+const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
 
 function PageLoader() {
   return (
@@ -218,6 +221,9 @@ function Router() {
         <Route path="/crm-lead-system" component={CrmLeadSystem} />
         <Route path="/pricing" component={PricingPage} />
         <Route path="/portfolio" component={PortfolioPage} />
+        <Route path="/checkout" component={CheckoutPage} />
+        <Route path="/kalkulacka" component={KalkulackaPage} />
+        <Route path="/onboarding" component={OnboardingPage} />
         <Route path="/ochrana-osobnich-udaju" component={LegalPage} />
         <Route path="/cookies" component={LegalPage} />
         <Route path="/obchodni-podminky" component={LegalPage} />

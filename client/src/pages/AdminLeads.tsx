@@ -175,6 +175,17 @@ export default function AdminLeads() {
                         </Button>
                         <Button
                           size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const script = `Ahoj! Tady OPTIMATEO. Díval jsem se na váš web (${lead.name}) a vytvořil pro vás rychlý rozbor:\n1. CTA Tlačítko pod ohybem mobilu\n2. Rychlost načítání obrázků\n3. Formulář má příliš polí\n\nChcete to opravit přes náš Fix Sprint se slevou 1 000 Kč?`;
+                            navigator.clipboard.writeText(script);
+                            toast.success("Loom skript zkopírován do schránky!");
+                          }}
+                        >
+                          <FileCheck2 className="mr-1.5 h-4 w-4" /> Loom Skript
+                        </Button>
+                        <Button
+                          size="sm"
                           variant={lifecycle.proposal_sent ? "secondary" : "outline"}
                           disabled={Boolean(lifecycle.proposal_sent) || mutationPending}
                           onClick={() => lifecycleMutation.mutate({ inquiryId: lead.id, event: "proposal_sent" })}
