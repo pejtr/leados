@@ -234,7 +234,7 @@ export default function ComponentsShowcase() {
             Shadcn/ui Component Library
           </h2>
           <Button variant="outline" size="icon" onClick={toggleTheme}>
-            {theme === "light-classic" ? (
+            {theme === "light" ? (
               <Moon className="h-5 w-5" />
             ) : (
               <Sun className="h-5 w-5" />
@@ -1051,7 +1051,7 @@ export default function ComponentsShowcase() {
                         >
                           Cancel
                         </Button>
-                        <Button onClick={handleDialogSubmit}>Odeslat</Button>
+                        <Button onClick={handleDialogSubmit}>Submit</Button>
                       </div>
                     </DialogContent>
                   </Dialog>
@@ -1083,9 +1083,9 @@ export default function ComponentsShowcase() {
                         </DrawerDescription>
                       </DrawerHeader>
                       <DrawerFooter>
-                        <Button>Odeslat</Button>
+                        <Button>Submit</Button>
                         <DrawerClose asChild>
-                          <Button variant="outline">Zrušit</Button>
+                          <Button variant="outline">Cancel</Button>
                         </DrawerClose>
                       </DrawerFooter>
                     </DrawerContent>

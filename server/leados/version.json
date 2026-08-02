@@ -1,0 +1,22 @@
+{
+  "name": "leados-linkedin-opportunity-engine",
+  "version": "0.1.0",
+  "basedOn": "Analýza 'LinkedIn oslovování' (ChatGPT)",
+  "principles": [
+    "automate-research-qualify-personalize-plan",
+    "never-automate-linkedin-sending",
+    "evidence-first-personalization",
+    "creep-guard",
+    "state-machine-not-guessing",
+    "human-in-the-loop-send",
+    "experiment-variants"
+  ],
+  "files": [
+    "SKILL.md",
+    "icp.schema.json",
+    "lead-output.schema.json",
+    "message-rules.md",
+    "personalization-policy.md",
+    "compliance-policy.md"
+  ]
+}

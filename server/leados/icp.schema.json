@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ICP & Offer Contract",
+  "description": "Přesné zadání pro jedno hledání LinkedIn leadů. Bez této smlouvy engine neběží.",
+  "type": "object",
+  "required": ["offer", "segment", "decisionMaker"],
+  "additionalProperties": false,
+  "properties": {
+    "offer": {
+      "type": "string",
+      "description": "Nabídka, kterou prodáváme (např. ONYX WEB Audit)."
+    },
+    "segment": {
+      "type": "string",
+      "description": "Cílový segment (např. české B2B firmy nebo lokální služby)."
+    },
+    "size": {
+      "type": "string",
+      "description": "Velikost firmy (např. 5–100 zaměstnanců)."
+    },
+    "decisionMaker": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Rozhodovací role (majitel, CEO, marketing manager)."
+    },
+    "signals": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Pozitivní signály: zastaralý web, nefunkční formulář, slabé CTA, nábor marketéra, nová pobočka, růst, nový produkt."
+    },
+    "exclude": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Vyloučení: přímí konkurenti, firmy bez ověřitelné relevance, již oslovené kontakty."
+    },
+    "maxCandidatesPerDay": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 10,
+      "description": "Maximální počet nových kandidátů za den (LinkedIn limit + kvalita)."
+    }
+  }
+}

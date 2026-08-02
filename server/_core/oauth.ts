@@ -2,7 +2,6 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
-import { ENV } from "./env";
 import { sdk } from "./sdk";
 
 function getQueryParam(req: Request, key: string): string | undefined {
@@ -11,14 +10,6 @@ function getQueryParam(req: Request, key: string): string | undefined {
 }
 
 export function registerOAuthRoutes(app: Express) {
-  // Dev-only instant login endpoint — bypasses Manus OAuth
-  if (ENV.devAutoLogin && !ENV.isProduction) {
-    app.get("/api/dev/login", (_req: Request, res: Response) => {
-      res.redirect(302, "/dashboard");
-    });
-    console.log("[Dev] Login endpoint enabled: GET /api/dev/login");
-  }
-
   app.get("/api/oauth/callback", async (req: Request, res: Response) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");

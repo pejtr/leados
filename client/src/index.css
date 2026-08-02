@@ -40,186 +40,155 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  /* Atlantis custom tokens */
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  /* Atlantis brand colors */
-  --atlantis-teal: oklch(0.72 0.18 192);
-  --atlantis-indigo: oklch(0.55 0.24 278);
-  --atlantis-violet: oklch(0.60 0.22 290);
-  --atlantis-emerald: oklch(0.68 0.18 162);
-  --atlantis-pearl: oklch(0.97 0.006 240);
-  --atlantis-deep: oklch(0.14 0.04 240);
-  --atlantis-midnight: oklch(0.10 0.05 250);
 }
 
-/* ═══════════════════════════════════════════════════
-   ATLANTIS LIGHT THEME
-   Inspired by: Stargate Atlantis city interior + The Visitors future society
-   Reference: Financial dashboard with light pearl bg, dark accent cards,
-              teal/violet/indigo data visualization
-   ═══════════════════════════════════════════════════ */
+.legal-content h1 {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.legal-content h2 {
+  margin: 2rem 0 0.65rem;
+  font-size: 1.15rem;
+  font-weight: 750;
+  line-height: 1.4;
+}
+
+.legal-content p,
+.legal-content li,
+.legal-content address {
+  color: #475569;
+  line-height: 1.75;
+}
+
+.legal-content p + p {
+  margin-top: 0.75rem;
+}
+
+.legal-content ul {
+  display: grid;
+  gap: 0.5rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+
+.legal-content a {
+  color: #087fbd;
+  text-decoration: underline;
+}
+
+.legal-content table {
+  width: 100%;
+  min-width: 36rem;
+  margin-top: 0.75rem;
+  border-collapse: collapse;
+}
+
+.legal-content th,
+.legal-content td {
+  padding: 0.75rem;
+  color: #475569;
+  text-align: left;
+  vertical-align: top;
+  border: 1px solid #e2e8f0;
+}
+
+.legal-content th {
+  color: #0f172a;
+  font-size: 0.8rem;
+  background: #f8fafc;
+}
+
 :root {
-  --radius: 1rem;
-
-  /* Light pearl background — Atlantis city walls */
-  --background: oklch(0.965 0.008 240);
-  --foreground: oklch(0.18 0.04 250);
-  --card: oklch(0.99 0.004 240);
-  --card-foreground: oklch(0.18 0.04 250);
-  --popover: oklch(0.99 0.004 240);
-  --popover-foreground: oklch(0.18 0.04 250);
-
-  /* Bioluminescent teal primary — Ancient tech glow */
-  --primary: oklch(0.55 0.20 192);
-  --primary-foreground: oklch(0.99 0 0);
-
-  --secondary: oklch(0.93 0.012 240);
-  --secondary-foreground: oklch(0.28 0.04 250);
-  --muted: oklch(0.93 0.010 240);
-  --muted-foreground: oklch(0.52 0.02 250);
-  --accent: oklch(0.90 0.016 240);
-  --accent-foreground: oklch(0.18 0.04 250);
-
-  --destructive: oklch(0.58 0.22 27);
-  --destructive-foreground: oklch(0.98 0 0);
-
-  /* Subtle pearl borders */
-  --border: oklch(0.88 0.012 240);
-  --input: oklch(0.92 0.010 240);
-  --ring: oklch(0.55 0.20 192);
-
-  /* Chart colors — Atlantis spectrum */
-  --chart-1: oklch(0.55 0.20 192);   /* teal — primary */
-  --chart-2: oklch(0.55 0.24 278);   /* indigo */
-  --chart-3: oklch(0.68 0.18 162);   /* emerald */
-  --chart-4: oklch(0.60 0.22 290);   /* violet */
-  --chart-5: oklch(0.72 0.18 60);    /* amber */
-
-  /* Sidebar — slightly deeper pearl */
-  --sidebar: oklch(0.955 0.010 240);
-  --sidebar-foreground: oklch(0.22 0.04 250);
-  --sidebar-primary: oklch(0.55 0.20 192);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.90 0.016 240);
-  --sidebar-accent-foreground: oklch(0.18 0.04 250);
-  --sidebar-border: oklch(0.86 0.012 240);
-  --sidebar-ring: oklch(0.55 0.20 192);
-
-  /* Atlantis glow tokens */
-  --glow-teal: oklch(0.55 0.20 192 / 20%);
-  --glow-indigo: oklch(0.55 0.24 278 / 18%);
-  --glow-emerald: oklch(0.68 0.18 162 / 18%);
-
-  /* Dark card surfaces — like "Savings Over Time" card */
-  --dark-card: oklch(0.14 0.04 240);
-  --dark-card-2: oklch(0.10 0.05 250);
-
-  /* ONYX OS shell — royal blue with a restrained sky-blue glow */
-  --shell-surface: oklch(0.20 0.11 258 / 94%);
-  --shell-surface-strong: oklch(0.17 0.11 260 / 98%);
-  --shell-elevated: oklch(0.25 0.11 255 / 98%);
-  --shell-control: oklch(0.27 0.09 255);
-  --shell-border: oklch(0.78 0.10 235 / 18%);
-  --shell-shadow: oklch(0.08 0.08 265 / 32%);
-  --shell-glow: oklch(0.76 0.13 230 / 16%);
-}
-
-/* Dark mode — royal blue ONYX OS */
-.dark {
-  --background: oklch(0.19 0.09 258);
-  --foreground: oklch(0.93 0.008 240);
-  --card: oklch(0.23 0.085 256);
-  --card-foreground: oklch(0.93 0.008 240);
-  --popover: oklch(0.24 0.09 256);
-  --popover-foreground: oklch(0.93 0.008 240);
-  --primary: oklch(0.72 0.16 230);
-  --primary-foreground: oklch(0.16 0.08 258);
-  --secondary: oklch(0.28 0.085 256);
-  --secondary-foreground: oklch(0.82 0.012 240);
-  --muted: oklch(0.27 0.075 256);
-  --muted-foreground: oklch(0.69 0.035 240);
-  --accent: oklch(0.31 0.10 250);
-  --accent-foreground: oklch(0.93 0.008 240);
-  --destructive: oklch(0.58 0.22 27);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.78 0.10 235 / 15%);
-  --input: oklch(0.78 0.10 235 / 18%);
-  --ring: oklch(0.76 0.14 230);
-  --chart-1: oklch(0.65 0.20 192);
-  --chart-2: oklch(0.62 0.22 278);
-  --chart-3: oklch(0.72 0.18 162);
-  --chart-4: oklch(0.65 0.22 290);
-  --chart-5: oklch(0.75 0.18 60);
-  --sidebar: oklch(0.18 0.105 260);
-  --sidebar-foreground: oklch(0.86 0.02 240);
-  --sidebar-primary: oklch(0.74 0.15 230);
-  --sidebar-primary-foreground: oklch(0.16 0.08 258);
-  --sidebar-accent: oklch(0.28 0.09 255);
-  --sidebar-accent-foreground: oklch(0.93 0.008 240);
-  --sidebar-border: oklch(0.78 0.10 235 / 16%);
-  --sidebar-ring: oklch(0.76 0.14 230);
-}
-
-/* Light operational canvas inside the royal-blue application shell. */
-.onyx-workspace {
-  --background: oklch(0.965 0.012 245);
-  --foreground: oklch(0.22 0.045 255);
+  --font-sans: 'Plus Jakarta Sans', Inter, sans-serif;
+  --brand-night: #061421;
+  --brand-ink: #081521;
+  --brand-blue: #0788c4;
+  --brand-sky: #0ea5e9;
+  --brand-cyan: #39c6f0;
+  /* Legacy aliases keep older surfaces on the same OPTIMATEO palette. */
+  --brand-indigo: #087fbd;
+  --brand-violet: #0ea5e9;
+  --brand-magenta: #39c6f0;
+  --primary: oklch(0.62 0.17 238);
+  --primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.62 0.17 238);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --chart-1: oklch(0.67 0.16 235);
+  --chart-2: oklch(0.65 0.14 205);
+  --chart-3: oklch(0.64 0.14 170);
+  --chart-4: oklch(0.72 0.16 95);
+  --chart-5: oklch(0.64 0.2 35);
+  --radius: 0.5rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.235 0.015 65);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.045 255);
+  --card-foreground: oklch(0.235 0.015 65);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.045 255);
-  --primary: oklch(0.60 0.19 245);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.94 0.018 245);
-  --secondary-foreground: oklch(0.28 0.055 255);
-  --muted: oklch(0.94 0.014 245);
-  --muted-foreground: oklch(0.48 0.035 250);
-  --accent: oklch(0.91 0.035 238);
-  --accent-foreground: oklch(0.24 0.07 250);
-  --border: oklch(0.86 0.025 245);
-  --input: oklch(0.84 0.03 245);
-  --ring: oklch(0.66 0.17 235);
-  color: var(--foreground);
-  background: var(--background);
+  --popover-foreground: oklch(0.235 0.015 65);
+  --secondary: oklch(0.98 0.001 286.375);
+  --secondary-foreground: oklch(0.4 0.015 65);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.141 0.005 285.823);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.62 0.17 238);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.235 0.015 65);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.623 0.214 259.815);
 }
 
-/* ═══════════════════════════════════════════════════
-   BASE LAYER
-   ═══════════════════════════════════════════════════ */
+.dark {
+  --primary: oklch(0.72 0.15 230);
+  --primary-foreground: oklch(0.15 0.03 235);
+  --sidebar-primary: oklch(0.72 0.15 230);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --background: oklch(0.15 0.025 235);
+  --foreground: oklch(0.85 0.005 65);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.85 0.005 65);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.85 0.005 65);
+  --secondary: oklch(0.24 0.006 286.033);
+  --secondary-foreground: oklch(0.7 0.005 65);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
+  --accent-foreground:  oklch(0.92 0.005 65);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.72 0.15 230);
+  --chart-1: oklch(0.72 0.15 230);
+  --chart-2: oklch(0.7 0.14 195);
+  --chart-3: oklch(0.7 0.13 165);
+  --chart-4: oklch(0.76 0.16 95);
+  --chart-5: oklch(0.7 0.18 35);
+  --sidebar: oklch(0.21 0.006 285.885);
+  --sidebar-foreground: oklch(0.85 0.005 65);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
+  --sidebar-accent-foreground:  oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.488 0.243 264.376);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-
-  html {
-    font-family: 'Inter', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
-
   body {
     @apply bg-background text-foreground;
-    /* Atlantis ambient light — subtle teal and indigo gradients */
-    background-image:
-      radial-gradient(ellipse 70% 40% at 15% 10%, oklch(0.55 0.20 192 / 6%) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 35% at 85% 85%, oklch(0.55 0.24 278 / 5%) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 30% at 50% 50%, oklch(0.68 0.18 162 / 3%) 0%, transparent 60%);
-    background-attachment: fixed;
   }
-
-  .dark body {
-    background-image:
-      radial-gradient(ellipse 100% 58% at 50% -12%, oklch(0.76 0.13 230 / 22%) 0%, transparent 64%),
-      radial-gradient(ellipse 70% 45% at 100% 80%, oklch(0.62 0.16 205 / 10%) 0%, transparent 58%);
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', sans-serif;
-    letter-spacing: -0.02em;
-  }
-
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -233,15 +202,25 @@
   }
 }
 
-/* ═══════════════════════════════════════════════════
-   ATLANTIS COMPONENT CLASSES
-   ═══════════════════════════════════════════════════ */
 @layer components {
+  /**
+   * Custom container utility that centers content and adds responsive padding.
+   *
+   * This overrides Tailwind's default container behavior to:
+   * - Auto-center content (mx-auto)
+   * - Add responsive horizontal padding
+   * - Set max-width for large screens
+   *
+   * Usage: <div className="container">...</div>
+   *
+   * For custom widths, use max-w-* utilities directly:
+   * <div className="max-w-6xl mx-auto px-4">...</div>
+   */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem;
+    padding-left: 1rem; /* 16px - mobile padding */
     padding-right: 1rem;
   }
 
@@ -252,428 +231,16 @@
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem;
+      padding-left: 1.5rem; /* 24px - tablet padding */
       padding-right: 1.5rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem;
+      padding-left: 2rem; /* 32px - desktop padding */
       padding-right: 2rem;
-      max-width: 1280px;
+      max-width: 1280px; /* Standard content width */
     }
   }
-
-  /* ── Atlantis dark card (like "Savings Over Time") ── */
-  .atlantis-dark-card {
-    background: oklch(0.14 0.04 240);
-    border: 1px solid oklch(1 0 0 / 8%);
-    border-radius: var(--radius-xl);
-    color: oklch(0.93 0.008 240);
-    position: relative;
-    overflow: hidden;
-  }
-  .atlantis-dark-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, oklch(0.55 0.20 192 / 50%), transparent);
-  }
-
-  /* ── Atlantis light card (standard content card) ── */
-  .atlantis-card {
-    background: oklch(0.99 0.004 240);
-    border: 1px solid oklch(0.88 0.012 240);
-    border-radius: var(--radius-xl);
-    box-shadow: 0 2px 12px oklch(0.55 0.20 192 / 5%), 0 1px 3px oklch(0 0 0 / 4%);
-    transition: box-shadow 0.2s ease, border-color 0.2s ease;
-  }
-  .atlantis-card:hover {
-    border-color: oklch(0.55 0.20 192 / 30%);
-    box-shadow: 0 4px 24px oklch(0.55 0.20 192 / 10%), 0 1px 3px oklch(0 0 0 / 4%);
-  }
-
-  /* ── Atlantis violet card (like "Savings Goal Report") ── */
-  .atlantis-violet-card {
-    background: oklch(0.88 0.06 278);
-    border: 1px solid oklch(0.80 0.08 278);
-    border-radius: var(--radius-xl);
-    color: oklch(0.18 0.04 278);
-  }
-
-  /* ── Atlantis teal card (like "Total Income") ── */
-  .atlantis-teal-card {
-    background: oklch(0.72 0.16 192);
-    border: none;
-    border-radius: var(--radius-xl);
-    color: oklch(0.10 0.04 192);
-  }
-
-  /* ── Atlantis indigo pill (like "Transactions 84") ── */
-  .atlantis-indigo-pill {
-    background: oklch(0.50 0.24 278);
-    border-radius: 9999px;
-    color: oklch(0.98 0 0);
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-  }
-
-  /* ── Glass card — frosted Atlantis crystal ── */
-  .glass-card {
-    background: oklch(0.99 0.004 240 / 80%);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid oklch(0.88 0.012 240);
-    border-radius: var(--radius-xl);
-    box-shadow: 0 4px 24px oklch(0.55 0.20 192 / 6%);
-  }
-
-  .glass-card-hover {
-    background: oklch(0.99 0.004 240 / 80%);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid oklch(0.88 0.012 240);
-    border-radius: var(--radius-xl);
-    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-  .glass-card-hover:hover {
-    border-color: oklch(0.55 0.20 192 / 35%);
-    box-shadow: 0 8px 40px oklch(0.55 0.20 192 / 12%);
-  }
-
-  /* ── Glow effects — Atlantis bioluminescence (plain CSS classes, not @apply targets) ── */
-  .glow-teal { box-shadow: 0 0 30px oklch(0.55 0.20 192 / 25%), 0 0 60px oklch(0.55 0.20 192 / 12%); }
-  .glow-indigo { box-shadow: 0 0 30px oklch(0.55 0.24 278 / 25%), 0 0 60px oklch(0.55 0.24 278 / 12%); }
-  .glow-emerald { box-shadow: 0 0 30px oklch(0.68 0.18 162 / 25%), 0 0 60px oklch(0.68 0.18 162 / 12%); }
-  .glow-violet { box-shadow: 0 0 30px oklch(0.55 0.24 278 / 25%), 0 0 60px oklch(0.55 0.24 278 / 12%); }
-  .glow-cyan { box-shadow: 0 0 30px oklch(0.55 0.20 192 / 25%), 0 0 60px oklch(0.55 0.20 192 / 12%); }
-
-  /* ── Gradient text — Atlantis energy ── */
-  .gradient-text-atlantis {
-    background: linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.55 0.24 278));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .gradient-text-violet {
-    background: linear-gradient(135deg, oklch(0.60 0.22 290), oklch(0.55 0.24 278));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .gradient-text-gold {
-    background: linear-gradient(135deg, oklch(0.75 0.18 80), oklch(0.68 0.20 60));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* ── Premium button — Ancient tech activation ── */
-  .btn-premium {
-    background: linear-gradient(135deg, oklch(0.50 0.22 192), oklch(0.52 0.24 220));
-    color: white;
-    border: none;
-    border-radius: var(--radius-md);
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 16px oklch(0.50 0.22 192 / 30%);
-  }
-  .btn-premium:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 28px oklch(0.50 0.22 192 / 40%);
-    background: linear-gradient(135deg, oklch(0.55 0.22 192), oklch(0.57 0.24 220));
-  }
-
-  /* ── Animated gradient border ── */
-  .gradient-border {
-    position: relative;
-    border-radius: var(--radius-lg);
-  }
-  .gradient-border::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    background: linear-gradient(135deg, oklch(0.55 0.20 192 / 60%), oklch(0.55 0.24 278 / 40%), oklch(0.55 0.20 192 / 60%));
-    background-size: 200% 200%;
-    animation: gradient-rotate 4s linear infinite;
-    z-index: -1;
-  }
-
-  /* ── Stat card — Atlantis data node ── */
-  .stat-card-premium {
-    background: oklch(0.99 0.004 240);
-    border: 1px solid oklch(0.88 0.012 240);
-    border-radius: var(--radius-xl);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 2px 8px oklch(0 0 0 / 4%);
-  }
-  .stat-card-premium::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, oklch(0.55 0.20 192 / 50%), transparent);
-  }
-  .stat-card-premium:hover {
-    border-color: oklch(0.55 0.20 192 / 30%);
-    box-shadow: 0 8px 32px oklch(0.55 0.20 192 / 10%);
-    transform: translateY(-2px);
-  }
-
-  /* ── Sidebar nav item — Atlantis navigation panel ── */
-  .nav-item-premium {
-    border-radius: var(--radius-md);
-    transition: all 0.15s ease;
-    position: relative;
-  }
-  .nav-item-premium:hover {
-    background: oklch(0.55 0.20 192 / 8%);
-  }
-  .nav-item-premium.active {
-    background: oklch(0.55 0.20 192 / 12%);
-    border: 1px solid oklch(0.55 0.20 192 / 25%);
-  }
-  .nav-item-premium.active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 20%;
-    bottom: 20%;
-    width: 2px;
-    background: oklch(0.55 0.20 192);
-    border-radius: 0 2px 2px 0;
-    box-shadow: 0 0 8px oklch(0.55 0.20 192 / 80%);
-  }
-
-  /* ── Section header ── */
-  .section-header-premium {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.1;
-  }
-
-  /* ── Atlantis mesh background ── */
-  .mesh-bg {
-    background-image:
-      radial-gradient(ellipse 70% 40% at 15% 10%, oklch(0.55 0.20 192 / 8%) 0%, transparent 55%),
-      radial-gradient(ellipse 50% 35% at 85% 85%, oklch(0.55 0.24 278 / 6%) 0%, transparent 50%),
-      radial-gradient(ellipse 40% 30% at 50% 50%, oklch(0.68 0.18 162 / 4%) 0%, transparent 60%);
-  }
-
-  /* ── Pulse dot — life signal ── */
-  .pulse-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: oklch(0.68 0.18 162);
-    box-shadow: 0 0 0 0 oklch(0.68 0.18 162 / 40%);
-    animation: pulse-ring 2s ease-out infinite;
-  }
-
-  /* ── Data grid lines — Atlantis floor pattern ── */
-  .data-grid {
-    background-image:
-      linear-gradient(oklch(0.55 0.20 192 / 4%) 1px, transparent 1px),
-      linear-gradient(90deg, oklch(0.55 0.20 192 / 4%) 1px, transparent 1px);
-    background-size: 40px 40px;
-  }
-
-  /* ── Infographic node ── */
-  .infographic-node {
-    background: oklch(0.99 0.004 240);
-    border: 1px solid oklch(0.88 0.012 240);
-    border-radius: var(--radius-lg);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px oklch(0 0 0 / 4%);
-  }
-  .infographic-node:hover {
-    border-color: oklch(0.55 0.20 192 / 35%);
-    box-shadow: 0 0 24px oklch(0.55 0.20 192 / 12%);
-  }
-
-  /* ── Progress bar — Atlantis energy flow ── */
-  .progress-premium {
-    height: 6px;
-    background: oklch(0.88 0.012 240);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  .progress-premium-fill {
-    height: 100%;
-    background: linear-gradient(90deg, oklch(0.55 0.20 192), oklch(0.55 0.24 278));
-    border-radius: 4px;
-    box-shadow: 0 0 8px oklch(0.55 0.20 192 / 50%);
-    transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* ── Badge premium ── */
-  .badge-premium {
-    background: oklch(0.55 0.20 192 / 12%);
-    border: 1px solid oklch(0.55 0.20 192 / 25%);
-    color: oklch(0.40 0.18 192);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 2px 8px;
-    border-radius: 4px;
-  }
-
-  /* ── Atlantis top nav — horizontal navigation bar ── */
-  .atlantis-topnav {
-    background: oklch(0.99 0.004 240 / 90%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid oklch(0.88 0.012 240);
-    box-shadow: 0 1px 12px oklch(0 0 0 / 4%);
-  }
-
-  /* ── Atlantis pill button (like "Year to Date" filter) ── */
-  .atlantis-pill {
-    background: oklch(0.93 0.012 240);
-    border: 1px solid oklch(0.86 0.012 240);
-    border-radius: 9999px;
-    color: oklch(0.28 0.04 250);
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 500;
-    padding: 4px 14px;
-    transition: all 0.15s ease;
-  }
-  .atlantis-pill:hover {
-    background: oklch(0.90 0.016 240);
-    border-color: oklch(0.55 0.20 192 / 30%);
-  }
-  .atlantis-pill.active {
-    background: oklch(0.55 0.20 192);
-    border-color: transparent;
-    color: white;
-  }
-
-  /* ── Divider with gradient ── */
-  .divider-gradient {
-    height: 1px;
-    background: linear-gradient(90deg, transparent, oklch(0.88 0.012 240), transparent);
-  }
-
-  /* ── Ancient symbol decoration ── */
-  .ancient-symbol {
-    opacity: 0.06;
-    font-size: 8rem;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 900;
-    letter-spacing: -0.1em;
-    color: oklch(0.55 0.20 192);
-    user-select: none;
-    pointer-events: none;
-  }
-}
-
-/* ═══════════════════════════════════════════════════
-   KEYFRAME ANIMATIONS
-   ═══════════════════════════════════════════════════ */
-@keyframes gradient-rotate {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 oklch(0.68 0.18 162 / 40%); }
-  70% { box-shadow: 0 0 0 8px oklch(0.68 0.18 162 / 0%); }
-  100% { box-shadow: 0 0 0 0 oklch(0.68 0.18 162 / 0%); }
-}
-
-@keyframes float-up {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-}
-
-@keyframes slide-in-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes count-up {
-  from { opacity: 0; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes orb-float-1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(30px, -20px) scale(1.05); }
-  66% { transform: translate(-20px, 15px) scale(0.95); }
-}
-
-@keyframes orb-float-2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33% { transform: translate(-25px, 20px) scale(0.95); }
-  66% { transform: translate(20px, -15px) scale(1.05); }
-}
-
-@keyframes atlantis-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 oklch(0.55 0.20 192 / 0%); }
-  50% { box-shadow: 0 0 0 6px oklch(0.55 0.20 192 / 15%); }
-}
-
-@keyframes data-flow {
-  0% { stroke-dashoffset: 100; opacity: 0; }
-  20% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
-}
-
-/* ── Utility animation classes ── */
-.animate-float { animation: float-up 4s ease-in-out infinite; }
-.animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
-.animate-slide-in-up { animation: slide-in-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-.animate-orb-1 { animation: orb-float-1 8s ease-in-out infinite; }
-.animate-orb-2 { animation: orb-float-2 10s ease-in-out infinite; }
-.animate-atlantis-pulse { animation: atlantis-pulse 3s ease-in-out infinite; }
-.animate-shimmer {
-  background: linear-gradient(90deg, oklch(0.55 0.20 192 / 0%) 0%, oklch(0.55 0.20 192 / 8%) 50%, oklch(0.55 0.20 192 / 0%) 100%);
-  background-size: 200% 100%;
-  animation: shimmer 2s infinite;
-}
-
-/* ── Scrollbar — Atlantis crystal ── */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: oklch(0.55 0.20 192 / 25%);
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: oklch(0.55 0.20 192 / 50%);
-}
-
-/* ── Selection ── */
-::selection {
-  background: oklch(0.55 0.20 192 / 20%);
-  color: oklch(0.18 0.04 250);
 }

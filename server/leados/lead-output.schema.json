@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Lead Candidate Output",
+  "description": "Struktura jednoho kandidáta produkovaného LeadOS engine. Rozšiřuje existující tabulku prospects.",
+  "type": "object",
+  "required": ["company", "personName", "leadState"],
+  "properties": {
+    "company": { "type": "string" },
+    "personName": { "type": "string" },
+    "role": { "type": "string" },
+    "publicProfileUrl": { "type": "string", "format": "uri" },
+    "companyWebsite": { "type": "string", "format": "uri" },
+    "segment": { "type": "string" },
+    "verifiedSignals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["claim", "evidenceType", "evidenceUrl"],
+        "properties": {
+          "claim": { "type": "string", "description": "Ověřený fakt nebo pravděpodobný signál." },
+          "evidenceType": { "type": "string", "enum": ["verified_fact", "probable_signal", "business_hypothesis", "recommendation"] },
+          "evidenceUrl": { "type": "string", "format": "uri", "description": "Veřejný důkaz (stránka, příspěvek, aktualita)." }
+        }
+      }
+    },
+    "sourceEvidence": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Seznam veřejných zdrojů použitých pro tvrzení."
+    },
+    "painHypothesis": { "type": "string" },
+    "fitScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "timingScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "whyThisCompany": { "type": "string" },
+    "messageDraft": { "type": "string" },
+    "messageVariant": { "type": "string", "enum": ["A", "B", "C", "D"], "description": "A: spojení bez nabídky, B: relevantní pozorování, C: nabídka mini auditu, D: reakce na signál." },
+    "creepRisk": {
+      "type": "object",
+      "required": ["score", "flags"],
+      "properties": {
+        "score": { "type": "integer", "minimum": 0, "maximum": 100, "description": "0 = bezpečné, 100 = stalker." },
+        "flags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "reviewStatus": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+    "outreachStatus": { "type": "string", "enum": ["not_sent", "manually_sent", "connected", "replied", "meeting", "proposal", "won", "lost", "nurture"] },
+    "leadState": {
+      "type": "string",
+      "enum": [
+        "DISCOVERED",
+        "RESEARCHED",
+        "QUALIFIED",
+        "MESSAGE_READY",
+        "APPROVED",
+        "MANUALLY_SENT",
+        "CONNECTED",
+        "REPLIED",
+        "MEETING",
+        "PROPOSAL",
+        "WON",
+        "LOST",
+        "NURTURE"
+      ]
+    },
+    "requiresManualApproval": { "type": "boolean", "default": true },
+    "nextAction": { "type": "string" },
+    "nextActionAt": { "type": "string", "format": "date-time" }
+  }
+}

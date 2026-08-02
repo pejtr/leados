@@ -1,1018 +1,622 @@
-import DashboardLayout from "@/components/DashboardLayout";
+﻿import { useState, useEffect, useRef, ReactNode } from "react";
+import { motion, type Variants } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Check, ChevronDown, CheckCircle2, TrendingUp, BarChart3, Database, MessageSquare, ArrowRight, Globe, Search, PenTool, Rocket, LineChart, Quote } from "lucide-react";
 import { trpc } from "@/lib/trpc";
-import {
-  BarChart3, Bell, CheckCircle2, Clock, Lightbulb, Loader2,
-  Mail, Phone, Sparkles, Timer, TrendingUp, Users, Zap, Linkedin,
-  XCircle, ArrowRight, Shield, Brain, ChevronRight, Activity, BookOpen, Star,
-  Sun, X, RefreshCw, Target, AlertTriangle, ListChecks, Cpu, Flame,
-  ExternalLink, Globe, ShoppingCart, Package, Wifi, WifiOff, AlertCircle,
-} from "lucide-react";
-import { useState, useEffect, useRef } from "react";
-import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { useLocation } from "wouter";
+import { OptimateoLogo } from "@/components/OptimateoLogo";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { trackSklikConversion } from "@/lib/sklik";
+import { isChannelConsented } from "@/components/CookieConsentBanner";
+import { trackLinkedInConversion } from "@/lib/linkedin";
+import { activeConfig } from "@shared/brand-config";
+import { trackEvent, trackFormStart, type Variant } from "@/lib/ab-test";
+import { getAttribution } from "@/lib/attribution";
+import { CORE_OFFERS, SERVICE_TERMS, SOLUTION_PACKAGES, formatOfferPrice, formatSolutionPackagePrice } from "@shared/service-catalog";
 
-// --- Animated Counter Hook -----------------------------------
-function useCountUp(target: number, duration = 1400) {
-  const [count, setCount] = useState(0);
-  const startTime = useRef<number | null>(null);
-  const frameRef = useRef<number>(0);
+// ─── Animation Helpers ────────────────────────────────────────────────────────
+const EASE = [0.22, 1, 0.36, 1] as const;
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 28 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: EASE } },
+};
+
+const staggerContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+
+function Reveal({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.div
+      className={className}
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-80px" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function StaggerGrid({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <motion.div
+      className={className}
+      variants={staggerContainer}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-60px" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+// ─── Data ────────────────────────────────────────────────────────────────────
+const faqs = [
+  { q: "Musím nejdřív objednat audit?", a: "Nemusíte. Mini audit je zdarma a pomůže ověřit, co má smysl řešit. U většího webu, e-shopu nebo automatizace doporučíme placený audit, abyste předem znali rozsah, cenu a priority." },
+  { q: "Mám už web. Umíte ho jen vylepšit?", a: "Ano. Nemusíme stavět vše znovu. Můžeme upravit nabídku, formuláře, rezervace, měření nebo způsob, jakým se zpracují příchozí poptávky." },
+  { q: "Kolik stojí audit?", a: `Mini audit je zdarma. Podrobný ONYX OS Audit s konkrétním plánem a ${SERVICE_TERMS.auditConsultationMinutes}minutovou konzultací stojí ${formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT)}.` },
+  { q: "Co je ONYX OS?", a: "Je to technické zázemí v pozadí: shromáždí poptávky nebo objednávky, pošle rychlou odpověď a ukáže vám, co je potřeba vyřídit. Na běžném webu ho nepotřebuje každý." },
+  { q: "Děláte e-shopy?", a: `Ano. ONYX E-SHOP stavíme pro menší a střední nabídky, lokální výrobce, gastro produkty, poukazy nebo rozvoz. Cena začíná na ${formatSolutionPackagePrice(SOLUTION_PACKAGES.ONYX_ESHOP)}.` },
+  { q: "Jak dlouho realizace trvá?", a: `Mini audit dodáme do ${SERVICE_TERMS.miniAuditDeliveryHours} hodin. Běžný ONYX WEB obvykle trvá ${SERVICE_TERMS.typicalWebDeliveryWeeks} týdny; e-shop nebo propojený systém podle rozsahu.` },
+  { q: `Co je v monitoringu za ${formatOfferPrice(CORE_OFFERS.MONITORING)}?`, a: "Technický dohled, kontrola formulářů a měření, drobné úpravy a pravidelný přehled toho, co se na webu děje." },
+  { q: "Lze Monitoring kdykoliv zrušit?", a: "Ano. Monitoring není dlouhodobý závazek. Při ukončení vám předáme aktuální stav a domluvíme další provoz." },
+];
+
+const packages = [
+  {
+    name: `01. ${CORE_OFFERS.MINI_AUDIT.name}`, price: formatOfferPrice(CORE_OFFERS.MINI_AUDIT), proKomu: "Když nevíte, kde začít",
+    features: ["Kontrola jedné důležité stránky", "Tři největší překážky", "Zdarma a bez závazku"],
+    cta: CORE_OFFERS.MINI_AUDIT.cta, href: CORE_OFFERS.MINI_AUDIT.href, badge: null
+  },
+  {
+    name: `02. ${SOLUTION_PACKAGES.ONYX_WEB.name}`, price: formatSolutionPackagePrice(SOLUTION_PACKAGES.ONYX_WEB), proKomu: SOLUTION_PACKAGES.ONYX_WEB.plainName,
+    features: [...SOLUTION_PACKAGES.ONYX_WEB.features],
+    cta: SOLUTION_PACKAGES.ONYX_WEB.cta, href: SOLUTION_PACKAGES.ONYX_WEB.href, badge: "Pro malé podnikání"
+  },
+  {
+    name: `03. ${SOLUTION_PACKAGES.ONYX_ESHOP.name}`, price: formatSolutionPackagePrice(SOLUTION_PACKAGES.ONYX_ESHOP), proKomu: SOLUTION_PACKAGES.ONYX_ESHOP.plainName,
+    features: [...SOLUTION_PACKAGES.ONYX_ESHOP.features],
+    cta: SOLUTION_PACKAGES.ONYX_ESHOP.cta, href: SOLUTION_PACKAGES.ONYX_ESHOP.href, badge: "Online prodej"
+  },
+  {
+    name: `04. ${CORE_OFFERS.ONYX_OS_AUDIT.name}`, price: formatOfferPrice(CORE_OFFERS.ONYX_OS_AUDIT), proKomu: "Když potřebujete jasný plán",
+    features: ["Kontrola celé cesty zákazníka", "Seznam oprav podle priority", `${SERVICE_TERMS.auditConsultationMinutes} minut konzultace`, "Cena realizace předem"],
+    cta: CORE_OFFERS.ONYX_OS_AUDIT.cta, href: CORE_OFFERS.ONYX_OS_AUDIT.href, badge: null
+  },
+  {
+    name: `05. ${CORE_OFFERS.ONYX_OS_SETUP.name}`, price: formatOfferPrice(CORE_OFFERS.ONYX_OS_SETUP), proKomu: "Web, poptávky a automatizace pohromadě",
+    features: ["Poptávky na jednom místě", "Rychlá automatická odpověď", "Přehled dalšího kroku", "Měření zdroje a výsledku"],
+    cta: CORE_OFFERS.ONYX_OS_SETUP.cta, href: CORE_OFFERS.ONYX_OS_SETUP.href, badge: "Pro rostoucí firmy"
+  },
+  {
+    name: `06. ${CORE_OFFERS.MONITORING.name}`, price: formatOfferPrice(CORE_OFFERS.MONITORING), proKomu: "Pravidelná péče po spuštění",
+    features: ["Technický dohled", "Kontrola formulářů a měření", "Pravidelný přehled", "Drobné úpravy"],
+    cta: CORE_OFFERS.MONITORING.cta, href: CORE_OFFERS.MONITORING.href, badge: null
+  }
+];
+
+type HomeProps = {
+  variant?: Variant;
+};
+
+export default function Home({ variant = "A" }: HomeProps) {
+  const { isAuthenticated, user } = useAuth();
+  const [scrolled, setScrolled] = useState(false);
+  const [openFaqs, setOpenFaqs] = useState<Record<number, boolean>>({});
+  const contactRef = useRef<HTMLElement>(null);
+
+  // Minimal Contact Form State
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", packageType: "Nevím, chci poradit" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createInquiry = trpc.inquiries.create.useMutation();
+  const { data: portfolio = [] } = trpc.portfolio.list.useQuery();
+  const { data: testimonials = [] } = trpc.testimonials.list.useQuery();
+  const heroCopy = variant === "B"
+    ? {
+      eyebrow: "WEB · DATA · AUTOMATIZACE",
+      title: "Web a online prodej, kterému",
+      accent: "vaši zákazníci rozumějí.",
+      description: "Postavíme přehledný web nebo e-shop, kde lidé snadno najdou nabídku, menu, cenu, rezervaci či objednávku.",
+    }
+    : {
+      eyebrow: "WEB · DATA · AUTOMATIZACE",
+      title: "Více zákazníků a méně ruční práce pro",
+      accent: "malé firmy a místní podniky.",
+      description: "Tvoříme weby, e-shopy a jednoduché automatizace pro restaurace, kavárny, čajovny, živnostníky a menší firmy.",
+    };
+  const portfolioItems = portfolio.filter(project => Boolean(project.imageUrl)).slice(0, 6);
+  const testimonialItems = testimonials.filter(item => Boolean(item.text && item.author)).slice(0, 3);
 
   useEffect(() => {
-    if (target === 0) { setCount(0); return; }
-    startTime.current = null;
-    const animate = (ts: number) => {
-      if (!startTime.current) startTime.current = ts;
-      const progress = Math.min((ts - startTime.current) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(eased * target));
-      if (progress < 1) frameRef.current = requestAnimationFrame(animate);
-    };
-    frameRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frameRef.current);
-  }, [target, duration]);
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-  return count;
-}
-
-// --- Atlantis Stat Card --------------------------------------
-function AnimatedStatCard({
-  title, value, icon, description, color, suffix = "",
-}: {
-  title: string;
-  value: number | null;
-  icon: React.ReactNode;
-  description: string;
-  color: "teal" | "emerald" | "indigo" | "amber";
-  suffix?: string;
-}) {
-  const numericValue = typeof value === "number" ? value : 0;
-  const animated = useCountUp(numericValue);
-
-  const colorMap = {
-    teal:   { icon: "text-[oklch(0.50_0.22_192)]", bg: "bg-[oklch(0.55_0.20_192_/_10%)]", border: "border-[oklch(0.55_0.20_192_/_20%)]", bar: "bg-[oklch(0.55_0.20_192)]", top: "from-[oklch(0.55_0.20_192_/_15%)]" },
-    emerald:{ icon: "text-[oklch(0.55_0.18_162)]", bg: "bg-[oklch(0.68_0.18_162_/_10%)]", border: "border-[oklch(0.68_0.18_162_/_20%)]", bar: "bg-[oklch(0.68_0.18_162)]", top: "from-[oklch(0.68_0.18_162_/_12%)]" },
-    indigo: { icon: "text-[oklch(0.50_0.24_278)]", bg: "bg-[oklch(0.55_0.24_278_/_10%)]", border: "border-[oklch(0.55_0.24_278_/_20%)]", bar: "bg-[oklch(0.55_0.24_278)]", top: "from-[oklch(0.55_0.24_278_/_12%)]" },
-    amber:  { icon: "text-[oklch(0.65_0.20_60)]",  bg: "bg-[oklch(0.72_0.18_60_/_10%)]",  border: "border-[oklch(0.72_0.18_60_/_20%)]",  bar: "bg-[oklch(0.72_0.18_60)]",  top: "from-[oklch(0.72_0.18_60_/_12%)]" },
+  const scrollToContact = () => {
+    void trackEvent("hero_cta_click", { cta: "consultation", location: "hero" });
+    contactRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  const c = colorMap[color];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.email.includes("@")) return toast.error("Vyplňte platné jméno a email");
+    setIsSubmitting(true);
+    try {
+      const result = await createInquiry.mutateAsync({
+        ...formData,
+        businessDescription: "Přímo z Homepage formuláře",
+        source: "home-lead",
+        details: getAttribution(),
+        linkedinConsent: isChannelConsented("linkedin"),
+      } as any);
+      trackSklikConversion({ orderId: `home-${result.id}` });
+      trackLinkedInConversion();
+      void trackEvent("form_submit", { formName: "homepage-contact", inquiryId: result.id });
+      toast.success("Odesláno! Ozveme se.");
+      setFormData({ name: "", email: "", phone: "", packageType: "Nevím, chci poradit" });
+    } catch { toast.error("Chyba při odesílání."); }
+    finally { setIsSubmitting(false); }
+  };
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl border ${c.border} bg-card shadow-sm hover:shadow-md transition-all duration-300 p-5 group`}>
-      {/* Top accent line */}
-      <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${c.top} to-transparent`} />
-      {/* Subtle glow orb */}
-      <div className={`absolute -top-6 -right-6 w-20 h-20 rounded-full ${c.bg} blur-2xl opacity-60 group-hover:opacity-100 transition-opacity`} />
-      <div className="relative">
-        <div className="flex items-start justify-between mb-3">
-          <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-widest">{title}</p>
-          <div className={`p-2 rounded-xl ${c.bg}`}>
-            <span className={c.icon}>{icon}</span>
+    <div className="min-h-screen bg-slate-50 font-[Plus_Jakarta_Sans,Inter,sans-serif] text-slate-900 selection:bg-sky-200">
+
+      {/* ── NAV ── */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200" : "bg-transparent"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+          <a href="/" aria-label="OPTIMATEO"><OptimateoLogo className="h-10" light={false} withTagline={false} /></a>
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#about" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">Přístup</a>
+            <a href="#funnel" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">Systém</a>
+            <a href="#pricing" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">Ceník</a>
+            <a href="/portfolio" className="text-slate-600 hover:text-slate-900 text-sm font-medium transition-colors">Reference</a>
+            <a href="/demo" className="text-sky-600 hover:text-sky-700 text-sm font-medium transition-colors">Ukázky (Demo)</a>
           </div>
-        </div>
-        <div className="flex items-end gap-1">
-          {value === null ? (
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/40" />
-          ) : (
-            <span className="text-3xl font-black text-foreground tracking-tight">{animated}{suffix}</span>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
-        {/* Progress bar */}
-        <div className="mt-3 h-1.5 bg-muted rounded-full overflow-hidden">
-          <div
-            className={`h-full ${c.bar} rounded-full transition-all duration-1000`}
-            style={{ width: value !== null ? `${Math.min((numericValue / Math.max(numericValue, 100)) * 100, 100)}%` : "0%" }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// --- Pipeline Flow -------------------------------------------
-function PipelineFlow({ stats }: { stats: any }) {
-  const stages = [
-    { label: "Generated", value: stats?.totalLeads ?? 0, color: "bg-[oklch(0.55_0.20_192)]", light: "bg-[oklch(0.55_0.20_192_/_10%)]", text: "text-[oklch(0.45_0.20_192)]", icon: <Zap className="h-3.5 w-3.5" /> },
-    { label: "Enriched", value: stats?.enrichedLeads ?? 0, color: "bg-[oklch(0.55_0.24_278)]", light: "bg-[oklch(0.55_0.24_278_/_10%)]", text: "text-[oklch(0.45_0.24_278)]", icon: <Sparkles className="h-3.5 w-3.5" /> },
-    { label: "Contacted", value: Math.floor((stats?.enrichedLeads ?? 0) * 0.6), color: "bg-[oklch(0.68_0.18_162)]", light: "bg-[oklch(0.68_0.18_162_/_10%)]", text: "text-[oklch(0.50_0.18_162)]", icon: <Mail className="h-3.5 w-3.5" /> },
-    { label: "Converted", value: Math.floor((stats?.enrichedLeads ?? 0) * 0.15), color: "bg-[oklch(0.72_0.18_60)]", light: "bg-[oklch(0.72_0.18_60_/_10%)]", text: "text-[oklch(0.55_0.18_60)]", icon: <Star className="h-3.5 w-3.5" /> },
-  ];
-  const max = stages[0].value || 1;
-
-  return (
-    <div className="space-y-3.5">
-      {stages.map((stage, i) => {
-        const pct = Math.round((stage.value / max) * 100);
-        return (
-          <div key={stage.label} className="group">
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-2">
-                <div className={`p-1.5 rounded-lg ${stage.light} ${stage.text}`}>{stage.icon}</div>
-                <span className="text-xs font-semibold text-foreground/70">{stage.label}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-foreground">{stage.value.toLocaleString()}</span>
-                <span className="text-[10px] text-muted-foreground w-8 text-right">{pct}%</span>
-              </div>
-            </div>
-            <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full ${stage.color} rounded-full transition-all duration-1000`}
-                style={{ width: `${pct}%`, transitionDelay: `${i * 150}ms` }}
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// --- Activity Pulse ------------------------------------------
-function ActivityPulse({ sessions }: { sessions: any[] }) {
-  const recent = sessions?.slice(0, 7) ?? [];
-  const maxLeads = Math.max(...recent.map(s => s.generatedCount ?? 0), 1);
-  const { t } = useTranslation();
-
-  return (
-    <div className="flex items-end gap-1.5 h-16">
-      {recent.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground/50 text-xs">{t('dashboard.noSessionsYet')}</div>
-      ) : (
-        recent.map((s, i) => {
-          const h = Math.max(((s.generatedCount ?? 0) / maxLeads) * 100, 8);
-          return (
-            <div key={i} className="flex-1 flex flex-col items-center gap-1 group cursor-default">
-              <div
-                className="w-full rounded-t-sm bg-[oklch(0.55_0.20_192_/_60%)] group-hover:bg-[oklch(0.55_0.20_192)] transition-all duration-300"
-                style={{ height: `${h}%` }}
-                title={`${s.generatedCount ?? 0} leads`}
-              />
-            </div>
-          );
-        })
-      )}
-    </div>
-  );
-}
-
-export default function Home() {
-  const [, setLocation] = useLocation();
-  const { data: stats, isLoading } = trpc.leads.stats.useQuery();
-  const { data: sessions } = trpc.leads.sessions.useQuery();
-  const { data: nbaItems, isLoading: nbaLoading } = trpc.nba.list.useQuery({ limit: 5 });
-  const { data: alerts } = trpc.alertRules.list.useQuery();
-  const { data: stlConfig } = trpc.speedToLead.get.useQuery();
-  const { data: setupProgress, isLoading: setupLoading } = trpc.aiChat.setupProgress.useQuery();
-  const { data: insights, isLoading: insightsLoading } = trpc.aiChat.insights.useQuery();
-  const { data: briefing, refetch: refetchBriefing, isLoading: briefingLoading } = trpc.morningBriefing.getLatest.useQuery();
-  const { data: earningsData } = trpc.globalEarnings.summary.useQuery(undefined, { refetchInterval: 60_000, staleTime: 30_000 });
-  // Values are in CZK haléře — divide by 100 only, no USD conversion
-  const fmtCZK = (cents: number) =>
-    new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(cents / 100);
-  const generateBriefingMutation = trpc.morningBriefing.generate.useMutation({
-    onSuccess: () => { refetchBriefing(); toast.success("Morning briefing generated!"); },
-    onError: () => toast.error("Failed to generate briefing"),
-  });
-  const dismissBriefingMutation = trpc.morningBriefing.dismiss.useMutation({
-    onSuccess: () => refetchBriefing(),
-  });
-  const { t } = useTranslation();
-  const today = new Date().toLocaleDateString("cs-CZ", { weekday: "long", month: "long", day: "numeric" });
-  const enrichmentRate = stats && stats.totalLeads > 0 ? Math.round((stats.enrichedLeads / stats.totalLeads) * 100) : 0;
-
-  return (
-    <DashboardLayout>
-      <div className="space-y-6 max-w-7xl">
-
-        {/* -- Hero Header — Atlantis Command Center ----------- */}
-        <div className="relative overflow-hidden rounded-2xl border border-[oklch(0.55_0.20_192_/_20%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] via-card to-[oklch(0.55_0.24_278_/_5%)] p-6 shadow-sm">
-          {/* Ambient orbs */}
-          <div className="absolute top-0 right-0 w-72 h-72 bg-[oklch(0.55_0.20_192_/_8%)] rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-1/4 w-48 h-48 bg-[oklch(0.55_0.24_278_/_6%)] rounded-full blur-3xl pointer-events-none" />
-          {/* Ancient geometry decoration */}
-          <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-[0.04] text-[120px] font-black text-[oklch(0.55_0.20_192)] select-none pointer-events-none leading-none">⬡</div>
-          <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            {/* Left: title */}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-2 w-2 rounded-full bg-[oklch(0.68_0.18_162)] animate-pulse" />
-                <span className="text-xs text-[oklch(0.45_0.18_162)] font-semibold">{t('dashboard.aiSystemsActive')}</span>
-              </div>
-              <h1 className="text-3xl font-black text-foreground tracking-tight">{t('dashboard.commandCenter')}</h1>
-              <p className="text-muted-foreground text-sm mt-1">{today}</p>
-            </div>
-
-            {/* Center: Setup Progress */}
-            {!setupLoading && setupProgress && setupProgress.percentage < 100 && (
-              <div className="flex-1 max-w-sm">
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-[oklch(0.50_0.18_162)]" />
-                    <span className="text-xs font-bold text-foreground">Pr&#367;b&#283;h nastaven&#237;</span>
-                  </div>
-                  <span className="text-xs font-black text-[oklch(0.50_0.20_192)]">{setupProgress.percentage}%</span>
-                </div>
-                {/* Progress bar */}
-                <div className="h-2 bg-black/8 rounded-full overflow-hidden mb-2">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-[oklch(0.50_0.22_192)] to-[oklch(0.55_0.24_278)] transition-all duration-700"
-                    style={{ width: `${setupProgress.percentage}%` }}
-                  />
-                </div>
-                {/* Steps */}
-                <div className="space-y-0.5">
-                  {setupProgress.steps?.slice(0, 6).map((step: any, i: number) => (
-                    <div
-                      key={i}
-                      className={`flex items-center gap-2 text-[11px] rounded px-1 py-0.5 ${
-                        !step.done ? "cursor-pointer hover:bg-black/5 group" : ""
-                      }`}
-                      onClick={() => !step.done && setLocation(step.link ?? "/generate")}
-                    >
-                      {step.done ? (
-                        <CheckCircle2 className="h-3 w-3 text-[oklch(0.50_0.18_162)] shrink-0" />
-                      ) : (
-                        <div className="h-3 w-3 rounded-full border border-muted-foreground/30 shrink-0" />
-                      )}
-                      <span className={step.done ? "line-through text-muted-foreground/50" : "text-foreground/80 group-hover:text-[oklch(0.45_0.20_192)]"}>
-                        {step.label}
-                      </span>
-                      {!step.done && (
-                        <ChevronRight className="ml-auto h-3 w-3 text-[oklch(0.50_0.20_192)] shrink-0 opacity-60 group-hover:opacity-100" />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-wrap items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setLocation("/chat-agent")}
-                className="border-[oklch(0.55_0.20_192_/_30%)] text-[oklch(0.45_0.20_192)] hover:bg-[oklch(0.55_0.20_192_/_8%)] gap-2"
-              >
-                <Brain className="h-4 w-4" />
-                {t('sidebar.aiAdvisor')}
-              </Button>
-              <Button
-                onClick={() => setLocation("/generate")}
-                className="bg-gradient-to-r from-[oklch(0.50_0.22_192)] to-[oklch(0.52_0.24_220)] hover:from-[oklch(0.55_0.22_192)] hover:to-[oklch(0.57_0.24_220)] text-white border-0 gap-2 font-semibold shadow-lg shadow-[oklch(0.55_0.20_192_/_20%)]"
-              >
-                <Zap className="h-4 w-4" />
-                {t('sidebar.generateLeads')}
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* -- Projects Analytics Hub ------------------ */}
-        <ProjectsHub fmtCZK={fmtCZK} onNavigate={setLocation} />
-
-        {/* -- CZK Earnings KPI Bar ----------------------- */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {/* Dnes */}
-          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.68_0.18_162_/_25%)] bg-gradient-to-br from-[oklch(0.68_0.18_162_/_8%)] to-card p-4">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.68_0.18_162)]" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.50_0.18_162)] mb-1">💰 Dnes</p>
-            <p className="text-2xl font-black text-foreground tabular-nums">
-              {earningsData ? fmtCZK(earningsData.todayRevenueCents) : <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">tržby za dnešek</p>
-          </div>
-          {/* Posledních 30 dní */}
-          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.55_0.20_192_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] to-card p-4">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.55_0.20_192)]" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.45_0.20_192)] mb-1">📈 30 dní</p>
-            <p className="text-2xl font-black text-foreground tabular-nums">
-              {earningsData ? fmtCZK((earningsData as any).last30dRevenueCents ?? 0) : <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">posledních 30 dní</p>
-          </div>
-          {/* Celkem */}
-          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.72_0.18_60_/_25%)] bg-gradient-to-br from-[oklch(0.72_0.18_60_/_8%)] to-card p-4">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.72_0.18_60)]" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.55_0.18_60)] mb-1">🏆 Celkem</p>
-            <p className="text-2xl font-black text-foreground tabular-nums">
-              {earningsData ? fmtCZK(earningsData.totalRevenueCents) : <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">výdělek celkem</p>
-          </div>
-          {/* Projekty */}
-          <div className="relative overflow-hidden rounded-xl border border-[oklch(0.55_0.24_278_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.24_278_/_8%)] to-card p-4">
-            <div className="absolute top-0 left-0 right-0 h-0.5 bg-[oklch(0.55_0.24_278)]" />
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[oklch(0.45_0.24_278)] mb-1">🔗 Projekty</p>
-            <p className="text-2xl font-black text-foreground tabular-nums">
-              {earningsData ? earningsData.projectCount : <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />}
-            </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">aktivní zdroje příjmů</p>
-          </div>
-        </div>
-
-        {/* -- Morning Briefing ------------------------------ */}
-        {!briefingLoading && (
-          <>
-            {(!briefing || briefing.dismissed) ? (
-              <div className="flex items-center gap-4 p-4 rounded-2xl border border-[oklch(0.72_0.18_60_/_25%)] bg-[oklch(0.72_0.18_60_/_5%)]">
-                <div className="p-2.5 rounded-xl bg-[oklch(0.72_0.18_60_/_12%)]">
-                  <Sun className="h-5 w-5 text-[oklch(0.60_0.18_60)]" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-foreground">{t('dashboard.morningBriefing')}</p>
-                  <p className="text-xs text-muted-foreground">{today} — {t('dashboard.morningBriefingDesc')}</p>
-                </div>
-                <Button
-                  size="sm"
-                  onClick={() => generateBriefingMutation.mutate()}
-                  disabled={generateBriefingMutation.isPending}
-                  className="bg-[oklch(0.72_0.18_60_/_15%)] hover:bg-[oklch(0.72_0.18_60_/_25%)] text-[oklch(0.50_0.18_60)] border border-[oklch(0.72_0.18_60_/_30%)] gap-2 shrink-0"
-                >
-                  {generateBriefingMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                  {t('dashboard.generate')}
-                </Button>
-              </div>
-            ) : (
-              <div className="relative overflow-hidden rounded-2xl border border-[oklch(0.72_0.18_60_/_20%)] bg-gradient-to-br from-[oklch(0.72_0.18_60_/_6%)] to-card p-5 shadow-sm">
-                <div className="absolute top-0 right-0 w-48 h-48 bg-[oklch(0.72_0.18_60_/_6%)] rounded-full blur-3xl pointer-events-none" />
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-xl bg-[oklch(0.72_0.18_60_/_12%)]">
-                        <Sun className="h-5 w-5 text-[oklch(0.60_0.18_60)]" />
-                      </div>
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">{t('dashboard.morningBriefing')}</h3>
-                        <p className="text-xs text-muted-foreground">{today}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Button size="sm" variant="ghost" onClick={() => generateBriefingMutation.mutate()} disabled={generateBriefingMutation.isPending} className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground">
-                        {generateBriefingMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => dismissBriefingMutation.mutate({ id: briefing.id })} className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground">
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                  <p className="text-sm text-foreground/70 mb-4 leading-relaxed">{briefing.content}</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {briefing.topLeads?.length > 0 && (
-                      <div className="p-3 rounded-xl bg-[oklch(0.55_0.20_192_/_6%)] border border-[oklch(0.55_0.20_192_/_15%)]">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <Target className="h-3.5 w-3.5 text-[oklch(0.50_0.20_192)]" />
-                          <span className="text-xs font-bold text-[oklch(0.45_0.20_192)]">{t('dashboard.topLeadsToday')}</span>
-                        </div>
-                        <ul className="space-y-1">
-                          {briefing.topLeads.map((lead: any, i: number) => (
-                            <li key={i} className="text-xs text-foreground/60 flex items-start gap-1.5">
-                              <span className="text-[oklch(0.50_0.20_192)] shrink-0 mt-0.5">›</span>
-                              <span>{typeof lead === 'object' && lead !== null ? (lead.name || lead.title || lead.company || JSON.stringify(lead)) : String(lead ?? '')}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {briefing.pipelineAlerts?.length > 0 && (
-                      <div className="p-3 rounded-xl bg-[oklch(0.72_0.18_60_/_6%)] border border-[oklch(0.72_0.18_60_/_15%)]">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <AlertTriangle className="h-3.5 w-3.5 text-[oklch(0.60_0.18_60)]" />
-                          <span className="text-xs font-bold text-[oklch(0.55_0.18_60)]">{t('dashboard.pipelineAlerts')}</span>
-                        </div>
-                        <ul className="space-y-1">
-                          {briefing.pipelineAlerts.map((a: any, i: number) => (
-                            <li key={i} className="text-xs text-foreground/60 flex items-start gap-1.5">
-                              <span className="text-[oklch(0.60_0.18_60)] shrink-0 mt-0.5">›</span>
-                              <span>{typeof a === 'object' && a !== null ? (a.name || a.alert || a.reason || a.title || JSON.stringify(a)) : String(a ?? '')}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {briefing.nextActions?.length > 0 && (
-                      <div className="p-3 rounded-xl bg-[oklch(0.68_0.18_162_/_6%)] border border-[oklch(0.68_0.18_162_/_15%)]">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <ListChecks className="h-3.5 w-3.5 text-[oklch(0.50_0.18_162)]" />
-                          <span className="text-xs font-bold text-[oklch(0.45_0.18_162)]">{t('dashboard.nextActions')}</span>
-                        </div>
-                        <ul className="space-y-1">
-                          {briefing.nextActions.map((a: any, i: number) => (
-                            <li key={i} className="text-xs text-foreground/60 flex items-start gap-1.5">
-                              <span className="text-[oklch(0.50_0.18_162)] shrink-0 mt-0.5">{i + 1}.</span>
-                              <span>{typeof a === 'object' && a !== null ? (a.action || a.name || a.title || a.reason || JSON.stringify(a)) : String(a ?? '')}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* -- Stats Row — Atlantis Data Nodes --------------- */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <AnimatedStatCard title={t('dashboard.totalLeads')} value={isLoading ? null : stats?.totalLeads ?? 0} icon={<Users className="h-4 w-4" />} description={t('dashboard.allTime')} color="teal" />
-          <AnimatedStatCard title={t('dashboard.aiEnriched')} value={isLoading ? null : stats?.enrichedLeads ?? 0} icon={<Sparkles className="h-4 w-4" />} description={t('dashboard.withIcebreakers')} color="emerald" />
-          <AnimatedStatCard title={t('dashboard.enrichmentRate')} value={isLoading ? null : enrichmentRate} icon={<TrendingUp className="h-4 w-4" />} description={t('dashboard.leadsWithAI')} color="indigo" suffix="%" />
-          <AnimatedStatCard title={t('dashboard.sessions')} value={isLoading ? null : stats?.totalSessions ?? 0} icon={<BarChart3 className="h-4 w-4" />} description={t('dashboard.generationRuns')} color="amber" />
-        </div>
-
-        {/* -- Pipeline + Activity ---------------------------- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Pipeline Flow — large light card */}
-          <div className="lg:col-span-2 rounded-2xl border border-border bg-card shadow-sm p-5">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.20_192_/_10%)]">
-                  <TrendingUp className="h-4 w-4 text-[oklch(0.50_0.20_192)]" />
-                </div>
-                <h2 className="text-sm font-bold text-foreground">{t('dashboard.pipelineFunnel')}</h2>
-              </div>
-              <button onClick={() => setLocation("/kanban")} className="text-xs text-muted-foreground hover:text-[oklch(0.50_0.20_192)] transition-colors flex items-center gap-1">
-                {t('dashboard.viewKanban')} <ChevronRight className="h-3 w-3" />
-              </button>
-            </div>
-            <PipelineFlow stats={stats} />
-          </div>
-
-          {/* Activity — dark Atlantis card */}
-          <div className="rounded-2xl bg-[oklch(0.14_0.04_240)] border border-[oklch(1_0_0_/_8%)] p-5 relative overflow-hidden">
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[oklch(0.55_0.20_192_/_50%)] to-transparent" />
-            <div className="absolute bottom-0 right-0 w-32 h-32 bg-[oklch(0.55_0.20_192_/_8%)] rounded-full blur-2xl pointer-events-none" />
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.20_192_/_15%)]">
-                  <Activity className="h-4 w-4 text-[oklch(0.70_0.18_192)]" />
-                </div>
-                <h2 className="text-sm font-bold text-[oklch(0.93_0.008_240)]">{t('dashboard.recentActivity')}</h2>
-                <div className="ml-auto">
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-[oklch(0.68_0.18_162_/_20%)] text-[oklch(0.70_0.18_162)] font-semibold">Live</span>
-                </div>
-              </div>
-              <ActivityPulse sessions={sessions ?? []} />
-              <p className="text-[10px] text-[oklch(0.93_0.008_240_/_30%)] mt-2 text-center">{t('dashboard.leadsPerSession')}</p>
-              <div className="mt-3 pt-3 border-t border-[oklch(1_0_0_/_8%)] flex items-center justify-between">
-                <span className="text-xs text-[oklch(0.93_0.008_240_/_50%)]">{t('dashboard.avgPerSession')}</span>
-                <span className="text-xs font-bold text-[oklch(0.93_0.008_240)]">
-                  {sessions && sessions.length > 0
-                    ? Math.round(sessions.reduce((a, s) => a + (s.generatedCount ?? 0), 0) / sessions.length)
-                    : 0} leads
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* -- NBA + Speed-to-Lead ---------------------------- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* NBA — violet Atlantis card */}
-          <div className="lg:col-span-2 rounded-2xl border border-[oklch(0.55_0.24_278_/_20%)] bg-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.24_278_/_12%)]">
-                  <Lightbulb className="h-4 w-4 text-[oklch(0.50_0.24_278)]" />
-                </div>
-                <h2 className="text-sm font-bold text-foreground">{t('dashboard.nextBestActions')}</h2>
-              </div>
-              <button onClick={() => setLocation("/next-actions")} className="text-xs text-muted-foreground hover:text-[oklch(0.50_0.24_278)] transition-colors flex items-center gap-1">
-                {t('dashboard.viewAll')} <ChevronRight className="h-3 w-3" />
-              </button>
-            </div>
-            {nbaLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />
-              </div>
-            ) : !nbaItems || nbaItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-32 text-center gap-2">
-                <Lightbulb className="h-8 w-8 text-muted-foreground/20" />
-                <p className="text-xs text-muted-foreground">{t('dashboard.noRecommendations')}</p>
-                <p className="text-[10px] text-muted-foreground/60">{t('dashboard.generateLeadsForActions')}</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {nbaItems.map((item: any) => <NbaCard key={item.id} item={item} />)}
-              </div>
-            )}
-          </div>
-
-          {/* Speed-to-Lead — teal card */}
-          <div className="rounded-2xl border border-[oklch(0.68_0.18_162_/_20%)] bg-[oklch(0.72_0.16_192_/_15%)] p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-[oklch(0.68_0.18_162_/_12%)]">
-                  <Timer className="h-4 w-4 text-[oklch(0.50_0.18_162)]" />
-                </div>
-                <h2 className="text-sm font-bold text-foreground">{t('sidebar.speedToLead')}</h2>
-              </div>
-              <button onClick={() => setLocation("/speed-to-lead")} className="text-xs text-muted-foreground hover:text-[oklch(0.50_0.18_162)] transition-colors">
-                {t('dashboard.configure')} →
-              </button>
-            </div>
-            {stlConfig ? (
-              <div className="space-y-3">
-                <div className={`flex items-center gap-2 p-2.5 rounded-xl ${stlConfig.isActive ? "bg-[oklch(0.68_0.18_162_/_12%)] border border-[oklch(0.68_0.18_162_/_25%)]" : "bg-muted border border-border"}`}>
-                  <div className={`h-2 w-2 rounded-full ${stlConfig.isActive ? "bg-[oklch(0.68_0.18_162)] animate-pulse" : "bg-muted-foreground/30"}`} />
-                  <span className={`text-xs font-semibold ${stlConfig.isActive ? "text-[oklch(0.45_0.18_162)]" : "text-muted-foreground"}`}>
-                    {stlConfig.isActive ? t('dashboard.active') : t('dashboard.inactive')}
-                  </span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="p-2.5 rounded-xl bg-card/60 text-center border border-border">
-                    <p className="text-lg font-black text-foreground">{stlConfig.responseDelaySeconds ? `${Math.round(stlConfig.responseDelaySeconds / 60)}m` : "—"}</p>
-                    <p className="text-[10px] text-muted-foreground">{t('dashboard.minResponse')}</p>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-card/60 text-center border border-border">
-                    <p className="text-lg font-black text-foreground">{stlConfig.autoEmailEnabled ? "Yes" : "No"}</p>
-                    <p className="text-[10px] text-muted-foreground">{t('dashboard.followUps')}</p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-24 gap-2">
-                <Timer className="h-8 w-8 text-muted-foreground/20" />
-                <p className="text-xs text-muted-foreground">{t('dashboard.notConfigured')}</p>
-                <button onClick={() => setLocation("/speed-to-lead")} className="text-xs text-[oklch(0.50_0.18_162)] hover:underline">{t('dashboard.setUpNow')} →</button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* -- Setup Progress + Quick Actions ---------------- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {setupProgress && setupProgress.percentage < 100 && (
-            <div className="rounded-2xl border border-border bg-card shadow-sm p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.20_192_/_10%)]">
-                  <CheckCircle2 className="h-4 w-4 text-[oklch(0.50_0.20_192)]" />
-                </div>
-                <h2 className="text-sm font-bold text-foreground">{t('dashboard.setupProgress')}</h2>
-                <span className="ml-auto text-xs font-bold text-[oklch(0.50_0.20_192)]">{setupProgress.percentage}%</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden mb-4">
-                <div
-                  className="h-full bg-gradient-to-r from-[oklch(0.55_0.20_192)] to-[oklch(0.55_0.24_278)] rounded-full transition-all duration-700"
-                  style={{ width: `${setupProgress.percentage}%` }}
-                />
-              </div>
-              <div className="space-y-1.5">
-                {setupProgress.steps.map((step: any) => (
-                  <button
-                    key={step.id}
-                    onClick={() => !step.done && setLocation(step.link)}
-                    className={`flex items-center gap-2.5 w-full text-left p-2 rounded-lg transition-colors ${step.done ? "opacity-50 cursor-default" : "hover:bg-muted cursor-pointer"}`}
-                  >
-                    <div className={`h-4 w-4 rounded-full flex items-center justify-center shrink-0 ${step.done ? "bg-[oklch(0.68_0.18_162_/_15%)]" : "bg-muted"}`}>
-                      {step.done ? <CheckCircle2 className="h-3 w-3 text-[oklch(0.50_0.18_162)]" /> : <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground/30" />}
-                    </div>
-                    <span className={`text-xs ${step.done ? "line-through text-muted-foreground/40" : "text-foreground/70"}`}>{step.label}</span>
-                    {!step.done && <ChevronRight className="h-3 w-3 text-muted-foreground/40 ml-auto" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Quick Actions */}
-          <div className={`rounded-2xl border border-border bg-card shadow-sm p-5 ${setupProgress && setupProgress.percentage < 100 ? "lg:col-span-2" : "lg:col-span-3"}`}>
-            <h2 className="text-sm font-bold text-foreground mb-4">{t('dashboard.quickActions')}</h2>
-            <div className="grid grid-cols-2 gap-3">
-              <QuickAction icon={<Zap className="h-5 w-5" />} title={t('dashboard.generateLeads')} description={t('dashboard.generateLeadsDesc')} onClick={() => setLocation("/generate")} primary />
-              <QuickAction icon={<Users className="h-5 w-5" />} title={t('dashboard.viewPipeline')} description={t('dashboard.viewPipelineDesc')} onClick={() => setLocation("/kanban")} />
-              <QuickAction icon={<Lightbulb className="h-5 w-5" />} title={t('dashboard.aiRecommendations')} description={t('dashboard.aiRecommendationsDesc')} onClick={() => setLocation("/next-actions")} />
-              <QuickAction icon={<BarChart3 className="h-5 w-5" />} title={t('dashboard.viewStatistics')} description={t('dashboard.viewStatisticsDesc')} onClick={() => setLocation("/stats")} />
-            </div>
-            {/* AI Chat Banner */}
-            <div
-              onClick={() => setLocation("/chat-agent")}
-              className="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-gradient-to-r from-[oklch(0.55_0.20_192_/_8%)] to-[oklch(0.55_0.24_278_/_5%)] border border-[oklch(0.55_0.20_192_/_20%)] cursor-pointer hover:border-[oklch(0.55_0.20_192_/_35%)] transition-all group"
-            >
-              <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[oklch(0.55_0.20_192_/_15%)] to-[oklch(0.55_0.24_278_/_15%)] flex items-center justify-center shrink-0">
-                <Brain className="h-5 w-5 text-[oklch(0.50_0.20_192)]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-foreground">{t('dashboard.aiAdvisorPersonas')}</p>
-                <p className="text-xs text-muted-foreground">{t('dashboard.aiAdvisorPersonasDesc')}</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-[oklch(0.50_0.20_192)] group-hover:translate-x-1 transition-transform" />
-            </div>
-          </div>
-        </div>
-
-        {/* -- AI Insights Panel ----------------------------- */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* AI Agent Actions */}
-          <div className="rounded-2xl border border-[oklch(0.55_0.20_192_/_20%)] bg-[oklch(0.55_0.20_192_/_5%)] p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.20_192_/_12%)]">
-                <Cpu className="h-4 w-4 text-[oklch(0.50_0.20_192)]" />
-              </div>
-              <h2 className="text-sm font-bold text-foreground">{t('dashboard.aiAgentActions')}</h2>
-              <div className="ml-auto h-1.5 w-1.5 rounded-full bg-[oklch(0.55_0.20_192)] animate-pulse" />
-            </div>
-            {insightsLoading ? (
-              <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" /></div>
-            ) : (insights?.recentActions?.length ?? 0) > 0 ? (
-              <div className="space-y-2">
-                {insights?.recentActions?.map((action: any, i: number) => (
-                  <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-card/60 border border-[oklch(0.55_0.20_192_/_10%)]">
-                    <div className="h-5 w-5 rounded-full bg-[oklch(0.55_0.20_192_/_15%)] flex items-center justify-center shrink-0 mt-0.5">
-                      <Cpu className="h-2.5 w-2.5 text-[oklch(0.50_0.20_192)]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-foreground/70 leading-relaxed line-clamp-2">{action.action}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">Score: {action.score}/100 · {action.cycleType}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
-                <Cpu className="h-8 w-8 text-muted-foreground/20" />
-                <p className="text-xs text-muted-foreground">{t('dashboard.noAutonomousActions')}</p>
-                <p className="text-[10px] text-muted-foreground/60">{t('dashboard.aiAgentRunsEvery')}</p>
-              </div>
-            )}
-          </div>
-
-          {/* AI Memory */}
-          <div className="rounded-2xl border border-[oklch(0.72_0.18_60_/_20%)] bg-[oklch(0.72_0.18_60_/_5%)] p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-1.5 rounded-lg bg-[oklch(0.72_0.18_60_/_12%)]">
-                <BookOpen className="h-4 w-4 text-[oklch(0.55_0.18_60)]" />
-              </div>
-              <h2 className="text-sm font-bold text-foreground">{t('dashboard.aiMemory')}</h2>
-            </div>
-            {insightsLoading ? (
-              <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" /></div>
-            ) : (insights?.learnings?.length ?? 0) > 0 ? (
-              <div className="space-y-2">
-                {insights?.learnings?.map((item: any) => (
-                  <div key={item.id} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-card/60 border border-[oklch(0.72_0.18_60_/_10%)]">
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-semibold shrink-0 mt-0.5 ${
-                      item.type === "preference" ? "bg-[oklch(0.55_0.20_192_/_12%)] text-[oklch(0.45_0.20_192)]" :
-                      item.type === "learning" ? "bg-[oklch(0.68_0.18_162_/_12%)] text-[oklch(0.45_0.18_162)]" :
-                      item.type === "insight" ? "bg-[oklch(0.72_0.18_60_/_12%)] text-[oklch(0.50_0.18_60)]" :
-                      "bg-[oklch(0.55_0.24_278_/_12%)] text-[oklch(0.45_0.24_278)]"
-                    }`}>{item.type}</span>
-                    <p className="text-xs text-foreground/60 line-clamp-2 leading-relaxed">{item.value}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-28 text-center gap-2">
-                <BookOpen className="h-8 w-8 text-muted-foreground/20" />
-                <p className="text-xs text-muted-foreground">{t('dashboard.noLearnings')}</p>
-                <p className="text-[10px] text-muted-foreground/60">{t('dashboard.chatToBuildMemory')}</p>
-              </div>
-            )}
-          </div>
-
-          {/* AI Performance */}
-          <div className="rounded-2xl border border-[oklch(0.68_0.18_162_/_20%)] bg-[oklch(0.68_0.18_162_/_5%)] p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="p-1.5 rounded-lg bg-[oklch(0.68_0.18_162_/_12%)]">
-                <Flame className="h-4 w-4 text-[oklch(0.50_0.18_162)]" />
-              </div>
-              <h2 className="text-sm font-bold text-foreground">{t('dashboard.aiPerformance')}</h2>
-            </div>
-            {insightsLoading ? (
-              <div className="flex items-center justify-center h-28"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" /></div>
-            ) : insights ? (
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { label: "Avg Score", value: insights.stats.avgScore, color: "text-[oklch(0.50_0.18_162)]" },
-                    { label: "AI Cycles", value: insights.stats.totalCycles, color: "text-[oklch(0.50_0.20_192)]" },
-                    { label: "Questions", value: insights.stats.userMessages, color: "text-[oklch(0.50_0.24_278)]" },
-                    { label: "Memories", value: insights.learnings?.length ?? 0, color: "text-[oklch(0.55_0.18_60)]" },
-                  ].map(m => (
-                    <div key={m.label} className="p-2.5 rounded-xl bg-card/60 border border-[oklch(0.68_0.18_162_/_10%)] text-center">
-                      <p className={`text-xl font-black ${m.color}`}>{m.value}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">{m.label}</p>
-                    </div>
-                  ))}
-                </div>
-                {insights.stats.lastActivity && (
-                  <p className="text-[10px] text-muted-foreground text-center">
-                    Last activity: {new Date(insights.stats.lastActivity).toLocaleDateString()}
-                  </p>
-                )}
-                <button
-                  onClick={() => setLocation("/chat-agent")}
-                  className="w-full text-xs text-[oklch(0.50_0.18_162)] hover:text-[oklch(0.45_0.18_162)] transition-colors flex items-center justify-center gap-1 pt-1"
-                >
-                  {t('dashboard.viewFullChatHistory')} <ArrowRight className="h-3 w-3" />
-                </button>
-              </div>
+          <div className="flex items-center gap-3">
+            {isAuthenticated ? (
+              <a href={user?.role === "admin" ? "/admin" : "/dashboard"} className="text-sm font-bold text-slate-700 hover:text-slate-900 px-4 py-2">
+                ADMIN
+              </a>
             ) : null}
+            <a href="/audit-zdarma" className="bg-slate-900 hover:bg-slate-800 text-white text-sm font-semibold px-5 py-2.5 rounded-full transition-colors hidden sm:block">
+              {CORE_OFFERS.MINI_AUDIT.cta}
+            </a>
           </div>
         </div>
+      </nav>
 
-      </div>
-    </DashboardLayout>
-  );
-}
-
-// --- Sub-components ------------------------------------------
-
-function NbaCard({ item }: { item: any }) {
-  const actionIcons: Record<string, React.ReactNode> = {
-    call: <Phone className="h-3.5 w-3.5" />,
-    email: <Mail className="h-3.5 w-3.5" />,
-    linkedin: <Linkedin className="h-3.5 w-3.5" />,
-    qualify: <CheckCircle2 className="h-3.5 w-3.5" />,
-    disqualify: <XCircle className="h-3.5 w-3.5" />,
-    wait: <Clock className="h-3.5 w-3.5" />,
-  };
-  const actionColors: Record<string, string> = {
-    call: "bg-[oklch(0.55_0.20_192_/_10%)] text-[oklch(0.45_0.20_192)] border-[oklch(0.55_0.20_192_/_20%)]",
-    email: "bg-[oklch(0.55_0.24_278_/_10%)] text-[oklch(0.45_0.24_278)] border-[oklch(0.55_0.24_278_/_20%)]",
-    linkedin: "bg-[oklch(0.55_0.20_220_/_10%)] text-[oklch(0.45_0.20_220)] border-[oklch(0.55_0.20_220_/_20%)]",
-    qualify: "bg-[oklch(0.68_0.18_162_/_10%)] text-[oklch(0.45_0.18_162)] border-[oklch(0.68_0.18_162_/_20%)]",
-    disqualify: "bg-[oklch(0.58_0.22_27_/_10%)] text-[oklch(0.45_0.22_27)] border-[oklch(0.58_0.22_27_/_20%)]",
-    wait: "bg-[oklch(0.72_0.18_60_/_10%)] text-[oklch(0.50_0.18_60)] border-[oklch(0.72_0.18_60_/_20%)]",
-  };
-  const priorityColor = item.priority >= 70 ? "text-[oklch(0.55_0.22_27)]" : item.priority >= 40 ? "text-[oklch(0.55_0.18_60)]" : "text-muted-foreground/40";
-
-  return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-card/60 border border-border hover:border-[oklch(0.55_0.20_192_/_20%)] transition-colors">
-      <div className={`p-2 rounded-lg border ${actionColors[item.action] ?? "bg-muted text-muted-foreground border-border"}`}>
-        {actionIcons[item.action] ?? <Lightbulb className="h-3.5 w-3.5" />}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-semibold text-foreground truncate">
-            {item.action?.charAt(0).toUpperCase() + item.action?.slice(1)} — Lead #{item.leadId}
-          </p>
-          <span className={`text-[10px] font-bold ${priorityColor}`}>P{item.priority}</span>
-        </div>
-        <p className="text-xs text-muted-foreground truncate mt-0.5">{item.reason}</p>
-      </div>
-      <div className="flex items-center gap-1.5 shrink-0">
-        <div className="h-1.5 w-12 bg-muted rounded-full overflow-hidden">
-          <div className="h-full rounded-full bg-[oklch(0.55_0.20_192_/_60%)]" style={{ width: `${item.aiScore ?? 50}%` }} />
-        </div>
-        <span className="text-[10px] text-muted-foreground w-6 text-right">{item.aiScore ?? "—"}</span>
-      </div>
-    </div>
-  );
-}
-
-function QuickAction({
-  icon, title, description, onClick, primary,
-}: {
-  icon: React.ReactNode; title: string; description: string; onClick: () => void; primary?: boolean;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex items-start gap-3 p-4 rounded-xl border text-left transition-all hover:scale-[1.02] ${
-        primary
-          ? "border-[oklch(0.55_0.20_192_/_25%)] bg-gradient-to-br from-[oklch(0.55_0.20_192_/_8%)] to-[oklch(0.55_0.24_278_/_5%)] hover:border-[oklch(0.55_0.20_192_/_40%)] shadow-sm"
-          : "border-border bg-card hover:bg-muted/30 hover:border-[oklch(0.55_0.20_192_/_15%)] shadow-sm"
-      }`}
-    >
-      <div className={`mt-0.5 ${primary ? "text-[oklch(0.50_0.20_192)]" : "text-muted-foreground/50"}`}>{icon}</div>
-      <div>
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
-      </div>
-    </button>
-  );
-}
-
-// --- Projects Analytics Hub ----------------------------------
-const PROJECT_ROUTES: Record<string, string> = {
-  "deep-sleep-reset": "/global-earnings",
-  "leadOS": "/global-earnings",
-};
-
-const PROJECT_COLORS: Record<string, { accent: string; bg: string; border: string; bar: string }> = {
-  "deep-sleep-reset": {
-    accent: "text-[oklch(0.50_0.24_278)]",
-    bg: "from-[oklch(0.55_0.24_278_/_8%)]",
-    border: "border-[oklch(0.55_0.24_278_/_25%)]",
-    bar: "bg-[oklch(0.55_0.24_278)]",
-  },
-  "leadOS": {
-    accent: "text-[oklch(0.50_0.20_192)]",
-    bg: "from-[oklch(0.55_0.20_192_/_8%)]",
-    border: "border-[oklch(0.55_0.20_192_/_25%)]",
-    bar: "bg-[oklch(0.55_0.20_192)]",
-  },
-};
-
-const DEFAULT_COLOR = {
-  accent: "text-[oklch(0.50_0.18_162)]",
-  bg: "from-[oklch(0.68_0.18_162_/_8%)]",
-  border: "border-[oklch(0.68_0.18_162_/_25%)]",
-  bar: "bg-[oklch(0.68_0.18_162)]",
-};
-
-function MiniSparkBar({ values, color }: { values: number[]; color: string }) {
-  const max = Math.max(...values, 1);
-  return (
-    <div className="flex items-end gap-0.5 h-8">
-      {values.map((v, i) => (
-        <div
-          key={i}
-          className={`flex-1 rounded-sm opacity-80 ${color}`}
-          style={{ height: `${Math.max(4, (v / max) * 32)}px` }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function ProjectCard({
-  project,
-  fmtCZK,
-  onNavigate,
-}: {
-  project: any;
-  fmtCZK: (cents: number) => string;
-  onNavigate: (path: string) => void;
-}) {
-  const c = PROJECT_COLORS[project.id] ?? DEFAULT_COLOR;
-  const route = PROJECT_ROUTES[project.id] ?? "/global-earnings";
-  // Values are already in CZK — no conversion needed
-  const toCZK = (czk: number) => czk;
-
-  // Build sparkbar data: [last30d/4, last7d, today*3] — approximation for visual rhythm
-  const sparkValues = [
-    project.last30dRevenue / 4,
-    project.last30dRevenue / 4,
-    project.last7dRevenue / 2,
-    project.last7dRevenue / 2,
-    project.todayRevenue,
-  ].map(v => Math.max(0, v));
-
-  const statusIcon =
-    project.status === "online" ? <Wifi className="h-3 w-3 text-[oklch(0.68_0.18_162)]" /> :
-    project.status === "offline" ? <WifiOff className="h-3 w-3 text-[oklch(0.58_0.22_27)]" /> :
-    project.status === "unconfigured" ? <AlertCircle className="h-3 w-3 text-[oklch(0.65_0.18_60)]" /> :
-    <Globe className="h-3 w-3 text-muted-foreground/40" />;
-
-  const statusLabel =
-    project.status === "online" ? "Online" :
-    project.status === "offline" ? "Offline" :
-    project.status === "unconfigured" ? "Nenastaveno" : "Neznámý";
-
-  const roasValue = project.totalOrders > 0
-    ? ((project.totalRevenue / (project.totalOrders * 15)) * 100).toFixed(0) + "%"
-    : "—";
-
-  return (
-    <div
-      className={`relative overflow-hidden rounded-2xl border ${c.border} bg-gradient-to-br ${c.bg} to-card p-5 cursor-pointer hover:shadow-md transition-all duration-200 group`}
-      onClick={() => onNavigate(route)}
-    >
-      {/* Top accent */}
-      <div className={`absolute top-0 left-0 right-0 h-0.5 ${c.bar}`} />
-
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5">
-            <p className="text-sm font-black text-foreground truncate">{project.name}</p>
-            <span className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground">
-              {statusIcon} {statusLabel}
-            </span>
-          </div>
-          <a
-            href={project.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={e => e.stopPropagation()}
-            className={`text-[10px] ${c.accent} hover:underline flex items-center gap-0.5`}
-          >
-            {project.url.replace(/^https?:\/\//, "")} <ExternalLink className="h-2.5 w-2.5" />
-          </a>
-        </div>
-        <div className={`p-1.5 rounded-lg bg-card/60 border ${c.border} group-hover:scale-110 transition-transform`}>
-          <ArrowRight className={`h-3.5 w-3.5 ${c.accent}`} />
-        </div>
-      </div>
-
-      {/* KPI row */}
-      <div className="grid grid-cols-3 gap-2 mb-3">
-        <div>
-          <p className="text-[10px] text-muted-foreground font-medium">Dnes</p>
-          <p className="text-base font-black text-foreground tabular-nums">
-            {new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(toCZK(project.todayRevenue))}
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] text-muted-foreground font-medium">30 dní</p>
-          <p className="text-base font-black text-foreground tabular-nums">
-            {new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(toCZK(project.last30dRevenue))}
-          </p>
-        </div>
-        <div>
-          <p className="text-[10px] text-muted-foreground font-medium">Objednávky</p>
-          <p className="text-base font-black text-foreground tabular-nums">
-            {project.totalOrders}
-          </p>
-        </div>
-      </div>
-
-      {/* Sparkbar */}
-      <MiniSparkBar values={sparkValues} color={c.bar} />
-
-      {/* Footer */}
-      <div className="flex items-center justify-between mt-2 pt-2 border-t border-black/5">
-        <div className="flex items-center gap-3">
-          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-            <ShoppingCart className="h-2.5 w-2.5" /> ROAS {roasValue}
-          </span>
-          <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-            <Package className="h-2.5 w-2.5" /> Conv {project.conversionRate?.toFixed(1) ?? "0.0"}%
-          </span>
-        </div>
-        <span className={`text-[10px] font-bold ${c.accent}`}>Detail →</span>
-      </div>
-    </div>
-  );
-}
-
-function ProjectsHub({
-  fmtCZK,
-  onNavigate,
-}: {
-  fmtCZK: (cents: number) => string;
-  onNavigate: (path: string) => void;
-}) {
-  const { data: snapshot, isLoading } = trpc.globalEarnings.snapshot.useQuery(undefined, {
-    refetchInterval: 120_000,
-    staleTime: 60_000,
-  });
-
-  return (
-    <div className="rounded-2xl border border-border bg-card shadow-sm p-5">
-      {/* Section header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-[oklch(0.55_0.20_192_/_10%)]">
-            <Globe className="h-4 w-4 text-[oklch(0.50_0.20_192)]" />
-          </div>
-          <div>
-            <h2 className="text-sm font-bold text-foreground">Přehled projektů</h2>
-            <p className="text-[10px] text-muted-foreground">
-              {snapshot ? `Aktualizováno ${new Date(snapshot.generatedAt).toLocaleTimeString("cs-CZ", { hour: "2-digit", minute: "2-digit" })}` : "Načítám..."}
+      {/* ── HERO ── */}
+      <section className="relative pt-36 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+          <Reveal>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-100 text-sky-800 text-xs font-bold uppercase tracking-wider mb-8">
+              <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span></span>
+              {heroCopy.eyebrow}
+            </div>
+            <h1 className="mx-auto mb-8 max-w-5xl text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-950 sm:text-5xl lg:text-7xl">
+              {heroCopy.title}{" "}
+              <span className="text-sky-600">{heroCopy.accent}</span>
+            </h1>
+            <p className="text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
+              {heroCopy.description}
             </p>
-          </div>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <a href="/audit-zdarma" onClick={() => void trackEvent("hero_cta_click", { cta: "mini-audit", location: "hero" })} className="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white text-base lg:text-lg font-semibold px-8 py-4 rounded-xl shadow-lg hover:shadow-xl transition-all shadow-sky-600/20 flex items-center justify-center gap-2">
+                {CORE_OFFERS.MINI_AUDIT.cta} <ArrowRight className="w-5 h-5" />
+              </a>
+              <Button variant="outline" size="lg" className="w-full sm:w-auto h-[60px] text-base font-semibold border-slate-300 text-slate-700 hover:bg-slate-50" onClick={scrollToContact}>
+                Konzultace s námi
+              </Button>
+            </div>
+            <p className="mt-6 text-sm font-medium text-slate-500">První stránka auditu zdarma · Odpověď do 1 pracovního dne · Bez závazku</p>
+            <p className="mt-8 text-xs font-bold uppercase tracking-[0.24em] text-slate-400">
+              Více zákazníků. Míň práce. <span className="text-sky-600">Více růstu.</span>
+            </p>
+            <nav aria-label="Řešení podle typu podnikání" className="mt-8 flex flex-wrap justify-center gap-2">
+              {[
+                { label: "Živnostníci", href: "/lp/zivnostnici" },
+                { label: "Malé firmy", href: "/lp/b2b" },
+                { label: "Restaurace", href: "/lp/restaurace" },
+                { label: "Kavárny", href: "/lp/kavarny" },
+                { label: "Čajovny", href: "/lp/cajovny" },
+              ].map(segment => (
+                <a key={segment.href} href={segment.href} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-sky-300 hover:text-sky-700">
+                  {segment.label}
+                </a>
+              ))}
+            </nav>
+          </Reveal>
         </div>
-        <button
-          onClick={() => onNavigate("/global-earnings")}
-          className="text-xs text-[oklch(0.50_0.20_192)] hover:text-[oklch(0.45_0.20_192)] flex items-center gap-1 transition-colors"
-        >
-          Celkový přehled <ChevronRight className="h-3.5 w-3.5" />
-        </button>
-      </div>
+      </section>
 
-      {/* Aggregate bar */}
-      {snapshot && (
-        <div className="grid grid-cols-4 gap-3 mb-5 p-3 rounded-xl bg-[oklch(0.55_0.20_192_/_5%)] border border-[oklch(0.55_0.20_192_/_15%)]">
+      <section className="border-y border-sky-900 bg-[#061421] py-9 text-white">
+        <div className="mx-auto grid max-w-7xl gap-7 px-4 md:grid-cols-3 md:px-8">
           {[
-            { label: "Celkem dnes", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.todayRevenue) },
-            { label: "Posledních 7 dní", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.last7dRevenue) },
-            { label: "Posledních 30 dní", value: new Intl.NumberFormat("cs-CZ", { style: "currency", currency: "CZK", maximumFractionDigits: 0 }).format(snapshot.totals.last30dRevenue) },
-            { label: "Celkem objednávek", value: snapshot.totals.totalOrders.toString() },
-          ].map(m => (
-            <div key={m.label} className="text-center">
-              <p className="text-[10px] text-muted-foreground font-medium">{m.label}</p>
-              <p className="text-sm font-black text-foreground tabular-nums mt-0.5">{m.value}</p>
+            { icon: Globe, title: "Web, který přivádí zákazníky", text: "Nabídka, menu, ceník i kontakt jsou rychle k nalezení." },
+            { icon: Database, title: "Poptávky a rezervace pohromadě", text: "Víte, kdo se ozval, odkud přišel a co je potřeba vyřídit." },
+            { icon: Rocket, title: "Méně ruční práce", text: "Potvrzení, připomínky a běžné kroky mohou proběhnout automaticky." },
+          ].map(({ icon: Icon, title, text }) => (
+            <div key={title} className="flex gap-4 border-sky-900/80 md:border-r md:pr-7 md:last:border-r-0">
+              <Icon className="mt-0.5 h-7 w-7 shrink-0 text-sky-400" />
+              <div>
+                <h2 className="font-bold">{title}</h2>
+                <p className="mt-1 text-sm leading-6 text-slate-300">{text}</p>
+              </div>
             </div>
           ))}
         </div>
+        <div className="mx-auto mt-8 flex max-w-7xl flex-col gap-2 border-t border-white/10 px-4 pt-5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400 sm:flex-row sm:items-center sm:justify-between md:px-8">
+          <span>Český dodavatel · IČO {activeConfig.billingInfo.companyId}</span>
+          <span>Powered by <strong className="text-sky-400">ONYX OS</strong></span>
+        </div>
+      </section>
+
+      {/* ── VILLAIN PROBLEM ── */}
+      <section id="about" className="py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Reveal className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-6">Kde malé firmy na webu nejčastěji ztrácejí zákazníky?</h2>
+            <p className="text-lg text-slate-600">Zákazník potřebuje během pár vteřin pochopit, co nabízíte, kolik to stojí a jak udělat další krok. Když něco z toho chybí, odchází jinam.</p>
+          </Reveal>
+          <StaggerGrid className="grid md:grid-cols-3 gap-8">
+            {[
+              { title: "Není jasné, co nabízíte", desc: "Návštěvník hledá menu, cenu, termín nebo konkrétní službu. Když je nenajde rychle, web zavře.", icon: <Globe className="w-6 h-6 text-slate-400" /> },
+              { title: "Poptávka nebo rezervace zapadne", desc: "Zpráva skončí mezi e-maily a odpověď přijde pozdě. Zákazník mezitím vybere rychlejší konkurenci.", icon: <MessageSquare className="w-6 h-6 text-rose-500" /> },
+              { title: "Reklama vede na špatné místo", desc: "Platíte za kliknutí, ale návštěvník po příchodu nevidí nabídku ani jednoduchý další krok.", icon: <BarChart3 className="w-6 h-6 text-orange-500" /> }
+            ].map((p, i) => (
+              <motion.div key={i} variants={fadeUp} className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <div className="h-12 w-12 bg-slate-50 rounded-xl flex items-center justify-center mb-6">{p.icon}</div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{p.title}</h3>
+                <p className="text-slate-600">{p.desc}</p>
+              </motion.div>
+            ))}
+          </StaggerGrid>
+        </div>
+      </section>
+
+      {/* ── VIRTUAL SDR & ROI MOCKUP ── */}
+      <section id="funnel" className="py-24 bg-white border-y border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <Reveal>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-sm font-bold uppercase tracking-wider mb-6">
+                ONYX OS v pozadí
+              </div>
+              <h2 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-6 leading-tight">Poptávky, rezervace a objednávky bez chaosu</h2>
+              <p className="text-lg text-slate-600 mb-8 leading-relaxed">
+                ONYX OS je zázemí, které propojí web s vaším každodenním provozem. Nový zájemce dostane rychlé potvrzení,
+                vy uvidíte vše důležité na jednom místě a žádný další krok nemusíte lovit mezi e-maily a poznámky.
+              </p>
+              <ul className="space-y-4 mb-8">
+                {[
+                  "Zákazník snadno odešle poptávku, rezervaci nebo objednávku",
+                  "Ihned dostane potvrzení a ví, co bude následovat",
+                  "Vy máte kontakty a úkoly přehledně na jednom místě",
+                  "U každé zakázky vidíte, odkud zákazník přišel"
+                ].map((item, i) => (
+                  <li key={i} className="flex items-start gap-3">
+                    <div className="mt-1 flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-emerald-600" />
+                    </div>
+                    <span className="text-slate-700 font-medium">{item}</span>
+                  </li>
+                ))}
+              </ul>
+              <a href="/audit-zdarma" className="text-sky-600 font-bold hover:text-sky-700 flex items-center gap-1 transition-colors">
+                Zjistit, kde web ztrácí zákazníky <ArrowRight className="w-4 h-4" />
+              </a>
+            </Reveal>
+
+            {/* ROI Dashboard Preview */}
+            <Reveal className="relative">
+              <div className="absolute inset-0 bg-gradient-to-tr from-sky-100 to-cyan-50 transform rotate-3 rounded-[2rem] -z-10"></div>
+              <div className="bg-white border border-slate-200 shadow-xl rounded-2xl overflow-hidden">
+                <div className="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-sky-400" />
+                    <span className="text-xs font-semibold text-slate-300 tracking-wider">ONYX OS • CRM DASHBOARD</span>
+                  </div>
+                  <div className="text-[10px] text-slate-500 bg-slate-800 px-2 py-1 rounded">Modelový příklad, ne garantovaný výsledek.</div>
+                </div>
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-8">
+                    <div>
+                      <p className="text-sm text-slate-500 font-medium mb-1">Poptávky za měsíc</p>
+                      <h3 className="text-4xl font-black text-slate-900 flex items-baseline gap-2">
+                        Měřeno <span className="text-sm text-emerald-600 font-bold flex items-center bg-emerald-50 px-2 py-0.5 rounded"><TrendingUp className="w-3 h-3 mr-1" /> podle zdroje</span>
+                      </h3>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-slate-500 font-medium mb-1">Obchodní hodnota</p>
+                      <h3 className="text-2xl font-bold text-slate-900">Doplní CRM</h3>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Poslední zpracované poptávky</p>
+                    {[
+                      { name: "Klient_01", mail: "klient_01@email.cz", status: "SDR Followed Up", time: "Před 5 min" },
+                      { name: "Klient_02", mail: "klient_02@email.cz", status: "SDR Followed Up", time: "Před 20 min" },
+                      { name: "Klient_03", mail: "klient_03@email.cz", status: "Meeting Booked", time: "Včera" },
+                    ].map((row, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-bold text-slate-800">{row.name}</span>
+                          <span className="text-xs text-slate-500">{row.mail}</span>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className="text-[11px] font-bold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full mb-1">{row.status}</span>
+                          <span className="text-xs text-slate-400">{row.time}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ── DELIVERY PROCESS ── */}
+      <section className="bg-slate-950 py-24 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Reveal className="mb-14 max-w-3xl">
+            <p className="mb-3 text-sm font-bold uppercase tracking-wider text-sky-300">Jak spolupráce probíhá</p>
+            <h2 className="text-3xl font-bold sm:text-4xl">Od první kontroly po měřitelný provoz</h2>
+            <p className="mt-4 text-lg text-slate-300">Každý krok má konkrétní výstup. Než začnete investovat do realizace, víte co se bude dělat, proč a za kolik.</p>
+          </Reveal>
+          <div className="grid gap-4 md:grid-cols-4">
+            {[
+              { icon: Search, step: "01", title: "Mini audit", text: "Prověříme nabídku, hlavní CTA, mobilní zobrazení a měření." },
+              { icon: PenTool, step: "02", title: "Návrh řešení", text: "Dostanete priority, rozsah, termín a pevně popsaný další krok." },
+              { icon: Rocket, step: "03", title: "Realizace", text: "Postavíme web, formuláře, CRM napojení a automatické reakce." },
+              { icon: LineChart, step: "04", title: "Měření", text: "Sledujeme kvalitu leadů a upravujeme cestu podle skutečných dat." },
+            ].map(({ icon: Icon, step, title, text }) => (
+              <div key={step} className="rounded-lg border border-white/10 bg-white/[0.04] p-6">
+                <div className="mb-6 flex items-center justify-between">
+                  <Icon className="h-6 w-6 text-sky-300" />
+                  <span className="text-sm font-bold text-slate-500">{step}</span>
+                </div>
+                <h3 className="text-lg font-bold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-300">{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── AUDIT PREVIEW ── */}
+      <section className="bg-white py-24">
+        <div className="mx-auto grid max-w-6xl gap-12 px-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+          <Reveal>
+            <p className="mb-3 text-sm font-bold uppercase tracking-wider text-sky-600">Co dostanete zdarma</p>
+            <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">Ukázka výstupu mini auditu</h2>
+            <p className="mt-5 text-lg leading-8 text-slate-600">Žádný automatický bodový výsledek bez vysvětlení. Pošleme stručné hodnocení nejdůležitější stránky a doporučení, které lze rovnou použít.</p>
+            <a href="/audit-zdarma" className="mt-7 inline-flex items-center font-bold text-sky-700 hover:text-sky-800">
+              {CORE_OFFERS.MINI_AUDIT.cta} <ArrowRight className="ml-2 h-4 w-4" />
+            </a>
+          </Reveal>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-6 shadow-sm sm:p-8">
+            <div className="mb-6 flex items-center justify-between border-b border-slate-200 pb-5">
+              <div><p className="text-xs font-bold uppercase tracking-wider text-sky-600">OPTIMATEO mini audit</p><p className="mt-1 font-bold text-slate-900">Shrnutí hlavní stránky</p></div>
+              <span className="rounded bg-white px-3 py-1 text-xs font-semibold text-slate-500">Ukázka struktury</span>
+            </div>
+            <div className="space-y-4">
+              {[
+                ["Nabídka a srozumitelnost", "Pozná návštěvník do 5 sekund, co nabízíte a pro koho?"],
+                ["Konverzní cesta", "Je další krok jasný, snadný a důvěryhodný na mobilu?"],
+                ["Důvěra", "Jsou vidět skutečné výsledky, kontakty a odpovědnost dodavatele?"],
+                ["Měření", "Lze rozlišit zdroj, kvalitu a obchodní výsledek každé poptávky?"],
+              ].map(([title, text], index) => (
+                <div key={title} className="flex gap-4 rounded-lg bg-white p-4 ring-1 ring-slate-200">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-sky-100 text-xs font-bold text-sky-700">{index + 1}</span>
+                  <div><h3 className="font-bold text-slate-900">{title}</h3><p className="mt-1 text-sm leading-6 text-slate-600">{text}</p></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {portfolioItems.length > 0 && (
+        <section className="bg-slate-50 py-24" id="reference">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <Reveal className="mb-12 max-w-3xl">
+              <p className="mb-3 text-sm font-bold uppercase tracking-wider text-sky-600">Vybrané realizace</p>
+              <h2 className="text-3xl font-bold text-slate-900 sm:text-4xl">Skutečné projekty, screenshot a stručný kontext</h2>
+            </Reveal>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {portfolioItems.map(project => (
+                <article key={project.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+                  <img src={project.imageUrl!} alt={`Ukázka projektu ${project.title}`} loading="lazy" className="aspect-[4/3] w-full object-cover object-top" />
+                  <div className="p-6">
+                    {project.category && <p className="text-xs font-bold uppercase tracking-wider text-sky-600">{project.category}</p>}
+                    <h3 className="mt-2 text-xl font-bold text-slate-900">{project.title}</h3>
+                    {project.description && <p className="mt-3 text-sm leading-6 text-slate-600">{project.description}</p>}
+                    {project.results && <p className="mt-4 border-t border-slate-100 pt-4 text-sm font-semibold text-slate-800">{project.results}</p>}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
 
-      {/* Project cards grid */}
-      {isLoading ? (
-        <div className="flex items-center justify-center h-32">
-          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground/40" />
-        </div>
-      ) : !snapshot || snapshot.projects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-32 text-center gap-2">
-          <Globe className="h-8 w-8 text-muted-foreground/20" />
-          <p className="text-xs text-muted-foreground">Žádné projekty nejsou propojeny</p>
-          <button onClick={() => onNavigate("/global-earnings")} className="text-xs text-[oklch(0.50_0.20_192)] hover:underline">
-            Přidat projekt →
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {snapshot.projects.map((project: any) => (
-            <ProjectCard key={project.id} project={project} fmtCZK={fmtCZK} onNavigate={onNavigate} />
-          ))}
-        </div>
+      {testimonialItems.length > 0 && (
+        <section className="bg-white py-20">
+          <div className="mx-auto max-w-6xl px-4">
+            <div className="grid gap-5 md:grid-cols-3">
+              {testimonialItems.map(item => (
+                <figure key={item.id} className="rounded-lg border border-slate-200 p-6">
+                  <Quote className="h-6 w-6 text-sky-300" />
+                  <blockquote className="mt-4 leading-7 text-slate-700">„{item.text}“</blockquote>
+                  <figcaption className="mt-5 text-sm"><strong className="text-slate-900">{item.author}</strong>{(item.role || item.company) && <span className="block text-slate-500">{[item.role, item.company].filter(Boolean).join(" · ")}</span>}</figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
+
+      {/* ── VALUE LADDER (PRICING) ── */}
+      <section id="pricing" className="py-24 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Reveal className="text-center max-w-3xl mx-auto mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900 mb-6">Vyberte podle toho, co právě potřebujete</h2>
+            <p className="text-lg text-slate-600">Začít můžete mini auditem zdarma. Pokud už víte, že potřebujete web nebo e-shop, vyberte rovnou odpovídající balíček.</p>
+          </Reveal>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {packages.map((pkg, i) => (
+              <motion.div key={i} custom={i} variants={fadeUp} className={`bg-white rounded-2xl p-6 sm:p-8 flex flex-col relative border ${pkg.badge ? 'border-sky-500 shadow-xl shadow-sky-100' : 'border-slate-200'}`}>
+                {pkg.badge && (
+                  <div className="absolute top-0 right-8 -translate-y-1/2 bg-sky-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+                    {pkg.badge}
+                  </div>
+                )}
+                <h3 className="text-xl font-bold text-slate-900 mb-1">{pkg.name}</h3>
+                <p className="text-sm text-slate-500 mb-4">{pkg.proKomu}</p>
+                <div className="text-3xl font-black text-slate-900 mb-8">{pkg.price}</div>
+                <ul className="space-y-4 mb-8 flex-1">
+                  {pkg.features.map((f, idx) => (
+                    <li key={idx} className="flex gap-3 text-sm text-slate-600">
+                      <CheckCircle2 className="w-5 h-5 text-sky-600 shrink-0" />
+                      <span>{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <a href={pkg.href} className={`block text-center py-3 px-4 rounded-xl font-bold transition-all ${pkg.badge ? 'bg-sky-600 hover:bg-sky-700 text-white' : 'bg-slate-100 hover:bg-slate-200 text-slate-900'}`}>
+                  {pkg.cta}
+                </a>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── COMMITMENTS ── */}
+      <section className="py-20 bg-slate-900 text-white px-4">
+        <div className="max-w-5xl mx-auto">
+          <Reveal>
+            <div className="text-center">
+              <h2 className="text-3xl sm:text-4xl font-bold mb-5">Co budete vědět před zahájením</h2>
+              <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-300">Neprodáváme neurčitý příslib růstu. Dostanete popsaný problém, rozsah řešení a způsob, jakým budeme výsledek měřit.</p>
+            </div>
+            <div className="mt-10 grid gap-4 md:grid-cols-3">
+              {["Co přesně dodáme", "Kolik realizace stojí", "Podle čeho poznáme výsledek"].map(item => (
+                <div key={item} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-5">
+                  <Check className="h-5 w-5 shrink-0 text-emerald-400" /><span className="font-semibold">{item}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-10 text-center"><a href={CORE_OFFERS.MINI_AUDIT.href} className="inline-block rounded-full bg-white px-8 py-3 font-bold text-slate-900 hover:bg-slate-100">{CORE_OFFERS.MINI_AUDIT.cta}</a></div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ── FAQ ── */}
+      <section className="py-24 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Reveal className="text-center mb-16">
+            <h2 className="text-3xl lg:text-4xl font-bold text-slate-900">Co vás zajímá</h2>
+          </Reveal>
+          <div className="space-y-4">
+            {faqs.map((faq, i) => (
+              <div key={i} className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50 transition-colors">
+                <button
+                  onClick={() => setOpenFaqs(p => ({ ...p, [i]: !p[i] }))}
+                  className="w-full text-left px-6 py-5 flex items-center justify-between focus:outline-none"
+                >
+                  <span className="font-semibold text-slate-900 pr-4">{faq.q}</span>
+                  <ChevronDown className={`w-5 h-5 text-slate-400 shrink-0 transition-transform ${openFaqs[i] ? "rotate-180" : ""}`} />
+                </button>
+                {openFaqs[i] && (
+                  <div className="px-6 pb-5 text-slate-600 bg-white pt-2 border-t border-slate-100">
+                    <p>{faq.a}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER CONTACT ── */}
+      <section id="contact" ref={contactRef} className="py-24 bg-slate-900 text-white relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-16 items-center">
+          <div>
+            <h2 className="text-4xl font-bold mb-6">Řekněte nám, co ve vašem podnikání potřebujete</h2>
+            <p className="text-lg text-slate-400 mb-8 font-light">Stačí krátce vybrat situaci a nechat kontakt. Ozveme se, doptáme se na podstatné věci a doporučíme další krok bez zbytečného technického slovníku.</p>
+            <div className="space-y-2 text-sm font-medium text-slate-300">
+              <p>Email: <a href="mailto:info@optimateo.com" className="text-sky-400">info@optimateo.com</a></p>
+              <p>{activeConfig.legalName} · IČO {activeConfig.billingInfo.companyId}</p>
+              <p>{activeConfig.billingInfo.street}, {activeConfig.billingInfo.postalCode} {activeConfig.billingInfo.region}</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-3xl p-8 sm:p-10 text-slate-900 shadow-2xl relative">
+            <form onSubmit={handleSubmit} onFocusCapture={() => trackFormStart("homepage-contact")} className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="homepage-contact-name" className="block text-sm font-bold text-slate-700 mb-2">Jméno *</label>
+                  <input id="homepage-contact-name" name="name" autoComplete="name" required value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" />
+                </div>
+                <div>
+                  <label htmlFor="homepage-contact-email" className="block text-sm font-bold text-slate-700 mb-2">E-mail *</label>
+                  <input id="homepage-contact-email" name="email" autoComplete="email" required type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="homepage-contact-phone" className="block text-sm font-bold text-slate-700 mb-2">Telefon</label>
+                <input id="homepage-contact-phone" name="phone" type="tel" autoComplete="tel" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 focus:ring-2 focus:ring-sky-500 focus:border-sky-500" />
+              </div>
+              <div>
+                <label htmlFor="homepage-contact-situation" className="block text-sm font-bold text-slate-700 mb-2">S čím vám můžeme pomoci?</label>
+                <Select value={formData.packageType} onValueChange={(val) => setFormData({ ...formData, packageType: val })}>
+                  <SelectTrigger id="homepage-contact-situation" className="w-full h-12 rounded-xl border-slate-200 bg-slate-50">
+                    <SelectValue placeholder="Vyberte situaci" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Nevím, chci poradit">Nevím přesně, chci poradit</SelectItem>
+                    <SelectItem value="Mini Audit">Chci prověřit současný web</SelectItem>
+                    <SelectItem value="ONYX WEB">Chci nový web</SelectItem>
+                    <SelectItem value="ONYX E-SHOP">Chci začít prodávat online</SelectItem>
+                    <SelectItem value="ONYX OS Setup">Chci propojit poptávky a omezit ruční práci</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" disabled={isSubmitting} className="w-full h-12 text-base font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl">
+                {isSubmitting ? "Odesílám..." : "Odeslat dotaz →"}
+              </Button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/10 bg-slate-950 px-4 py-8 text-sm text-slate-500">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 md:flex-row">
+          <a href="/" aria-label="OPTIMATEO">
+            <OptimateoLogo className="h-11" light withTagline />
+          </a>
+          <div className="text-center md:text-right">
+            <p>© 2026 OPTIMATEO · {activeConfig.legalName} · IČO {activeConfig.billingInfo.companyId} · Nejsme plátci DPH.</p>
+            <nav className="mt-3 flex flex-wrap justify-center gap-4 text-xs md:justify-end" aria-label="Právní dokumenty">
+              <a href="/ochrana-osobnich-udaju" className="hover:text-slate-300">Ochrana osobních údajů</a>
+              <a href="/cookies" className="hover:text-slate-300">Cookies</a>
+              <a href="/obchodni-podminky" className="hover:text-slate-300">Obchodní podmínky</a>
+            </nav>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -68,29 +68,6 @@ export async function notifyOwner(
 ): Promise<boolean> {
   const { title, content } = validatePayload(payload);
 
-  // Mirror to the owner's Telegram (CML channel) — fire-and-forget, never blocks
-  // the Manus path. Also serves as the sole channel once decoupled from Manus.
-  let telegramDelivered = false;
-  const telegramChatId = process.env.TELEGRAM_OWNER_CHAT_ID?.trim();
-  if (telegramChatId) {
-    try {
-      const { sendTelegramMessage, telegramEnabled } = await import("../telegram/telegramApi");
-      if (telegramEnabled()) {
-        telegramDelivered = await sendTelegramMessage(
-          telegramChatId,
-          `${title}\n\n${content}`
-        );
-      }
-    } catch (err: any) {
-      console.warn("[Notification] Telegram mirror failed:", err?.message);
-    }
-  }
-
-  // When Manus Forge isn't configured (decoupled deploy), Telegram delivery counts.
-  if ((!ENV.forgeApiUrl || !ENV.forgeApiKey) && telegramDelivered) {
-    return true;
-  }
-
   if (!ENV.forgeApiUrl) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",

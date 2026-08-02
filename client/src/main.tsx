@@ -1,6 +1,5 @@
-import "@/i18n";
 import { trpc } from "@/lib/trpc";
-import { UNAUTHED_ERR_MSG } from "@shared/const";
+import { UNAUTHED_ERR_MSG } from '@shared/const';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink, TRPCClientError } from "@trpc/client";
 import { createRoot } from "react-dom/client";
@@ -8,27 +7,6 @@ import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
-
-function registerAnalytics() {
-  const endpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT?.trim();
-  const websiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID?.trim();
-  if (!endpoint || !websiteId) return;
-
-  try {
-    const scriptUrl = new URL("umami", `${endpoint.replace(/\/$/, "")}/`);
-    if (!/^https?:$/.test(scriptUrl.protocol)) return;
-
-    const script = document.createElement("script");
-    script.defer = true;
-    script.src = scriptUrl.toString();
-    script.dataset.websiteId = websiteId;
-    document.head.appendChild(script);
-  } catch {
-    console.warn("[Analytics] Ignoring invalid VITE_ANALYTICS_ENDPOINT");
-  }
-}
-
-registerAnalytics();
 
 const queryClient = new QueryClient();
 

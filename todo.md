@@ -1,1116 +1,218 @@
-# ONYX OS — Feature Roadmap & Implementation Status
-
-**Poslední aktualizace:** 2026-07-06  
-**Verze:** 1.0.0  
-**Status:** 🟡 In Active Development
-
----
-
-## 🔴 HIGH PRIORITY — Agent OS inspirace (YouTube: Julian Goldie — Agentic Systems with Claude)
-
-> Inspirace: https://www.youtube.com/watch?v=0ppnSyQHUYw — přidáno 2026-07-06
-
-### 1. Caveman Mode — Token Optimizer (⚡ IMPLEMENTOVÁNO 2026-07-06)
-- [x] Přidat `cavemanMode: boolean` parametr do `hermesChat()` v hermesAgent.ts
-- [x] Systémový prompt přepínač — ultra-stručný styl (žádné zdvořilostní fráze, jen výsledek)
-- [x] Přidat `cavemanMode` do hermesRouter.ts `sendMessage` + `aiChat` procedur
-- [ ] Frontend toggle v AIChatWidget.tsx (Caveman ON/OFF tlačítko)
-- [ ] Zobrazit odhadovanou úsporu tokenů v UI (badge "~65% tokens saved")
-
-### 2. Daily Routines Dashboard — Ranní AI Přehled (⚡ IMPLEMENTOVÁNO 2026-07-06)
-- [x] Nová stránka `/daily-routines` s ranním briefingem
-- [x] Sekce: Pipeline přehled, nové leady, úkoly na dnes, výkon kampaní, AI doporučení
-- [x] Napojeno na existující data (leady, DSR, ad kampaně, projekty)
-- [x] Hermes AI shrnutí pro každou sekci
-- [x] Route v App.tsx + nav item v DashboardLayout
-- [ ] Automaticky otevřít při prvním ranním přihlášení (localStorage timestamp)
-- [ ] Push notifikace (8:00 CET) přes existující hermesDigest scheduler
-
-### 3. Global Signal Desk — Intelligence Dashboard (🔄 AUDIT DONE, čeká GO IMPLEMENT)
-- [x] Audit repozitáře proveden (2026-07-06)
-- [x] Datový model navržen (GlobalSignal interface)
-- [x] Mock data fixture připravena
-- [x] SignalProvider abstrakce navržena
-- [ ] **[GO IMPLEMENT]** Stránka `/global-signal-desk`
-- [ ] Level 1: MVP s mock daty + premium UI
-- [ ] Level 2: SignalProvider + env-based API (WORLD_MONITOR_API_BASE_URL, WORLD_MONITOR_API_KEY)
-- [ ] Level 3: Caching, deduplikace, confidence scoring, severity normalizace
-- [ ] Kategorie: internet outages, cyber threats, natural disasters, infrastructure, cables, datacenters, space/weather
-- [ ] Compliance nota + zdroj atribuce na každém signálu
-
-### 4. Remotion Video Templates (📋 PLÁNOVÁNO)
-- [ ] Prozkoumat Remotion (React-based programmatic video) jako alternativu k FFmpeg
-- [ ] Šablona pro Amazon Affiliate promo video
-- [ ] Agent mění vstupy: text, cena, obrázek produktu → hotové video
-- [ ] Integrace s existující video produkční platformou
-
-### 5. Agent OS Koordinátor — Centrální Dashboard Agentů (📋 PLÁNOVÁNO)
-- [ ] Unified dashboard: stav všech agentů (HERMES, HERA, RADAR, daily schedulers)
-- [ ] Real-time log akcí agentů za posledních 24h
-- [ ] Manuální spuštění libovolného agenta/mise z jednoho místa
-- [ ] Stav daily schedulerů (poslední spuštění, příští, úspěch/chyba)
-
-### 6. Hybrid LLM Routing — Levné vs. Drahé modely (📋 PLÁNOVÁNO)
-- [ ] Rutinní úkoly (meta tagy, status updates) → DeepSeek/lokální model
-- [ ] Kreativní úkoly (video skripty, blog posty, komplexní analýzy) → Claude/GPT-4
-- [ ] Cost tracking per request v UI
-- [ ] Nastavení prahu v AI Constitution
-
----
-
----
-
-## 🎯 TIER 0 — HERA AI & Core Features (MVP)
-
-### HERA AI Orchestration
-- [x] HERA Command Center (UI + orchestration)
-- [x] HERMES agent (multi-step mission orchestrator)
-- [x] Sub-agenti (7 specialistů)
-- [x] Prompt Security modul (20+ detekčních vzorů, 41 testů)
-- [x] Drag & drop chat widget (localStorage persistence)
-- [x] Voice input (Web Speech API, čeština)
-- [x] Smart follow-up suggestions
-- [x] Rating system (👍/👎)
-- [ ] Persistent memory (cross-session context)
-- [ ] HERA daily digest (email summary)
-
-### Core (Completed)
-- [x] Database schema: leads + lead_sessions tables
-- [x] tRPC routers: generate, list, stats, export, sessions, deleteSession
-- [x] Lead generation pipeline: AI validate → Apify LinkedIn scrape → email enrichment → AI icebreaker
-- [x] Dashboard with stats cards and recent sessions
-- [x] Generate Leads page with data source selector and real-time progress
-- [x] Lead History with search, industry filter, pagination
-- [x] Statistics page with Recharts charts
-- [x] JSON + CSV export (Generate + History)
-- [x] Lead status tracking: new/contacted/replied/qualified/disqualified
-- [x] Inline status dropdown in History
-- [x] Status filter in History
-- [x] Email enrichment via caprolok/website-email-phone-finder (Apify)
-- [x] Apify token validated (LEADGEN22)
-- [x] 17 Vitest tests passing
-
-## Kanban Board View
-- [x] Kanban board page with drag-and-drop pipeline columns (New/Contacted/Replied/Qualified/Disqualified)
-- [x] Install @dnd-kit/core
-- [x] Optimistic drag-and-drop status updates
-- [x] Lead count badge per column header
-- [x] Compact lead card design for Kanban view
-- [x] Kanban route in App.tsx and DashboardLayout nav
-
-## Bulk Actions
-- [x] Checkbox on each lead row in list view
-- [x] Select all / deselect all checkbox in header
-- [x] Bulk status update dropdown + Set Status button
-- [x] Bulk CSV export for selected leads
-- [x] Bulk delete with confirmation dialog
-- [x] bulkUpdateStatus and bulkDelete tRPC mutations
-
-## Email Outreach Templates
-- [x] DB schema: email_templates table
-- [x] Migration SQL for email_templates
-- [x] tRPC: templates.list, templates.create, templates.update, templates.delete
-- [x] Templates page with editor and variable preview
-- [x] Copy-to-clipboard for filled template
-
-## Industry Segment Presets
-- [x] Segment preset buttons on Generate form (Finance, Insurance, Mortgages, Investments, Real Estate, MLM, SaaS, Healthcare)
-- [x] One-click preset fills industry, seniority, location
-
-## Lead Quality Rating System
-- [x] qualityRating column in leads table
-- [x] Thumbs up / thumbs down buttons in History expanded row
-- [x] tRPC: leads.rateQuality mutation
-
-## ROI Tracking
-- [x] dealValue and dealClosed columns in leads table
-- [x] ROI page with deal value input per lead
-- [x] Revenue vs cost dashboard (total pipeline value, closed deals, conversion rate)
-- [x] ROI route in App.tsx and DashboardLayout nav
-
-## Team Management
-- [x] team_members table with email-based invites
-- [x] Team page: invite by email, assign role (admin/agent)
-- [x] tRPC: team.invite, team.list, team.remove, team.updateRole
-
-## Public Landing Page
-- [x] Hero section with CTA
-- [x] Features section with icons
-- [x] How it works section
-- [x] Stats / social proof
-- [x] Testimonials
-- [x] Pricing section (3 tiers)
-- [x] CTA contact form
-
-## Quality & Polish
-- [x] 17 Vitest tests passing (3 test files)
-- [ ] Final checkpoint + publish
-
-## Internationalization (i18n) — EN / CS / SK
-- [x] Install react-i18next and i18next
-- [x] Create translation files: en.json, cs.json, sk.json
-- [x] Set up i18n provider in main.tsx with localStorage persistence
-- [x] Build LanguageSwitcher component (EN / CS / SK toggle)
-- [x] Add LanguageSwitcher to Landing page navbar and DashboardLayout sidebar footer
-- [x] Translate Landing page (hero, features, how it works, pricing, testimonials, CTA)
-- [x] Translate DashboardLayout (nav items, user menu)
-- [x] Translate Home/Dashboard page (stats cards, quick actions)
-- [x] Translate Generate page (form labels, segment presets, progress messages)
-- [x] Translate History page (search, filters, bulk actions, lead cards)
-- [x] Translate Kanban page (column headers, card labels)
-- [x] Translate Stats page (chart labels, metric names)
-- [x] Translate ROI page (deal value input, metrics)
-- [x] Translate Templates page (editor, variable hints)
-- [x] Translate Team page (invite form, role labels)
-- [ ] Final checkpoint + publish
-
-## Google Sheets Integration
-- [x] Research and choose integration approach (Google Sheets API with service account)
-- [x] Install googleapis npm package
-- [x] Add GOOGLE_SERVICE_ACCOUNT_JSON secret to environment
-- [x] Build backend: sheetsExport tRPC procedure (takes spreadsheetId + leads, appends rows)
-- [x] Auto-create header row if sheet is empty
-- [x] Build frontend: Google Sheets export modal with spreadsheet URL input
-- [x] Add "Export to Google Sheets" button to History toolbar and Generate results
-- [x] Show success toast with link to the spreadsheet after export
-- [x] 19 Vitest tests passing (4 test files)
-- [ ] Final checkpoint + publish
-
-## ClickUp Export Integration
-- [x] DB schema: webhook_configs table (stores webhook URLs and ClickUp API keys per user)
-- [x] DB schema: integration_logs table (tracks all webhook/export events)
-- [x] Migration SQL applied
-- [x] Backend: ClickUp API client (create tasks from leads)
-- [x] Backend: tRPC procedures for integration CRUD (add/edit/delete/test webhook)
-- [x] Backend: Webhook dispatcher (POST lead data to user's webhook URL)
-- [x] Frontend: Integrations page with Webhook config and ClickUp export UI
-- [x] Wire webhook triggers into lead pipeline completion events
-- [x] Add Integrations nav item to DashboardLayout
-- [x] Route in App.tsx
-- [x] Vitest tests for webhook and ClickUp integration
-- [x] Push to GitHub
-
-## Webhook Integration (Zapier/Make/n8n)
-- [x] Generic webhook POST on lead generation complete
-- [x] Configurable webhook URL per user
-- [x] Test webhook button (sends sample payload)
-- [x] Webhook delivery logs with status codes
-- [x] Retry failed webhooks (up to 3 attempts)
-
-## Language Consistency Fix
-- [x] Fix hardcoded English strings in Landing.tsx (Industry Presets section)
-- [x] Add missing i18n keys to cs.json, de.json, en.json
-- [x] Fix ALL remaining hardcoded English strings in Landing.tsx (hero, testimonials, CTA, footer, badges)
-- [x] Add 30+ new translation keys to en.json, cs.json, de.json
-
-## LeadPro.com Integration Analysis
-- [x] Research LeadPro.com features (CRM, Newsletters, Landing Pages, Task Tracker)
-- [ ] Consider: Email Sequence Builder for automated follow-ups
-- [ ] Consider: Task/Activity Tracker with reminders tied to pipeline
-- [ ] Consider: Lead → Customer Lifecycle management
-- [ ] Consider: Custom Mailing Lists and segmentation
-- [ ] Consider: Stripe Payment Integration for monetization
-
-## Next Best Action Engine
-- [x] DB schema: nba_recommendations table
-- [x] Backend: AI analyzes lead data and generates ranked action recommendations (call/email/wait/qualify)
-- [x] tRPC: nba.getRecommendations, nba.dismissRecommendation, nba.markActioned
-- [x] Frontend: NBA page with action recommendations
-- [x] Nav item + route in App.tsx
-
-## B2B Matching
-- [x] DB schema: match_profiles table (ICP definition per user)
-- [x] Backend: AI company similarity matching (find companies similar to best customers)
-- [x] tRPC: matching.saveProfile, matching.findMatches, matching.listMatches
-- [x] Frontend: B2B Matching page with ICP builder and match results
-- [x] Nav item + route in App.tsx
-
-## AI SDR Agent
-- [x] DB schema: sdr_campaigns table (campaign config + status + activity log)
-- [x] Backend: Autonomous pipeline: generate leads → enrich → AI email → schedule send → track replies
-- [x] tRPC: sdr.createCampaign, sdr.startCampaign, sdr.pauseCampaign, sdr.getCampaignStats
-- [x] Frontend: AI SDR Agent page with campaign builder and activity log
-- [x] Nav item + route in App.tsx
-
-## Social Listening
-- [x] DB schema: social_signals table (keyword monitors + matched posts)
-- [x] Backend: Apify LinkedIn/Reddit keyword monitor, auto-add matches as leads
-- [x] tRPC: social.createMonitor, social.listSignals, social.convertToLead
-- [x] Frontend: Social Listening page with keyword setup and signal feed
-- [x] Nav item + route in App.tsx
-
-## Language Swap: Remove SK, Add DE
-- [x] Delete sk.json
-- [x] Create de.json with full German translations
-- [x] Update i18n config to replace sk with de
-- [x] Update LanguageSwitcher to show DE instead of SK
-- [x] Update lang keys in en.json and cs.json
-
-## Mobile Responsiveness Fix
-- [x] Fix Landing page navbar on mobile (hamburger menu)
-- [x] Fix language switcher display on mobile
-- [x] Ensure all dashboard pages are mobile-friendly
-
-## New Feature Roadmap (15 features)
-- [x] 1. Website Tracking Pixel + AI ISP Filtering
-- [x] 2. Similar Leads Engine ("Companies like this") — via B2B Matching
-- [x] 3. Visitor Journey Analytics + Intent Score — via Tracking Pixel
-- [x] 4. Smart Alert Rules (Slack + email, conditional)
-- [x] 5. Decision-Maker Pre-filtering (AI) — via ICP Builder
-- [x] 6. LinkedIn Mutual Connections — via Social Listening
-- [x] 7. Smart Lists (behavioral filters + Autopilot)
-- [x] 8. Real-time Email Verification (Bouncer API)
-- [x] 9. Condition-Based Campaigns (If/Then)
-- [x] 10. Icebreaker AI (personalized 1st sentence) — existing enhanced
-- [x] 11. Agency Panel (multi-tenant, white-label)
-- [x] 12. ClickUp Export (leads as Tasks) — existing enhanced
-- [x] 13. Speed-to-Lead (instant follow-up)
-- [x] 14. Webhook Export (Zapier/Make/n8n/Pabbly) — existing enhanced
-- [x] 15. ICP Builder
-
-## Additional New Features (Batch 2)
-- [x] Tech Stack Detection (Precision.co style)
-- [x] AI Agent Builder (multi-agent orchestration)
-- [x] Enhance existing: AI SDR Agent, NBA Engine, Social Listening, B2B Matching
-
-## Dashboard Widgets
-- [x] NBA recommendations widget (top 5 priority actions)
-- [x] Recent alerts widget (last 5 triggered alerts)
-- [x] Speed-to-Lead metrics widget (response time, config status)
-- [x] Backend: uses existing endpoints (nba.list, alertRules.list, speedToLead.get)
-
-## Futuristic Process Diagram
-- [x] Replace "How It Works" section with quantum-tech futuristic animated diagram
-- [x] Simple but sophisticated visual explaining the lead gen process
-- [x] CSS-only animations (no JS libraries needed)
-
-## A/B Test Mockup
-- [x] Create /landing-b route with alternative design variant
-- [x] Different hero layout, color accents, or CTA positioning for comparison
-
-## Onboarding Wizard (First Login) — COMPLETED
-- [x] DB: Add onboarding_completed flag to users table
-- [x] Backend: onboarding.getStatus, onboarding.saveIcp, onboarding.saveIntegrations, onboarding.complete endpoints
-- [x] Frontend: Multi-step wizard component (Welcome → ICP Definition → Integrations → Done)
-- [x] Auto-show wizard on first login (onboarding_completed = false)
-- [x] Skip option for users who want to set up later
-- [x] Wire into DashboardLayout to redirect new users
-- [x] Tests for onboarding endpoints
-
-## Lusha-Inspired Landing Page Improvements
-- [ ] Proof-first hero with testimonial card
-- [ ] Email-only CTA (Enter work email + Start for free)
-- [ ] Trust badges (No credit card required, G2 rating placeholder)
-- [ ] Trusted by logo bar under hero
-- [ ] Sticky mobile CTA bar
-- [ ] Specific ROI numbers in testimonials section
-
-## Branding Update to ONYX OS
-- [ ] Update app title to ONYX OS
-- [ ] Set new logo (V1 light for header, V3 icon for favicon)
-- [ ] Update Landing page branding
-- [ ] Update DashboardLayout branding
-
-## SEO Fixes for Landing Page (/)
-- [x] Fix page title to 30-60 characters using document.title
-- [x] Add meta description (50-160 characters)
-- [x] Add meta keywords tag
-
-## Email Sequence Builder (LeadPro-inspired)
-- [x] DB schema: email_sequences + email_sequence_steps + email_sequence_enrollments tables
-- [x] Backend: sequence CRUD, enroll lead, step scheduling logic
-- [x] Frontend: Sequences page with step builder (day 1/3/7 intervals)
-- [x] Nav item + route in App.tsx
-
-## Task/Activity Tracker (LeadPro-inspired)
-- [x] DB schema: tasks table (title, due_date, lead_id, status, reminder_at)
-- [x] Backend: tasks CRUD tRPC procedures
-- [x] Frontend: Tasks page with calendar view and lead-linked tasks
-- [x] Nav item + route in App.tsx
-
-## Capture Planning Workflow (GrowthLab-inspired)
-- [x] DB schema: capture_plans table with stages (Identify/Research/Outreach/Qualify/Propose/Close)
-- [x] Backend: capture plan CRUD + stage progression
-- [x] Frontend: Capture Planning page with visual stage workflow
-- [x] Nav item + route in App.tsx
-
-## Market Intelligence Reports (GrowthLab-inspired)
-- [x] Backend: AI generates market intelligence report per industry (trends, competitors, spend signals)
-- [x] Frontend: Market Intelligence page with report generation and display
-- [x] Nav item + route in App.tsx
-
-## Training Knowledge Base (GrowthLab-inspired)
-- [x] DB schema: knowledge_articles table (title, category, content, video_url)
-- [x] Backend: articles CRUD + seed with BD best practices content
-- [x] Frontend: Knowledge Base page with categories and article viewer
-- [x] Nav item + route in App.tsx
-
-## Competitive Landscape Mapping (GrowthLab-inspired)
-- [x] Backend: AI analyzes competitors for a given company/industry
-- [x] Frontend: Competitive Map page with visual positioning chart
-- [x] Nav item + route in App.tsx
-
-## Onboarding Wizard Frontend
-- [x] Multi-step wizard component (Welcome → ICP → Integrations → Done)
-- [x] Auto-show on first login (onboarding_completed = false)
-- [x] Wire into DashboardLayout redirect
-
-## Branding Update
-- [x] Update VITE_APP_TITLE to "ONYX OS"
-- [x] Update DashboardLayout sidebar logo/name
-- [x] Update Landing page brand name
-
-## Stripe Payment Integration
-- [x] Add Stripe feature via webdev_add_feature
-- [x] Create subscription plans (Starter $49/Growth $99/Pro $249)
-- [x] Backend: checkout session, webhook handler, billing portal
-- [x] Frontend: Billing page with real Stripe checkout + plan management
-- [x] DB: stripeCustomerId, stripeSubscriptionId, subscriptionStatus, subscriptionPlan fields on users
-
-## Onboarding Wizard (Complete Implementation)
-- [x] Build OnboardingWizard component (4 steps: Welcome, ICP, Integrations, Done)
-- [x] Step 1: Welcome — animated intro, key features highlight, user name display
-- [x] Step 2: ICP Definition — industry, location, company size, seniority selectors
-- [x] Step 3: Integrations — optional webhook/ClickUp setup, skip option
-- [x] Step 4: Done — confetti animation, quick action buttons (Generate Leads, View Dashboard)
-- [x] Progress bar and step indicators
-- [x] Auto-show on first login via DashboardLayout (onboardingCompleted = false)
-- [x] Skip button on all steps except Done
-- [x] Wire trpc.onboarding.saveIcp and trpc.onboarding.complete mutations
-- [x] Add /onboarding route in App.tsx
-
-## Stripe Real Price IDs Setup
-- [x] Create Stripe products via API (Starter, Growth, Pro)
-- [x] Create monthly + yearly prices for each product
-- [x] Store Price IDs as environment secrets
-- [x] Update stripeProducts.ts with real Price IDs
-- [x] Test checkout flow end-to-end with test card
-
-## Email Sequence Cron Job
-- [ ] Server-side scheduler checks enrollments every hour for due steps
-- [ ] Sends follow-up emails via built-in email helper
-- [ ] Marks steps as sent and advances enrollment to next step
-- [ ] Handles completion (all steps sent) and error states
-
----
-
-## 🔴 Known Issues & Blockers
-
-### Critical (Blocking Deployment)
-- [ ] Webhook retry scheduler: `responseBody` → `response` schema mismatch (261 TS errors)
-  - **Impact:** Webhook retries don't work
-  - **Fix:** Update schema in drizzle/schema.ts line 114
-  - **Status:** Identified, pending fix
-
-### High Priority (Affects UX)
-- [ ] DashboardLayout: Pre-transform error at line 407 (stale, fixed in HMR)
-  - **Status:** Fixed in latest checkpoint, needs verification
-- [ ] Large lead lists (1000+) need pagination
-- [ ] Mobile responsiveness needs testing
-
-### Medium Priority (Nice to Have)
-- [ ] Chat history loading — need lazy loading
-- [ ] Image generation timeout — need progress indicator
-- [ ] Keyboard navigation — needs accessibility audit
-
----
-
-## 📊 Progress Summary
-
-| Kategorie | Hotovo | Celkem | % |
-|-----------|--------|--------|-----|
-| TIER 0 (MVP) | 12 | 14 | 86% |
-| TIER 1 (Revenue) | 7 | 14 | 50% |
-| TIER 2 (Intelligence) | 3 | 9 | 33% |
-| TIER 3 (AI) | 3 | 8 | 38% |
-| TIER 4 (System) | 5 | 10 | 50% |
-| **CELKEM** | **30** | **55** | **55%** |
-
----
-
-## 🚀 Next Steps (Priority Order)
-
-1. **Fix webhook retry scheduler** — resolve `responseBody` schema error
-2. **Implement persistent memory** — cross-session HERA context
-3. **Add SDR Agent** — AI-powered outreach automation
-4. **Implement usage tracking** — API limits per plan
-5. **Add CRM integrations** — Salesforce, HubSpot
-6. **Build campaign manager** — multi-channel campaigns
-7. **Mobile app** — React Native
-
----
-
-## 📝 Development Notes
-
-### Local Development (Claude Code)
-```bash
-git clone <repo> ai-lead-gen
-cd ai-lead-gen
-brewinstall mysql
-mysql -u root -e "CREATE DATABASE ai_lead_gen;"
-echo 'DATABASE_URL="mysql://root:password@localhost:3306/ai_lead_gen"' > .env.local
-pnpm install && pnpm drizzle-kit push && pnpm dev
-```
-
-### Production (Manus)
-```bash
-git push origin main
-# Manus automatically deploys
-# Domains: aileadgen-kytwarba.manus.space, ai-lead-gen.com, crmleadsystem.com
-```
-
-### Testing
-```bash
-pnpm test                              # All tests
-pnpm test -- promptSecurity.test.ts    # Specific test (41 tests pass)
-pnpm test -- --watch                   # Watch mode
-```
-
-## Integrations — Czech Translation & HERMES Automation
-- [x] Integrations.tsx — full Czech translation
-- [x] Webhook config UI (Czech)
-- [x] ClickUp, Slack, Zapier setup guides (Czech)
-- [x] Delivery logs UI (Czech)
-- [x] n8n Security Gateway documentation (Czech)
-- [x] HERMES automation button — auto-setup workflow
-- [ ] CRM integration (Salesforce, HubSpot)
-- [ ] LinkedIn integration
-- [ ] Outreach.io integration
-
-## Billing — CZK Pricing & Admin Bypass
-- [x] Stripe integration (test mode)
-- [x] Tiered pricing in CZK (3 490 / 9 490 / 18 990 Kč)
-- [x] Admin bypass for upsell popup
-- [x] User role set to admin+pro in DB
-- [ ] Usage tracking & limits
-- [ ] Invoice generation
-- [ ] Refund management
-
-## UI/UX Fixes
-- [x] Sidebar tooltip overflow fix (overflowX: visible)
-- [x] Admin popup bypass
-- [ ] Dark mode toggle
-- [ ] Mobile responsiveness
-- [ ] Accessibility audit (WCAG 2.1)
-
-## Onboarding Wizard Frontend (Complete)
-- [x] Multi-step modal: Welcome → ICP Definition → Integrations → Done
-- [x] Step 1: Welcome with feature highlights and avatar
-- [x] Step 2: ICP form (industry, company size, seniority, location)
-- [x] Step 3: Integrations (webhook URL, Zapier, optional)
-- [x] Step 4: Done with confetti animation and quick-start actions
-- [x] Auto-show when onboardingCompleted = false
-- [x] Wire into DashboardLayout
-
-## Stripe Checkout Flow on Billing Page
-- [ ] Billing page shows current plan status from user subscription
-- [ ] Subscribe buttons call trpc.billing.createCheckout with correct Price ID
-- [ ] Opens Stripe checkout in new tab
-- [ ] Success/cancel redirect back to /billing
-- [ ] Manage Subscription button calls billing portal for existing subscribers
-- [ ] Show active plan badge on current plan card
-
-## AI Assistant Chatbot
-- [x] Backend: tRPC chat.sendMessage procedure with LLM + user context injection (leads, pipeline, sequences stats)
-- [x] Backend: Streaming SSE support via chat.streamMessage
-- [x] Frontend: Floating chat button (bottom-right, all dashboard pages)
-- [x] Frontend: Slide-in chat panel with message history, markdown rendering, typing indicator
-- [x] Frontend: Quick action prompts (Find leads, Analyze pipeline, Write icebreaker, Summarize today)
-- [x] Wire into DashboardLayout
-
-## Setup Progress Widget
-- [x] Backend: onboarding.getProgress procedure returning % complete + which steps done
-- [x] Frontend: Dashboard widget with progress bar, step checklist, quick links to ICP/Sequences/Integrations
-- [x] Auto-hide when 100% complete
-
-## AI Assistant Chatbot (Full Platform Access)
-- [x] Backend: aiChat.sendMessage with LLM tool-calling (read stats, list leads, update ICP, create sequence, configure integrations)
-- [x] Backend: Tool definitions for all major platform actions
-- [x] Frontend: Floating chat button (bottom-right, all dashboard pages)
-- [x] Frontend: Slide-in panel with AIChatBox, quick prompts, action confirmation toasts
-- [x] Wire into DashboardLayout globally
-
-## AI Sales Personas for Chatbot
-- [x] Define 33 persona system prompts (11 Sales, 11 Finance, 11 Leadership)
-- [x] Backend: persona param in aiChat.sendMessage
-- [x] Frontend: persona selector in chatbot widget with category tabs
-- [x] Setup Progress widget on Home.tsx
-- [x] Floating chatbot widget in DashboardLayout
-
-## Self-Improving AI Agent
-- [x] DB: ai_agent_memory table (stores learnings, optimizations, performance snapshots)
-- [x] DB: ai_performance_log table (tracks actions taken, outcomes, improvement cycles)
-- [x] Backend: aiChat.sendMessage with full LLM tool-calling (20+ tools: read/write leads, ICP, sequences, stats, alerts, campaigns)
-- [x] Backend: Autonomous performance monitor scheduler (every 6h: analyze metrics, detect issues, auto-optimize, log learnings)
-- [x] Frontend: Floating AI chat widget (global, all dashboard pages) with action execution + confirmation
-- [x] Frontend: Setup Progress widget on dashboard
-- [ ] Frontend: AI Insights panel showing recent autonomous actions and performance trends
-
-## AI Insights Panel (Dashboard)
-- [x] Backend: aiChat.insights procedure (aggregates perf logs, memory, chat stats)
-- [x] Frontend: 3-column panel on dashboard (AI Agent Actions, AI Memory, AI Performance)
-- [x] Empty states for new users
-
-## Persona Favorites
-- [x] DB: user_persona_favorites table
-- [x] Backend: aiChat.toggleFavorite and aiChat.getFavorites procedures
-- [x] Frontend: Favorites tab in AIChatWidget
-- [x] Heart toggle button on each persona card
-
-## Chat History Page (/ai-advisor)
-- [x] Frontend: /ai-advisor page with full conversation history
-- [x] Search conversations by keyword
-- [x] Grouped by session (30-min gaps)
-- [x] Expandable conversation threads
-- [x] Stats row (total messages, questions, memories, cycles)
-- [x] Favorite personas sidebar
-- [x] AI Memory sidebar
-- [x] New Chat persona picker modal
-- [x] Added AI Advisor to sidebar nav
-
-## OLD_PLACEHOLDERrd)
-- [ ] Backend: aiChat.insights query returning recent performance logs, memory learnings, autonomous actions
-- [ ] Frontend: AI Insights section on Home.tsx dashboard with 3 sub-sections (Actions, Trends, Memory)
-- [ ] Auto-refresh every 60s
-
-## Persona Favorites
-- [ ] DB: user_persona_favorites table (userId, personaId)
-- [ ] Backend: aiChat.getFavorites, aiChat.toggleFavorite procedures
-- [ ] Frontend: Star/pin button on each persona card in chatbot widget
-- [ ] Frontend: "Favorites" tab as first tab in chatbot widget (shows pinned personas)
-- [ ] Persist favorites per user
-
-## Chat History Page (/ai-advisor)
-- [ ] Backend: aiChat.getHistory with pagination + search
-- [ ] Backend: aiChat.getSessionMessages (group messages by session/date)
-- [ ] Frontend: /ai-advisor page with conversation list, search bar, and message viewer
-- [ ] Frontend: "Resume" button to open chatbot widget with selected persona
-- [ ] Nav item in DashboardLayout sidebar
-- [ ] Route in App.tsx
-
-## Branding Rename: ONYX OS → ONYX OS
-- [x] Update all hardcoded "ONYX OS" strings in Landing.tsx
-- [x] Update DashboardLayout sidebar logo/name
-- [x] Update page title in index.html
-- [x] Update meta tags in Landing.tsx
-- [x] Update server-side messages and i18n files
-
-## Voice Input in Chat Widget
-- [x] Frontend: Microphone button in chat textarea using Web Speech API
-- [x] Show recording indicator (animated pulse) while listening
-- [x] Auto-fill textarea with transcribed text on speech end
-- [x] Handle browser permission errors gracefully
-- [x] Disable mic button when browser doesn't support Web Speech API
-
-## Persona Performance Scoring
-- [x] DB: persona_ratings table (userId, personaId, sessionId, rating, feedback, createdAt)
-- [x] Backend: aiChat.ratePersona procedure
-- [x] Backend: aiChat.getPersonaRatings procedure (aggregated scores per persona)
-- [x] Frontend: Thumbs up/down rating UI after each AI response in chat widget
-- [x] Frontend: "Top Rated Experts" section on /ai-advisor page
-
-## Proactive AI Morning Briefings
-- [x] DB: morning_briefings table
-- [x] Backend: morningBriefing.generate, getLatest, dismiss procedures
-- [x] Frontend: Pinned briefing card on dashboard (top leads, pipeline alerts, next actions)
-- [x] Dismiss + regenerate buttons
-- [x] Empty state with Generate Briefing CTA
-- [ ] Frontend: Briefing visible in /ai-advisor history
-
-## Visual Redesign — Premium AI Product Aesthetic
-- [ ] New design system: deep space dark bg (#050508), electric violet/cyan accent palette, Inter + Geist fonts
-- [ ] Global CSS: glassmorphism cards, animated gradient mesh background, glow effects, micro-animations
-- [ ] DashboardLayout: premium sidebar with gradient logo, animated active states, glow nav indicators
-- [ ] Home/Dashboard: gradient stat cards, animated counters, premium section headers
-- [ ] Landing page: cinematic hero with animated gradient orbs, premium typography, social proof bar
-- [ ] All pages: consistent glassmorphism cards, hover glow effects, smooth transitions
-
-## Sprint 1: Predictive Lead Scoring + LinkedIn Outreach
-- [x] DB: predictive_scores table
-- [x] Backend: leads.getPredictiveScores and leads.computePredictiveScore procedures
-- [x] Frontend: Score badges on leads in History.tsx (color coded: green/yellow/red)
-- [x] DB: sequence_steps stepType + linkedinNote fields
-- [x] Backend: sequences.generateLinkedInMessage procedure
-- [x] Frontend: Sequences.tsx redesigned with LinkedIn/Call step types, AI generate button
-
-## Visual Redesign — Premium Billionaire Tier
-- [x] index.css: Deep space dark, electric violet/cyan, glassmorphism, animated gradient system
-- [x] index.html: Premium fonts (Space Grotesk + Inter)
-- [x] DashboardLayout: Gradient logo, glow nav items, premium animated sidebar
-- [x] Home.tsx: Animated stat counters, pipeline funnel infographic, activity pulse chart, glassmorphism cards, gradient hero header
-
-## Sprint 2: AI Follow-up Bot + Meeting Scheduling
-- [ ] DB: meeting_links table (userId, title, slug, duration, availabilityJson, createdAt)
-- [ ] DB: follow_up_sessions table (leadId, userId, status, nextFollowUpAt, meetingBooked, meetingAt)
-- [ ] Backend: followUp.createMeetingLink procedure (generate unique booking slug)
-- [ ] Backend: followUp.getAvailability / followUp.bookMeeting procedures
-- [ ] Backend: followUp.startSession / followUp.getActiveSessions procedures
-- [ ] Backend: Scheduler — every 30min check for due follow-ups, generate AI email with meeting link
-- [ ] Frontend: Meeting Scheduler page (/meetings) with availability config and booking link generator
-- [ ] Frontend: Follow-up Bot widget on dashboard (active sessions, next scheduled follow-up)
-- [ ] Frontend: Booking page (/book/:slug) — public page for leads to pick a time slot
-- [ ] Nav item + route in App.tsx
-
-## Animated Landing Page
-- [ ] Cinematic hero section with animated gradient mesh orbs (CSS + JS)
-- [ ] Scroll-triggered section reveals (Intersection Observer)
-- [ ] Animated particle/dot grid background
-- [ ] Premium feature showcase with staggered card animations
-- [ ] Animated counter stats section (matching dashboard style)
-- [ ] Smooth scroll navigation
-- [ ] Premium glassmorphism pricing cards with hover glow
-- [ ] Mobile-optimized animations (reduced motion)
-
-## Conversational Intelligence
-- [ ] DB: call_recordings table (userId, leadId, filename, s3Url, duration, transcription, aiAnalysis, sentiment, actionItems, createdAt)
-- [ ] Backend: calls.uploadRecording procedure (S3 upload + Whisper transcription)
-- [ ] Backend: calls.analyzeCall procedure (LLM analysis: sentiment, objections, next actions, CRM notes)
-- [ ] Backend: calls.list / calls.getDetail procedures
-- [ ] Backend: Auto-update lead notes/status from call analysis
-- [ ] Frontend: Call Intelligence page (/calls) with upload, transcript viewer, AI insights
-- [ ] Frontend: Call summary card on lead detail (expandable)
-- [ ] Nav item + route in App.tsx
-
-## Hero Image: Královna Leadů
-- [ ] Generate AI image: Queen of Leads on private jet, luxury, champagne, gold accents
-- [ ] Upload to CDN
-- [ ] Integrate as hero background on Landing page
-
-## Czech Translation (Remaining Pages)
-- [x] Translate Kanban page to Czech
-- [x] Translate History page to Czech
-- [x] Translate ROI Tracker page to Czech
-- [x] Translate Statistics page to Czech
-- [x] Translate Billing page to Czech (new pricing + Enterprise column)
-- [ ] Translate Settings pages to Czech
-
-## Demo-First Pricing Redesign
-- [x] Update pricing to Starter €149/mo, Growth €399/mo, Pro €799/mo
-- [x] Add Enterprise tier (cena na dotaz / Contact Sales)
-- [x] Update stripeProducts.ts with new pricing
-- [x] Billing page redesigned with 4-column pricing (Starter/Growth/Pro/Enterprise)
-
-## Sales CRM Super Module UI
-- [x] Deal Pipeline Kanban board (stages: New/Qualified/Presentation/Proposal/Negotiation/Won/Lost)
-- [x] Sales Dashboard with revenue metrics, win rate, quota tracking
-- [x] Deal create/edit modal with all fields
-- [x] Commission tracker widget on Sales Dashboard
-- [x] Quota progress bar per user
-- [x] CRM tRPC router (deals, activities, quotas, commissions)
-- [x] Sidebar nav items: Deal Pipeline + Sales Dashboard
-
-## Rename Chatbot to "Chat Agent" (SEO)
-- [x] Update DashboardLayout sidebar nav item label (via i18n key sidebar.aiAdvisor)
-- [x] Update i18n keys in cs.json (sidebar.aiAdvisor, home.aiAdvisor, aiAdvisor33, aiAdvisorPersonas)
-- [x] Update AiAdvisor.tsx page title and header to "Chat Agent"
-- [x] Update AIChatWidget.tsx floating button and header to "Chat Agent"
-
-## Chat Agent SEO Improvements
-- [ ] Change URL slug /ai-advisor → /chat-agent in App.tsx
-- [ ] Update DashboardLayout nav path to /chat-agent
-- [ ] Update all internal links (AIChatWidget, Home.tsx) to /chat-agent
-- [ ] Add meta title/description to AiAdvisor.tsx page for Google indexing
-- [ ] Create Chat Agent feature section on Landing page with 33 personas showcase
-
-## Landing Page i18n Fix
-- [ ] Translate HOW_IT_WORKS section (Define Your ICP, AI Generates Leads, Personalized Outreach, Close More Deals)
-- [ ] Translate Chat Agent section (all hardcoded English strings)
-- [ ] Translate Meeting Scheduler feature card (hardcoded English in FEATURES array)
-- [ ] Audit all other hardcoded English strings in Landing.tsx
-- [ ] Add all missing keys to cs.json, en.json, de.json
-
-## Multi-Project Analytics Hub (API Command Center)
-- [x] DB schema: connected_projects + project_events tables (migration applied)
-- [x] Public data ingestion endpoint (POST /api/ingest/:apiKey) — accepts sale, pageview, signup, refund, adspend, custom
-- [x] Health check endpoint (GET /api/ingest/:apiKey/ping)
-- [x] tRPC procedures: projects.create, list, delete, regenerateKey, getStats, getAllStats
-- [x] Projects Dashboard page (/projects) — unified analytics across all connected projects
-- [x] Aggregate KPI cards (total revenue, profit, ROAS, sales count)
-- [x] Per-project metrics cards (sales, revenue, ROAS, CVR, profit)
-- [x] SDK snippet generator in UI (copy-paste JS code with fetch examples)
-- [x] Sidebar nav item: "Projekty / Command Center" with link icon
-
-## HOW_IT_WORKS i18n + Deal Activity Log + Deep Sleep Reset Project
-- [x] Translate HOW_IT_WORKS section on landing page (4 steps) to Czech/German
-- [x] Add Deal Activity Log timeline to Deal Pipeline (backend + frontend)
-- [x] Pre-seed Deep Sleep Reset as first connected project with API key: dsr_96c230588e470b67d0c1215f369de3072980bc27cd951f38
-
-## AI Deal Scoring
-- [ ] DB: Add aiScore (0-100), aiScoreReasoning, aiScoredAt columns to deals table
-- [ ] Backend: tRPC crm.scoreDeal procedure — calls LLM with deal context (stage, value, activities, days in stage, company, contact)
-- [ ] Backend: crm.batchScoreDeals — score all unscored deals for current user
-- [ ] Frontend: AI score badge on deal cards in Pipeline Kanban (color-coded: green/yellow/red)
-- [ ] Frontend: AI Scoring panel in deal edit modal (score gauge, reasoning, re-score button)
-- [ ] Auto-trigger scoring on deal create/update
-- [ ] Vitest test for scoreDeal procedure
-
-## AI Constitution (AI Ústava)
-- [ ] Create ai_constitution table in drizzle/schema.ts and apply migration
-- [ ] Build constitutionRouter (get/save) in server/routers/constitution.ts
-- [ ] Create getConstitutionContext() helper for injecting into AI calls
-- [ ] Build AIConstitution.tsx Settings page with all form fields
-- [ ] Add route /settings/ai-constitution to App.tsx
-- [ ] Add sidebar nav entry in DashboardLayout
-- [ ] Wire constitution context into invokeLLM calls across platform
-
-## Sales Strategy Features (from DeepSleepReset 100k project)
-- [x] Exit-Intent Popup — lead capture with email opt-in when user tries to leave Landing page
-- [x] Social Proof Live Counter — animated counter "X companies using ONYX OS" on Landing page
-- [ ] Pre-checkout Wait Popup — swipeable add-ons with live total counter before checkout
-- [x] Urgency/Scarcity Banner — countdown timer for limited offers on pricing section
-- [ ] Order Bump component — one-click add-on at checkout (e.g., "Add Onboarding Call +€99")
-- [ ] Funnel Progress Indicator — visual step tracker on pricing/signup flow
-- [ ] Abandoned Lead Recovery — email sequence triggered when user starts signup but doesn't complete
-- [x] Smart Popup — behavior-triggered popup after 30s on Landing page (different from exit-intent)
-- [ ] Testimonial Rotator — auto-rotating social proof with real metrics on Landing page
-- [ ] One-Click Upsell — post-signup upsell offer page (upgrade to higher tier)
-- [x] Inject getConstitutionContext() into all 5 Brains system prompts (callExpert + synthesizeMasterReport)
-
-## Lead Capture Backend (from DeepSleepReset playbook)
-- [x] captured_leads DB table created
-- [x] leadsRouter (capturedLeads) with captureEmail, list, stats procedures
-- [x] ExitIntentPopup wired to capturedLeads.captureEmail tRPC mutation
-- [x] Welcome email via LLM + owner notification on new lead capture
-- [x] FunnelProgressIndicator component with animated steps and connector lines
-- [x] FunnelProgressIndicator integrated into Pricing section of Landing page
-
-## Bug Fixes & NINJA BOTS (Session 2026-04-19)
-- [x] Fix React dashboard bug — objects {name, reason} rendered as React children in <li> elements (briefing.topLeads, pipelineAlerts, nextActions)
-- [x] Rename penetration test AI agents to NINJA BOTS — Tier 4 category renamed to "NINJA BOT Attack", new ninja agent persona added to benchmark router and UI
-- [x] Benchmark-Confidence Correlation UI panel — collapsible panel in AgentBenchmark.tsx with avg scores, tier reliability bars, recent benchmark runs history
-
-## HERMES — Core AI Orchestration Agent
-- [x] DB schema: hermes_sessions table (session log, intent, plan, result, sub-agents used)
-- [x] Backend: hermesAgent.ts — HERMES persona, intent routing, sub-agent orchestration
-- [x] Backend: hermesRouter.ts — tRPC procedures (chat, getHistory, getStatus, runMission)
-- [x] Wire hermesRouter into routers.ts
-- [x] Frontend: Hermes.tsx — HERMES Command Center page with mission console, sub-agent status, live log
-- [x] Wire /hermes route in App.tsx
-- [x] Add HERMES to DashboardLayout sidebar (top-level, prominent)
-- [ ] Inject HERMES context into aiChat.sendMessage as default meta-persona (future)
-- [ ] Vitest tests for hermesRouter (future)
-
-## HERMES → AI Chat Integration
-- [x] Extend hermesAgent.ts with hermesAiChatMessage() — HERMES-routed chat with intent classification + sub-agent dispatch
-- [x] Add hermes.aiChat procedure to hermesRouter.ts (replaces direct aiChat.sendMessage for HERMES-mode)
-- [x] Update AIChatWidget.tsx to use hermes.aiChat — HERMES mode toggle, active sub-agent badge, intent label, HERMES header
-- [x] Add HERMES mode toggle in AIChatWidget (HERMES orchestration ON/OFF with Shield+Switch)
-- [x] Persist HERMES widget session in DB (auto-creates 'widget' session per user for conversation continuity)
-
-## DeepSleepReset Integration (External Project Monitoring)
-- [x] Add DEEP_SLEEP_RESET_API_KEY secret via webdev_request_secrets
-- [x] Create server/routers/deepSleep.ts — backend proxy for all 6 DSR endpoints (health, analytics, leads, orders, ab-tests, email-sequence)
-- [x] Wire deepSleepRouter into routers.ts
-- [x] Build client/src/pages/DeepSleepDashboard.tsx — full monitoring page (KPI cards, leads table, orders, A/B tests, email sequence, health badge)
-- [x] Add /deep-sleep route in App.tsx
-- [x] Add "DeepSleep" nav item in DashboardLayout sidebar
-
-## DSR Push Ingest Endpoint + Global Earnings Widget
-- [ ] DB schema: dsr_snapshots table (stores push payloads from DSR hourly_stats.py)
-- [ ] Express route POST /api/dsr/ingest — public, auth via X-API-Key header
-- [ ] globalEarningsRouter wired into routers.ts
-- [ ] Live Global Earnings widget on Home.tsx dashboard (total across all projects)
-- [ ] Wire globalEarningsRouter into routers.ts
-
-## HERMES Czech + Live Project Performance
-- [ ] Fix ingestRoute.ts schema import path error (Cannot find module '/home/ubuntu/drizzle/schema')
-- [ ] Apply dsr_snapshots migration to DB
-- [ ] hermesAgent.ts: Czech as primary language, no greeting, inject live DSR+ONYX OS KPIs into system prompt
-- [ ] hermesAgent.ts: auto-fetch DSR analytics on every chat call, include in context
-- [ ] Hermes.tsx: Czech labels throughout, auto-briefing panel on load with live project status
-- [ ] Hermes.tsx: DeepSleepReset performance card in project status grid
-
-## HERMES Auto-Briefing on Startup
-- [x] Auto-send "Shrň mi aktuální výkon projektů" on /hermes page load after session init
-- [x] Show loading state while briefing is being generated (isSending=true during auto-briefing)
-- [x] Prevent duplicate briefing on re-render (autoBriefingFiredRef)
-
-## HERMES Daily Digest (08:00 CET Scheduler)
-- [ ] Create server/hermesDigest.ts — generateDailyDigest() fetches live DSR data + ONYX OS stats, invokes LLM for Czech briefing
-- [ ] Add node-cron scheduler in server/_core/index.ts — fires at 08:00 CET daily
-- [ ] Store digest in hermes_messages table (role: "digest") for history
-- [ ] Send digest via notifyOwner({ title, content })
-- [ ] Add hermes.triggerDigest tRPC procedure for manual testing
-- [ ] Add "Denní přehledy" tab on Hermes.tsx showing digest history
-- [ ] Fix deepSleep.getAnalytics → deepSleep.analytics in Hermes.tsx DsrLivePanel
-
-## DACH Market Expansion (Germany/Austria/Switzerland)
-- [ ] Update Stripe prices to DACH rates (Pro €149, Growth €349, Enterprise €799+)
-- [ ] Update landing page pricing section in cs.json, en.json, de.json
-- [ ] Add DSGVO/GDPR compliance section to landing page
-- [ ] Add trust badges: EU data processing, GDPR compliant, ISO 27001 ready
-- [ ] Add Xing as lead generation source in Generate page
-- [ ] Add Xing scraping backend support (Apify Xing actor)
-- [ ] Add DACH-specific German testimonials to landing page
-- [ ] Add German support email / contact info
-- [ ] Add EU VAT compliance note to pricing section
-- [ ] Add Datenschutz link in footer (German privacy policy page)
-
-## External Project Integration (ONYX OS Ingest)
-- [x] POST /api/leads/ingest endpoint with API key auth
-- [x] ingested_leads DB table created and migrated
-- [x] IngestSources dashboard page (External Leads in sidebar)
-- [x] i18n keys for externalLeads in cs/en/de
-
-## macOS UI Redesign + PWA + DACH Features (April 2026)
-- [x] macOS-style DashboardLayout: MacMenuBar (top) + MacDock (bottom sticky) + AppsPanel (slide-over)
-- [x] Removed old shadcn Sidebar dependency entirely
-- [x] Live earnings pill in MacMenuBar with real-time clock
-- [x] Dock magnification on hover (21 app icons + All Apps button)
-- [x] PWA support: manifest.json, service worker (sw.js), apple-touch-icon (180x180), icon-192.png, icon-512.png
-- [x] PWA meta tags in index.html (apple-mobile-web-app-capable, manifest link, SW registration)
-- [x] Datenschutzerklärung page (/datenschutz) — full DSGVO-compliant German privacy policy
-- [x] Xing DACH-specific UI inputs in Generate.tsx (keywords, company size, DE/AT/CH region buttons)
-- [x] notifyOwner() call on every new external lead ingested via /api/leads/ingest
-
-## Session 2026-04-20 Improvements
-- [x] Google Sign-In button added to ManusDialog.tsx and Landing.tsx hero CTA
-- [x] DealPipeline.tsx wrapped in DashboardLayout with kanban overflow fix
-- [x] ScrollToTop component added to App.tsx (fires on every route change)
-- [x] HERMES Mastermind tab added to Hermes.tsx — expert multi-select sidebar + LLM chat
-- [x] mastermindChat tRPC procedure added to hermesRouter.ts (uses buildMastermindPrompt from shared/hermesMastermind.ts)
-
-## Computer Flow — Perplexity-style Multi-Brain Orchestration (April 2026)
-- [x] server/computerFlow.ts — full orchestration engine (decomposer, parallel executor, synthesizer)
-- [x] DECOMPOSER brain: breaks query into 2-5 specialized sub-tasks via LLM (thinking budget 128)
-- [x] EXECUTOR: runs all sub-tasks in parallel via Promise.all (Scout/Analyst/Strategist/DeepThink layers)
-- [x] SYNTHESIZER: merges all outputs into unified optimized result (thinking budget 2048)
-- [x] Gemini 2.5 Pro direct API integration for Deep Think layer (optional, via GEMINI_API_KEY)
-- [x] hermesRouter.ts: hermes.computerFlow mutation + hermes.getComputerFlowConfig query
-- [x] client/src/pages/ComputerFlow.tsx — full UI with SVG execution graph, brain nodes, timing stats
-- [x] Animated circular SVG graph showing brain layers + connection lines + status
-- [x] Sub-task cards with expand/collapse for individual brain outputs
-- [x] Synthesis panel with Streamdown markdown rendering
-- [x] Export to Markdown (.md) download
-- [x] Settings panel: domain selector, sub-task count (2-5), Deep Think toggle
-- [x] Route /computer-flow added to App.tsx
-- [x] Computer Flow added to DashboardLayout dock (TIER 4 AI) and sidebar menu
-- [x] i18n keys added to cs.json, en.json, de.json
-
-## Mobile Layout Fixes (April 2026)
-- [x] Fix top status bar overlapping dashboard content on mobile (safe-area-inset)
-- [x] Fix first dashboard widget (Řídicí centrum) overflowing horizontally on mobile
-- [x] Ensure sidebar dock doesn't overlap main content on mobile
-
-## Video Best Practices Integration (2026-05-04)
-- [x] Fix globalEarnings.ts JSON parse error (content-type check before res.json())
-- [x] Landing page: Add Before/After Excel vs ONYX OS comparison section
-- [x] Landing page: Upgrade Pricing to 3-tier agency model (DFY/Retainer/Agency)
-- [x] Social Listening: Add Intent Mining tab (review mining pattern)
-
-## Deep Sleep Reset Integration (May 2026)
-- [x] Create DSR Dashboard page with live sales metrics, product overview, and quick actions
-- [x] Add DSR-specific lead generation presets and targeting (sleep niche ICP, DACH market)
-- [x] Add DSR nav item to DashboardLayout and route in App.tsx
-- [ ] DSR campaign manager: Reddit Ads, Meta Ads targeting for sleep niche
-- [ ] DSR affiliate tracking panel
-
-
-## Global Earnings Integration (May 2026)
-- [x] Create GlobalEarnings.tsx page with project performance metrics
-- [x] Add globalEarnings tRPC router with analytics procedures
-- [x] Fix DashboardLayout import in GlobalEarnings.tsx
-- [x] Add GlobalEarnings nav item to DashboardLayout sidebar (TIER 3 Analytics)
-- [x] Register /global-earnings route in App.tsx
-
-## ONYX OS CRM Integration (May 2026)
-
-### Phase 1: API Keys & External Endpoints (Completed)
-- [x] Create API Keys management system (DB table, CRUD, permissions)
-- [x] Build External REST API endpoints (/api/external/leads, /api/external/email-sequences, /api/external/analytics)
-- [x] Implement Bearer token authentication for external API
-- [x] Create apiKeys.ts with key generation and validation
-- [x] Create apiKeysRouter.ts with tRPC CRUD procedures
-- [x] Create externalApi.ts with REST endpoints
-
-### Phase 2: Webhook Dispatcher & Admin UI (Completed)
-- [x] Implement Outbound Webhooks with HMAC-SHA256 signing
-- [x] Create webhookDispatcherV2.ts with exponential backoff retry
-- [x] Create webhooksRouter.ts with tRPC procedures
-- [x] Build Admin Integrations dashboard page
-- [x] Create AdminIntegrations.tsx with API key and webhook UI
-- [x] Write 20 vitest tests for API authentication
-- [x] All tests passing
-
-### Phase 3: Pipeline Integration (In Progress)
-- [ ] Integrate webhook dispatcher into lead generation pipeline
-- [ ] Trigger webhooks on new_lead, new_order, quiz_completed events
-- [ ] Create Professional Analytics Dashboard (KPI metrics, waterfall funnel, date range picker, revenue timeline)
-- [ ] Create Webhook Activity page (delivery logs, retry attempts, manual retry button)
-- [ ] Write integration tests for webhook dispatcher
-
-### Phase 4: Webhook Pipeline Integration & Scheduler (Complete)
-- [x] Integrate webhook calls into lead generation tRPC mutations (leads.create, leads.updateStatus, closeDeal)
-- [x] Add Webhook Activity nav item to DashboardLayout sidebar
-- [x] Add Professional Analytics nav item to DashboardLayout sidebar
-- [x] Implement background scheduler for automatic webhook retry every 5 minutes (webhookRetryScheduler.ts)
-- [x] Fix build errors (webhookConfigs import, DashboardLayout export, externalApi registration)
-- [x] Mount /api/scheduled/webhook-retry endpoint in server/_core/index.ts
-- [x] Mount /api/external/* endpoints via registerExternalApi
-- [x] All 20 vitest tests passing
-
-### Tech Stack Section (Factorio-inspired)
-- [x] Create Factorio-style Tech Stack section on Landing page
-- [x] Add i18n translations for Tech Stack section (en, cs, de)
-- [x] Integrate industrial/automation visual style (conveyor belts, pipeline nodes, neon indicators)
-
-## Deep Sleep Admin Integration (May 2026)
-- [ ] Add /api/external/orders endpoint
-- [ ] Add /api/external/email/send endpoint
-- [ ] Build integration cards UI (Stripe, Brevo, Meta Pixel, Reddit Ads, TikTok Ads, ONYX OS CRM)
-- [ ] Update DashboardLayout sidebar sections (ANALYTICS, MARKETING, OBSAH, AUTOMATIZACE, SYSTÉM)
-- [ ] Add Brevo API key management
-- [ ] Add Reddit Ads API key management
-- [ ] Add TikTok Ads API key management
-
-## /goal ROI 888% — Revenue Acceleration System (May 2026)
-
-### Phase 1: Affiliate & Referral Program
-- [ ] Add referral_codes and referral_conversions tables to DB schema
-- [ ] Create affiliateRouter with tRPC procedures (generate code, track clicks, get earnings)
-- [ ] Add UTM/referral tracking to landing page (localStorage + cookie)
-- [ ] Build Affiliate Dashboard page (/affiliate)
-- [ ] Add sidebar nav item for Affiliate program
-
-### Phase 2: Annual Billing Upsell + ROI Calculator
-- [ ] Add ROI calculator widget to Billing page (deal size × close rate × leads)
-- [ ] Add urgency mechanics (countdown timer, "X people upgraded today")
-- [ ] Add annual vs monthly toggle with prominent savings badge
-- [ ] Add "Most Popular" and "Best Value" badges with social proof
-
-### Phase 3: In-App Upgrade Nudges
-- [ ] Add usage limit bars (leads used / monthly limit)
-- [ ] Add feature gate modals for locked Pro features
-- [ ] Add contextual upgrade CTAs in Generate, Sequences, Analytics pages
-- [ ] Add onboarding checklist with upgrade trigger at completion
-
-### Phase 4: Revenue Intelligence Dashboard
-- [ ] Create RevenueIntelligence.tsx page with MRR/ARR/LTV/CAC metrics
-- [ ] Add cohort analysis chart (monthly retention by signup cohort)
-- [ ] Add churn prediction indicators
-- [ ] Add revenue forecast chart (3-month projection)
-
-### Phase 5: Lead Magnet Funnel Optimization
-- [ ] Optimize ExitIntentPopup with A/B test variant
-- [ ] Add trial-to-paid conversion email sequence trigger
-- [ ] Add "Invite a colleague" viral loop mechanic
-- [ ] Add social proof counter (live user count on landing page)
-
-## Phase 6 — A/B Testing + ROI Animator + Affiliate Leaderboard
-
-- [ ] A/B testing for UpgradeNudge: variant assignment (localStorage), Variant A (floating after 45s), Variant B (inline banner with different copy), conversion tracking per variant
-- [ ] Enhanced ROI Calculator: animated count-up numbers, slider inputs (leads/month, close rate, deal value), projection chart (Chart.js line), smooth transitions
-- [ ] Detailed Affiliate leaderboard: historical earnings chart (recharts), monthly breakdown table, rank badges, commission history timeline
-
-## Phase 7 — HDM CRM Obousměrné propojení
-
-- [ ] ONYX OS: POST /api/webhook/hdm endpoint pro příjem eventů z HDM (new_user, new_order, chart_created, subscription_upgraded)
-- [ ] ONYX OS: Uložit HDM eventy do ingested_leads a project_events tabulek s HMAC-SHA256 ověřením
-- [x] ONYX OS: Human Design Chart přidán do connected_projects v DB (id=2, apiKey=lsk_a669...)
-- [ ] HDM Manus vlákno: Odeslat event do ONYX OS při registraci nového uživatele
-- [ ] HDM Manus vlákno: Odeslat event do ONYX OS při Stripe platbě (subscription_upgraded)
-- [ ] HDM Manus vlákno: Odeslat event do ONYX OS při vytvoření chartu (chart_created)
-- [ ] HDM Manus vlákno: Příjem ONYX OS webhooků (new_lead, lead_status_changed) pro CRM sync
-
-## Phase 8 — Google Maps Scraper + Web Audit Tool (Webové zakázky)
-
-### Google Maps Scraper
-- [ ] DB schema: google_maps_leads tabulka (name, address, phone, website, rating, reviews_count, category, has_website, web_quality_score, place_id, lat, lng, status, userId)
-- [ ] Migration SQL pro google_maps_leads
-- [ ] Backend: googleMaps.scrape tRPC procedure (Apify actor: compass/crawler-google-places)
-- [ ] Backend: googleMaps.list, googleMaps.getStats, googleMaps.convertToLead procedures
-- [ ] Backend: AI hodnocení kvality webu (0-100 score) pro každý výsledek
-- [ ] Frontend: GoogleMapsScraper.tsx stránka s formulářem (keyword, location, radius, max results)
-- [ ] Frontend: Výsledky jako tabulka s filtry (bez webu, slabý web, rating < 4)
-- [x] Frontend: "Přidat do CRM" tlačítko pro konverzi na lead
-- [x] Nav item + route v App.tsx
-
-### Web Audit Tool
-- [x] DB schema: web_audits tabulka (url, userId, score, performance, seo, mobile, design, speed_ms, issues JSON, recommendations JSON, createdAt)
-- [x] Migration SQL pro web_audits
-- [x] Backend: webAudit.analyze tRPC procedure (fetch URL → AI analýza → score 0-100)
-- [x] Backend: webAudit.list, webAudit.getReport procedures
-- [x] Backend: Generování PDF reportu jako lead magnet
-- [x] Frontend: WebAudit.tsx stránka s URL inputem a výsledky
-- [x] Frontend: Vizuální score karty (Performance, SEO, Mobile, Design)
-- [x] Frontend: "Stáhnout PDF report" tlačítko
-- [x] Frontend: "Nabídnout nový web" CTA tlačítko → přidá do CRM jako lead
-- [x] Nav item + route v App.tsx
-
-
-## 🌐 Integrations — Czech Translation & HERMES Automation
-- [x] Integrations.tsx — full Czech translation
-- [x] Webhook config UI (Czech)
-- [x] ClickUp, Slack, Zapier setup guides (Czech)
-- [x] Delivery logs UI (Czech)
-- [x] n8n Security Gateway documentation (Czech)
-- [x] HERMES automation button — auto-setup workflow
-- [ ] CRM integration (Salesforce, HubSpot)
-- [ ] LinkedIn integration
-- [ ] Outreach.io integration
-
-## 💳 Billing — CZK Pricing & Admin Bypass
-- [x] Stripe integration (test mode)
-- [x] Tiered pricing in CZK (3 490 / 9 490 / 18 990 Kč)
-- [x] Admin bypass for upsell popup
-- [x] User role set to admin+pro in DB
-- [ ] Usage tracking & limits
-- [ ] Invoice generation
-- [ ] Refund management
-
-## 🎨 UI/UX Fixes
-- [x] Sidebar tooltip overflow fix (overflowX: visible)
-- [x] Admin popup bypass
-- [ ] Dark mode toggle
-- [ ] Mobile responsiveness
-- [ ] Accessibility audit (WCAG 2.1)
-
-## 📖 Documentation
-- [x] README.md — comprehensive project documentation
-- [x] TODO.md — feature roadmap with status tracking
-- [ ] API documentation (OpenAPI/Swagger)
-- [ ] Deployment guide
-- [ ] Contributing guidelines
-
----
-
-## ⚠️ Gaps to Address
-
-### Onboarding Implementation Gaps
-- [ ] Verify `onboarding.getStatus` endpoint implementation
-- [ ] Verify `onboarding.saveIntegrations` endpoint implementation
-- [ ] Add Vitest tests for onboarding endpoints (getStatus, saveIcp, saveIntegrations, complete)
-
-### Webhook Retry Scheduler
-- [x] Fix `responseBody` → `response` schema mismatch in webhookRetryScheduler.ts
-- [x] Fix `errorMessage` field (not in schema)
-- [x] Fix Set iteration error (requires downlevelIteration flag)
-
----
-
-## 🚀 Conversion & Lead Backlog — AI funnel features (FUTURE SPRINTS, not now)
-
-Inspirace: Chat5.5 AI Max (rankmarket.org). **Kurátorsky** — jen co reálně zvedá konverze/leady pro ONYX OS + OPTIWEB funnel. Build až v příštích iteracích.
-
-**Vysoký lift (priorita):**
-- [ ] **AI landing-page / funnel generátor** — prompt/voice → stránka z šablon. OPTIWEB rychle staví klientské weby + ONYX OS auto-buildí kampaňové landingy. (HERA)
-- [ ] **Conversion copywriting suite** — headlines/hooky, sales pages, ad copy, varianty e-mailů. Krmí HERA kampaně + e-mail sekvence; A/B-test ready.
-- [ ] **AI video na landing + outreach** — avatar/explainer + short-form s auto-captions. Video = prokázaný conversion lift; napojit na VIDEO FACTORY přes MCP. (HERA)
-- [ ] **Generování ad-creative obrázků** — bannery, social grafika, thumbnaily. Krmí Google Ads optimalizační smyčku.
-- [ ] **Vícejazyčný obsah (DE/AT/CH)** — DACH expanze landing/e-mail copy.
-
-**Sekundární:**
-- [ ] FAQ + product-description generátory (SEO obsah).
-- [ ] Social caption / short-form script generátor (organic).
-- [ ] No-code workflow-automation builder — překrývá se s HERMES/HERA orchestrací; jen pokud přidá uživatelskou no-code plochu.
-
-**Poznámky:**
-- Většina bundlu (podcast audiogramy, hudba/jingly, generický code-gen) = mimo konverze → skip.
-- Každá AI-gen featura běží pod guardraily (PR #3): cost-budget cap, human approval před publikací/útratou, untrusted-data fencing.
-- Reuse, nestavět znovu: generování vést přes HERA + (později) Onyx RAG / Factory MCP workery, ne samostatné nástroje.
-
----
-
-**Maintainer:** PejtrView (System Designer/QA Architect)  
-**Last Updated:** 2026-06-03  
-**Version:** 1.0.0
+# ONYXO — Project TODO
+
+## Landing Page Structure
+
+### Core Sections
+- [x] Hero section — value proposition + comparison table (3 490 Kč vs 20 000+ Kč)
+- [x] Service pricing tiers — Lite Web (3 490 Kč), Basic Web (4 999 Kč), Web + Lead Gen (6 990 Kč), Web + Automation (9 990 Kč)
+- [x] Process section — form → proposal (48h) → approval → live
+- [x] Portfolio section — komponenta napojená na ověřená data z DB
+- [x] Testimonials section — komponenta napojená na ověřená data z DB
+- [x] LeadOS B2B section — Starter/Growth/Pro pricing
+- [x] Contact form — name, email, phone, business description, package selection
+- [x] FAQ section — timeline, editing, costs, monthly fees
+- [x] Footer — links, social, contact info
+
+### Design & Styling
+- [x] Global CSS — color palette, typography, spacing system
+- [x] Responsive design — mobile, tablet, desktop optimization
+- [x] Animation & micro-interactions — smooth, professional feel
+- [x] Dark/light theme setup (if needed)
+
+### Backend & Automation
+- [x] Database schema — inquiries table for contact form submissions
+- [x] tRPC procedure — inquiries.create mutation
+- [x] Owner notification system — send notification on form submission
+- [x] Email integration (optional) — send confirmation to user (optional, not required for MVP)
+
+### Frontend Components
+- [x] Navigation bar — sticky, responsive
+- [x] Hero component
+- [x] Comparison table component
+- [x] Pricing cards component
+- [x] Process timeline component
+- [x] Portfolio gallery component
+- [x] Testimonials komponenta bez lokálních smyšlených dat
+- [x] LeadOS section component
+- [x] Contact form component
+- [x] FAQ accordion component
+- [x] Footer component
+
+### Content & Copywriting
+- [x] Czech copywriting — all sections
+- [x] Hero headline & subheadline
+- [x] Service descriptions
+- [x] Process step descriptions
+- [ ] Doplnit tři ověřené klientské případové studie se souhlasem
+- [ ] Doplnit ověřené klientské citace se souhlasem
+- [x] FAQ answers
+- [x] LeadOS descriptions
+
+### Testing & QA
+- [x] Form validation & error handling
+- [x] Responsive design testing
+- [x] Cross-browser testing
+- [x] Performance optimization
+- [x] SEO basics (meta tags, structured data)
+- [x] Vitest unit tests for key components
+
+### Deployment & Launch
+- [x] Final checkpoint
+- [x] Publish to Manus
+- [x] Domain setup (if needed)
+- [x] Analytics setup (if needed)
+
+## Notes
+
+- All content in Czech (Čeština)
+- Pricing: 3 490 Kč, 4 999 Kč, 6 990 Kč, 9 990 Kč (exact)
+- Comparison: ONYXO vs. tradiční agentury (20 000+ Kč)
+- LeadOS: B2B SaaS product (Starter 49 USD, Growth 99 USD, Pro 199 USD)
+- Contact form → Owner notification on every submission
+- Elegant, professional, premium feel
+
+## Nové úpravy
+
+- [x] Přidat sekci o modulárních webech — zmiňit rozšiřitelnost a technologické komponenty
+- [x] Opravit LeadOS ceny — USD ceny jsou již správně (49, 99, 199 USD)
+- [x] Přidat "Modulární komponenty" do pricing sekcí — možnost přidat jakékoliv tech
+
+## Měsíční provoz a niche-specifické balíčky
+
+- [x] LeadOS pricing změna z USD na Kč (990, 1 990, 3 990 Kč)
+- [x] Přidat sekci "Měsíční provoz" — vysvětlit model (199 Kč + 1 000 Kč/měsíc)
+- [x] Přidat "Automatizace a správa sítí" balíček — 1 000 Kč/měsíc (modul v admin)
+- [x] Vymyslet 9 niche-specifických balíčků s cenami (kavárny, elektrikáři, kadeřnice, atd.)
+- [x] Implementovat niche-specifické balíčky do admin panelu (backend API)
+- [x] Vytvořit pricing stránku s niche balíčky
+
+
+## Admin Panel
+
+- [x] Vytvořit admin dashboard layout s navigácí
+- [x] Niche packages management — list, create, edit, delete
+- [x] Customer subscriptions management — list, view, cancel
+- [x] Dashboard statistiky — počet balíčků, aktivních subscriptions, měsíční příjem
+- [x] Responsive design pro admin
+- [x] Vitest testy pro admin API (12/12 passing)
+
+
+## Autonomní Systém — 3 Iterace (1-2 týdny)
+
+### Iterace 1: Stripe + Záloha
+- [x] Přidat Stripe feature do projektu
+- [x] Vytvořit database schema pro orders/payments
+- [x] Aktualizovat pricing tabulku — přidat "Záloha" řádek (30-50%)
+- [x] Kontaktní formulář → Stripe checkout
+- [x] Invoice generation s zálohou
+- [x] Email notifikace po zaplacení
+- [x] Vitest testy pro payment flow
+
+### Iterace 2: Client Dashboard
+- [ ] Vytvořit client login (bez admin role)
+- [ ] Dashboard s project status (Čekání → V přípravě → Hotovo)
+- [ ] Zobrazit: zaplacená záloha, zbývající platba, timeline
+- [ ] Progress tracker (% hotovosti)
+- [ ] File upload pro client feedback
+- [ ] Notifikace o změně statusu
+
+### Iterace 3: Automatizace & Monitoring
+- [ ] SOP dokumentace (standardní postupy)
+- [ ] Auto-notifikace (email, SMS, Slack)
+- [ ] KPI dashboard (response time, conversion rate, revenue)
+- [ ] Anomaly detection (neplatící klienti, pozdní projekty)
+- [ ] Self-healing alerts
+- [ ] Heartbeat jobs pro automatizaci
+
+### Testování & Optimalizace
+- [ ] End-to-end testy pro payment flow
+- [ ] Responsive design na mobilech
+- [ ] Performance optimization
+- [ ] Security audit (Stripe, data)
+- [ ] Final checkpoint
+
+## Fáze 3 — Email Notifikace (HOTOVO)
+
+- [x] Email service s šablonami
+- [x] Potvrzovací email po objednávce
+- [x] Email po zaplacení
+- [x] Email po dokončení projektu
+- [x] Integrováno do order creation flow
+
+## Zbývající práce — Fáze 4 & 5
+
+### Fáze 4: LeadOS Orchestrace
+- [x] Vytvořit tRPC router pro Manus API v2
+- [x] Katastr-style control interface
+- [x] Orchestrace projektů přes LeadOS
+- [x] Webhook handling pro project updates
+
+### Fáze 5: Heartbeat Jobs
+- [x] Autonomní monitoring projektů
+- [x] Self-healing alerts
+- [x] KPI dashboard
+- [x] Anomaly detection
+
+
+## Redesign — Inspirace davame.com
+
+- [x] Redesign landing page — tmavé fialové/navy pozadí (jako davame.com)
+- [x] Hero sekce — velký headline, stats (počet projektů, roky zkušeností, spokojenost)
+- [x] Niche solutions grid — karty pro různé obory (kavárny, elektrikáři, kadeřnice...)
+- [x] Case studies sekce se zobrazí pouze s produkčními daty
+- [x] Testimonials se zobrazí pouze s produkčními daty
+- [x] CTA sekce — "Domluvit konzultaci" + "14 dní zdarma" dual CTA
+- [x] FAQ sekce — accordion styl
+- [x] Footer — tmavý, přehledný
+- [x] Sticky navigace — průhledná → tmavá při scrollu
+- [x] Mock dashboard v hero, pricing toggle (roční/měsíční)
+- [x] Services grid s badge cenami
+- [x] Why Us sekce s dark background a stats grid
+
+## Poznámky k obsahu
+- [ ] Case studies jsou ukázkové (demo) — nahradit reálnými klientskými příběhy po získání souhlasu
+- [ ] Testimonials jsou šablonové — doplnit reálnými citáty klientů s jejich souhlasem
+- [ ] Kontaktní údaje (tel, email) — doplnit reálnými hodnotami
+
+
+## AI Agents & Skills (Nové — implementováno)
+
+### Backend
+- [x] DB schema — brand_memories, agent_sessions, agent_messages tabulky
+- [x] DB helpery — getBrandMemory, upsertBrandMemory, createAgentSession, getAgentMessages, addAgentMessage
+- [x] agent-skills.ts — 8 skills s system prompty (CMO, Copywriter, Email, Webinar, SEO, Ads, Landing Page, Lead Magnet)
+- [x] brandMemory router — get, save (upsert)
+- [x] agents router — listSkills, createSession, listSessions, getSession, chat, deleteSession
+
+### Frontend
+- [x] /agents — AgentsHub.tsx (hub s přehledem skills, recent sessions, chat interface)
+- [x] BrandMemorySetup.tsx — 4-krokový wizard pro nastavení Brand Memory
+- [x] AI Agents promo sekce na landing page
+- [x] "✨ AI Agenti" odkaz v navigaci
+
+### TODO (pokračování)
+- [ ] Streaming odpovědí (SSE) pro real-time generaci
+- [ ] Export konverzace do PDF/Word
+- [ ] Sdílení konverzace (shareable link)
+- [ ] Admin přehled aktivit agentů
+- [ ] Měsíční usage limity per user
+
+## AB Testing Framework (Nové)
+- [x] Implementovat AB testing backend router (getVariant, trackConversion)
+- [x] Vytvořit ab-test.ts utility (getVariant, trackEvent)
+- [x] Vytvořit HomeVariantB.tsx (Benefits-focused)
+- [x] Vytvořit HomeVariantC.tsx (Social proof — zelená, comparison table)
+- [x] Vytvořit HomeVariantD.tsx (Bold neon — magenta/cyan glow)
+- [x] Přidat variant routing do App.tsx
+- [x] Vytvořit AB testing analytics dashboard
+- [x] Vitest testy pro AB framework (43/43 passing)
+- [x] Přidat conversion tracking na CTA buttons
+
+
+## Zbývající úkoly — Fáze 6
+- [x] Napojit AB testing dashboard na reálná data přes tRPC router (ab.getSummary, ab.getMetrics)
+- [x] Přidat persistence/backend agregaci pro AB test events (ab-analytics.ts)
+- [x] Doplnit loading, error a empty states pro AB testing dashboard
+- [x] Google Analytics integration pro AB testing
+- [x] Dokumentace pro spouštění AB testů
+- [x] Production readiness checklist

@@ -1,0 +1,572 @@
+﻿[
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "1d428369-898e-44c5-862c-381401b0adf7",
+    "name": "smichovshopcz",
+    "createdAt": "2026-07-03T22:46:56.391Z",
+    "updatedAt": "2026-07-03T22:46:56.391Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "892f00aa-5df5-419d-b569-a0f041885a09",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "a1394edb-d138-448f-afb4-61be4d54ca50",
+            "name": "smichovshopcz"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "3dad39be-ff18-4ac1-b3bb-5f8810dbbe33",
+    "name": "KATASTR-ONLINE",
+    "createdAt": "2026-07-02T15:05:26.882Z",
+    "updatedAt": "2026-07-02T15:05:26.882Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "161d4745-9838-46df-b41d-56842a7a99cb",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "555c5fc0-2946-44dd-8365-626183b1b348",
+            "name": "KATASTR-ONLINE"
+          }
+        },
+        {
+          "node": {
+            "id": "61dcc4c6-c394-44b5-a15f-08bba9f5ef7c",
+            "name": "MySQL"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "50cf0157-0d7f-44f8-b117-0fbef2d25663",
+    "name": "optimateo",
+    "createdAt": "2026-07-01T18:28:42.234Z",
+    "updatedAt": "2026-07-01T18:28:42.234Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "579f6236-50c7-402d-bc53-cf26242579a7",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "0c30fb4b-84aa-44ea-9a0e-9615bab51fbc",
+            "name": "MySQL"
+          }
+        },
+        {
+          "node": {
+            "id": "1a93a749-c3e7-43df-ad0f-4a52c042bdfd",
+            "name": "web"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "cbe18751-18b1-4a8e-9ed6-34908c949c91",
+    "name": "lastminutedovolene",
+    "createdAt": "2026-06-29T08:22:44.167Z",
+    "updatedAt": "2026-06-29T08:22:44.167Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "bd5974b6-d61d-494e-8346-8df86584fb33",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "81b83ca3-85cc-4591-9ae7-d2837a87abdf",
+            "name": "web"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "33995176-0705-4c0e-bb6a-7590bd2afd11",
+    "name": "cajovny-praha",
+    "createdAt": "2026-06-29T08:17:35.923Z",
+    "updatedAt": "2026-06-29T08:17:35.923Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "ec727a2b-149a-42fd-b94c-89dbbb6e4653",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "16a3a0c1-3794-49ba-83ef-4c8b88256b23",
+            "name": "cajovny-praha"
+          }
+        },
+        {
+          "node": {
+            "id": "d6bd14ea-10a1-4bf2-b1d1-547f271e395b",
+            "name": "MySQL"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "6a87ebc7-b617-405c-9604-9e12de114365",
+    "name": "receptyzdravi",
+    "createdAt": "2026-06-27T18:24:29.216Z",
+    "updatedAt": "2026-06-27T18:24:29.216Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "819ea25e-64da-43f3-bd00-d003147d3861",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "29b7ecef-29ab-4c40-939a-ce61f654650a",
+            "name": "receptyzdravi"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "8ea4015e-a7c9-45b8-ad6b-9677ba1dd236",
+    "name": "LegalWeedPrague",
+    "createdAt": "2026-06-21T19:45:02.273Z",
+    "updatedAt": "2026-06-21T20:57:19.912Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "5a723ee7-497a-4aba-b999-5d0565dfeaa5",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "391b7f9b-87b6-4685-b869-9e4422de36db",
+            "name": "LegalWeedPrague"
+          }
+        },
+        {
+          "node": {
+            "id": "789ce40d-1de7-4d67-82bc-b9d249c3479a",
+            "name": "MySQL"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "db33ace7-28ed-4b19-9a7a-d81f58689bb8",
+    "name": "akcni-letenky",
+    "createdAt": "2026-06-18T02:01:18.131Z",
+    "updatedAt": "2026-06-20T12:51:01.385Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "020fa830-5ae6-47db-86f9-662036875dee",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "442a8e1b-a714-4b75-935a-0c6e73645ad3",
+            "name": "MySQL"
+          }
+        },
+        {
+          "node": {
+            "id": "7565816b-6023-4ade-bd8f-9c45cc6984c5",
+            "name": "web"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "bf66bdd7-ce2f-4767-b1f3-63914d4d0f1a",
+    "name": "humandesignchart",
+    "createdAt": "2026-06-19T22:59:28.854Z",
+    "updatedAt": "2026-06-20T10:48:49.653Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "af182432-4dcf-4f00-a7da-d9973937e853",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "1ba747cb-19db-4797-8c3a-580fc745a102",
+            "name": "MySQL"
+          }
+        },
+        {
+          "node": {
+            "id": "eb6ade6a-0965-4ebd-8eac-fff475663f77",
+            "name": "humandesignchart"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "370cf41a-1793-4e1b-a27f-309f76930b44",
+    "name": "video-factory",
+    "createdAt": "2026-06-19T04:15:48.309Z",
+    "updatedAt": "2026-06-19T06:23:55.776Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "bb994dd1-fc1b-49a8-953d-e5e5f7658319",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "5ff5f958-ff89-41ed-af21-51c9cbce8d31",
+            "name": "MySQL-VZvg"
+          }
+        },
+        {
+          "node": {
+            "id": "84cc757e-c50b-440a-b44d-96145e6b77f6",
+            "name": "video-factory"
+          }
+        },
+        {
+          "node": {
+            "id": "9291f7c9-7396-4e69-a9e7-6dd80cf3f91f",
+            "name": "MySQL-VUch"
+          }
+        },
+        {
+          "node": {
+            "id": "dd3750ce-35d8-4130-ac80-efc17912c3ad",
+            "name": "MySQL"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "2ac026c8-cddd-45e1-81b4-5dc2dc46167a",
+    "name": "deep-sleep-reset-FINAL",
+    "createdAt": "2026-06-18T08:50:19.561Z",
+    "updatedAt": "2026-06-18T08:50:19.561Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "1bb5c9b3-9669-4558-8962-f509cc7254bd",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "0883a6d0-7128-4a5e-b3d0-0424866d5dc7",
+            "name": "deep-sleep-reset-FINAL"
+          }
+        },
+        {
+          "node": {
+            "id": "39798882-340a-4ec7-af71-938066321f3d",
+            "name": "MySQL"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "4d5a7e1d-6dd4-492d-9dc7-0d84262aa4a2",
+    "name": "bezmasa-jidla",
+    "createdAt": "2026-06-17T19:36:46.274Z",
+    "updatedAt": "2026-06-17T19:48:15.451Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "f9eb4799-8679-494a-92ea-196c3d1725ec",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "a25570c4-6210-44f7-b247-ef8251401b93",
+            "name": "bezmasa-jidla"
+          }
+        },
+        {
+          "node": {
+            "id": "e40b3076-39f4-4e83-a6ea-fb9328646457",
+            "name": "MySQL"
+          }
+        },
+        {
+          "node": {
+            "id": "f43b55a1-c7c2-4d5a-86bd-c0d512fac1c4",
+            "name": "MySQL-rEBz"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "63d0b72c-2b4d-49d9-aa94-2d9745928e0e",
+    "name": "onyx-os",
+    "createdAt": "2026-06-17T11:29:38.158Z",
+    "updatedAt": "2026-06-17T11:29:38.158Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "4cac4f0d-359f-4f4c-bf67-c9b47e0fc54a",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "8815e246-f522-4fbc-b398-bf5c7d277795",
+            "name": "onyx-os"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "cb89a503-f0bc-45c7-b3fe-d33eaeadb2c4",
+    "name": "FlyBudget.io",
+    "createdAt": "2026-06-10T14:16:08.862Z",
+    "updatedAt": "2026-06-14T16:25:21.058Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "f4ccb51a-3445-40a3-a0bd-093ccb0943ae",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "44341bf5-849e-4589-809f-960b9378c09b",
+            "name": "MySQL"
+          }
+        },
+        {
+          "node": {
+            "id": "6bd9ab43-ddcd-4f80-97fb-d70a071da87b",
+            "name": "flybudget"
+          }
+        },
+        {
+          "node": {
+            "id": "de633fdf-aabb-4d55-af5b-390ef7c9c86c",
+            "name": "Postgres"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "workspace": {
+      "id": "1d2fc223-de84-4e88-b280-4a864d45a479",
+      "name": "pejtr's Projects"
+    },
+    "id": "19ba8120-3db4-4542-950c-064f29013d5c",
+    "name": "DO-ITALIE.cz",
+    "createdAt": "2026-06-13T06:47:31.171Z",
+    "updatedAt": "2026-06-13T09:38:44.867Z",
+    "deletedAt": null,
+    "environments": {
+      "edges": [
+        {
+          "node": {
+            "id": "b0bd455d-525d-4e8e-8a1e-b8610c3c34a7",
+            "name": "production",
+            "canAccess": true
+          }
+        }
+      ]
+    },
+    "services": {
+      "edges": [
+        {
+          "node": {
+            "id": "02b07266-5399-4f3f-8e79-6c120548e0a0",
+            "name": "doitalie"
+          }
+        },
+        {
+          "node": {
+            "id": "445d1eb9-391d-478d-a779-4b80c8c637ec",
+            "name": "MySQL"
+          }
+        }
+      ]
+    }
+  }
+]

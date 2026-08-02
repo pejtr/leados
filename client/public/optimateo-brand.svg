@@ -1,0 +1,26 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <g transform="translate(72 62) scale(1.7)">
+    <path d="M72 20A34 34 0 1 0 72 76" fill="none" stroke="#081521" stroke-width="13"/>
+    <path d="M27 61L43 40L57 53L76 30L84 45L58 75L43 61L33 75Z" fill="#0EA5E9"/>
+    <path d="M27 61L43 40L48 56L33 75Z" fill="#0788C4"/>
+    <path d="M43 40L57 53L50 61L36 47Z" fill="#39C6F0"/>
+  </g>
+  <text x="250" y="160" fill="#081521" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="800" letter-spacing="3">OPTIMATEO</text>
+  <text x="82" y="270" fill="#081521" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="800">WEB · DATA ·</text>
+  <text x="82" y="340" fill="#0788C4" font-family="Arial, Helvetica, sans-serif" font-size="56" font-weight="800">AUTOMATIZACE</text>
+  <text x="82" y="392" fill="#3E5B70" font-family="Arial, Helvetica, sans-serif" font-size="24">Digitální řešení, která šetří čas a přivádějí zákazníky.</text>
+  <rect y="440" width="1200" height="190" fill="#061421"/>
+  <g fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif">
+    <text x="82" y="505" font-size="22" font-weight="700">VÝKONNOSTNÍ WEB</text>
+    <text x="440" y="505" font-size="22" font-weight="700">DATA A CRM</text>
+    <text x="720" y="505" font-size="22" font-weight="700">AUTOMATIZACE</text>
+    <text x="82" y="542" fill="#A9C4D5" font-size="17">Jasná cesta k poptávce</text>
+    <text x="440" y="542" fill="#A9C4D5" font-size="17">Každý lead na jednom místě</text>
+    <text x="720" y="542" fill="#A9C4D5" font-size="17">Méně ruční práce</text>
+  </g>
+  <line x1="390" y1="478" x2="390" y2="555" stroke="#24506A"/>
+  <line x1="670" y1="478" x2="670" y2="555" stroke="#24506A"/>
+  <text x="82" y="597" fill="#A9C4D5" font-family="Arial, Helvetica, sans-serif" font-size="17" letter-spacing="2">POWERED BY <tspan fill="#39C6F0" font-weight="700">ONYX OS</tspan></text>
+  <text x="735" y="597" fill="#F8FAFC" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700">VÍCE ZÁKAZNÍKŮ. MÍŇ PRÁCE. <tspan fill="#39C6F0">VÍCE RŮSTU.</tspan></text>
+</svg>

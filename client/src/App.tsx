@@ -1,188 +1,267 @@
-import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Route, Switch, useLocation } from "wouter";
+import { Route, Switch } from "wouter";
+import { useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { FloatingUpgradeNudge } from "./components/UpgradeNudge";
-
-const TravelOverview = lazy(() => import("./pages/travel/TravelOverview"));
-const TravelCampaignManager = lazy(() => import("./pages/travel/CampaignManager"));
+import { lazy, Suspense, useEffect, useState } from "react";
+import { getVariant, trackEvent, type Variant } from "./lib/ab-test";
+import { captureAttributionFromUrl } from "./lib/attribution";
+import { trackSklikRetargeting } from "./lib/sklik";
+import { CookieConsentBanner } from "./components/CookieConsentBanner";
+import { CONSENT_UPDATED_EVENT, getConsentChannels } from "./lib/consent";
+import { ensureLinkedInInsight } from "./lib/linkedin";
+import { usePageSeo } from "./hooks/usePageSeo";
+import { CORE_OFFERS, SOLUTION_PACKAGES, WEB_PACKAGES } from "@shared/service-catalog";
+import { DEFAULT_SEO, ROUTE_SEO } from "@shared/seo-config";
+import { PUBLIC_SITE_URL } from "@shared/brand-config";
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
-
-const Landing = lazy(() => import("./pages/Landing"));
 const Home = lazy(() => import("./pages/Home"));
-const Today = lazy(() => import("./pages/Today"));
-const Generate = lazy(() => import("./pages/Generate"));
-const History = lazy(() => import("./pages/History"));
-const Stats = lazy(() => import("./pages/Stats"));
-const Templates = lazy(() => import("./pages/Templates"));
-const Team = lazy(() => import("./pages/Team"));
-const Kanban = lazy(() => import("./pages/Kanban"));
-const ROI = lazy(() => import("./pages/ROI"));
-const Autopilot = lazy(() => import("./pages/Autopilot"));
-const Integrations = lazy(() => import("./pages/Integrations"));
-const Matching = lazy(() => import("./pages/Matching"));
-const SdrAgent = lazy(() => import("./pages/SdrAgent"));
-const NextActions = lazy(() => import("./pages/NextActions"));
-const SocialListening = lazy(() => import("./pages/SocialListening"));
-const TrackingPixel = lazy(() => import("./pages/TrackingPixel"));
-const SmartAlerts = lazy(() => import("./pages/SmartAlerts"));
-const SmartLists = lazy(() => import("./pages/SmartLists"));
-const EmailVerification = lazy(() => import("./pages/EmailVerification"));
-const CampaignRules = lazy(() => import("./pages/CampaignRules"));
-const AgencyPanel = lazy(() => import("./pages/AgencyPanel"));
-const SpeedToLead = lazy(() => import("./pages/SpeedToLead"));
-const IcpBuilder = lazy(() => import("./pages/IcpBuilder"));
-const TechStack = lazy(() => import("./pages/TechStack"));
-const AiAgentBuilder = lazy(() => import("./pages/AiAgentBuilder"));
-const LandingB = lazy(() => import("./pages/LandingB"));
-const Sequences = lazy(() => import("./pages/Sequences"));
-const Tasks = lazy(() => import("./pages/Tasks"));
-const CapturePlanning = lazy(() => import("./pages/CapturePlanning"));
-const MarketIntel = lazy(() => import("./pages/MarketIntel"));
-const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
-const CompetitiveMap = lazy(() => import("./pages/CompetitiveMap"));
-const Billing = lazy(() => import("./pages/Billing"));
-const MeetingScheduler = lazy(() => import("./pages/MeetingScheduler"));
-const CallIntelligence = lazy(() => import("./pages/CallIntelligence"));
-const DealPipeline = lazy(() => import("./pages/DealPipeline"));
-const SalesDashboard = lazy(() => import("./pages/SalesDashboard"));
-const ProjectsHub = lazy(() => import("./pages/ProjectsHub"));
-const AdCampaigns = lazy(() => import("./pages/AdCampaigns"));
-const PortfolioROAS = lazy(() => import("./pages/PortfolioROAS"));
-const PublicPortfolioROAS = lazy(() => import("./pages/PublicPortfolioROAS"));
-const FiveBrains = lazy(() => import("./pages/FiveBrains"));
-const DailyReport = lazy(() => import("./pages/DailyReport"));
-const AIConstitution = lazy(() => import("./pages/AIConstitution"));
-const AgentBenchmark = lazy(() => import("./pages/AgentBenchmark"));
-const DeepSleepDashboard = lazy(() => import("./pages/DeepSleepDashboard"));
-const DeepSleepReset = lazy(() => import("./pages/DeepSleepReset"));
-const IngestSources = lazy(() => import("./pages/IngestSources"));
-const Datenschutz = lazy(() => import("./pages/Datenschutz"));
-const AiSkills = lazy(() => import("./pages/AiSkills"));
-const RoiAudit = lazy(() => import("./pages/RoiAudit"));
-const ComputerFlow = lazy(() => import("./pages/ComputerFlow"));
-const GlobalEarnings = lazy(() =>
-  import("./pages/GlobalEarnings").then(module => ({ default: module.GlobalEarnings }))
-);
-const AdminIntegrations = lazy(() => import("./pages/AdminIntegrations"));
-const AffiliateDashboard = lazy(() => import("./pages/AffiliateDashboard"));
-const RevenueIntelligence = lazy(() => import("./pages/RevenueIntelligence"));
-const ProfessionalDashboard = lazy(() => import("./pages/ProfessionalDashboard"));
-const WebhookActivity = lazy(() => import("./pages/WebhookActivity"));
-const GoogleMapsScraper = lazy(() => import("./pages/GoogleMapsScraper"));
-const WebAudit = lazy(() => import("./pages/WebAudit"));
-const Sluzby = lazy(() => import("./pages/Sluzby"));
-const AresSearch = lazy(() => import("./pages/AresSearch"));
-const DailyRoutines = lazy(() => import("./pages/DailyRoutines"));
-const GlobalSignalDesk = lazy(() => import("./pages/GlobalSignalDesk"));
-const MasterCommandCenter = lazy(() => import("./pages/MasterCommandCenter"));
-const Governance = lazy(() => import("./pages/Governance"));
-const OmnicoreHub = lazy(() => import("./pages/OmnicoreHub"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+const AdminProjects = lazy(() => import("./pages/AdminProjects"));
+const ClientDashboard = lazy(() => import("./pages/ClientDashboard"));
+const AgentsHub = lazy(() => import("./pages/AgentsHub"));
+const IBotsPage = lazy(() => import("./pages/IBotsPage"));
+const DemoPage = lazy(() => import("./pages/DemoPage"));
+const DotaznikPage = lazy(() => import("./pages/DotaznikPage"));
+const AiCorePage = lazy(() => import("./pages/AiCorePage"));
+const WebLandingPage = lazy(() => import("./pages/WebLandingPage"));
+const SklikLandingPage = lazy(() => import("./pages/SklikLandingPage"));
+const ABTestingDashboard = lazy(() => import("./pages/ABTestingDashboard"));
+const AuditZdarma = lazy(() => import("./pages/AuditZdarma"));
+const CrmLeadSystem = lazy(() => import("./pages/CrmLeadSystem"));
+const VerticalLanding = lazy(() => import("./pages/VerticalLanding"));
+const PaymentSuccess = lazy(() => import("./pages/PaymentSuccess"));
+const PaymentCancel = lazy(() => import("./pages/PaymentCancel"));
+const PricingPage = lazy(() => import("./pages/PricingPage"));
+const PortfolioPage = lazy(() => import("./pages/PortfolioPage"));
+const LegalPage = lazy(() => import("./pages/LegalPage"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage"));
+const KalkulackaPage = lazy(() => import("./pages/KalkulackaPage"));
+const OnboardingPage = lazy(() => import("./pages/OnboardingPage"));
+const RoiKalkulackaPage = lazy(() => import("./pages/RoiKalkulackaPage"));
+const PartnerPage = lazy(() => import("./pages/PartnerPage"));
+const SalesChatWidget = lazy(() => import("./components/SalesChatWidget").then(m => ({ default: m.SalesChatWidget })));
 
-function ScrollToTop() {
-  const [location] = useLocation();
+function PageLoader() {
+  return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div className="h-12 w-12 rounded-full border-t-2 border-b-2 border-sky-400 animate-spin" />
+    </div>
+  );
+}
+
+function AnalyticsScript() {
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    const initializeConsentBasedTracking = () => {
+      const consent = getConsentChannels();
+
+      if (consent.google) {
+        const endpoint = import.meta.env.VITE_ANALYTICS_ENDPOINT;
+        const websiteId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID;
+        if (endpoint && websiteId && !document.querySelector("script[data-website-id]")) {
+          const script = document.createElement("script");
+          script.defer = true;
+          script.src = `${endpoint.replace(/\/$/, "")}/umami`;
+          script.dataset.websiteId = websiteId;
+          document.body.appendChild(script);
+        }
+
+        const gaId = import.meta.env.VITE_GA_MEASUREMENT_ID;
+        if (gaId && !document.querySelector('script[data-optimateo-ga]')) {
+          const gaScript = document.createElement("script");
+          gaScript.async = true;
+          gaScript.dataset.optimateoGa = "true";
+          gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
+          document.head.appendChild(gaScript);
+
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = (...args: unknown[]) => window.dataLayer.push(args);
+          window.gtag("js", new Date());
+          window.gtag("consent", "update", { analytics_storage: "granted", ad_storage: "granted" });
+          window.gtag("config", gaId);
+        }
+      } else {
+        window.gtag?.("consent", "update", { analytics_storage: "denied", ad_storage: "denied" });
+        document.querySelector("script[data-website-id]")?.remove();
+      }
+
+      ensureLinkedInInsight();
+    };
+
+    initializeConsentBasedTracking();
+    window.addEventListener(CONSENT_UPDATED_EVENT, initializeConsentBasedTracking);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, initializeConsentBasedTracking);
+  }, []);
+
+  return null;
+}
+
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: unknown[]) => void;
+  }
+}
+
+function TrackingLayer() {
+  const [location] = useLocation();
+
+  useEffect(() => {
+    const trackCurrentPage = () => {
+      captureAttributionFromUrl();
+      void trackEvent("page_view", {
+        path: location,
+        page_location: window.location.href,
+      });
+
+      const category = location.startsWith("/lp/")
+        ? `sklik-${location.replace("/lp/", "")}`
+        : location === "/"
+          ? "homepage"
+          : location.replace(/^\//, "") || "homepage";
+
+      void trackSklikRetargeting({
+        pageType: location.startsWith("/lp/") ? "landing" : "other",
+        category,
+        rtgUrl: window.location.href,
+      });
+    };
+
+    trackCurrentPage();
+    window.addEventListener(CONSENT_UPDATED_EVENT, trackCurrentPage);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, trackCurrentPage);
   }, [location]);
+
+  return null;
+}
+
+function PageSeo() {
+  const [location] = useLocation();
+  const routeSeo = ROUTE_SEO[location];
+  const seo = routeSeo || DEFAULT_SEO;
+  const noIndex = routeSeo?.noIndex ?? !routeSeo;
+  const schema = routeSeo?.schemaType === "OfferCatalog"
+    ? {
+      "@context": "https://schema.org",
+      "@type": "OfferCatalog",
+      name: "Ceník služeb OPTIMATEO",
+      url: `${PUBLIC_SITE_URL}/pricing`,
+      itemListElement: [
+        ...Object.values(CORE_OFFERS),
+        ...Object.values(WEB_PACKAGES),
+        {
+          name: SOLUTION_PACKAGES.ONYX_ESHOP.name,
+          description: SOLUTION_PACKAGES.ONYX_ESHOP.description,
+          priceInCzk: SOLUTION_PACKAGES.ONYX_ESHOP.priceFromInCzk,
+        },
+      ].map((offer) => ({
+        "@type": "Offer",
+        priceCurrency: "CZK",
+        price: offer.priceInCzk,
+        itemOffered: { "@type": "Service", name: offer.name, description: offer.description },
+      })),
+    }
+    : routeSeo?.schemaType === "Service"
+      ? {
+        "@context": "https://schema.org",
+        "@type": "Service",
+        name: seo.title.split("|")[0].trim(),
+        description: seo.description,
+        url: PUBLIC_SITE_URL + location,
+        areaServed: { "@type": "Country", name: "Česko" },
+        provider: { "@type": "ProfessionalService", name: "OPTIMATEO", url: PUBLIC_SITE_URL },
+      }
+      : routeSeo?.schemaType === "WebPage"
+        ? {
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: seo.title.split("|")[0].trim(),
+          description: seo.description,
+          url: PUBLIC_SITE_URL + location,
+        }
+        : undefined;
+
+  usePageSeo({ ...seo, path: location, noIndex, schema });
   return null;
 }
 
 function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={Today} />
-      <Route path="/landing" component={Landing} />
-      <Route path="/landing-b" component={LandingB} />
-      <Route path="/dashboard" component={Today} />
-      <Route path="/overview" component={Home} />
-      <Route path="/generate" component={Generate} />
-      <Route path="/history" component={History} />
-      <Route path="/stats" component={Stats} />
-      <Route path="/templates" component={Templates} />
-      <Route path="/team" component={Team} />
-      <Route path="/kanban" component={Kanban} />
-      <Route path="/roi" component={ROI} />
-      <Route path="/autopilot" component={Autopilot} />
-      <Route path="/integrations" component={Integrations} />
-      <Route path="/matching" component={Matching} />
-      <Route path="/sdr" component={SdrAgent} />
-      <Route path="/next-actions" component={NextActions} />
-      <Route path="/social" component={SocialListening} />
-      <Route path="/tracking" component={TrackingPixel} />
-      <Route path="/alerts" component={SmartAlerts} />
-      <Route path="/smart-lists" component={SmartLists} />
-      <Route path="/email-verify" component={EmailVerification} />
-      <Route path="/dashboard/travel" component={TravelOverview} />
-      <Route path="/dashboard/travel/campaigns" component={TravelCampaignManager} />
-      <Route path="/campaigns" component={CampaignRules} />
+  const [variant, setVariant] = useState<Variant>("A");
+  const [loading, setLoading] = useState(true);
 
-      <Route path="/agency" component={AgencyPanel} />
-      <Route path="/speed-to-lead" component={SpeedToLead} />
-      <Route path="/icp" component={IcpBuilder} />
-      <Route path="/tech-stack" component={TechStack} />
-      <Route path="/ai-agents" component={AiAgentBuilder} />
-      <Route path="/sequences" component={Sequences} />
-      <Route path="/tasks" component={Tasks} />
-      <Route path="/capture" component={CapturePlanning} />
-      <Route path="/market-intel" component={MarketIntel} />
-      <Route path="/knowledge" component={KnowledgeBase} />
-      <Route path="/competitive" component={CompetitiveMap} />
-      <Route path="/billing" component={Billing} />
-      <Route path="/chat-agent" component={MasterCommandCenter} />
-      <Route path="/meetings" component={MeetingScheduler} />
-      <Route path="/calls" component={CallIntelligence} />
-      <Route path="/deal-pipeline" component={DealPipeline} />
-      <Route path="/sales-dashboard" component={SalesDashboard} />
-      <Route path="/projects" component={ProjectsHub} />
-      <Route path="/ad-campaigns" component={AdCampaigns} />
-      <Route path="/portfolio-roas" component={PortfolioROAS} />
-      <Route path="/portfolio/share/:token" component={PublicPortfolioROAS} />
-      <Route path="/five-brains" component={FiveBrains} />
-      <Route path="/daily-report" component={DailyReport} />
-      <Route path="/ai-constitution" component={AIConstitution} />
-      <Route path="/agent-benchmark" component={AgentBenchmark} />
-      <Route path="/hermio" component={MasterCommandCenter} />
-      <Route path="/hermes" component={MasterCommandCenter} />
-      <Route path="/deep-sleep" component={DeepSleepDashboard} />
-      <Route path="/dsr" component={DeepSleepReset} />
-      <Route path="/external-leads" component={IngestSources} />
-      <Route path="/datenschutz" component={Datenschutz} />
-      <Route path="/ai-skills" component={AiSkills} />
-      <Route path="/roi-audit" component={RoiAudit} />
-      <Route path="/computer-flow" component={ComputerFlow} />
-      <Route path="/global-earnings" component={GlobalEarnings} />
-      <Route path="/admin/integrations" component={AdminIntegrations} />
-      <Route path="/affiliate" component={AffiliateDashboard} />
-      <Route path="/revenue-intelligence" component={RevenueIntelligence} />
-      <Route path="/analytics/professional" component={ProfessionalDashboard} />
-      <Route path="/webhooks/activity" component={WebhookActivity} />
-      <Route path="/google-maps-scraper" component={GoogleMapsScraper} />
-      <Route path="/web-audit" component={WebAudit} />
-      <Route path="/sluzby" component={Sluzby} />
-      <Route path="/ares" component={AresSearch} />
-      <Route path="/daily-routines" component={DailyRoutines} />
-      <Route path="/global-signal-desk" component={GlobalSignalDesk} />
-      <Route path="/command-center" component={MasterCommandCenter} />
-      <Route path="/governance" component={Governance} />
-      <Route path="/omnicore" component={OmnicoreHub} />
-      <Route path="*" component={NotFound} />
-    </Switch>
+  useEffect(() => {
+    const loadVariant = () => getVariant().then((v) => {
+      setVariant(v);
+      setLoading(false);
+    });
+    void loadVariant();
+    window.addEventListener(CONSENT_UPDATED_EVENT, loadVariant);
+    return () => window.removeEventListener(CONSENT_UPDATED_EVENT, loadVariant);
+  }, []);
+
+  if (loading) return <PageLoader />;
+
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Switch>
+        <Route path="/">{() => <Home variant={variant} />}</Route>
+        <Route path="/v/:segment" component={VerticalLanding} />
+        <Route path="/lp/:segment" component={SklikLandingPage} />
+        <Route path="/admin/invoices" component={AdminDashboard} />
+        <Route path="/admin" component={AdminDashboard} />
+        <Route path="/admin/projects" component={AdminProjects} />
+        <Route path="/dashboard" component={ClientDashboard} />
+        <Route path="/agents" component={AgentsHub} />
+        <Route path="/ibots" component={IBotsPage} />
+        <Route path="/demo" component={DemoPage} />
+        <Route path="/ai-core" component={AiCorePage} />
+        <Route path="/web" component={WebLandingPage} />
+        <Route path="/dotaznik" component={DotaznikPage} />
+        <Route path="/ab-testing" component={ABTestingDashboard} />
+        <Route path="/audit-zdarma" component={AuditZdarma} />
+        <Route path="/crm-lead-system" component={CrmLeadSystem} />
+        <Route path="/pricing" component={PricingPage} />
+        <Route path="/portfolio" component={PortfolioPage} />
+        <Route path="/checkout" component={CheckoutPage} />
+        <Route path="/kalkulacka" component={KalkulackaPage} />
+        <Route path="/onboarding" component={OnboardingPage} />
+        <Route path="/roi-kalkulacka" component={RoiKalkulackaPage} />
+        <Route path="/partner" component={PartnerPage} />
+        <Route path="/ochrana-osobnich-udaju" component={LegalPage} />
+        <Route path="/cookies" component={LegalPage} />
+        <Route path="/obchodni-podminky" component={LegalPage} />
+        <Route path="/payment-success" component={PaymentSuccess} />
+        <Route path="/payment-cancel" component={PaymentCancel} />
+        <Route path="/404" component={NotFound} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
+
+// NOTE: About Theme
+// - First choose a default theme according to your design style (dark or light bg), than change color palette in index.css
+//   to keep consistent foreground/background color across components
+// - If you want to make theme switchable, pass `switchable` ThemeProvider and use `useTheme` hook
 
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
+      <ThemeProvider
+        defaultTheme="light"
+      // switchable
+      >
         <TooltipProvider>
+          <AnalyticsScript />
+          <TrackingLayer />
+          <PageSeo />
           <Toaster />
-          <ScrollToTop />
-          <FloatingUpgradeNudge />
-          <Suspense fallback={<div className="min-h-screen bg-background" aria-label="Načítání stránky" />}>
-            <Router />
+          <CookieConsentBanner />
+          <Router />
+          <Suspense fallback={null}>
+            <SalesChatWidget />
           </Suspense>
         </TooltipProvider>
       </ThemeProvider>

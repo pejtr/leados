@@ -56,7 +56,7 @@ function writeToLogFile(source: LogSource, entries: unknown[]) {
   const logPath = path.join(LOG_DIR, `${source}.log`);
 
   // Format entries with timestamps
-  const lines = entries.map(entry => {
+  const lines = entries.map((entry) => {
     const ts = new Date().toISOString();
     return `[${ts}] ${JSON.stringify(entry)}`;
   });
@@ -132,7 +132,7 @@ function vitePluginManusDebugCollector(): Plugin {
         }
 
         let body = "";
-        req.on("data", chunk => {
+        req.on("data", (chunk) => {
           body += chunk.toString();
         });
 
@@ -150,18 +150,12 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const isDevelopment = process.env.NODE_ENV !== "production";
-
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     react(),
     tailwindcss(),
-    ...(isDevelopment
-      ? [
-          jsxLocPlugin(),
-          vitePluginManusRuntime(),
-          vitePluginManusDebugCollector(),
-        ]
+    ...(command === "serve"
+      ? [jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()]
       : []),
   ],
   resolve: {
@@ -177,6 +171,14 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'wouter'],
+          'vendor-ui': ['framer-motion', 'lucide-react', 'tailwind-merge', 'clsx'],
+        }
+      }
+    }
   },
   server: {
     host: true,
@@ -194,4 +196,4 @@ export default defineConfig({
       deny: ["**/.*"],
     },
   },
-});
+}));
