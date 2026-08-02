@@ -21,15 +21,6 @@ import { canTransition, type LeadState, type MessageVariant } from "./types";
 /** Creep skóre nad tuto hranici → zpráva k ruční revizi, ne do fronty. */
 export const CREEP_THRESHOLD = 40;
 
-function readNotes(notes?: string | null): Record<string, any> {
-  if (!notes) return {};
-  try {
-    return JSON.parse(notes);
-  } catch {
-    return {};
-  }
-}
-
 /** Deterministický přechod stavu podle stavového automatu. Vrací false při nelegálním skoku. */
 export async function advanceLeadState(prospectId: number, to: LeadState): Promise<boolean> {
   const db = await getDb();
@@ -38,17 +29,15 @@ export async function advanceLeadState(prospectId: number, to: LeadState): Promi
   const rows = await db.select().from(prospects).where(eq(prospects.id, prospectId)).limit(1);
   if (!rows[0]) return false;
 
-  const notes = readNotes(rows[0].notes);
-  const from = (notes.leadState as LeadState) || "DISCOVERED";
+  const from = (rows[0].leadState as LeadState) || "DISCOVERED";
   if (!canTransition(from, to)) {
     console.warn(`[LeadOS] Nelegální přechod ${from} → ${to} pro prospect ${prospectId}`);
     return false;
   }
 
-  notes.leadState = to;
   await db
     .update(prospects)
-    .set({ notes: JSON.stringify(notes), updatedAt: new Date() })
+    .set({ leadState: to, updatedAt: new Date() })
     .where(eq(prospects.id, prospectId));
   return true;
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { LinkedInOutreachPanel } from "@/components/LinkedInOutreachPanel";
 import {
   Activity,
   AlertTriangle,
@@ -498,6 +499,8 @@ export default function LeadOSDashboard() {
             </div>
           </TabsContent>
         </Tabs>
+
+        <LinkedInOutreachPanel />
       </div>
     </div>
   );

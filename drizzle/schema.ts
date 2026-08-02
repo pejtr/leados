@@ -19,7 +19,6 @@ export const users = mysqlTable("users", {
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
-  lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -307,6 +306,26 @@ export const prospects = mysqlTable("prospects", {
   lastRepliedAt: timestamp("lastRepliedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+  leadState: mysqlEnum("leadState", [
+    "DISCOVERED",
+    "RESEARCHED",
+    "QUALIFIED",
+    "MESSAGE_READY",
+    "APPROVED",
+    "MANUALLY_SENT",
+    "CONNECTED",
+    "REPLIED",
+    "MEETING",
+    "PROPOSAL",
+    "WON",
+    "LOST",
+    "NURTURE",
+  ]).default("DISCOVERED").notNull(),
+  timingScore: int("timingScore").default(0).notNull(),
+  creepRisk: int("creepRisk").default(0).notNull(),
+  verifiedSignals: text("verifiedSignals"),
+  sourceEvidence: text("sourceEvidence"),
+  whyThisCompany: text("whyThisCompany"),
 });
 
 export type Prospect = typeof prospects.$inferSelect;

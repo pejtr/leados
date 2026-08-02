@@ -24,7 +24,10 @@ import { addProspect, qualifyProspect, getQualifiedProspects, getProspectStats, 
 import { createSequence, activateSequence, sendStepMessage, executeSequences, getSequenceStats } from "./sequence-engine";
 import { generateOutreachMessage, createOutreachTemplate, getTemplatesByCategory, updateTemplatePerformance } from "./outreach-agent";
 import { runDailyProspectingQueue, advanceLeadState, markManuallySent } from "./leados/engine";
+import { startLeadOsScheduler } from "./leados/scheduler";
 import { type IcpContract } from "./prospecting";
+
+startLeadOsScheduler();
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -897,14 +900,7 @@ export const appRouter = router({
           const { desc } = await import("drizzle-orm");
 
           const all = await db.select().from(prospects).orderBy(desc(prospects.createdAt));
-          return all.map((p: any) => {
-            let leadState = "DISCOVERED";
-            try {
-              const notes = p.notes ? JSON.parse(p.notes) : {};
-              leadState = notes.leadState || "DISCOVERED";
-            } catch { /* ignoruj */ }
-            return { ...p, leadState };
-          });
+          return all.map((p: any) => ({ ...p, leadState: p.leadState || "DISCOVERED" }));
         }),
 
         /** Deterministický přechod stavu podle stavového automatu. */

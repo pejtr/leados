@@ -206,12 +206,10 @@ export async function qualifyProspect(prospectId: number, icp: IcpCriteria): Pro
       icpScore: scored.fitScore,
       icpReason: scored.reason,
       painPoints: scored.painHypothesis,
-      notes: JSON.stringify({
-        timingScore: scored.timingScore,
-        whyThisCompany: scored.whyThisCompany,
-        verifiedSignals: scored.verifiedSignals,
-        sourceEvidence: scored.sourceEvidence,
-      }),
+      timingScore: scored.timingScore,
+      whyThisCompany: scored.whyThisCompany,
+      verifiedSignals: JSON.stringify(scored.verifiedSignals),
+      sourceEvidence: JSON.stringify(scored.sourceEvidence),
       status: qualified ? "qualified" : "unqualified",
       updatedAt: new Date(),
     }).where(eq(prospects.id, prospectId));
