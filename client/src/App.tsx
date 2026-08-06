@@ -17,6 +17,7 @@ import { DEFAULT_SEO, ROUTE_SEO } from "@shared/seo-config";
 import { PUBLIC_SITE_URL } from "@shared/brand-config";
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
 const Home = lazy(() => import("./pages/Home"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminProjects = lazy(() => import("./pages/AdminProjects"));
@@ -206,6 +207,7 @@ function Router() {
   return (
     <Suspense fallback={<PageLoader />}>
       <Switch>
+        <Route path="/login" component={LoginPage} />
         <Route path="/">{() => <Home variant={variant} />}</Route>
         <Route path="/v/:segment" component={VerticalLanding} />
         <Route path="/lp/:segment" component={SklikLandingPage} />
