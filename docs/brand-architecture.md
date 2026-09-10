@@ -1,36 +1,65 @@
-# Brand Architecture – OPTIMATEO / ONYX WEBY / OMNICORE / ONYX OS
+# Brand Architecture - OPTIMATEO / OPTIHUB / ONYX OS
 
-## OPTIMATEO = Agency
+This document defines the canonical naming hierarchy. The security and network
+boundary is specified in
+[OPTIHUB_ONYX_BOUNDARY.md](./OPTIHUB_ONYX_BOUNDARY.md).
 
-OPTIMATEO is the B2B agency / company brand. It provides services and products to clients.
+## OPTIMATEO = commercial brand
 
-## ONYX WEBY = Productized Premium AI Websites
+OPTIMATEO is the company, contracting party and commercial owner of customer
+services. The isolated payment entrypoint remains `pay.optimateo.com`.
 
-ONYX WEBY are premium AI‑powered websites and client‑facing web products built by OPTIMATEO.
+## OPTIHUB = customer and platform edge
 
-## OMNICORE = Internal Engine
+OPTIHUB is where customers, services and external agents enter the ecosystem:
 
-OMNICORE is the internal AI engine / CMS / SEO / affiliate / marketplace / analytics / automation core that powers all products.
+- `www.optihub.cz` - public information and onboarding,
+- `app.optihub.cz` - authenticated customer workspace,
+- `api.optihub.cz` - authenticated service API,
+- `mcp.optihub.cz` - authenticated agent capability gateway.
 
-## ONYX OS = Operating / Admin / Agent Layer
+OPTIHUB is not the intelligence core. It enforces authentication, tenant
+resolution, authorization and policy before a request reaches ONYX.
 
-ONYX OS is the operating layer / admin console / agent orchestration layer that manages OMNICORE and ONYX WEBY.
+## ONYX OS = private operating intelligence
 
-## LEADOS = Current Repository / Legacy Working Name
+ONYX OS is the private control plane and source of truth for orchestration,
+approvals, CRM state and revenue attribution. It has no direct public hostname.
 
-LEADOS is the current repository name, but strategically this repo represents ONYX.OS.
+## ONYXO = executive orchestration
 
-## Naming Rules
+ONYXO is the private executive and orchestration layer that selects and
+coordinates approved ONYX capabilities. It is not a separate public platform.
 
-- Use **OPTIMATEO** for agency‑level branding.
-- Use **ONYX WEBY** for client‑facing web products.
-- Use **OMNICORE** for internal engine references.
-- Use **ONYX OS** for operating layer / admin console references.
-- Use **LEADOS** only as a legacy working name; plan to rename to ONYX.OS.
-- Avoid using legacy names like "Optivio", "OPTIVIO", "Optivio AI" in new code.
+## OMNICORE = independent QA and security
 
-## Footer Examples
+OMNICORE independently evaluates quality, security, truth and release policy.
+It may block an ONYX action, but it does not replace ONYX ownership of workflow
+state and is not exposed as a public customer hub.
 
-- "ONYX WEB by OPTIMATEO"
-- "Powered by OMNICORE"
-- "Built on ONYX OS"
+## Capability products
+
+- **LEADOS** owns lead discovery, qualification and CRM execution.
+- **OMNI PROFIT** owns economic analysis and revenue control.
+- **OMNIVIDEO** owns media creation, rendering and asset provenance before final
+  readiness.
+- **FORGE / OMNIADS** own approved publication, distribution and campaign
+  execution after the relevant readiness boundary.
+- **ONYX WEB** is an OPTIMATEO-delivered web capability, not the ecosystem
+  gateway.
+
+## Repository naming
+
+LEADOS remains the repository's legacy name. New architecture and integration
+code should use the canonical product or layer name instead of inventing another
+public OS or hub.
+
+## Naming rules
+
+- Use **OPTIMATEO** for company, contracts, sales and payment ownership.
+- Use **OPTIHUB** for public customer and machine entrypoints.
+- Use **ONYX OS** for private operating intelligence and workflow state.
+- Use **ONYXO** for executive orchestration.
+- Use **OMNICORE** for independent QA, security and release policy.
+- Do not describe ONYX OS or OMNICORE as a directly accessible public app.
+- Do not expose private service names as public DNS endpoints.

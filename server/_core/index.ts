@@ -10,6 +10,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerSeoRoutes } from "../seo";
 import { registerStripeWebhook } from "../stripe-webhook";
+import { registerOptiHubEdgeRuntime } from "../optihub/runtime";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -34,6 +35,11 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
   registerStripeWebhook(app);
+  // OPTIHUB edge: the only public programmable entry (api.optihub.cz).
+  // Mounted before the app-wide body parser and before tRPC/SPA so nothing can
+  // shadow it and it never inherits the 50mb upload limit. The router owns its
+  // own strict body limit.
+  await registerOptiHubEdgeRuntime(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
