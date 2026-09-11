@@ -59,9 +59,9 @@ export class MySqlEdgeRateLimiter implements EdgeRateLimiter {
          VALUES (?, ?, 1, ?)
          ON DUPLICATE KEY UPDATE
            count = IF(windowStart = ?, LEAST(count + 1, ${COUNT_CEILING}), 1),
-           windowStart = IF(windowStart = ?, ?, windowStart),
+           windowStart = ?,
            updatedAt = ?`,
-        [bucketKey, windowStart, now, windowStart, windowStart, windowStart, now],
+        [bucketKey, windowStart, now, windowStart, windowStart, now],
       );
       const [rows] = await connection.query<WindowRow[]>(
         `SELECT windowStart, count FROM ${TABLE} WHERE bucketKey = ? LIMIT 1`,

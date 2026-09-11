@@ -264,4 +264,19 @@ describe("MySQL shared rate limiter", () => {
     expect((await stores.limiter.evaluate(other, 1, 1_000, now)).allowed).toBe(true);
     expect((await stores.limiter.evaluate(key, 1, 1_000, now + 1_001)).allowed).toBe(true);
   });
+
+  it("re-arms the limit after a window rollover (regression: windowStart advances)", async () => {
+    const key = { tenantId: "tenant-a", credentialId: "cred-a", action: "projects:read" };
+    const window = 1_000;
+    const now = Date.now();
+
+    expect((await stores.limiter.evaluate(key, 2, window, now)).allowed).toBe(true);
+    expect((await stores.limiter.evaluate(key, 2, window, now)).allowed).toBe(true);
+    expect((await stores.limiter.evaluate(key, 2, window, now)).allowed).toBe(false);
+
+    const next = now + window;
+    expect((await stores.limiter.evaluate(key, 2, window, next)).allowed).toBe(true);
+    expect((await stores.limiter.evaluate(key, 2, window, next)).allowed).toBe(true);
+    expect((await stores.limiter.evaluate(key, 2, window, next)).allowed).toBe(false);
+  });
 });
