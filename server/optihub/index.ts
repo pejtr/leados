@@ -154,6 +154,16 @@ export {
   type TrustedProxyChainMode,
 } from "./clientIp";
 
+export {
+  ORIGIN_AUTH_DEFAULT_HEADER,
+  evaluateOriginAuth,
+  originAuthConfigFrom,
+  parseOriginAuthMode,
+  type OriginAuthConfig,
+  type OriginAuthDecision,
+  type OriginAuthMode,
+} from "./originAuth";
+
 export { EDGE_PRE_AUTH_GLOBAL, EDGE_PRE_AUTH_PER_IP, EdgePreAuthLimiter } from "./preAuth";
 
 export {

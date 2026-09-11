@@ -22,6 +22,7 @@ import { MySqlEdgeRateLimiter } from "./mysql/mysqlRateLimiter";
 import { createOptiHubDbPool, type OptiHubDbPool } from "./mysql/pool";
 import { ensureOptiHubEdgeSchema } from "./mysql/schema";
 import { EdgePreAuthLimiter } from "./preAuth";
+import { originAuthConfigFrom } from "./originAuth";
 import { registerEdgeCredential } from "./provisioning";
 import { InMemoryEdgeRateLimiter, type EdgeRateLimiter } from "./rateLimit";
 import { InMemoryEdgeCredentialStore, type EdgeCredentialStore } from "./store";
@@ -78,6 +79,7 @@ export function createEdgeDeps(env: NodeJS.ProcessEnv = process.env): EdgeDeps {
     trustedProxies: trustedProxiesFrom(env),
     trustedProxyChain: trustedProxyChainFrom(env),
     auditPolicy: parseEdgeAuditPolicy(env),
+    originAuth: originAuthConfigFrom(env),
     policy: {
       publicationExecuteEnabled: env["OPTIHUB_EDGE_PUBLICATION_EXECUTE_ENABLED"] === "true",
     },
@@ -110,6 +112,7 @@ function persistentEdgeDeps(pool: OptiHubDbPool, env: NodeJS.ProcessEnv): EdgeDe
     trustedProxies: trustedProxiesFrom(env),
     trustedProxyChain: trustedProxyChainFrom(env),
     auditPolicy: parseEdgeAuditPolicy(env),
+    originAuth: originAuthConfigFrom(env),
     policy: {
       publicationExecuteEnabled: env["OPTIHUB_EDGE_PUBLICATION_EXECUTE_ENABLED"] === "true",
     },

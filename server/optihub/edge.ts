@@ -88,6 +88,8 @@ import {
   type MachineGatewayContext,
 } from "./tenant";
 
+import { evaluateOriginAuth, type OriginAuthConfig } from "./originAuth";
+
 export const EDGE_MOUNT_PATH = "/api/optihub";
 export const EDGE_API_VERSION = "v1";
 export const EDGE_SERVICE_NAME = "optihub-edge";
@@ -126,6 +128,8 @@ export interface EdgeDeps {
   readonly trustedProxyChain?: TrustedProxyChainMode;
   /** How an unavailable audit sink is handled. Never silently ignored. */
   readonly auditPolicy?: EdgeAuditPolicy;
+  /** Opt-in origin authentication (Cloudflare perimeter). Default OFF. */
+  readonly originAuth?: OriginAuthConfig;
 }
 
 /** Internal: `EdgeDeps` plus the derived writer and proxy model. */
@@ -542,6 +546,15 @@ async function handleProtectedRoute(
     // mcp / app / www are declared but not active in P1. Never a bypass.
     await deny("SURFACE_NOT_ENABLED", "surface_not_enabled_in_phase");
     return;
+  }
+
+  // --- origin authentication (opt-in Cloudflare perimeter) ------------------
+  if (deps.originAuth !== undefined) {
+    const originCheck = evaluateOriginAuth(deps.originAuth, req.headers[deps.originAuth.headerName]);
+    if (!originCheck.ok) {
+      await deny("ORIGIN_DENIED", originCheck.reason);
+      return;
+    }
   }
 
   // --- pre-auth abuse limit (runs before any credential work) --------------

@@ -48,6 +48,7 @@ export interface HarnessOverrides {
   readonly trustedProxies?: EdgeDeps["trustedProxies"];
   readonly trustedProxyChain?: EdgeDeps["trustedProxyChain"];
   readonly auditPolicy?: EdgeDeps["auditPolicy"];
+  readonly originAuth?: EdgeDeps["originAuth"];
 }
 
 export function createEdgeHarness(
@@ -67,6 +68,7 @@ export function createEdgeHarness(
     trustedProxies: overrides.trustedProxies,
     trustedProxyChain: overrides.trustedProxyChain,
     auditPolicy: overrides.auditPolicy,
+    originAuth: overrides.originAuth,
     policy: { publicationExecuteEnabled: overrides.publicationExecuteEnabled ?? false },
     version: "test-build",
     clock: () => clock.now,
