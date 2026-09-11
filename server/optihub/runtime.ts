@@ -84,9 +84,10 @@ export function createEdgeDeps(env: NodeJS.ProcessEnv = process.env): EdgeDeps {
       publicationExecuteEnabled: env["OPTIHUB_EDGE_PUBLICATION_EXECUTE_ENABLED"] === "true",
     },
     version: edgeVersion(env),
-    // P1 enables exactly one protected surface. mcp/app/www stay declared but
-    // disabled, so they cannot become a side door around this pipeline.
-    enabledSurfaces: ["api"],
+    // P2.0 enables the agent-facing mcp surface alongside api. Each surface only
+    // serves the routes bound to it, so mcp cannot become a side door around the
+    // REST pipeline and app/www stay declared-but-disabled.
+    enabledSurfaces: ["api", "mcp"],
     additionalApiHosts: env["NODE_ENV"] === "production" ? [] : ["localhost", "127.0.0.1"],
     readiness: () => true,
   };
@@ -117,7 +118,7 @@ function persistentEdgeDeps(pool: OptiHubDbPool, env: NodeJS.ProcessEnv): EdgeDe
       publicationExecuteEnabled: env["OPTIHUB_EDGE_PUBLICATION_EXECUTE_ENABLED"] === "true",
     },
     version: edgeVersion(env),
-    enabledSurfaces: ["api"],
+    enabledSurfaces: ["api", "mcp"],
     additionalApiHosts: env["NODE_ENV"] === "production" ? [] : ["localhost", "127.0.0.1"],
     // Readiness reflects the durable dependency the edge actually needs.
     readiness: () => auditSink.ping(),

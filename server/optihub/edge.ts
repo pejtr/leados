@@ -89,6 +89,8 @@ import {
 } from "./tenant";
 
 import { evaluateOriginAuth, type OriginAuthConfig } from "./originAuth";
+import { isEdgeHandlerResponse } from "./handlerResponse";
+import { defaultMcpEdgeRoutes, MCP_ROUTE_PATH } from "./mcp";
 
 export const EDGE_MOUNT_PATH = "/api/optihub";
 export const EDGE_API_VERSION = "v1";
@@ -161,6 +163,12 @@ export interface ProtectedEdgeRoute {
   readonly action: string;
   readonly requiredScope: EdgeScope;
   readonly policyAction?: string;
+  /**
+   * Surfaces this route is served on. Absent means every enabled surface. Set it
+   * so a surface never inherits routes it was not meant to expose (the REST
+   * routes stay on `api`, the MCP endpoint stays on `mcp`).
+   */
+  readonly surfaces?: readonly OptiHubIngressId[];
   /**
    * How audit failure is handled for this route. Defaults: `publication:execute`
    * is `execute`, other POSTs are `mutating`, everything else is `read`.
@@ -241,7 +249,7 @@ export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptio
     trustedProxyChain: deps.trustedProxyChain ?? "last_hop",
   };
   const publicRoutes = options.publicRoutes ?? defaultPublicEdgeRoutes(deps);
-  const protectedRoutes = options.protectedRoutes ?? defaultProtectedEdgeRoutes();
+  const protectedRoutes = options.protectedRoutes ?? defaultProtectedEdgeRoutes(deps);
 
   // Edge-owned, strict body limit. Never inherit the app-wide upload parser.
   router.use(express.json({ limit: EDGE_BODY_LIMIT }));
@@ -367,13 +375,14 @@ export function defaultPublicEdgeRoutes(deps: EdgeDeps): readonly PublicEdgeRout
   ];
 }
 
-export function defaultProtectedEdgeRoutes(): readonly ProtectedEdgeRoute[] {
-  return [
+export function defaultProtectedEdgeRoutes(deps?: EdgeDeps): readonly ProtectedEdgeRoute[] {
+  const restRoutes: readonly ProtectedEdgeRoute[] = [
     {
       method: "get",
       path: "/v1/context",
       action: "projects:read",
       requiredScope: "projects:read",
+      surfaces: ["api"],
       handler: context => ({
         tenantId: context.principal.tenantId,
         actorId: context.principal.actorId,
@@ -390,6 +399,7 @@ export function defaultProtectedEdgeRoutes(): readonly ProtectedEdgeRoute[] {
       action: "publication:execute",
       requiredScope: "publication:execute",
       policyAction: "publication:execute",
+      surfaces: ["api"],
       resolveResource: request => ({
         kind: "publication",
         id: String(request.params["publicationId"] ?? ""),
@@ -404,6 +414,20 @@ export function defaultProtectedEdgeRoutes(): readonly ProtectedEdgeRoute[] {
       }),
     },
   ];
+
+  // The MCP surface needs the edge's read paths (manifest, readiness); without
+  // them the adapter is not registered at all, so a caller cannot get a
+  // half-built MCP endpoint.
+  if (deps === undefined) return restRoutes;
+  return [
+    ...restRoutes,
+    ...defaultMcpEdgeRoutes({
+      version: deps.version,
+      endpoint: `${EDGE_MOUNT_PATH}${MCP_ROUTE_PATH}`,
+      manifest: () => buildManifest(deps),
+      readiness: () => checkReadiness(deps),
+    }),
+  ];
 }
 
 /**
@@ -411,10 +435,10 @@ export function defaultProtectedEdgeRoutes(): readonly ProtectedEdgeRoute[] {
  * codes - never a private service, hostname or configuration value.
  */
 export function buildManifest(deps: EdgeDeps): Record<string, unknown> {
+  const enabled = deps.enabledSurfaces ?? ["api"];
   const surfaceStatus = (surface: OptiHubIngressSurface): string => {
-    if (surface.id === "api") return "available";
-    if (surface.id === "www") return "contract_ready";
-    return "not_enabled";
+    if (!enabled.includes(surface.id)) return "not_enabled";
+    return surface.id === "www" ? "contract_ready" : "available";
   };
 
   return {
@@ -566,6 +590,18 @@ async function handleProtectedRoute(
     // so the Cloudflare-injected client address is now the trusted identity.
     ipHash = hashClientAddress(resolveCloudflareClientIp(req));
     auditBase.ipHash = ipHash;
+  }
+
+  // --- surface/route binding ------------------------------------------------
+  // A route is only served on the surfaces it declares, so the REST routes never
+  // appear on the agent-facing mcp surface (and the MCP endpoint never appears on
+  // the REST surface). An unbound surface is reported as a missing route.
+  if (
+    route.surfaces !== undefined &&
+    (resolution.surface === undefined || !route.surfaces.includes(resolution.surface.id))
+  ) {
+    await deny("NOT_FOUND", "route_not_available_on_surface");
+    return;
   }
 
   // --- pre-auth abuse limit (runs before any credential work) --------------
@@ -732,8 +768,12 @@ async function handleProtectedRoute(
     return;
   }
 
+  // A handler may own its response status (an MCP notification is 202, no body).
+  const response = isEdgeHandlerResponse(result) ? result : null;
+  const responseStatus = response?.status ?? successStatus;
   const completed = await recordAudit(deps, {
     ...allowBase,
+    status: responseStatus,
     reason: risk === "read" ? policyDecision.reason : "completed",
   }, risk);
   if (!completed && risk === "read") {
@@ -744,6 +784,11 @@ async function handleProtectedRoute(
   // For privileged actions the pre-handler line already exists and the side
   // effect has happened; the completion loss is counted by the audit writer.
 
+  if (response !== null) {
+    if (response.body === undefined) res.status(response.status).end();
+    else res.status(response.status).json(response.body);
+    return;
+  }
   res.status(successStatus).json(result ?? {});
 }
 
