@@ -49,7 +49,7 @@ import {
   type EdgeAuditPolicy,
   type EdgeOperationRisk,
 } from "./auditPolicy";
-import { resolveClientIp } from "./clientIp";
+import { resolveClientIp, type TrustedProxyChainMode } from "./clientIp";
 import type { EdgePreAuthLimiter } from "./preAuth";
 import {
   credentialStatusAt,
@@ -118,6 +118,12 @@ export interface EdgeDeps {
    * means "no proxy in front": X-Forwarded-* is ignored entirely.
    */
   readonly trustedProxies?: readonly string[];
+  /**
+   * How the forwarding chain is read when the socket peer is trusted.
+   * Default `last_hop` (append semantics). `platform_replaced_xff` is opt-in for
+   * ingresses that overwrite client-supplied X-Forwarded-For.
+   */
+  readonly trustedProxyChain?: TrustedProxyChainMode;
   /** How an unavailable audit sink is handled. Never silently ignored. */
   readonly auditPolicy?: EdgeAuditPolicy;
 }
@@ -126,6 +132,7 @@ export interface EdgeDeps {
 interface ResolvedEdgeDeps extends EdgeDeps {
   readonly auditWriter: EdgeAuditWriter;
   readonly trustedProxies: readonly string[];
+  readonly trustedProxyChain: TrustedProxyChainMode;
 }
 
 export interface EdgeHandlerContext {
@@ -227,6 +234,7 @@ export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptio
     ...deps,
     auditWriter: new EdgeAuditWriter(deps.audit, deps.auditPolicy ?? DEFAULT_EDGE_AUDIT_POLICY),
     trustedProxies: deps.trustedProxies ?? [],
+    trustedProxyChain: deps.trustedProxyChain ?? "last_hop",
   };
   const publicRoutes = options.publicRoutes ?? defaultPublicEdgeRoutes(deps);
   const protectedRoutes = options.protectedRoutes ?? defaultProtectedEdgeRoutes();
@@ -836,8 +844,11 @@ function setCorrelationHeaders(res: Response, correlation: EdgeCorrelation): voi
   res.setHeader(EDGE_INTERNAL_REQUEST_ID_HEADER, correlation.requestId);
 }
 
-function clientIpHash(deps: Pick<ResolvedEdgeDeps, "trustedProxies">, req: Request): string | null {
-  return hashClientAddress(resolveClientIp(req, deps.trustedProxies));
+function clientIpHash(
+  deps: Pick<ResolvedEdgeDeps, "trustedProxies" | "trustedProxyChain">,
+  req: Request,
+): string | null {
+  return hashClientAddress(resolveClientIp(req, deps.trustedProxies, deps.trustedProxyChain));
 }
 
 function routeRisk(route: ProtectedEdgeRoute): EdgeOperationRisk {

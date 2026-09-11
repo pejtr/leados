@@ -6,9 +6,16 @@
  * configured trusted proxy; otherwise the socket address is used and every
  * `X-Forwarded-*` header is ignored.
  *
- * `resolveClientIp` returns the first address from the right of the forwarding
- * chain that is not itself a trusted proxy - i.e. the closest thing to a real
- * client. Spoofed entries to the left of a trusted proxy are ignored.
+ * `resolveClientIp` defaults to taking the first address from the right of the
+ * forwarding chain that is not itself a trusted proxy - i.e. the closest thing
+ * to a real client. Spoofed entries to the left of a trusted proxy are ignored.
+ *
+ * Some platforms (Railway) do not append to an inbound `X-Forwarded-For`; they
+ * replace it with their own `"<client>, <transport hop>"` chain. There the real
+ * client is the left-most entry. That is only safe because the ingress discards
+ * client-supplied values, so it must be selected explicitly via
+ * {@link TrustedProxyChainMode} `platform_replaced_xff`; the default `last_hop`
+ * keeps the append semantics (and stays fail-closed from the right).
  */
 
 import type { Request } from "express";
@@ -19,6 +26,23 @@ export function parseTrustedProxies(value: string | undefined | null): readonly 
     .split(",")
     .map(entry => entry.trim())
     .filter(entry => entry !== "");
+}
+
+/**
+ * How the forwarding chain is interpreted once the socket peer is a trusted
+ * proxy.
+ *
+ * - `last_hop` (default): append semantics - walk from the right and take the
+ *   first hop that is not a trusted proxy. Inbound entries the client prepended
+ *   are ignored.
+ * - `platform_replaced_xff`: the ingress discards client input and writes its own
+ *   `"<client>, <hop>"` chain, so the left-most entry is the client. Select this
+ *   only where that replace (not append) behaviour has been verified.
+ */
+export type TrustedProxyChainMode = "last_hop" | "platform_replaced_xff";
+
+export function parseTrustedProxyChainMode(value: string | undefined | null): TrustedProxyChainMode {
+  return value === "platform_replaced_xff" ? "platform_replaced_xff" : "last_hop";
 }
 
 export function normalizeIp(raw: string | undefined | null): string {
@@ -133,13 +157,26 @@ export function readForwardedChain(header: unknown): readonly string[] {
 /**
  * The client address used for pre-auth abuse limiting and audit hashing.
  * @param trustedProxies configured proxy peers; empty means "no proxy in front".
+ * @param chainMode how to read the chain; see {@link TrustedProxyChainMode}.
  */
-export function resolveClientIp(req: Request, trustedProxies: readonly string[]): string {
+export function resolveClientIp(
+  req: Request,
+  trustedProxies: readonly string[],
+  chainMode: TrustedProxyChainMode = "last_hop",
+): string {
   const socketIp = normalizeIp(req.socket?.remoteAddress);
   if (trustedProxies.length === 0) return socketIp;
   if (!isTrustedProxy(socketIp, trustedProxies)) return socketIp;
 
-  const chain = [...readForwardedChain(req.headers["x-forwarded-for"]), socketIp];
+  const forwarded = readForwardedChain(req.headers["x-forwarded-for"]);
+
+  if (chainMode === "platform_replaced_xff") {
+    // The ingress overwrote the inbound chain, so every entry is platform
+    // generated and the left-most one is the original client.
+    return forwarded[0] ?? socketIp;
+  }
+
+  const chain = [...forwarded, socketIp];
   for (let index = chain.length - 1; index >= 0; index -= 1) {
     const hop = chain[index];
     if (hop !== undefined && hop !== "" && !isTrustedProxy(hop, trustedProxies)) return hop;

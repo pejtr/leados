@@ -14,7 +14,7 @@ import type { Express } from "express";
 
 import { InMemoryEdgeAuditSink, type EdgeAuditSink } from "./audit";
 import { DEFAULT_EDGE_AUDIT_POLICY, type EdgeAuditPolicy } from "./auditPolicy";
-import { parseTrustedProxies } from "./clientIp";
+import { parseTrustedProxies, parseTrustedProxyChainMode } from "./clientIp";
 import { registerOptiHubEdge, type EdgeDeps } from "./edge";
 import { MySqlEdgeAuditSink } from "./mysql/mysqlAuditSink";
 import { MySqlEdgeCredentialStore } from "./mysql/mysqlCredentialStore";
@@ -60,6 +60,10 @@ function trustedProxiesFrom(env: NodeJS.ProcessEnv): readonly string[] {
   return parseTrustedProxies(env["OPTIHUB_TRUSTED_PROXIES"] ?? env["TRUSTED_PROXY_IPS"]);
 }
 
+function trustedProxyChainFrom(env: NodeJS.ProcessEnv) {
+  return parseTrustedProxyChainMode(env["OPTIHUB_TRUSTED_PROXY_CHAIN"]);
+}
+
 /**
  * In-memory dependency set. Real code (not a mock), but process-local: suitable
  * for development and tests, never for a multi-instance deployment.
@@ -72,6 +76,7 @@ export function createEdgeDeps(env: NodeJS.ProcessEnv = process.env): EdgeDeps {
     limiter,
     preAuthLimiter: new EdgePreAuthLimiter(limiter),
     trustedProxies: trustedProxiesFrom(env),
+    trustedProxyChain: trustedProxyChainFrom(env),
     auditPolicy: parseEdgeAuditPolicy(env),
     policy: {
       publicationExecuteEnabled: env["OPTIHUB_EDGE_PUBLICATION_EXECUTE_ENABLED"] === "true",
@@ -103,6 +108,7 @@ function persistentEdgeDeps(pool: OptiHubDbPool, env: NodeJS.ProcessEnv): EdgeDe
     limiter,
     preAuthLimiter: new EdgePreAuthLimiter(limiter),
     trustedProxies: trustedProxiesFrom(env),
+    trustedProxyChain: trustedProxyChainFrom(env),
     auditPolicy: parseEdgeAuditPolicy(env),
     policy: {
       publicationExecuteEnabled: env["OPTIHUB_EDGE_PUBLICATION_EXECUTE_ENABLED"] === "true",

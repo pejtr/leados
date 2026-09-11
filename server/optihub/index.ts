@@ -148,8 +148,10 @@ export {
   isTrustedProxy,
   normalizeIp,
   parseTrustedProxies,
+  parseTrustedProxyChainMode,
   readForwardedChain,
   resolveClientIp,
+  type TrustedProxyChainMode,
 } from "./clientIp";
 
 export { EDGE_PRE_AUTH_GLOBAL, EDGE_PRE_AUTH_PER_IP, EdgePreAuthLimiter } from "./preAuth";

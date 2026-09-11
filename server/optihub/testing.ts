@@ -46,6 +46,7 @@ export interface HarnessOverrides {
   readonly readiness?: EdgeDeps["readiness"];
   readonly preAuthLimiter?: EdgeDeps["preAuthLimiter"];
   readonly trustedProxies?: EdgeDeps["trustedProxies"];
+  readonly trustedProxyChain?: EdgeDeps["trustedProxyChain"];
   readonly auditPolicy?: EdgeDeps["auditPolicy"];
 }
 
@@ -64,6 +65,7 @@ export function createEdgeHarness(
     limiter: overrides.limiterImpl ?? limiter,
     preAuthLimiter: overrides.preAuthLimiter,
     trustedProxies: overrides.trustedProxies,
+    trustedProxyChain: overrides.trustedProxyChain,
     auditPolicy: overrides.auditPolicy,
     policy: { publicationExecuteEnabled: overrides.publicationExecuteEnabled ?? false },
     version: "test-build",

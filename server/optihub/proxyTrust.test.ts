@@ -14,6 +14,7 @@ import {
   isTrustedProxy,
   normalizeIp,
   parseTrustedProxies,
+  parseTrustedProxyChainMode,
   readForwardedChain,
   resolveClientIp,
 } from "./clientIp";
@@ -100,6 +101,62 @@ describe("trusted proxy model", () => {
     ).toBe("203.0.113.9");
   });
 
+  it("defaults the chain mode to last_hop and rejects unknown values", () => {
+    expect(parseTrustedProxyChainMode(undefined)).toBe("last_hop");
+    expect(parseTrustedProxyChainMode("")).toBe("last_hop");
+    expect(parseTrustedProxyChainMode("first_hop")).toBe("last_hop");
+    expect(parseTrustedProxyChainMode("LAST_HOP")).toBe("last_hop");
+    expect(parseTrustedProxyChainMode("platform_replaced_xff")).toBe("platform_replaced_xff");
+  });
+
+  it("keeps last_hop semantics by default when a trusted proxy is present", () => {
+    const request = fakeRequest("10.0.0.5", {
+      "x-forwarded-for": "1.2.3.4, 203.0.113.9",
+    });
+    expect(resolveClientIp(request, ["10.0.0.5"])).toBe("203.0.113.9");
+    expect(resolveClientIp(request, ["10.0.0.5"], "last_hop")).toBe("203.0.113.9");
+  });
+
+  it("takes the left-most entry only in platform_replaced_xff mode", () => {
+    const request = fakeRequest("10.0.0.5", {
+      "x-forwarded-for": "203.0.113.9, 89.222.123.194",
+    });
+    expect(resolveClientIp(request, ["10.0.0.5"])).toBe("89.222.123.194");
+    expect(resolveClientIp(request, ["10.0.0.5"], "platform_replaced_xff")).toBe("203.0.113.9");
+  });
+
+  it("platform_replaced_xff ignores headers from an untrusted peer or with no proxy", () => {
+    const request = fakeRequest("198.51.100.7", { "x-forwarded-for": "203.0.113.9, 89.0.0.1" });
+    expect(resolveClientIp(request, ["10.0.0.5"], "platform_replaced_xff")).toBe("198.51.100.7");
+    expect(resolveClientIp(request, [], "platform_replaced_xff")).toBe("198.51.100.7");
+  });
+
+  it("platform_replaced_xff falls back to the socket peer for empty or malformed chains", () => {
+    const peer = "10.0.0.5";
+    expect(resolveClientIp(fakeRequest(peer, {}), [peer], "platform_replaced_xff")).toBe(peer);
+    expect(
+      resolveClientIp(
+        fakeRequest(peer, { "x-forwarded-for": "  ,  , " }),
+        [peer],
+        "platform_replaced_xff",
+      ),
+    ).toBe(peer);
+    expect(
+      resolveClientIp(
+        fakeRequest(peer, { "x-forwarded-for": ["", ""] }),
+        [peer],
+        "platform_replaced_xff",
+      ),
+    ).toBe(peer);
+  });
+
+  it("platform_replaced_xff uses the left-most of a duplicated header array", () => {
+    const request = fakeRequest("10.0.0.5", {
+      "x-forwarded-for": ["203.0.113.9", "89.222.123.194"],
+    });
+    expect(resolveClientIp(request, ["10.0.0.5"], "platform_replaced_xff")).toBe("203.0.113.9");
+  });
+
   it("parses and normalises proxy configuration", () => {
     expect(parseTrustedProxies(" 10.0.0.1 , 10.0.0.2 ,, ")).toEqual(["10.0.0.1", "10.0.0.2"]);
     expect(parseTrustedProxies(undefined)).toEqual([]);
@@ -146,6 +203,55 @@ describe("edge ignores spoofed forwarding headers", () => {
       });
       expect(response.status).toBe(403);
       expect((response.body as { error: { code: string } }).error.code).toBe("HOST_DENIED");
+    } finally {
+      await server.close();
+    }
+  }, 20_000);
+});
+
+describe("edge trusted proxy chain mode", () => {
+  it("platform_replaced_xff records the left-most client, not the transport hop", async () => {
+    const harness = createEdgeHarness({
+      trustedProxies: ["127.0.0.1"],
+      trustedProxyChain: "platform_replaced_xff",
+    });
+    const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+    const server = await startEdgeServer(harness.app);
+    try {
+      const response = await edgeRequest(server.url, "/api/optihub/v1/context", {
+        host: API_HOST,
+        headers: {
+          authorization: `Bearer ${credential.secret}`,
+          "x-forwarded-for": "203.0.113.9, 89.222.123.194",
+        },
+      });
+      expect(response.status).toBe(200);
+
+      const allowed = harness.audit.entries.find(entry => entry.decision === "ALLOW");
+      expect(allowed?.ipHash).toBe(hashClientAddress("203.0.113.9"));
+      expect(allowed?.ipHash).not.toBe(hashClientAddress("89.222.123.194"));
+    } finally {
+      await server.close();
+    }
+  }, 20_000);
+
+  it("default mode is unchanged for the same trusted proxy and headers", async () => {
+    const harness = createEdgeHarness({ trustedProxies: ["127.0.0.1"] });
+    const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+    const server = await startEdgeServer(harness.app);
+    try {
+      const response = await edgeRequest(server.url, "/api/optihub/v1/context", {
+        host: API_HOST,
+        headers: {
+          authorization: `Bearer ${credential.secret}`,
+          "x-forwarded-for": "203.0.113.9, 89.222.123.194",
+        },
+      });
+      expect(response.status).toBe(200);
+
+      const allowed = harness.audit.entries.find(entry => entry.decision === "ALLOW");
+      expect(allowed?.ipHash).toBe(hashClientAddress("89.222.123.194"));
+      expect(allowed?.ipHash).not.toBe(hashClientAddress("203.0.113.9"));
     } finally {
       await server.close();
     }
