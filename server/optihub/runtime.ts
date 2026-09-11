@@ -1,8 +1,9 @@
 /**
  * OPTIHUB EDGE - runtime wiring.
  *
- * Builds the default edge dependencies (in-memory P1 stores), optionally seeds
- * credentials from the deployment's secret manager, and mounts the router.
+ * Selects the real (MySQL) stores when `DATABASE_URL` is configured and fails
+ * closed in production without one. In development only, it falls back to the
+ * in-memory reference stores with a loud warning.
  *
  * There is deliberately no credential-management HTTP surface here. Provisioning
  * and rotation are internal operations (`provisioning.ts`); the public API only
@@ -11,20 +12,25 @@
 
 import type { Express } from "express";
 
-import { InMemoryEdgeAuditSink } from "./audit";
+import { InMemoryEdgeAuditSink, type EdgeAuditSink } from "./audit";
+import { DEFAULT_EDGE_AUDIT_POLICY, type EdgeAuditPolicy } from "./auditPolicy";
+import { parseTrustedProxies } from "./clientIp";
 import { registerOptiHubEdge, type EdgeDeps } from "./edge";
+import { MySqlEdgeAuditSink } from "./mysql/mysqlAuditSink";
+import { MySqlEdgeCredentialStore } from "./mysql/mysqlCredentialStore";
+import { MySqlEdgeRateLimiter } from "./mysql/mysqlRateLimiter";
+import { createOptiHubDbPool, type OptiHubDbPool } from "./mysql/pool";
+import { ensureOptiHubEdgeSchema } from "./mysql/schema";
+import { EdgePreAuthLimiter } from "./preAuth";
 import { registerEdgeCredential } from "./provisioning";
-import { InMemoryEdgeRateLimiter } from "./rateLimit";
+import { InMemoryEdgeRateLimiter, type EdgeRateLimiter } from "./rateLimit";
 import { InMemoryEdgeCredentialStore, type EdgeCredentialStore } from "./store";
 
 let sharedStore: InMemoryEdgeCredentialStore | null = null;
 let sharedAudit: InMemoryEdgeAuditSink | null = null;
 let sharedLimiter: InMemoryEdgeRateLimiter | null = null;
 
-/**
- * Process-wide credential store. A persistent store is a drop-in replacement
- * behind `EdgeCredentialStore`; this is the P1 reference implementation.
- */
+/** Process-wide in-memory credential store (development / tests only). */
 export function edgeCredentialStore(): InMemoryEdgeCredentialStore {
   sharedStore ??= new InMemoryEdgeCredentialStore();
   return sharedStore;
@@ -44,11 +50,29 @@ export function edgeVersion(env: NodeJS.ProcessEnv = process.env): string {
   return env["RAILWAY_GIT_COMMIT_SHA"] ?? env["GIT_SHA"] ?? "dev";
 }
 
+export function parseEdgeAuditPolicy(env: NodeJS.ProcessEnv = process.env): EdgeAuditPolicy {
+  const readPolicy =
+    env["OPTIHUB_EDGE_READ_AUDIT_POLICY"] === "degraded_spool" ? "degraded_spool" : "fail_closed";
+  return { ...DEFAULT_EDGE_AUDIT_POLICY, readPolicy };
+}
+
+function trustedProxiesFrom(env: NodeJS.ProcessEnv): readonly string[] {
+  return parseTrustedProxies(env["OPTIHUB_TRUSTED_PROXIES"] ?? env["TRUSTED_PROXY_IPS"]);
+}
+
+/**
+ * In-memory dependency set. Real code (not a mock), but process-local: suitable
+ * for development and tests, never for a multi-instance deployment.
+ */
 export function createEdgeDeps(env: NodeJS.ProcessEnv = process.env): EdgeDeps {
+  const limiter = edgeRateLimiter();
   return {
     store: edgeCredentialStore(),
     audit: edgeAuditSink(),
-    limiter: edgeRateLimiter(),
+    limiter,
+    preAuthLimiter: new EdgePreAuthLimiter(limiter),
+    trustedProxies: trustedProxiesFrom(env),
+    auditPolicy: parseEdgeAuditPolicy(env),
     policy: {
       publicationExecuteEnabled: env["OPTIHUB_EDGE_PUBLICATION_EXECUTE_ENABLED"] === "true",
     },
@@ -56,9 +80,80 @@ export function createEdgeDeps(env: NodeJS.ProcessEnv = process.env): EdgeDeps {
     // P1 enables exactly one protected surface. mcp/app/www stay declared but
     // disabled, so they cannot become a side door around this pipeline.
     enabledSurfaces: ["api"],
-    additionalApiHosts:
-      env["NODE_ENV"] === "production" ? [] : ["localhost", "127.0.0.1"],
+    additionalApiHosts: env["NODE_ENV"] === "production" ? [] : ["localhost", "127.0.0.1"],
     readiness: () => true,
+  };
+}
+
+export interface EdgeRuntimeHandle {
+  readonly deps: EdgeDeps;
+  readonly pool: OptiHubDbPool | null;
+  /** Release the database pool. Safe to call more than once. */
+  close(): Promise<void>;
+}
+
+function persistentEdgeDeps(pool: OptiHubDbPool, env: NodeJS.ProcessEnv): EdgeDeps {
+  const store: EdgeCredentialStore = new MySqlEdgeCredentialStore(pool);
+  const auditSink = new MySqlEdgeAuditSink(pool);
+  const audit: EdgeAuditSink = auditSink;
+  const limiter: EdgeRateLimiter = new MySqlEdgeRateLimiter(pool);
+  return {
+    store,
+    audit,
+    limiter,
+    preAuthLimiter: new EdgePreAuthLimiter(limiter),
+    trustedProxies: trustedProxiesFrom(env),
+    auditPolicy: parseEdgeAuditPolicy(env),
+    policy: {
+      publicationExecuteEnabled: env["OPTIHUB_EDGE_PUBLICATION_EXECUTE_ENABLED"] === "true",
+    },
+    version: edgeVersion(env),
+    enabledSurfaces: ["api"],
+    additionalApiHosts: env["NODE_ENV"] === "production" ? [] : ["localhost", "127.0.0.1"],
+    // Readiness reflects the durable dependency the edge actually needs.
+    readiness: () => auditSink.ping(),
+  };
+}
+
+/**
+ * Build the dependency set for this process. Uses MySQL when `DATABASE_URL` is
+ * present. Production without a database URL is a hard startup error: the edge
+ * refuses to run with process-local security state.
+ */
+export async function createRuntimeEdgeDeps(
+  env: NodeJS.ProcessEnv = process.env,
+): Promise<EdgeRuntimeHandle> {
+  const databaseUrl = env["DATABASE_URL"];
+  if (databaseUrl === undefined || databaseUrl.trim() === "") {
+    if (env["NODE_ENV"] === "production") {
+      throw new Error("OPTIHUB edge requires DATABASE_URL in production");
+    }
+    console.warn(
+      "[optihub-edge] DATABASE_URL not set - using in-memory stores (development only)",
+    );
+    return { deps: createEdgeDeps(env), pool: null, close: async () => undefined };
+  }
+
+  const pool = createOptiHubDbPool(databaseUrl);
+  try {
+    // The drizzle chain cannot be relied on to have created these (see schema.ts).
+    await ensureOptiHubEdgeSchema(pool);
+  } catch (error) {
+    await pool.end().catch(() => undefined);
+    throw error;
+  }
+  const deps = persistentEdgeDeps(pool, env);
+  const bootstrap = await bootstrapEdgeCredentials(deps.store, env);
+  if (bootstrap.skipped > 0) {
+    // Count only; never the secret or the entry contents.
+    console.warn(`[optihub-edge] skipped ${bootstrap.skipped} bootstrap credential(s)`);
+  }
+  return {
+    deps,
+    pool,
+    close: async () => {
+      await pool.end();
+    },
   };
 }
 
@@ -133,18 +228,14 @@ export async function bootstrapEdgeCredentials(
 
 /**
  * Build deps, seed credentials and mount the edge. Awaited by the server
- * entrypoint before it starts listening.
+ * entrypoint before it starts listening. Returns the runtime handle so the
+ * caller can shut the pool down.
  */
 export async function registerOptiHubEdgeRuntime(
   app: Express,
   env: NodeJS.ProcessEnv = process.env,
-): Promise<EdgeDeps> {
-  const deps = createEdgeDeps(env);
-  const bootstrap = await bootstrapEdgeCredentials(deps.store, env);
-  if (bootstrap.skipped > 0) {
-    // Count only; never the secret or the entry contents.
-    console.warn(`[optihub-edge] skipped ${bootstrap.skipped} bootstrap credential(s)`);
-  }
-  registerOptiHubEdge(app, deps);
-  return deps;
+): Promise<EdgeRuntimeHandle> {
+  const handle = await createRuntimeEdgeDeps(env);
+  registerOptiHubEdge(app, handle.deps);
+  return handle;
 }

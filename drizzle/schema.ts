@@ -1,4 +1,4 @@
-import { bigint, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { bigint, index, int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /**
  * Core user table backing auth flow.
@@ -407,3 +407,96 @@ export const outreachTemplates = mysqlTable("outreach_templates", {
 
 export type OutreachTemplate = typeof outreachTemplates.$inferSelect;
 export type InsertOutreachTemplate = typeof outreachTemplates.$inferInsert;
+
+// ---------------------------------------------------------------------------
+// OPTIHUB edge (api.optihub.cz) persistence
+//
+// These tables are the only durable state of the public edge. They are written
+// by the edge credential/audit/rate-limit stores and by the internal
+// provisioning module. There is no HTTP surface that manages them.
+//
+// All time columns are epoch milliseconds (bigint) so behaviour does not depend
+// on the database/session timezone. Raw secrets are never stored: only
+// `secretHash` (SHA-256 hex).
+// ---------------------------------------------------------------------------
+
+export const optihubEdgeCredentials = mysqlTable(
+  "optihub_edge_credentials",
+  {
+    id: varchar("id", { length: 64 }).primaryKey(),
+    tenantId: varchar("tenantId", { length: 128 }).notNull(),
+    actorId: varchar("actorId", { length: 128 }).notNull(),
+    /** SHA-256 hex of the bearer secret. Never the raw secret. */
+    secretHash: varchar("secretHash", { length: 64 }).notNull().unique(),
+    /** Monotonic per rotation chain. */
+    version: int("version").notNull().default(1),
+    /** active | revoked | expired */
+    status: varchar("status", { length: 16 }).notNull().default("active"),
+    scopes: json("scopes").$type<string[]>().notNull(),
+    metadata: json("metadata").$type<Record<string, string>>().notNull(),
+    createdAt: bigint("createdAt", { mode: "number" }).notNull(),
+    expiresAt: bigint("expiresAt", { mode: "number" }),
+    revokedAt: bigint("revokedAt", { mode: "number" }),
+    lastUsedAt: bigint("lastUsedAt", { mode: "number" }),
+    rotatedFromId: varchar("rotatedFromId", { length: 64 }),
+    /** Set atomically by the rotation claim. Also the CAS marker. */
+    rotatedToId: varchar("rotatedToId", { length: 64 }),
+  },
+  table => ({
+    tenantIdx: index("optihub_edge_credentials_tenant_idx").on(table.tenantId),
+    rotatedFromIdx: index("optihub_edge_credentials_rotated_from_idx").on(table.rotatedFromId),
+  }),
+);
+
+export type OptiHubEdgeCredential = typeof optihubEdgeCredentials.$inferSelect;
+export type InsertOptiHubEdgeCredential = typeof optihubEdgeCredentials.$inferInsert;
+
+/**
+ * Append-only security audit trail. The edge only ever INSERTs here; there is no
+ * update/delete path in application code. Free-form payloads never reach it.
+ */
+export const optihubEdgeAudit = mysqlTable(
+  "optihub_edge_audit",
+  {
+    id: bigint("id", { mode: "number", unsigned: true }).autoincrement().primaryKey(),
+    timestamp: bigint("timestamp", { mode: "number" }).notNull(),
+    requestId: varchar("requestId", { length: 64 }).notNull(),
+    externalRequestId: varchar("externalRequestId", { length: 128 }),
+    surface: varchar("surface", { length: 16 }).notNull(),
+    host: varchar("host", { length: 255 }).notNull(),
+    method: varchar("method", { length: 8 }).notNull(),
+    route: varchar("route", { length: 255 }).notNull(),
+    action: varchar("action", { length: 64 }).notNull(),
+    resource: varchar("resource", { length: 255 }),
+    credentialId: varchar("credentialId", { length: 64 }),
+    tenantId: varchar("tenantId", { length: 128 }),
+    actorId: varchar("actorId", { length: 128 }),
+    decision: varchar("decision", { length: 8 }).notNull(),
+    code: varchar("code", { length: 48 }),
+    reason: varchar("reason", { length: 128 }).notNull(),
+    status: int("status").notNull(),
+    ipHash: varchar("ipHash", { length: 64 }),
+    userAgent: varchar("userAgent", { length: 256 }),
+  },
+  table => ({
+    requestIdx: index("optihub_edge_audit_request_idx").on(table.requestId),
+    tenantIdx: index("optihub_edge_audit_tenant_idx").on(table.tenantId),
+    timestampIdx: index("optihub_edge_audit_timestamp_idx").on(table.timestamp),
+  }),
+);
+
+export type OptiHubEdgeAudit = typeof optihubEdgeAudit.$inferSelect;
+export type InsertOptiHubEdgeAudit = typeof optihubEdgeAudit.$inferInsert;
+
+/**
+ * Shared fixed-window rate-limit state. `bucketKey` is a hashed composite of
+ * tenant/credential/action (or pre-auth key), never a raw identifier.
+ */
+export const optihubEdgeRateWindows = mysqlTable("optihub_edge_rate_windows", {
+  bucketKey: varchar("bucketKey", { length: 255 }).primaryKey(),
+  windowStart: bigint("windowStart", { mode: "number" }).notNull(),
+  count: int("count").notNull(),
+  updatedAt: bigint("updatedAt", { mode: "number" }).notNull(),
+});
+
+export type OptiHubEdgeRateWindow = typeof optihubEdgeRateWindows.$inferSelect;

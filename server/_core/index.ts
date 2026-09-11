@@ -1,7 +1,8 @@
 import "dotenv/config";
-import express from "express";
-import { createServer } from "http";
+import express, { type Express } from "express";
+import { createServer, type Server } from "http";
 import net from "net";
+import { pathToFileURL } from "node:url";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
@@ -10,7 +11,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { registerSeoRoutes } from "../seo";
 import { registerStripeWebhook } from "../stripe-webhook";
-import { registerOptiHubEdgeRuntime } from "../optihub/runtime";
+import { registerOptiHubEdgeRuntime, type EdgeRuntimeHandle } from "../optihub/runtime";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -31,7 +32,27 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
   throw new Error(`No available port found starting from ${startPort}`);
 }
 
-async function startServer() {
+export interface CreateAppOptions {
+  /**
+   * Serve the Vite dev server / static client. Set false for an API-only boot
+   * (tests, workers): the full middleware stack including the edge is identical.
+   */
+  readonly serveFrontend?: boolean;
+}
+
+export interface CreateAppResult {
+  readonly app: Express;
+  readonly server: Server;
+  /** The mounted edge runtime; owns the database pool. */
+  readonly edge: EdgeRuntimeHandle;
+}
+
+/**
+ * Build the real application (same middleware order as production) without
+ * listening. Exported so a test can boot the actual entrypoint on an ephemeral
+ * port instead of asserting against a hand-assembled router.
+ */
+export async function createApp(options: CreateAppOptions = {}): Promise<CreateAppResult> {
   const app = express();
   const server = createServer(app);
   registerStripeWebhook(app);
@@ -39,7 +60,7 @@ async function startServer() {
   // Mounted before the app-wide body parser and before tRPC/SPA so nothing can
   // shadow it and it never inherits the 50mb upload limit. The router owns its
   // own strict body limit.
-  await registerOptiHubEdgeRuntime(app);
+  const edge = await registerOptiHubEdgeRuntime(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -101,11 +122,19 @@ async function startServer() {
   });
 
   // development mode uses Vite, production mode uses static files
-  if (process.env.NODE_ENV === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+  if (options.serveFrontend !== false) {
+    if (process.env.NODE_ENV === "development") {
+      await setupVite(app, server);
+    } else {
+      serveStatic(app);
+    }
   }
+
+  return { app, server, edge };
+}
+
+export async function startServer(): Promise<void> {
+  const { server } = await createApp();
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   // V produkci (Railway/Render/…) MUSÍME bindovat přesně na přidělený $PORT —
@@ -125,4 +154,10 @@ async function startServer() {
   });
 }
 
-startServer().catch(console.error);
+// Only auto-start when this file is the process entrypoint. Importing it (e.g.
+// from a boot test) must not open a port.
+const isDirectRun =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+if (isDirectRun) {
+  startServer().catch(console.error);
+}

@@ -32,6 +32,7 @@ export {
   redactEdgeMetadata,
   truncateUserAgent,
   type EdgeAuditDecision,
+  type EdgeAuditQuery,
   type EdgeAuditRecord,
   type EdgeAuditSink,
 } from "./audit";
@@ -95,6 +96,7 @@ export {
   InMemoryEdgeCredentialStore,
   type EdgeCredentialPatch,
   type EdgeCredentialStore,
+  type EdgeRotationClaim,
 } from "./store";
 
 export {
@@ -123,9 +125,43 @@ export {
 export {
   bootstrapEdgeCredentials,
   createEdgeDeps,
+  createRuntimeEdgeDeps,
   edgeAuditSink,
   edgeCredentialStore,
   edgeRateLimiter,
   edgeVersion,
+  parseEdgeAuditPolicy,
   registerOptiHubEdgeRuntime,
+  type EdgeRuntimeHandle,
 } from "./runtime";
+
+export {
+  DEFAULT_EDGE_AUDIT_POLICY,
+  EdgeAuditWriter,
+  type EdgeAuditPersistResult,
+  type EdgeAuditPolicy,
+  type EdgeOperationRisk,
+  type EdgeReadAuditPolicy,
+} from "./auditPolicy";
+
+export {
+  isTrustedProxy,
+  normalizeIp,
+  parseTrustedProxies,
+  readForwardedChain,
+  resolveClientIp,
+} from "./clientIp";
+
+export { EDGE_PRE_AUTH_GLOBAL, EDGE_PRE_AUTH_PER_IP, EdgePreAuthLimiter } from "./preAuth";
+
+export {
+  createOptiHubDbPool,
+  hashRateLimitBucket,
+  withOptiHubTransaction,
+  type OptiHubDbConnection,
+  type OptiHubDbPool,
+} from "./mysql/pool";
+export { MySqlEdgeAuditSink } from "./mysql/mysqlAuditSink";
+export { MySqlEdgeCredentialStore } from "./mysql/mysqlCredentialStore";
+export { MySqlEdgeRateLimiter, edgeRateLimitBucketKey } from "./mysql/mysqlRateLimiter";
+export { OPTIHUB_EDGE_DDL, ensureOptiHubEdgeSchema } from "./mysql/schema";

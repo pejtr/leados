@@ -50,6 +50,13 @@
       "when": 1783000000000,
       "tag": "0006_lead_state_fields",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1788739200000,
+      "tag": "0007_optihub_edge",
+      "breakpoints": true
     }
   ]
 }

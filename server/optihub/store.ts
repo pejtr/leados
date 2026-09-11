@@ -11,7 +11,11 @@
  * concurrent rotations of the same credential cannot both win.
  */
 
-import type { EdgeCredentialRecord, EdgeCredentialStatus } from "./credentials";
+import {
+  credentialStatusAt,
+  type EdgeCredentialRecord,
+  type EdgeCredentialStatus,
+} from "./credentials";
 
 export interface EdgeCredentialPatch {
   readonly status?: EdgeCredentialStatus;
@@ -37,6 +41,23 @@ export interface EdgeCredentialStore {
     predicate: (record: EdgeCredentialRecord) => boolean,
     patch: EdgeCredentialPatch,
   ): Promise<EdgeCredentialRecord | null>;
+  /**
+   * Atomically claim `previousId` for rotation and insert its successor in one
+   * unit of work. Returns false when the claim lost a race (the credential is
+   * no longer active, already rotated, or at a different version). A false
+   * result leaves the store untouched: there is no half-rotated credential.
+   */
+  claimRotation(claim: EdgeRotationClaim): Promise<boolean>;
+}
+
+export interface EdgeRotationClaim {
+  readonly previousId: string;
+  /** Absolute time used to evaluate the previous credential's status. */
+  readonly at: number;
+  /** Allowed only if the previous record still has this version. */
+  readonly expectedVersion?: number;
+  readonly previousPatch: EdgeCredentialPatch;
+  readonly successor: EdgeCredentialRecord;
 }
 
 export class InMemoryEdgeCredentialStore implements EdgeCredentialStore {
@@ -86,6 +107,26 @@ export class InMemoryEdgeCredentialStore implements EdgeCredentialStore {
     const next = applyPatch(current, patch);
     this.byId.set(id, next);
     return next;
+  }
+
+  async claimRotation(claim: EdgeRotationClaim): Promise<boolean> {
+    const current = this.byId.get(claim.previousId);
+    if (current === undefined) return false;
+    if (credentialStatusAt(current, claim.at) !== "active" || current.rotatedToId !== null) {
+      return false;
+    }
+    if (claim.expectedVersion !== undefined && current.version !== claim.expectedVersion) {
+      return false;
+    }
+    if (this.byId.has(claim.successor.id) || this.byHash.has(claim.successor.secretHash)) {
+      throw new Error("edge credential successor already exists");
+    }
+    // No await between the check and both mutations: the claim is atomic on the
+    // single JS thread, so two concurrent rotations cannot both win.
+    this.byId.set(current.id, applyPatch(current, claim.previousPatch));
+    this.byId.set(claim.successor.id, claim.successor);
+    this.byHash.set(claim.successor.secretHash, claim.successor.id);
+    return true;
   }
 }
 

@@ -44,6 +44,14 @@ import {
   type EdgeAuditSink,
 } from "./audit";
 import {
+  DEFAULT_EDGE_AUDIT_POLICY,
+  EdgeAuditWriter,
+  type EdgeAuditPolicy,
+  type EdgeOperationRisk,
+} from "./auditPolicy";
+import { resolveClientIp } from "./clientIp";
+import type { EdgePreAuthLimiter } from "./preAuth";
+import {
   credentialStatusAt,
   hashEdgeSecret,
   isEdgeSecretFormat,
@@ -103,6 +111,21 @@ export interface EdgeDeps {
   /** Extra hosts treated as the API surface (local development). */
   readonly additionalApiHosts?: readonly string[];
   readonly readiness?: () => boolean | Promise<boolean>;
+  /** Cheap shared counter that runs before credential verification. */
+  readonly preAuthLimiter?: EdgePreAuthLimiter;
+  /**
+   * Proxy peers whose forwarding headers may be trusted. Empty (the default)
+   * means "no proxy in front": X-Forwarded-* is ignored entirely.
+   */
+  readonly trustedProxies?: readonly string[];
+  /** How an unavailable audit sink is handled. Never silently ignored. */
+  readonly auditPolicy?: EdgeAuditPolicy;
+}
+
+/** Internal: `EdgeDeps` plus the derived writer and proxy model. */
+interface ResolvedEdgeDeps extends EdgeDeps {
+  readonly auditWriter: EdgeAuditWriter;
+  readonly trustedProxies: readonly string[];
 }
 
 export interface EdgeHandlerContext {
@@ -127,6 +150,11 @@ export interface ProtectedEdgeRoute {
   readonly action: string;
   readonly requiredScope: EdgeScope;
   readonly policyAction?: string;
+  /**
+   * How audit failure is handled for this route. Defaults: `publication:execute`
+   * is `execute`, other POSTs are `mutating`, everything else is `read`.
+   */
+  readonly risk?: EdgeOperationRisk;
   readonly resolveResource?: (request: Request) => EdgeResourceRef | undefined;
   readonly successStatus?: number;
   readonly handler: EdgeRouteHandler;
@@ -195,6 +223,11 @@ export function resolveEdgeSurface(
 
 export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptions = {}): Router {
   const router = express.Router();
+  const resolved: ResolvedEdgeDeps = {
+    ...deps,
+    auditWriter: new EdgeAuditWriter(deps.audit, deps.auditPolicy ?? DEFAULT_EDGE_AUDIT_POLICY),
+    trustedProxies: deps.trustedProxies ?? [],
+  };
   const publicRoutes = options.publicRoutes ?? defaultPublicEdgeRoutes(deps);
   const protectedRoutes = options.protectedRoutes ?? defaultProtectedEdgeRoutes();
 
@@ -203,13 +236,13 @@ export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptio
 
   for (const route of publicRoutes) {
     router[route.method](route.path, (req, res) => {
-      void handlePublicRoute(deps, route, req, res);
+      void handlePublicRoute(resolved, route, req, res);
     });
   }
 
   for (const route of protectedRoutes) {
     router[route.method](route.path, (req, res) => {
-      void handleProtectedRoute(deps, route, req, res);
+      void handleProtectedRoute(resolved, route, req, res);
     });
   }
 
@@ -219,8 +252,8 @@ export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptio
     const correlation = createEdgeCorrelation(req.headers[EDGE_EXTERNAL_REQUEST_ID_HEADER]);
     const resolution = resolveEdgeSurface(req.headers.host, deps);
     setCorrelationHeaders(res, correlation);
-    void recordAudit(deps, {
-      timestamp: nowOf(deps),
+    void recordAudit(resolved, {
+      timestamp: nowOf(resolved),
       requestId: correlation.requestId,
       externalRequestId: correlation.externalRequestId,
       surface: resolution.surface?.id ?? "unknown",
@@ -235,9 +268,9 @@ export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptio
       code: "NOT_FOUND",
       reason: "unknown_edge_route",
       status: 404,
-      ipHash: hashClientAddress(req.ip ?? req.socket?.remoteAddress),
+      ipHash: clientIpHash(resolved, req),
       userAgent: truncateUserAgent(req.headers["user-agent"]),
-    });
+    }, "read");
     res.status(404).json(edgeErrorBody("NOT_FOUND", "unknown_edge_route", correlation.requestId));
   });
 
@@ -255,8 +288,8 @@ export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptio
     const resolution = resolveEdgeSurface(req.headers.host, deps);
     const correlation = createEdgeCorrelation(req.headers[EDGE_EXTERNAL_REQUEST_ID_HEADER]);
     setCorrelationHeaders(res, correlation);
-    void recordAudit(deps, {
-      timestamp: nowOf(deps),
+    void recordAudit(resolved, {
+      timestamp: nowOf(resolved),
       requestId: correlation.requestId,
       externalRequestId: correlation.externalRequestId,
       surface: resolution.surface?.id ?? "unknown",
@@ -271,9 +304,9 @@ export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptio
       code,
       reason,
       status: edgeErrorStatus(code),
-      ipHash: hashClientAddress(req.ip ?? req.socket?.remoteAddress),
+      ipHash: clientIpHash(resolved, req),
       userAgent: truncateUserAgent(req.headers["user-agent"]),
-    });
+    }, "read");
     res.status(edgeErrorStatus(code)).json(edgeErrorBody(code, reason, correlation.requestId));
   });
 
@@ -405,7 +438,7 @@ export function buildManifest(deps: EdgeDeps): Record<string, unknown> {
 // ---------------------------------------------------------------------------
 
 async function handlePublicRoute(
-  deps: EdgeDeps,
+  deps: ResolvedEdgeDeps,
   route: PublicEdgeRoute,
   req: Request,
   res: Response,
@@ -440,7 +473,7 @@ async function handlePublicRoute(
 }
 
 async function handleProtectedRoute(
-  deps: EdgeDeps,
+  deps: ResolvedEdgeDeps,
   route: ProtectedEdgeRoute,
   req: Request,
   res: Response,
@@ -450,6 +483,8 @@ async function handleProtectedRoute(
   const resolution = resolveEdgeSurface(req.headers.host, deps);
   const surface = resolution.surface?.id ?? "unknown";
   const host = resolution.host;
+  const risk = routeRisk(route);
+  const ipHash = clientIpHash(deps, req);
   setCorrelationHeaders(res, correlation);
 
   const auditBase = {
@@ -461,6 +496,8 @@ async function handleProtectedRoute(
     route: `${EDGE_MOUNT_PATH}${route.path}`,
     action: route.action,
     timestamp: now,
+    ipHash,
+    userAgent: truncateUserAgent(req.headers["user-agent"]),
   };
 
   const deny = async (
@@ -479,9 +516,7 @@ async function handleProtectedRoute(
       code,
       reason,
       status,
-      ipHash: hashClientAddress(req.ip ?? req.socket?.remoteAddress),
-      userAgent: truncateUserAgent(req.headers["user-agent"]),
-    });
+    }, risk);
     for (const [name, value] of Object.entries(headers)) res.setHeader(name, value);
     res.status(status).json(edgeErrorBody(code, reason, correlation.requestId));
   };
@@ -499,6 +534,22 @@ async function handleProtectedRoute(
     // mcp / app / www are declared but not active in P1. Never a bypass.
     await deny("SURFACE_NOT_ENABLED", "surface_not_enabled_in_phase");
     return;
+  }
+
+  // --- pre-auth abuse limit (runs before any credential work) --------------
+  if (deps.preAuthLimiter !== undefined) {
+    try {
+      const preAuth = await deps.preAuthLimiter.evaluate(ipHash, surface, now);
+      if (!preAuth.allowed) {
+        await deny("RATE_LIMITED", "preauth_abuse_limit", {}, {
+          "Retry-After": String(preAuth.retryAfterSeconds),
+        });
+        return;
+      }
+    } catch {
+      await deny("RATE_LIMIT_UNAVAILABLE", "preauth_limiter_unavailable");
+      return;
+    }
   }
 
   // --- credential extraction ----------------------------------------------
@@ -597,6 +648,29 @@ async function handleProtectedRoute(
   }
 
   // --- handler -------------------------------------------------------------
+  const resourceRef = resource === undefined ? null : edgeResourceLabel(resource);
+  const successStatus = route.successStatus ?? 200;
+  const allowBase = {
+    ...auditBase,
+    credentialId: principal.credentialId,
+    tenantId: principal.tenantId,
+    actorId: principal.actorId,
+    decision: "ALLOW" as const,
+    code: null,
+    status: successStatus,
+    resource: resourceRef,
+  };
+
+  // Privileged actions must have a persisted trail line before they run, so no
+  // side effect can happen without an audit record (fail closed).
+  if (risk !== "read") {
+    const pre = await recordAudit(deps, { ...allowBase, reason: "authorized" }, risk);
+    if (!pre) {
+      await deny("AUDIT_UNAVAILABLE", "audit_unavailable", identityOf(record, principal));
+      return;
+    }
+  }
+
   const handlerContext: EdgeHandlerContext = {
     requestId: correlation.requestId,
     externalRequestId: correlation.externalRequestId,
@@ -616,35 +690,27 @@ async function handleProtectedRoute(
     result = await route.handler(handlerContext);
   } catch {
     await recordAudit(deps, {
-      ...auditBase,
-      credentialId: principal.credentialId,
-      tenantId: principal.tenantId,
-      actorId: principal.actorId,
+      ...allowBase,
       decision: "ERROR",
       code: "INTERNAL",
       reason: "handler_failed",
       status: 500,
-      ipHash: hashClientAddress(req.ip ?? req.socket?.remoteAddress),
-      userAgent: truncateUserAgent(req.headers["user-agent"]),
-    });
+    }, risk);
     res.status(500).json(edgeErrorBody("INTERNAL", "internal_error", correlation.requestId));
     return;
   }
 
-  // --- audit record --------------------------------------------------------
-  const successStatus = route.successStatus ?? 200;
-  await recordAudit(deps, {
-    ...auditBase,
-    credentialId: principal.credentialId,
-    tenantId: principal.tenantId,
-    actorId: principal.actorId,
-    decision: "ALLOW",
-    code: null,
-    reason: policyDecision.reason,
-    status: successStatus,
-    ipHash: hashClientAddress(req.ip ?? req.socket?.remoteAddress),
-    userAgent: truncateUserAgent(req.headers["user-agent"]),
-  });
+  const completed = await recordAudit(deps, {
+    ...allowBase,
+    reason: risk === "read" ? policyDecision.reason : "completed",
+  }, risk);
+  if (!completed && risk === "read") {
+    // Read path is fail-closed: without a trail line we do not hand back data.
+    res.status(503).json(edgeErrorBody("AUDIT_UNAVAILABLE", "audit_unavailable", correlation.requestId));
+    return;
+  }
+  // For privileged actions the pre-handler line already exists and the side
+  // effect has happened; the completion loss is counted by the audit writer.
 
   res.status(successStatus).json(result ?? {});
 }
@@ -687,18 +753,18 @@ async function checkReadiness(deps: EdgeDeps): Promise<boolean> {
 }
 
 async function touchLastUsed(
-  deps: EdgeDeps,
+  deps: ResolvedEdgeDeps,
   record: EdgeCredentialRecord,
   now: number,
 ): Promise<void> {
   try {
-    await deps.store.updateIf(record.id, () => true, { lastUsedAt: now });
+    await deps.store.update(record.id, { lastUsedAt: now });
   } catch {
     // Usage bookkeeping must never fail a request that already passed controls.
   }
 }
 
-async function touchExpired(deps: EdgeDeps, record: EdgeCredentialRecord): Promise<void> {
+async function touchExpired(deps: ResolvedEdgeDeps, record: EdgeCredentialRecord): Promise<void> {
   try {
     await deps.store.updateIf(record.id, current => current.status === "active", {
       status: "expired",
@@ -708,16 +774,22 @@ async function touchExpired(deps: EdgeDeps, record: EdgeCredentialRecord): Promi
   }
 }
 
-async function recordAudit(deps: EdgeDeps, entry: EdgeAuditRecord): Promise<void> {
-  try {
-    await deps.audit.record(entry);
-  } catch {
-    // An audit sink outage must not become an allow or a different error surface.
-  }
+/**
+ * Persist one audit record under the configured failure policy. Returns false
+ * when the record could not be persisted and the policy does not allow degraded
+ * operation. A false result on the allow path is a DENY, never a silent allow.
+ */
+async function recordAudit(
+  deps: ResolvedEdgeDeps,
+  entry: EdgeAuditRecord,
+  risk: EdgeOperationRisk,
+): Promise<boolean> {
+  const result = await deps.auditWriter.persist(entry, risk);
+  return result.ok;
 }
 
 async function respondSurfaceDenial(
-  deps: EdgeDeps,
+  deps: ResolvedEdgeDeps,
   res: Response,
   correlation: EdgeCorrelation,
   resolution: SurfaceResolution,
@@ -756,12 +828,26 @@ async function respondSurfaceDenial(
     status,
     ipHash: null,
     userAgent: null,
-  });
+  }, "read");
   res.status(status).json(edgeErrorBody(code, reason, correlation.requestId));
 }
 
 function setCorrelationHeaders(res: Response, correlation: EdgeCorrelation): void {
   res.setHeader(EDGE_INTERNAL_REQUEST_ID_HEADER, correlation.requestId);
+}
+
+function clientIpHash(deps: Pick<ResolvedEdgeDeps, "trustedProxies">, req: Request): string | null {
+  return hashClientAddress(resolveClientIp(req, deps.trustedProxies));
+}
+
+function routeRisk(route: ProtectedEdgeRoute): EdgeOperationRisk {
+  if (route.risk !== undefined) return route.risk;
+  if (route.action === "publication:execute") return "execute";
+  return route.method === "post" ? "mutating" : "read";
+}
+
+function edgeResourceLabel(resource: EdgeResourceRef): string {
+  return `${resource.kind}:${resource.id ?? ""}`.slice(0, 255);
 }
 
 function nowOf(deps: EdgeDeps): number {

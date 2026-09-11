@@ -170,15 +170,15 @@ export async function rotateEdgeCredential(
           expiresAt: earliestExpiry(current.expiresAt, now + overlapMs),
         };
 
-  const claimed = await store.updateIf(
-    current.id,
-    record =>
-      credentialStatusAt(record, now) === "active" && record.rotatedToId === null,
-    patch,
-  );
-  if (claimed === null) throw new EdgeProvisioningError("rotation_race_lost");
+  const claimed = await store.claimRotation({
+    previousId: current.id,
+    at: now,
+    expectedVersion: current.version,
+    previousPatch: patch,
+    successor: draft.record,
+  });
+  if (!claimed) throw new EdgeProvisioningError("rotation_race_lost");
 
-  await store.insert(draft.record);
   return { secret: draft.secret, record: draft.record };
 }
 

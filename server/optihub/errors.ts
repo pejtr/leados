@@ -24,6 +24,7 @@ export const EDGE_ERROR_STATUS = {
   PAYLOAD_TOO_LARGE: 413,
   RATE_LIMITED: 429,
   RATE_LIMIT_UNAVAILABLE: 503,
+  AUDIT_UNAVAILABLE: 503,
   INTERNAL: 500,
 } as const;
 
@@ -57,6 +58,7 @@ const EDGE_ERROR_MESSAGES: Record<EdgeErrorCode, string> = {
   PAYLOAD_TOO_LARGE: "The request body exceeds the allowed size.",
   RATE_LIMITED: "The rate limit for this action was exceeded.",
   RATE_LIMIT_UNAVAILABLE: "The request was denied because rate limiting is unavailable.",
+  AUDIT_UNAVAILABLE: "The request was denied because the audit trail is unavailable.",
   INTERNAL: "The edge could not complete the request.",
 };
 

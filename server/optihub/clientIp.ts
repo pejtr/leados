@@ -1,0 +1,107 @@
+/**
+ * OPTIHUB EDGE - trusted proxy / client address model.
+ *
+ * The security authority of a request must never come from a header the client
+ * can set. Forwarding headers are only consulted when the TCP peer is a
+ * configured trusted proxy; otherwise the socket address is used and every
+ * `X-Forwarded-*` header is ignored.
+ *
+ * `resolveClientIp` returns the first address from the right of the forwarding
+ * chain that is not itself a trusted proxy - i.e. the closest thing to a real
+ * client. Spoofed entries to the left of a trusted proxy are ignored.
+ */
+
+import type { Request } from "express";
+
+export function parseTrustedProxies(value: string | undefined | null): readonly string[] {
+  if (value === undefined || value === null) return [];
+  return value
+    .split(",")
+    .map(entry => entry.trim())
+    .filter(entry => entry !== "");
+}
+
+export function normalizeIp(raw: string | undefined | null): string {
+  if (raw === undefined || raw === null) return "";
+  let ip = raw.trim().toLowerCase();
+  const zone = ip.indexOf("%");
+  if (zone !== -1) ip = ip.slice(0, zone);
+  if (ip.startsWith("::ffff:")) ip = ip.slice(7);
+  return ip;
+}
+
+function ipv4ToInt(ip: string): number | null {
+  const parts = ip.split(".");
+  if (parts.length !== 4) return null;
+  let value = 0;
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part)) return null;
+    const octet = Number(part);
+    if (octet > 255) return null;
+    value = (value << 8) | octet;
+  }
+  return value >>> 0;
+}
+
+function ipv4InCidr(ip: string, network: string, bits: number): boolean {
+  if (!Number.isInteger(bits) || bits < 0 || bits > 32) return false;
+  const value = ipv4ToInt(ip);
+  const base = ipv4ToInt(network);
+  if (value === null || base === null) return false;
+  if (bits === 0) return true;
+  const mask = bits === 32 ? 0xffffffff : (0xffffffff << (32 - bits)) >>> 0;
+  return (value & mask) === (base & mask);
+}
+
+export function isTrustedProxy(ip: string | undefined | null, trustedProxies: readonly string[]): boolean {
+  const normalized = normalizeIp(ip);
+  if (normalized === "") return false;
+  for (const entry of trustedProxies) {
+    const candidate = entry.trim().toLowerCase();
+    if (candidate === "") continue;
+    const slash = candidate.indexOf("/");
+    if (slash !== -1) {
+      const network = candidate.slice(0, slash);
+      // IPv4 CIDR is supported. IPv6 prefixes fall back to exact matching.
+      if (network.includes(".") && ipv4InCidr(normalized, network, Number(candidate.slice(slash + 1)))) {
+        return true;
+      }
+      if (normalizeIp(network) === normalized) return true;
+      continue;
+    }
+    if (normalizeIp(candidate) === normalized) return true;
+  }
+  return false;
+}
+
+/** Node/Express may present a duplicated header as a single comma-joined string. */
+export function readForwardedChain(header: unknown): readonly string[] {
+  const values = Array.isArray(header) ? header : [header];
+  const hops: string[] = [];
+  for (const value of values) {
+    if (typeof value !== "string") continue;
+    for (const part of value.split(",")) {
+      const trimmed = part.trim();
+      if (trimmed !== "") hops.push(normalizeIp(trimmed));
+    }
+  }
+  return hops;
+}
+
+/**
+ * The client address used for pre-auth abuse limiting and audit hashing.
+ * @param trustedProxies configured proxy peers; empty means "no proxy in front".
+ */
+export function resolveClientIp(req: Request, trustedProxies: readonly string[]): string {
+  const socketIp = normalizeIp(req.socket?.remoteAddress);
+  if (trustedProxies.length === 0) return socketIp;
+  if (!isTrustedProxy(socketIp, trustedProxies)) return socketIp;
+
+  const chain = [...readForwardedChain(req.headers["x-forwarded-for"]), socketIp];
+  for (let index = chain.length - 1; index >= 0; index -= 1) {
+    const hop = chain[index];
+    if (hop !== undefined && hop !== "" && !isTrustedProxy(hop, trustedProxies)) return hop;
+  }
+  // Every hop is a trusted proxy; fall back to the left-most observed address.
+  return chain[0] ?? socketIp;
+}

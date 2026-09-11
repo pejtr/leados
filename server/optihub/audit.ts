@@ -32,10 +32,21 @@ export interface EdgeAuditRecord {
   readonly status: number;
   readonly ipHash: string | null;
   readonly userAgent: string | null;
+  /** Non-sensitive resource reference (e.g. "publication:pub-1"); never a payload. */
+  readonly resource?: string | null;
 }
 
 export interface EdgeAuditSink {
   record(entry: EdgeAuditRecord): void | Promise<void>;
+}
+
+/**
+ * Read side of the audit trail. The pipeline never uses it; it exists so an
+ * operator or a test can answer "what happened to request X / tenant Y".
+ */
+export interface EdgeAuditQuery {
+  findByRequestId(requestId: string): Promise<readonly EdgeAuditRecord[]>;
+  findByTenant(tenantId: string, limit?: number): Promise<readonly EdgeAuditRecord[]>;
 }
 
 const DEFAULT_AUDIT_CAPACITY = 10_000;
