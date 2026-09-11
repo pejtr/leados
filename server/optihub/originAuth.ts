@@ -34,20 +34,33 @@ export interface OriginAuthConfig {
   readonly expectedSecret: string | null;
 }
 
-/** Unknown values fall back to `off`; the hardening is strictly opt-in. */
+/**
+ * `missing`/`""`/`off` → off (safe staged rollout). An explicit but unrecognised
+ * value is a configuration error and throws, so a typo can never silently
+ * disable origin authentication.
+ */
 export function parseOriginAuthMode(value: string | undefined | null): OriginAuthMode {
-  return value === "cloudflare_static_header" ? "cloudflare_static_header" : "off";
+  const normalized = value === undefined || value === null ? "" : value.trim();
+  if (normalized === "" || normalized === "off") return "off";
+  if (normalized === "cloudflare_static_header") return "cloudflare_static_header";
+  throw new Error(`Invalid OPTIHUB_ORIGIN_AUTH_MODE "${value}": expected "off" or "cloudflare_static_header"`);
 }
 
+/**
+ * Derive origin-auth config from the environment. Fails at startup (throws) on
+ * an unknown mode or on the enabled mode without a secret, so a misconfigured
+ * instance refuses to boot rather than silently accepting direct origin traffic.
+ */
 export function originAuthConfigFrom(env: NodeJS.ProcessEnv): OriginAuthConfig {
   const mode = parseOriginAuthMode(env["OPTIHUB_ORIGIN_AUTH_MODE"]);
   const rawHeader = (env["OPTIHUB_ORIGIN_AUTH_HEADER"] ?? ORIGIN_AUTH_DEFAULT_HEADER).trim().toLowerCase();
   const secret = env["OPTIHUB_ORIGIN_AUTH_SECRET"];
-  return {
-    mode,
-    headerName: rawHeader === "" ? ORIGIN_AUTH_DEFAULT_HEADER : rawHeader,
-    expectedSecret: secret !== undefined && secret.trim() !== "" ? secret : null,
-  };
+  const headerName = rawHeader === "" ? ORIGIN_AUTH_DEFAULT_HEADER : rawHeader;
+  const expectedSecret = secret !== undefined && secret.trim() !== "" ? secret : null;
+  if (mode === "cloudflare_static_header" && expectedSecret === null) {
+    throw new Error("OPTIHUB_ORIGIN_AUTH_MODE=cloudflare_static_header requires OPTIHUB_ORIGIN_AUTH_SECRET");
+  }
+  return { mode, headerName, expectedSecret };
 }
 
 export type OriginAuthDecision =

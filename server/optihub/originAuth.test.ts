@@ -10,6 +10,7 @@ import {
 import {
   ORIGIN_AUTH_DEFAULT_HEADER,
   evaluateOriginAuth,
+  originAuthConfigFrom,
   parseOriginAuthMode,
   type OriginAuthConfig,
 } from "./originAuth";
@@ -44,15 +45,43 @@ async function withOriginAuth(
 }
 
 describe("parseOriginAuthMode", () => {
-  it("defaults unknown or empty to off", () => {
+  it("defaults missing or empty to off", () => {
     expect(parseOriginAuthMode(undefined)).toBe("off");
+    expect(parseOriginAuthMode(null)).toBe("off");
     expect(parseOriginAuthMode("")).toBe("off");
     expect(parseOriginAuthMode("off")).toBe("off");
-    expect(parseOriginAuthMode("bogus")).toBe("off");
   });
 
   it("recognizes cloudflare_static_header", () => {
     expect(parseOriginAuthMode("cloudflare_static_header")).toBe("cloudflare_static_header");
+  });
+
+  it("throws on an explicit unknown mode (typo cannot silently disable auth)", () => {
+    expect(() => parseOriginAuthMode("bogus")).toThrow();
+    expect(() => parseOriginAuthMode("cloudflare_statc_header")).toThrow();
+  });
+});
+
+describe("originAuthConfigFrom", () => {
+  it("defaults to off with no env", () => {
+    expect(originAuthConfigFrom({}).mode).toBe("off");
+  });
+
+  it("throws when enabled without a secret", () => {
+    expect(() => originAuthConfigFrom({ OPTIHUB_ORIGIN_AUTH_MODE: "cloudflare_static_header" })).toThrow();
+  });
+
+  it("throws on an unknown explicit mode", () => {
+    expect(() => originAuthConfigFrom({ OPTIHUB_ORIGIN_AUTH_MODE: "bogus" })).toThrow();
+  });
+
+  it("returns a valid enabled config when mode and secret are present", () => {
+    const cfg = originAuthConfigFrom({
+      OPTIHUB_ORIGIN_AUTH_MODE: "cloudflare_static_header",
+      OPTIHUB_ORIGIN_AUTH_SECRET: SECRET,
+    });
+    expect(cfg.mode).toBe("cloudflare_static_header");
+    expect(cfg.expectedSecret).toBe(SECRET);
   });
 });
 
