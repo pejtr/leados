@@ -60,6 +60,14 @@ export async function createApp(options: CreateAppOptions = {}): Promise<CreateA
   // Mounted before the app-wide body parser and before tRPC/SPA so nothing can
   // shadow it and it never inherits the 50mb upload limit. The router owns its
   // own strict body limit.
+  if (process.env.OPTIHUB_EDGE_PEER_DEBUG === "true") {
+    app.use("/api/optihub", (req, _res, next) => {
+      console.log(
+        `[peer-debug] socket=${req.socket?.remoteAddress} xff=${JSON.stringify(req.headers["x-forwarded-for"])} host=${req.headers.host}`,
+      );
+      next();
+    });
+  }
   const edge = await registerOptiHubEdgeRuntime(app);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
