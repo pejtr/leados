@@ -74,6 +74,32 @@ describe("trusted proxy model", () => {
     expect(isTrustedProxy("192.168.1.5", ["192.168.1.0/24"])).toBe(true);
   });
 
+  it("matches trusted proxies by IPv6 CIDR", () => {
+    expect(isTrustedProxy("fd12:0:8:0:1000:9f:8000:1", ["fd12:0:8:0:1000::/80"])).toBe(true);
+    expect(isTrustedProxy("fd12:0:8:0:1000:a7:8000:1", ["fd12:0:8:0:1000::/80"])).toBe(true);
+    expect(isTrustedProxy("fd12:9581:ee5a:1:b000:c:c7ef:fc4", ["fd12:0:8:0:1000::/80"])).toBe(false);
+    expect(isTrustedProxy("fd12:0:8:0:ffff:9f:8000:1", ["fd12:0:8:0:1000::/80"])).toBe(false);
+    expect(isTrustedProxy("2001:db8::1", ["fd12:0:8:0:1000::/80"])).toBe(false);
+    expect(isTrustedProxy("::1", ["::/0"])).toBe(true);
+    expect(isTrustedProxy("::ffff:100.64.0.2", ["100.64.0.0/24"])).toBe(true);
+    expect(isTrustedProxy("fd12:0:8:0:1000:9f:8000:1", ["fd12:0:8:0:1000::/129"])).toBe(false);
+  });
+
+  it("takes the real client behind a trusted IPv6 proxy and ignores spoofed hops", () => {
+    const peer = "fd12:0:8:0:1000:9f:8000:1";
+    const trusted = ["fd12:0:8:0:1000::/80"];
+    expect(resolveClientIp(fakeRequest(peer, { "x-forwarded-for": peer }), trusted)).toBe(peer);
+    expect(
+      resolveClientIp(fakeRequest(peer, { "x-forwarded-for": `203.0.113.9, ${peer}` }), trusted),
+    ).toBe("203.0.113.9");
+    expect(
+      resolveClientIp(
+        fakeRequest(peer, { "x-forwarded-for": `1.2.3.4, 203.0.113.9, ${peer}` }),
+        trusted,
+      ),
+    ).toBe("203.0.113.9");
+  });
+
   it("parses and normalises proxy configuration", () => {
     expect(parseTrustedProxies(" 10.0.0.1 , 10.0.0.2 ,, ")).toEqual(["10.0.0.1", "10.0.0.2"]);
     expect(parseTrustedProxies(undefined)).toEqual([]);

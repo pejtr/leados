@@ -53,6 +53,48 @@ function ipv4InCidr(ip: string, network: string, bits: number): boolean {
   return (value & mask) === (base & mask);
 }
 
+/** Accepts compressed IPv6, embedded IPv4 (`::ffff:a.b.c.d`) and zone ids. */
+function ipv6ToBigInt(raw: string): bigint | null {
+  const ip = normalizeIp(raw);
+  if (!ip.includes(":")) return null;
+  const sections = ip.split("::");
+  if (sections.length > 2) return null;
+  const parse = (part: string): number[] | null => {
+    if (part === "") return [];
+    const groups: number[] = [];
+    for (const group of part.split(":")) {
+      if (group.includes(".")) {
+        const embedded = ipv4ToInt(group);
+        if (embedded === null) return null;
+        groups.push((embedded >>> 16) & 0xffff, embedded & 0xffff);
+      } else {
+        if (!/^[0-9a-f]{1,4}$/.test(group)) return null;
+        groups.push(Number.parseInt(group, 16));
+      }
+    }
+    return groups;
+  };
+  const head = parse(sections[0] ?? "");
+  const tail = sections.length === 2 ? parse(sections[1] ?? "") : [];
+  if (head === null || tail === null) return null;
+  const groups =
+    sections.length === 2
+      ? [...head, ...new Array<number>(8 - head.length - tail.length).fill(0), ...tail]
+      : head;
+  if (groups.length !== 8) return null;
+  return groups.reduce<bigint>((value, group) => (value << BigInt(16)) | BigInt(group), BigInt(0));
+}
+
+function ipv6InCidr(ip: string, network: string, bits: number): boolean {
+  if (!Number.isInteger(bits) || bits < 0 || bits > 128) return false;
+  const value = ipv6ToBigInt(ip);
+  const base = ipv6ToBigInt(network);
+  if (value === null || base === null) return false;
+  if (bits === 0) return true;
+  const shift = BigInt(128 - bits);
+  return (value >> shift) === (base >> shift);
+}
+
 export function isTrustedProxy(ip: string | undefined | null, trustedProxies: readonly string[]): boolean {
   const normalized = normalizeIp(ip);
   if (normalized === "") return false;
@@ -62,8 +104,8 @@ export function isTrustedProxy(ip: string | undefined | null, trustedProxies: re
     const slash = candidate.indexOf("/");
     if (slash !== -1) {
       const network = candidate.slice(0, slash);
-      // IPv4 CIDR is supported. IPv6 prefixes fall back to exact matching.
-      if (network.includes(".") && ipv4InCidr(normalized, network, Number(candidate.slice(slash + 1)))) {
+      const bits = Number(candidate.slice(slash + 1));
+      if (network.includes(".") ? ipv4InCidr(normalized, network, bits) : ipv6InCidr(normalized, network, bits)) {
         return true;
       }
       if (normalizeIp(network) === normalized) return true;
