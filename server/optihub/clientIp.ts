@@ -184,3 +184,17 @@ export function resolveClientIp(
   // Every hop is a trusted proxy; fall back to the left-most observed address.
   return chain[0] ?? socketIp;
 }
+
+/**
+ * Reads the Cloudflare-injected `CF-Connecting-IP` header. This is only safe to
+ * call after origin authentication has established that the request really came
+ * through Cloudflare (which overwrites any client-supplied value and rejects
+ * client attempts to set the header). It falls back to the socket peer when the
+ * header is absent or malformed, so identity never comes from an empty value.
+ */
+export function resolveCloudflareClientIp(req: Request): string {
+  const header = req.headers["cf-connecting-ip"];
+  const value = Array.isArray(header) ? header[0] : header;
+  const ip = normalizeIp(typeof value === "string" ? value : "");
+  return ip !== "" ? ip : normalizeIp(req.socket?.remoteAddress);
+}

@@ -151,6 +151,7 @@ export {
   parseTrustedProxyChainMode,
   readForwardedChain,
   resolveClientIp,
+  resolveCloudflareClientIp,
   type TrustedProxyChainMode,
 } from "./clientIp";
 

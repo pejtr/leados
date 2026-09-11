@@ -17,6 +17,7 @@ import {
   parseTrustedProxyChainMode,
   readForwardedChain,
   resolveClientIp,
+  resolveCloudflareClientIp,
 } from "./clientIp";
 import {
   API_HOST,
@@ -256,4 +257,27 @@ describe("edge trusted proxy chain mode", () => {
       await server.close();
     }
   }, 20_000);
+});
+
+describe("resolveCloudflareClientIp", () => {
+  it("returns CF-Connecting-IP when present", () => {
+    const request = fakeRequest("198.51.100.7", { "cf-connecting-ip": "93.153.56.185" });
+    expect(resolveCloudflareClientIp(request)).toBe("93.153.56.185");
+  });
+
+  it("uses the first value when the header is duplicated", () => {
+    const request = fakeRequest("198.51.100.7", { "cf-connecting-ip": ["93.153.56.185", "10.0.0.1"] });
+    expect(resolveCloudflareClientIp(request)).toBe("93.153.56.185");
+  });
+
+  it("falls back to the socket peer when the header is missing or malformed", () => {
+    expect(resolveCloudflareClientIp(fakeRequest("198.51.100.7", {}))).toBe("198.51.100.7");
+    expect(resolveCloudflareClientIp(fakeRequest("198.51.100.7", { "cf-connecting-ip": "  " }))).toBe("198.51.100.7");
+    expect(resolveCloudflareClientIp(fakeRequest("198.51.100.7", { "cf-connecting-ip": 12345 }))).toBe("198.51.100.7");
+  });
+
+  it("normalizes embedded IPv4 and strips zone ids", () => {
+    const request = fakeRequest("198.51.100.7", { "cf-connecting-ip": "::ffff:203.0.113.9" });
+    expect(resolveCloudflareClientIp(request)).toBe("203.0.113.9");
+  });
 });

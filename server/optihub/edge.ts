@@ -49,7 +49,7 @@ import {
   type EdgeAuditPolicy,
   type EdgeOperationRisk,
 } from "./auditPolicy";
-import { resolveClientIp, type TrustedProxyChainMode } from "./clientIp";
+import { resolveClientIp, resolveCloudflareClientIp, type TrustedProxyChainMode } from "./clientIp";
 import type { EdgePreAuthLimiter } from "./preAuth";
 import {
   credentialStatusAt,
@@ -496,7 +496,13 @@ async function handleProtectedRoute(
   const surface = resolution.surface?.id ?? "unknown";
   const host = resolution.host;
   const risk = routeRisk(route);
-  const ipHash = clientIpHash(deps, req);
+  const originEnabled = deps.originAuth !== undefined && deps.originAuth.mode !== "off";
+  // Client identity is only trusted after origin authentication (or, when origin
+  // auth is off, via the configured trusted-proxy chain). While origin auth is
+  // enabled but not yet proven, fall back to the socket peer.
+  let ipHash = originEnabled
+    ? hashClientAddress(resolveClientIp(req, deps.trustedProxies, "last_hop"))
+    : clientIpHash(deps, req);
   setCorrelationHeaders(res, correlation);
 
   const auditBase = {
@@ -549,12 +555,17 @@ async function handleProtectedRoute(
   }
 
   // --- origin authentication (opt-in Cloudflare perimeter) ------------------
-  if (deps.originAuth !== undefined) {
-    const originCheck = evaluateOriginAuth(deps.originAuth, req.headers[deps.originAuth.headerName]);
+  if (originEnabled) {
+    const originAuth = deps.originAuth!;
+    const originCheck = evaluateOriginAuth(originAuth, req.headers[originAuth.headerName]);
     if (!originCheck.ok) {
       await deny("ORIGIN_DENIED", originCheck.reason);
       return;
     }
+    // Origin authentication passed: the request provably came through Cloudflare,
+    // so the Cloudflare-injected client address is now the trusted identity.
+    ipHash = hashClientAddress(resolveCloudflareClientIp(req));
+    auditBase.ipHash = ipHash;
   }
 
   // --- pre-auth abuse limit (runs before any credential work) --------------

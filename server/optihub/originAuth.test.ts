@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest";
 
+import { hashClientAddress } from "./audit";
 import {
   API_HOST,
   createEdgeHarness,
   edgeRequest,
+  seedCredential,
   startEdgeServer,
   type EdgeHarness,
 } from "./testing";
@@ -151,6 +153,23 @@ describe("origin auth in the edge pipeline", () => {
       });
       expect(res.status).toBe(401);
       expect((res.body as { error: { code: string } }).error.code).toBe("MISSING_CREDENTIAL");
+    });
+  });
+
+  it("enabled: after origin auth passes, client identity comes from CF-Connecting-IP", async () => {
+    await withOriginAuth(enabled(), async (harness, url) => {
+      const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+      const res = await edgeRequest(url, "/api/optihub/v1/context", {
+        host: API_HOST,
+        headers: {
+          "x-optihub-origin-auth": SECRET,
+          "cf-connecting-ip": "93.153.56.185",
+          authorization: `Bearer ${credential.secret}`,
+        },
+      });
+      expect(res.status).toBe(200);
+      const allowed = harness.audit.entries.find(entry => entry.decision === "ALLOW");
+      expect(allowed?.ipHash).toBe(hashClientAddress("93.153.56.185"));
     });
   });
 
