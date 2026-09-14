@@ -77,7 +77,12 @@ describe("mcp route definition", () => {
       "optihub_context",
       "optihub_manifest",
       "optihub_readiness",
+      "test_connect",
     ]);
+    for (const tool of MCP_TOOLS) {
+      expect(tool.description.length).toBeGreaterThan(0);
+      expect(tool.inputSchema).toMatchObject({ additionalProperties: false });
+    }
   });
 });
 
@@ -218,6 +223,7 @@ describe("mcp protocol", () => {
         "optihub_context",
         "optihub_manifest",
         "optihub_readiness",
+        "test_connect",
       ]);
     });
   });
@@ -322,6 +328,7 @@ describe("mcp protocol", () => {
         "optihub_context",
         "optihub_manifest",
         "optihub_readiness",
+        "test_connect",
       ]);
     });
   });

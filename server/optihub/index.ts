@@ -29,12 +29,34 @@ export {
   MCP_PROTOCOL_VERSION,
   MCP_ROUTE_PATH,
   MCP_SERVER_NAME,
+  MCP_SESSION_ID_HEADER,
   MCP_TOOLS,
   defaultMcpEdgeRoutes,
   handleMcpPost,
   type McpEdgePorts,
   type McpToolDefinition,
 } from "./mcp";
+
+export {
+  ALIAS_QUERY_PARAM,
+  ALIAS_PATTERN,
+  EMPTY_ALIAS_REGISTRY,
+  createAliasRegistry,
+  isValidAlias,
+  loadAliasRegistryFromEnv,
+  normalizeAlias,
+  parseAliasRegistry,
+  resolveRequestedAlias,
+  type AliasRegistry,
+  type AliasResolution,
+} from "./alias";
+
+export {
+  CONNECT_HEALTH_ROUTE_PATH,
+  CONNECT_ROUTE_PATH,
+  createOptiHubConnectFacade,
+  type ConnectFacadeOptions,
+} from "./connectFacade";
 
 export {
   edgeHandlerResponse,

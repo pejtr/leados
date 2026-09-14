@@ -91,6 +91,7 @@ import {
 import { evaluateOriginAuth, type OriginAuthConfig } from "./originAuth";
 import { isEdgeHandlerResponse } from "./handlerResponse";
 import { defaultMcpEdgeRoutes, MCP_ROUTE_PATH } from "./mcp";
+import type { AliasRegistry } from "./alias";
 
 export const EDGE_MOUNT_PATH = "/api/optihub";
 export const EDGE_API_VERSION = "v1";
@@ -132,6 +133,12 @@ export interface EdgeDeps {
   readonly auditPolicy?: EdgeAuditPolicy;
   /** Opt-in origin authentication (Cloudflare perimeter). Default OFF. */
   readonly originAuth?: OriginAuthConfig;
+  /**
+   * Public alias (`o`) registry: alias -> canonical internal identity. Names
+   * tenants that already exist in the credential layer. Absent means the edge
+   * ignores `o` entirely.
+   */
+  readonly aliases?: AliasRegistry;
 }
 
 /** Internal: `EdgeDeps` plus the derived writer and proxy model. */
@@ -158,8 +165,13 @@ export interface EdgeHandlerContext {
 export type EdgeRouteHandler = (context: EdgeHandlerContext) => unknown | Promise<unknown>;
 
 export interface ProtectedEdgeRoute {
-  readonly method: "get" | "post";
+  readonly method: "get" | "post" | "delete";
   readonly path: string;
+  /**
+   * Audit/log label. Defaults to the mounted path (`/api/optihub<path>`); set it
+   * when the same route is also served from a second mount (e.g. `/connect`).
+   */
+  readonly label?: string;
   readonly action: string;
   readonly requiredScope: EdgeScope;
   readonly policyAction?: string;
@@ -187,13 +199,18 @@ export interface PublicEdgeHandlerResult {
 export interface PublicEdgeRoute {
   readonly method: "get" | "post";
   readonly path: string;
+  /** Audit/log label. Defaults to the mounted path (`/api/optihub<path>`). */
+  readonly label?: string;
   /**
    * Liveness/readiness must answer the platform health checker, whose Host is
    * not the public API hostname. Such routes skip the surface gate but are still
    * denied on a forbidden ONYX hostname.
    */
   readonly hostAgnostic?: boolean;
-  readonly handler: (request: Request) => PublicEdgeHandlerResult | Promise<PublicEdgeHandlerResult>;
+  readonly handler: (
+    request: Request,
+    correlation: EdgeCorrelation,
+  ) => PublicEdgeHandlerResult | Promise<PublicEdgeHandlerResult>;
 }
 
 export interface EdgeRouterOptions {
@@ -240,14 +257,41 @@ export function resolveEdgeSurface(
   return { kind: "unknown", host };
 }
 
-export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptions = {}): Router {
-  const router = express.Router();
-  const resolved: ResolvedEdgeDeps = {
+/** Derive the internal (clock/proxy/audit-writer) dependency set. */
+export function resolveEdgeDeps(deps: EdgeDeps): ResolvedEdgeDeps {
+  return {
     ...deps,
     auditWriter: new EdgeAuditWriter(deps.audit, deps.auditPolicy ?? DEFAULT_EDGE_AUDIT_POLICY),
     trustedProxies: deps.trustedProxies ?? [],
     trustedProxyChain: deps.trustedProxyChain ?? "last_hop",
   };
+}
+
+/**
+ * The public and protected pipelines, bound to one dependency set. Exposed so a
+ * second mount (the `/connect` facade) reuses the exact same auth, tenant, scope,
+ * policy, rate-limit and audit pipeline instead of building a parallel one.
+ */
+export interface EdgeRequestHandlers {
+  readonly handlePublic: (route: PublicEdgeRoute, req: Request, res: Response) => Promise<void>;
+  readonly handleProtected: (
+    route: ProtectedEdgeRoute,
+    req: Request,
+    res: Response,
+  ) => Promise<void>;
+}
+
+export function createEdgeRequestHandlers(deps: EdgeDeps): EdgeRequestHandlers {
+  const resolved = resolveEdgeDeps(deps);
+  return {
+    handlePublic: (route, req, res) => handlePublicRoute(resolved, route, req, res),
+    handleProtected: (route, req, res) => handleProtectedRoute(resolved, route, req, res),
+  };
+}
+
+export function createOptiHubEdgeRouter(deps: EdgeDeps, options: EdgeRouterOptions = {}): Router {
+  const router = express.Router();
+  const resolved = resolveEdgeDeps(deps);
   const publicRoutes = options.publicRoutes ?? defaultPublicEdgeRoutes(deps);
   const protectedRoutes = options.protectedRoutes ?? defaultProtectedEdgeRoutes(deps);
 
@@ -368,7 +412,7 @@ export function defaultPublicEdgeRoutes(deps: EdgeDeps): readonly PublicEdgeRout
       path: "/ready",
       hostAgnostic: true,
       handler: async () => {
-        const ready = await checkReadiness(deps);
+        const ready = await checkEdgeReadiness(deps);
         return { status: ready ? 200 : 503, body: { status: ready ? "ready" : "not_ready" } };
       },
     },
@@ -425,7 +469,8 @@ export function defaultProtectedEdgeRoutes(deps?: EdgeDeps): readonly ProtectedE
       version: deps.version,
       endpoint: `${EDGE_MOUNT_PATH}${MCP_ROUTE_PATH}`,
       manifest: () => buildManifest(deps),
-      readiness: () => checkReadiness(deps),
+      readiness: () => checkEdgeReadiness(deps),
+      aliases: deps.aliases,
     }),
   ];
 }
@@ -494,14 +539,14 @@ async function handlePublicRoute(
       correlation,
       resolution,
       route.method.toUpperCase(),
-      `${EDGE_MOUNT_PATH}${route.path}`,
+      route.label ?? `${EDGE_MOUNT_PATH}${route.path}`,
       nowOf(deps),
     );
     return;
   }
 
   try {
-    const result = await route.handler(req);
+    const result = await route.handler(req, correlation);
     res.status(result.status ?? 200).json(result.body);
   } catch {
     res.status(500).json(edgeErrorBody("INTERNAL", "internal_error", correlation.requestId));
@@ -535,7 +580,7 @@ async function handleProtectedRoute(
     surface,
     host,
     method: route.method.toUpperCase(),
-    route: `${EDGE_MOUNT_PATH}${route.path}`,
+    route: route.label ?? `${EDGE_MOUNT_PATH}${route.path}`,
     action: route.action,
     timestamp: now,
     ipHash,
@@ -785,6 +830,9 @@ async function handleProtectedRoute(
   // effect has happened; the completion loss is counted by the audit writer.
 
   if (response !== null) {
+    if (response.headers !== undefined) {
+      for (const [name, value] of Object.entries(response.headers)) res.setHeader(name, value);
+    }
     if (response.body === undefined) res.status(response.status).end();
     else res.status(response.status).json(response.body);
     return;
@@ -820,7 +868,7 @@ function identityOf(
   };
 }
 
-async function checkReadiness(deps: EdgeDeps): Promise<boolean> {
+export async function checkEdgeReadiness(deps: EdgeDeps): Promise<boolean> {
   if (deps.readiness === undefined) return true;
   try {
     return await deps.readiness();

@@ -14,7 +14,9 @@ import type { Express } from "express";
 
 import { InMemoryEdgeAuditSink, type EdgeAuditSink } from "./audit";
 import { DEFAULT_EDGE_AUDIT_POLICY, type EdgeAuditPolicy } from "./auditPolicy";
+import { loadAliasRegistryFromEnv } from "./alias";
 import { parseTrustedProxies, parseTrustedProxyChainMode } from "./clientIp";
+import { createOptiHubConnectFacade } from "./connectFacade";
 import { registerOptiHubEdge, type EdgeDeps } from "./edge";
 import { MySqlEdgeAuditSink } from "./mysql/mysqlAuditSink";
 import { MySqlEdgeCredentialStore } from "./mysql/mysqlCredentialStore";
@@ -90,6 +92,8 @@ export function createEdgeDeps(env: NodeJS.ProcessEnv = process.env): EdgeDeps {
     enabledSurfaces: ["api", "mcp"],
     additionalApiHosts: env["NODE_ENV"] === "production" ? [] : ["localhost", "127.0.0.1"],
     readiness: () => true,
+    // Alias -> canonical identity. A malformed map is a startup error.
+    aliases: loadAliasRegistryFromEnv(env),
   };
 }
 
@@ -122,6 +126,7 @@ function persistentEdgeDeps(pool: OptiHubDbPool, env: NodeJS.ProcessEnv): EdgeDe
     additionalApiHosts: env["NODE_ENV"] === "production" ? [] : ["localhost", "127.0.0.1"],
     // Readiness reflects the durable dependency the edge actually needs.
     readiness: () => auditSink.ping(),
+    aliases: loadAliasRegistryFromEnv(env),
   };
 }
 
@@ -247,5 +252,8 @@ export async function registerOptiHubEdgeRuntime(
 ): Promise<EdgeRuntimeHandle> {
   const handle = await createRuntimeEdgeDeps(env);
   registerOptiHubEdge(app, handle.deps);
+  // Friendly public mount of the same MCP runtime: /connect + /health on the
+  // `mcp` surface. Not a second MCP server - it reuses the edge pipeline.
+  app.use(createOptiHubConnectFacade(handle.deps));
   return handle;
 }

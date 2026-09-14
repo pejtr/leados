@@ -11,10 +11,16 @@ export interface EdgeHandlerResponse {
   readonly kind: "edge_handler_response";
   readonly status: number;
   readonly body?: unknown;
+  /** Response headers the handler owns (e.g. `mcp-session-id`). */
+  readonly headers?: Readonly<Record<string, string>>;
 }
 
-export function edgeHandlerResponse(status: number, body?: unknown): EdgeHandlerResponse {
-  return { kind: "edge_handler_response", status, body };
+export function edgeHandlerResponse(
+  status: number,
+  body?: unknown,
+  headers?: Readonly<Record<string, string>>,
+): EdgeHandlerResponse {
+  return { kind: "edge_handler_response", status, body, headers };
 }
 
 export function isEdgeHandlerResponse(value: unknown): value is EdgeHandlerResponse {

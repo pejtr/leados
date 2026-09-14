@@ -11,12 +11,28 @@
  * payment tools, and the route is bound to the `mcp` surface alone.
  */
 
+import { randomUUID } from "node:crypto";
+
+import { resolveRequestedAlias, ALIAS_QUERY_PARAM, type AliasRegistry } from "./alias";
+import { edgeErrorBody, edgeErrorStatus } from "./errors";
 import type { EdgeHandlerContext, ProtectedEdgeRoute } from "./edge";
 import { edgeHandlerResponse } from "./handlerResponse";
 
 export const MCP_PROTOCOL_VERSION = "2025-06-18";
 export const MCP_SERVER_NAME = "optihub-mcp";
 export const MCP_ROUTE_PATH = "/mcp";
+/**
+ * Streamable-HTTP session header. Minted on `initialize` and echoed to the
+ * client. The adapter keeps no server-side session state, so the id is a
+ * correlation handle, not a server resource.
+ */
+export const MCP_SESSION_ID_HEADER = "mcp-session-id";
+
+const SESSION_ID_PATTERN = /^[A-Za-z0-9._-]{8,128}$/;
+
+function boundedString(value: unknown, maxLength: number): string | null {
+  return typeof value === "string" ? value.slice(0, maxLength) : null;
+}
 
 export interface McpToolDefinition {
   readonly name: string;
@@ -30,10 +46,22 @@ const EMPTY_INPUT_SCHEMA: Record<string, unknown> = {
   additionalProperties: false,
 };
 
+/** Input for the read-only interoperability handshake. */
+const TEST_CONNECT_INPUT_SCHEMA: Record<string, unknown> = {
+  type: "object",
+  properties: {
+    requestId: { type: "string", description: "Client-side correlation id." },
+    message: { type: "string", description: "Free-form probe message, echoed back." },
+    client: { type: "string", description: "Client name, echoed back." },
+  },
+  additionalProperties: false,
+};
+
 /**
  * Read-only capabilities, each backed by an existing edge read path: the
  * principal context (`/v1/context`), the public manifest (`/v1/manifest`) and
- * readiness (`/ready`).
+ * readiness (`/ready`). `test_connect` is a pure echo handshake: it reads nothing
+ * and changes nothing.
  */
 export const MCP_TOOLS: readonly McpToolDefinition[] = [
   {
@@ -53,6 +81,12 @@ export const MCP_TOOLS: readonly McpToolDefinition[] = [
     description: "Read OPTIHUB edge readiness (durable dependency health). Read-only status.",
     inputSchema: EMPTY_INPUT_SCHEMA,
   },
+  {
+    name: "test_connect",
+    description:
+      "Interoperability handshake. Echoes the caller's probe and reports connection=verified. Read-only: never billable, never mutating.",
+    inputSchema: TEST_CONNECT_INPUT_SCHEMA,
+  },
 ];
 
 const MCP_TOOL_NAMES: ReadonlySet<string> = new Set(MCP_TOOLS.map(tool => tool.name));
@@ -67,6 +101,11 @@ export interface McpEdgePorts {
   readonly endpoint: string;
   readonly manifest: () => Record<string, unknown>;
   readonly readiness: () => Promise<boolean>;
+  /**
+   * Public alias registry. When present, a request that carries `?o=` must
+   * resolve to the same internal identity as the verified credential.
+   */
+  readonly aliases?: AliasRegistry;
 }
 
 interface JsonRpcSuccess {
@@ -104,6 +143,7 @@ async function callTool(
   name: string,
   context: EdgeHandlerContext,
   ports: McpEdgePorts,
+  args: Record<string, unknown>,
 ): Promise<McpTextResult> {
   switch (name) {
     case "optihub_context":
@@ -120,6 +160,17 @@ async function callTool(
       return textResult(ports.manifest());
     case "optihub_readiness":
       return textResult({ status: (await ports.readiness()) ? "ready" : "not_ready" });
+    case "test_connect":
+      return textResult({
+        ok: true,
+        connection: "verified",
+        requestId: boundedString(args["requestId"], 128) ?? context.requestId,
+        message: boundedString(args["message"], 512) ?? "",
+        client: boundedString(args["client"], 64) ?? "",
+        server: MCP_SERVER_NAME,
+        billable: false,
+        mutations: 0,
+      });
     default:
       return { content: [{ type: "text", text: `unknown_tool:${name}` }], isError: true };
   }
@@ -166,11 +217,55 @@ function dispatchMcpMessage(
       if (!MCP_TOOL_NAMES.has(name)) {
         return Promise.resolve(jsonRpcError(id, -32602, `Unknown tool: ${name}`));
       }
-      return callTool(name, context, ports).then(result => jsonRpcResult(id, result));
+      const args =
+        typeof params["arguments"] === "object" && params["arguments"] !== null
+          ? (params["arguments"] as Record<string, unknown>)
+          : {};
+      return callTool(name, context, ports, args).then(result => jsonRpcResult(id, result));
     }
     default:
       return Promise.resolve(jsonRpcError(id, -32601, "Method not found"));
   }
+}
+
+/**
+ * Enforce the `o` alias contract for an authenticated MCP request. An unknown
+ * alias and a known alias bound to a different identity produce the identical
+ * denial, so the endpoint cannot be used to enumerate aliases.
+ */
+function aliasDenial(
+  context: EdgeHandlerContext,
+  ports: McpEdgePorts,
+): { readonly status: number; readonly body: unknown } | null {
+  const registry = ports.aliases;
+  if (registry === undefined) return null;
+
+  const resolution = resolveRequestedAlias(registry, context.request.query[ALIAS_QUERY_PARAM]);
+  if (resolution.kind === "none") return null;
+  if (resolution.kind === "malformed") {
+    return {
+      status: edgeErrorStatus("BAD_REQUEST"),
+      body: edgeErrorBody("BAD_REQUEST", "malformed_alias", context.requestId),
+    };
+  }
+  if (resolution.kind === "unknown" || resolution.oID !== context.principal.tenantId) {
+    return {
+      status: edgeErrorStatus("TENANT_DENIED"),
+      body: edgeErrorBody("TENANT_DENIED", "alias_identity_mismatch", context.requestId),
+    };
+  }
+  return null;
+}
+
+/** Mint (or echo) the streamable-HTTP session id on `initialize` only. */
+function initializeSessionId(body: unknown, context: EdgeHandlerContext): string | null {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
+  if ((body as Record<string, unknown>)["method"] !== "initialize") return null;
+
+  const incoming = context.request.headers[MCP_SESSION_ID_HEADER];
+  const candidate = Array.isArray(incoming) ? incoming[0] : incoming;
+  if (typeof candidate === "string" && SESSION_ID_PATTERN.test(candidate)) return candidate;
+  return randomUUID();
 }
 
 /**
@@ -182,11 +277,18 @@ export async function handleMcpPost(
   context: EdgeHandlerContext,
   ports: McpEdgePorts,
 ): Promise<unknown> {
+  const denied = aliasDenial(context, ports);
+  if (denied !== null) return edgeHandlerResponse(denied.status, denied.body);
+
   const body = context.request.body as unknown;
   if (Array.isArray(body)) return jsonRpcError(null, -32600, "Invalid Request");
 
   const response = await dispatchMcpMessage(body, context, ports);
-  return response === undefined ? edgeHandlerResponse(202) : response;
+  if (response === undefined) return edgeHandlerResponse(202);
+
+  const sessionId = initializeSessionId(body, context);
+  if (sessionId === null) return response;
+  return edgeHandlerResponse(200, response, { [MCP_SESSION_ID_HEADER]: sessionId });
 }
 
 /**

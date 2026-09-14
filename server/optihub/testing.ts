@@ -14,6 +14,7 @@ import { InMemoryEdgeAuditSink } from "./audit";
 import { provisionEdgeCredential, type ProvisionEdgeCredentialInput } from "./provisioning";
 import { InMemoryEdgeRateLimiter } from "./rateLimit";
 import { InMemoryEdgeCredentialStore } from "./store";
+import { createOptiHubConnectFacade } from "./connectFacade";
 import { registerOptiHubEdge, type EdgeDeps, type EdgeRouterOptions } from "./edge";
 
 export const API_HOST = "api.optihub.cz";
@@ -49,6 +50,7 @@ export interface HarnessOverrides {
   readonly trustedProxyChain?: EdgeDeps["trustedProxyChain"];
   readonly auditPolicy?: EdgeDeps["auditPolicy"];
   readonly originAuth?: EdgeDeps["originAuth"];
+  readonly aliases?: EdgeDeps["aliases"];
 }
 
 export function createEdgeHarness(
@@ -74,12 +76,15 @@ export function createEdgeHarness(
     clock: () => clock.now,
     enabledSurfaces: overrides.enabledSurfaces ?? ["api"],
     readiness: overrides.readiness,
+    aliases: overrides.aliases,
   };
 
   const app = express();
   // Mirror the production ordering: the edge is mounted before any app-wide body
-  // parser, so its own strict limit is the one that applies.
+  // parser, so its own strict limit is the one that applies, and the /connect
+  // facade is mounted right behind it.
   registerOptiHubEdge(app, deps, options);
+  app.use(createOptiHubConnectFacade(deps));
   app.use((_req, res) => {
     res.status(404).json({ error: { code: "NOT_FOUND", message: "not_found" } });
   });
@@ -115,7 +120,7 @@ export interface EdgeHttpResponse<T = unknown> {
 }
 
 export interface EdgeRequestOptions {
-  readonly method?: "GET" | "POST";
+  readonly method?: "GET" | "POST" | "DELETE";
   readonly host?: string;
   readonly headers?: Record<string, string>;
   readonly body?: unknown;
