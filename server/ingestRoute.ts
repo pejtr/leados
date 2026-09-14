@@ -76,6 +76,74 @@ export async function autoUpdateCampaignRevenue(projectId: number, saleValue: nu
  * Body (batch events):
  * { events: [{ eventType, value, currency, metadata, occurredAt }] }
  */
+/**
+ * Shape guard for project API keys. The keys are `lpos_` + 48 hex today, but
+ * the tracker must not be stricter than the ingest auth it feeds (`readApiKey`
+ * only enforces a minimum length). This is not an authentication check: it
+ * exists so an attacker-controlled value can never be embedded into the emitted
+ * JavaScript.
+ */
+export const PROJECT_API_KEY_PATTERN = /^[A-Za-z0-9_-]{10,128}$/;
+
+/** Quote a value for a JavaScript string literal, including `</` breakout. */
+function escapeForScriptLiteral(value: string): string {
+  return JSON.stringify(value).replace(/<\//g, "<\\/");
+}
+
+/**
+ * Build the drop-in tracker for one connected project.
+ *
+ * The base URL is derived from the script's own `src`, so a snippet loaded from
+ * api.optihub.cz posts back to api.optihub.cz even when it runs on a customer
+ * origin (a relative URL would hit the customer's own host instead). Cross-origin
+ * use additionally requires CORS on the ingest endpoints, which is deliberately
+ * not enabled here.
+ */
+export function buildIngestSdkScript(key: string): string {
+  const projectKey = escapeForScriptLiteral(key);
+  return `(function () {
+  var projectKey = ${projectKey};
+  var base = "";
+  try {
+    var current = document.currentScript;
+    if (current && current.src) base = new URL(current.src).origin;
+  } catch (e) { base = ""; }
+  var eventEndpoint = base + "/api/ingest/" + encodeURIComponent(projectKey);
+  var leadEndpoint = base + "/api/hub/lead";
+
+  function trackEvent(eventName, metadata) {
+    try {
+      fetch(eventEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventType: eventName, metadata: metadata, occurredAt: new Date().toISOString() }),
+        keepalive: true
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function trackLead(email, name, interest) {
+    try {
+      fetch(leadEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Hub-Key": projectKey },
+        body: JSON.stringify({
+          email: email,
+          name: name,
+          interest: interest,
+          url: window.location.href,
+          source: window.location.hostname
+        })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  trackEvent("pageview", { url: window.location.href, title: document.title, referrer: document.referrer });
+
+  window.onyxTracker = { track: trackEvent, lead: trackLead };
+})();`;
+}
+
 export function registerIngestRoute(app: Express) {
   app.post("/api/ingest/:apiKey", async (req: Request, res: Response) => {
     try {
@@ -127,6 +195,28 @@ export function registerIngestRoute(app: Express) {
       console.error("[Ingest] Error:", err?.message);
       return res.status(500).json({ error: "Internal server error" });
     }
+  });
+
+  // ── GET /api/ingest-sdk.js - drop-in tracker for connected projects ──────
+  // Public by design (it is embedded in customer pages) and therefore carries
+  // no authority of its own: the key is shape-checked and emitted through
+  // JSON.stringify, so a caller-supplied value can never break out of the
+  // generated script.
+  app.get("/api/ingest-sdk.js", (req: Request, res: Response) => {
+    const raw = req.query.key;
+    const key = Array.isArray(raw) ? raw[0] : raw;
+
+    res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("Cache-Control", "public, max-age=60");
+
+    if (typeof key !== "string" || !PROJECT_API_KEY_PATTERN.test(key)) {
+      return res
+        .status(400)
+        .send("console.error('ONYX OS tracker: missing or malformed key parameter');");
+    }
+
+    return res.send(buildIngestSdkScript(key));
   });
 
   // ── POST /api/dsr/ingest — DeepSleepReset push ingest ─────────────────────

@@ -13,7 +13,11 @@
 
 import { getDb } from "../db";
 import { prospects } from "../../drizzle/schema";
-import { eq, desc, and } from "drizzle-orm";
+// `connectedProjects` / `ingestedLeads` live in schema/projects.ts. They are NOT
+// re-exported by the (shadowing) drizzle/schema.ts monolith, so importing them
+// from the bare `drizzle/schema` specifier yields `undefined` at runtime.
+import { connectedProjects, ingestedLeads } from "../../drizzle/schema/projects";
+import { eq, desc, and, isNull } from "drizzle-orm";
 import { scoreProspect, type IcpContract, type LinkedInProfile } from "../prospecting";
 import { generateOutreachMessage } from "../outreach-agent";
 import { canTransition, type LeadState, type MessageVariant } from "./types";
@@ -136,4 +140,110 @@ export async function markManuallySent(prospectId: number): Promise<boolean> {
   if (!db) return false;
   await db.update(prospects).set({ status: "contacted", lastContactedAt: new Date() }).where(eq(prospects.id, prospectId));
   return true;
+}
+
+/** Bounded, best-effort attribution pass over externally ingested leads. */
+export const INGESTION_ENRICHMENT_BATCH = 100;
+
+export interface IngestionEnrichmentResult {
+  /** Unattributed rows examined in this pass (bounded). */
+  processed: number;
+  /** Rows linked to an active connected project. */
+  attributed: number;
+  /** Rows left untouched because no active project matched. */
+  unattributed: number;
+}
+
+export interface EnrichableLead {
+  readonly source?: string | null;
+  readonly projectName?: string | null;
+}
+
+export interface EnrichableProject {
+  readonly id: number;
+  readonly name: string;
+  readonly isActive: boolean;
+}
+
+function attributionKey(value: string | null | undefined): string {
+  return (value ?? "").trim().toLowerCase().replace(/\/+$/, "");
+}
+
+/**
+ * Resolve the active project an ingested lead belongs to. `projectName` is the
+ * stronger signal (the hub records the project's own name on every lead);
+ * `source` is the caller-supplied fallback.
+ *
+ * Only an active project is a destination. An unattributed lead stays visible
+ * to a human; a misattributed lead is silently wrong, so no match beats a guess.
+ */
+export function matchProjectForLead(
+  lead: EnrichableLead,
+  projects: readonly EnrichableProject[],
+): number | null {
+  const candidates = [attributionKey(lead.projectName), attributionKey(lead.source)].filter(
+    key => key !== "",
+  );
+  if (candidates.length === 0) return null;
+
+  for (const key of candidates) {
+    const hit = projects.find(project => project.isActive && attributionKey(project.name) === key);
+    if (hit !== undefined) return hit.id;
+  }
+  return null;
+}
+
+/**
+ * Midnight enrichment: attach externally ingested leads (`ingested_leads` rows
+ * with no `projectId`) to the active connected project they came from, so they
+ * appear in that project's pipeline instead of floating unattributed.
+ *
+ * Idempotent (only null `projectId` rows are read), bounded, and read-only apart
+ * from the attribution it performs: it never changes a lead's status, never
+ * deletes anything, and never calls an external service.
+ */
+export async function enrichIngestedLeads(
+  limit: number = INGESTION_ENRICHMENT_BATCH,
+): Promise<IngestionEnrichmentResult> {
+  const result: IngestionEnrichmentResult = { processed: 0, attributed: 0, unattributed: 0 };
+
+  const db = await getDb();
+  if (!db) return result;
+
+  const rows = await db
+    .select({
+      id: ingestedLeads.id,
+      source: ingestedLeads.source,
+      projectName: ingestedLeads.projectName,
+    })
+    .from(ingestedLeads)
+    .where(isNull(ingestedLeads.projectId))
+    .orderBy(desc(ingestedLeads.createdAt))
+    .limit(limit);
+
+  result.processed = rows.length;
+  if (rows.length === 0) return result;
+
+  const projects = await db
+    .select({
+      id: connectedProjects.id,
+      name: connectedProjects.name,
+      isActive: connectedProjects.isActive,
+    })
+    .from(connectedProjects);
+
+  for (const row of rows) {
+    const projectId = matchProjectForLead(row, projects);
+    if (projectId === null) {
+      result.unattributed += 1;
+      continue;
+    }
+    await db
+      .update(ingestedLeads)
+      .set({ projectId, updatedAt: Date.now() })
+      .where(eq(ingestedLeads.id, row.id));
+    result.attributed += 1;
+  }
+
+  return result;
 }
