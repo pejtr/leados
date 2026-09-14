@@ -421,3 +421,11 @@ export async function captureSalesLead(id: string, lead: { visitorEmail?: string
     .where(eq(salesConversations.id, id));
 }
 
+
+// Canonical aggregation: re-export the domain DB helper barrel (server/db/*).
+// The file `server/db.ts` shadows the directory `server/db/index.ts` for the
+// `../db` specifier, so the barrel's helpers were unreachable. Explicit local
+// exports always take precedence over `export *`, so the local getDb /
+// upsertUser / getUserByOpenId keep their current behaviour.
+export * from "./db/index";
+
