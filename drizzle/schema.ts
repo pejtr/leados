@@ -500,3 +500,10 @@ export const optihubEdgeRateWindows = mysqlTable("optihub_edge_rate_windows", {
 });
 
 export type OptiHubEdgeRateWindow = typeof optihubEdgeRateWindows.$inferSelect;
+
+// Canonical aggregation: re-export the modular schema (drizzle/schema/*) so
+// `from "../drizzle/schema"` resolves the complete table set. The three names
+// that also exist locally (`users`, `projectMilestones`, `heartbeatJobs`) keep
+// their local declarations — an explicit export always shadows `export *`.
+export * from "./schema/index";
+
