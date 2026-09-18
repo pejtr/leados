@@ -77,6 +77,10 @@ describe("mcp route definition", () => {
       "optihub_context",
       "optihub_manifest",
       "optihub_readiness",
+      "omni_tool_catalog",
+      "omni_tool_route",
+      "omni_tool_probe",
+      "omni_tool_read",
       "test_connect",
     ]);
     for (const tool of MCP_TOOLS) {
@@ -223,6 +227,10 @@ describe("mcp protocol", () => {
         "optihub_context",
         "optihub_manifest",
         "optihub_readiness",
+        "omni_tool_catalog",
+        "omni_tool_route",
+        "omni_tool_probe",
+        "omni_tool_read",
         "test_connect",
       ]);
     });
@@ -328,6 +336,10 @@ describe("mcp protocol", () => {
         "optihub_context",
         "optihub_manifest",
         "optihub_readiness",
+        "omni_tool_catalog",
+        "omni_tool_route",
+        "omni_tool_probe",
+        "omni_tool_read",
         "test_connect",
       ]);
     });
