@@ -1,0 +1,141 @@
+import type {
+  OmniToolIntent,
+  OmniToolProviderDefinition,
+  OmniToolProviderId,
+  OmniToolRoutePlan,
+} from "./types";
+
+export const OMNI_TOOL_CATALOG: readonly OmniToolProviderDefinition[] = [
+  {
+    id: "firecrawl",
+    name: "Firecrawl MCP",
+    role: "Researcher",
+    capabilities: ["research", "search"],
+    transport: "remote_http",
+    defaultEndpoint: "https://mcp.firecrawl.dev/v2/mcp",
+    endpointEnv: "OPTIHUB_FIRECRAWL_MCP_URL",
+    authEnv: "FIRECRAWL_API_KEY",
+    authScheme: "bearer",
+    writeDefaultDisabled: true,
+    humanGate: ["write", "browser"],
+  },
+  {
+    id: "brave-search",
+    name: "Brave Search MCP",
+    role: "Trend Scout",
+    capabilities: ["search", "research"],
+    transport: "sidecar_http",
+    endpointEnv: "OPTIHUB_BRAVE_MCP_URL",
+    authEnv: "BRAVE_API_KEY",
+    authScheme: "bearer",
+    writeDefaultDisabled: true,
+    humanGate: [],
+    notes: "Run the official Brave MCP as an internal HTTP sidecar; never expose its API key to callers.",
+  },
+  {
+    id: "stripe",
+    name: "Stripe MCP",
+    role: "Bookkeeper",
+    capabilities: ["payments"],
+    transport: "remote_http",
+    defaultEndpoint: "https://mcp.stripe.com",
+    endpointEnv: "OPTIHUB_STRIPE_MCP_URL",
+    authEnv: "STRIPE_SECRET_KEY",
+    authScheme: "bearer",
+    writeDefaultDisabled: true,
+    humanGate: ["write", "financial"],
+  },
+  {
+    id: "figma",
+    name: "Figma MCP",
+    role: "Designer",
+    capabilities: ["design"],
+    transport: "delegated",
+    defaultEndpoint: "https://mcp.figma.com/mcp",
+    endpointEnv: "OPTIHUB_FIGMA_MCP_URL",
+    authScheme: "oauth",
+    writeDefaultDisabled: true,
+    humanGate: ["write"],
+  },
+  {
+    id: "notion",
+    name: "Notion MCP",
+    role: "Project Manager",
+    capabilities: ["knowledge"],
+    transport: "remote_http",
+    defaultEndpoint: "https://mcp.notion.com/mcp",
+    endpointEnv: "OPTIHUB_NOTION_MCP_URL",
+    authScheme: "oauth",
+    writeDefaultDisabled: true,
+    humanGate: ["write"],
+  },
+  {
+    id: "mem0",
+    name: "Mem0 MCP",
+    role: "Account Memory",
+    capabilities: ["memory"],
+    transport: "remote_http",
+    defaultEndpoint: "https://mcp.mem0.ai/mcp",
+    endpointEnv: "OPTIHUB_MEM0_MCP_URL",
+    authEnv: "MEM0_API_KEY",
+    authScheme: "token",
+    writeDefaultDisabled: true,
+    humanGate: ["write"],
+  },
+  {
+    id: "composio",
+    name: "Composio MCP",
+    role: "Ops Manager",
+    capabilities: ["ops"],
+    transport: "remote_http",
+    defaultEndpoint: "https://connect.composio.dev/mcp",
+    endpointEnv: "OPTIHUB_COMPOSIO_MCP_URL",
+    authEnv: "COMPOSIO_API_KEY",
+    authScheme: "x-api-key",
+    writeDefaultDisabled: true,
+    humanGate: ["write", "financial", "browser"],
+  },
+  {
+    id: "playwright",
+    name: "Playwright MCP",
+    role: "Automator",
+    capabilities: ["browser"],
+    transport: "sidecar_http",
+    endpointEnv: "OPTIHUB_PLAYWRIGHT_MCP_URL",
+    writeDefaultDisabled: true,
+    humanGate: ["browser", "write"],
+  },
+  {
+    id: "e2b",
+    name: "E2B Sandbox MCP",
+    role: "Analyst Sandbox",
+    capabilities: ["sandbox"],
+    transport: "sandbox_native",
+    authEnv: "E2B_API_KEY",
+    authScheme: "bearer",
+    writeDefaultDisabled: true,
+    humanGate: ["compute", "write"],
+  },
+] as const;
+
+const ROUTES: Readonly<Record<OmniToolIntent, OmniToolRoutePlan>> = {
+  lead_research: { intent: "lead_research", providers: ["brave-search", "firecrawl"], risk: "read", humanGateRequired: false },
+  trend_scan: { intent: "trend_scan", providers: ["brave-search", "firecrawl"], risk: "read", humanGateRequired: false },
+  design_to_code: { intent: "design_to_code", providers: ["figma", "e2b", "playwright"], risk: "write", humanGateRequired: true },
+  project_knowledge: { intent: "project_knowledge", providers: ["notion", "mem0"], risk: "read", humanGateRequired: false },
+  persistent_memory: { intent: "persistent_memory", providers: ["mem0"], risk: "write", humanGateRequired: true },
+  ops_action: { intent: "ops_action", providers: ["composio"], risk: "write", humanGateRequired: true },
+  browser_automation: { intent: "browser_automation", providers: ["playwright", "e2b"], risk: "browser", humanGateRequired: true },
+  safe_compute: { intent: "safe_compute", providers: ["e2b"], risk: "compute", humanGateRequired: true },
+  billing: { intent: "billing", providers: ["stripe"], risk: "financial", humanGateRequired: true },
+};
+
+export function omniToolProvider(id: OmniToolProviderId): OmniToolProviderDefinition {
+  const hit = OMNI_TOOL_CATALOG.find(provider => provider.id === id);
+  if (hit === undefined) throw new Error(`Unknown OMNI tool provider: ${id}`);
+  return hit;
+}
+
+export function planOmniToolRoute(intent: OmniToolIntent): OmniToolRoutePlan {
+  return ROUTES[intent];
+}

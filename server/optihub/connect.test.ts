@@ -160,6 +160,10 @@ describe("GET /connect presentation", () => {
         "optihub_context",
         "optihub_manifest",
         "optihub_readiness",
+        "omni_tool_catalog",
+        "omni_tool_route",
+        "omni_tool_probe",
+        "omni_tool_read",
         "test_connect",
       ]);
     });
@@ -183,7 +187,7 @@ describe("POST /connect is the canonical MCP runtime", () => {
     });
   });
 
-  it("completes initialize, sets mcp-session-id and lists four tools", async () => {
+  it("completes initialize, sets mcp-session-id and lists eight tools", async () => {
     await withConnect(async (_harness, url, secret) => {
       const init = await edgeRequest(url, `${CONNECT_ROUTE_PATH}?o=${ALIAS}`, {
         method: "POST",
@@ -210,7 +214,7 @@ describe("POST /connect is the canonical MCP runtime", () => {
       });
       const tools = (list.body as { result: { tools: Array<{ name: string }> } }).result.tools;
       expect(tools.map(tool => tool.name)).toContain("test_connect");
-      expect(tools).toHaveLength(4);
+      expect(tools).toHaveLength(8);
     });
   });
 
