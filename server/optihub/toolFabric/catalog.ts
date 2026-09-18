@@ -16,7 +16,6 @@ export const OMNI_TOOL_CATALOG: readonly OmniToolProviderDefinition[] = [
     endpointEnv: "OPTIHUB_FIRECRAWL_MCP_URL",
     authEnv: "FIRECRAWL_API_KEY",
     authScheme: "bearer",
-    keylessRead: true,
     writeDefaultDisabled: true,
     humanGate: ["write", "browser"],
   },
