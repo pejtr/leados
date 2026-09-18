@@ -17,6 +17,15 @@ import { resolveRequestedAlias, ALIAS_QUERY_PARAM, type AliasRegistry } from "./
 import { edgeErrorBody, edgeErrorStatus } from "./errors";
 import type { EdgeHandlerContext, ProtectedEdgeRoute } from "./edge";
 import { edgeHandlerResponse } from "./handlerResponse";
+import { callOmniReadTool, probeOmniToolProvider } from "./toolFabric/broker";
+import { planOmniToolRoute } from "./toolFabric/catalog";
+import { resolveOmniToolProviders } from "./toolFabric/config";
+import {
+  OMNI_TOOL_INTENTS,
+  OMNI_TOOL_PROVIDER_IDS,
+  type OmniToolIntent,
+  type OmniToolProviderId,
+} from "./toolFabric/types";
 
 export const MCP_PROTOCOL_VERSION = "2025-06-18";
 export const MCP_SERVER_NAME = "optihub-mcp";
@@ -57,6 +66,31 @@ const TEST_CONNECT_INPUT_SCHEMA: Record<string, unknown> = {
   additionalProperties: false,
 };
 
+const OMNI_ROUTE_INPUT_SCHEMA: Record<string, unknown> = {
+  type: "object",
+  properties: { intent: { type: "string", enum: OMNI_TOOL_INTENTS } },
+  required: ["intent"],
+  additionalProperties: false,
+};
+
+const OMNI_PROBE_INPUT_SCHEMA: Record<string, unknown> = {
+  type: "object",
+  properties: { provider: { type: "string", enum: OMNI_TOOL_PROVIDER_IDS } },
+  required: ["provider"],
+  additionalProperties: false,
+};
+
+const OMNI_READ_INPUT_SCHEMA: Record<string, unknown> = {
+  type: "object",
+  properties: {
+    provider: { type: "string", enum: OMNI_TOOL_PROVIDER_IDS },
+    tool: { type: "string", minLength: 1, maxLength: 128 },
+    arguments: { type: "object", additionalProperties: true },
+  },
+  required: ["provider", "tool"],
+  additionalProperties: false,
+};
+
 /**
  * Read-only capabilities, each backed by an existing edge read path: the
  * principal context (`/v1/context`), the public manifest (`/v1/manifest`) and
@@ -80,6 +114,26 @@ export const MCP_TOOLS: readonly McpToolDefinition[] = [
     name: "optihub_readiness",
     description: "Read OPTIHUB edge readiness (durable dependency health). Read-only status.",
     inputSchema: EMPTY_INPUT_SCHEMA,
+  },
+  {
+    name: "omni_tool_catalog",
+    description: "Read OMNI Tool Fabric provider readiness without exposing credentials.",
+    inputSchema: EMPTY_INPUT_SCHEMA,
+  },
+  {
+    name: "omni_tool_route",
+    description: "Plan providers, risk and human-gate requirements for a supported intent.",
+    inputSchema: OMNI_ROUTE_INPUT_SCHEMA,
+  },
+  {
+    name: "omni_tool_probe",
+    description: "Probe one enabled provider with MCP initialize + tools/list; no provider tool executes.",
+    inputSchema: OMNI_PROBE_INPUT_SCHEMA,
+  },
+  {
+    name: "omni_tool_read",
+    description: "Execute an explicitly allowlisted read-only provider tool through OPTIHUB.",
+    inputSchema: OMNI_READ_INPUT_SCHEMA,
   },
   {
     name: "test_connect",
@@ -160,6 +214,77 @@ async function callTool(
       return textResult(ports.manifest());
     case "optihub_readiness":
       return textResult({ status: (await ports.readiness()) ? "ready" : "not_ready" });
+    case "omni_tool_catalog":
+      return textResult({
+        providers: resolveOmniToolProviders(process.env).map(runtime => ({
+          id: runtime.definition.id,
+          name: runtime.definition.name,
+          role: runtime.definition.role,
+          capabilities: runtime.definition.capabilities,
+          transport: runtime.definition.transport,
+          configured: runtime.configured,
+          enabled: runtime.enabled,
+          status: runtime.statusReason,
+          writeDefaultDisabled: runtime.definition.writeDefaultDisabled,
+          humanGate: runtime.definition.humanGate,
+        })),
+        mutations: 0,
+        secretsExposed: false,
+      });
+    case "omni_tool_route": {
+      const rawIntent = args["intent"];
+      if (typeof rawIntent !== "string" || !OMNI_TOOL_INTENTS.includes(rawIntent as OmniToolIntent)) {
+        return { content: [{ type: "text", text: "unsupported_intent" }], isError: true };
+      }
+      const plan = planOmniToolRoute(rawIntent as OmniToolIntent);
+      const runtimes = resolveOmniToolProviders(process.env);
+      return textResult({
+        ...plan,
+        providers: plan.providers.map(id => {
+          const runtime = runtimes.find(item => item.definition.id === id);
+          return {
+            id,
+            configured: runtime?.configured ?? false,
+            enabled: runtime?.enabled ?? false,
+            status: runtime?.statusReason ?? "missing",
+          };
+        }),
+        mutations: 0,
+      });
+    }
+    case "omni_tool_probe": {
+      const rawProvider = args["provider"];
+      if (typeof rawProvider !== "string" || !OMNI_TOOL_PROVIDER_IDS.includes(rawProvider as OmniToolProviderId)) {
+        return { content: [{ type: "text", text: "unsupported_provider" }], isError: true };
+      }
+      return textResult(await probeOmniToolProvider(rawProvider as OmniToolProviderId));
+    }
+    case "omni_tool_read": {
+      const rawProvider = args["provider"];
+      const rawTool = args["tool"];
+      const rawArguments = args["arguments"];
+      if (
+        typeof rawProvider !== "string" ||
+        !OMNI_TOOL_PROVIDER_IDS.includes(rawProvider as OmniToolProviderId) ||
+        typeof rawTool !== "string" ||
+        !rawTool.trim() ||
+        (rawArguments !== undefined &&
+          (typeof rawArguments !== "object" || rawArguments === null || Array.isArray(rawArguments)))
+      ) {
+        return { content: [{ type: "text", text: "invalid_tool_request" }], isError: true };
+      }
+      try {
+        const result = await callOmniReadTool(
+          rawProvider as OmniToolProviderId,
+          rawTool,
+          (rawArguments as Record<string, unknown> | undefined) ?? {},
+        );
+        return textResult({ provider: rawProvider, tool: rawTool, result, mutations: 0 });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "omni_tool_read_failed";
+        return { content: [{ type: "text", text: message.slice(0, 512) }], isError: true };
+      }
+    }
     case "test_connect":
       return textResult({
         ok: true,
