@@ -10,7 +10,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 
 import { EDGE_MOUNT_PATH } from "./edge";
-import { MCP_PROTOCOL_VERSION, MCP_ROUTE_PATH, MCP_TOOLS, defaultMcpEdgeRoutes } from "./mcp";
+import {
+  MCP_PROTOCOL_VERSION,
+  MCP_ROUTE_PATH,
+  MCP_TOOLS,
+  defaultMcpEdgeRoutes,
+} from "./mcp";
 import { EDGE_POLICY_ACTIONS } from "./policy";
 import {
   API_HOST,
@@ -35,20 +40,33 @@ afterEach(async () => {
 
 async function withMcp(
   run: (harness: EdgeHarness, url: string) => Promise<void>,
-  overrides: Parameters<typeof createEdgeHarness>[0] = {},
+  overrides: Parameters<typeof createEdgeHarness>[0] = {}
 ): Promise<void> {
-  const harness = createEdgeHarness({ enabledSurfaces: [...MCP_SURFACES], ...overrides });
+  const harness = createEdgeHarness({
+    enabledSurfaces: [...MCP_SURFACES],
+    ...overrides,
+  });
   const server = await startEdgeServer(harness.app);
   openServers.push(server.close);
   await run(harness, server.url);
 }
 
-function rpc(method: string, params?: unknown, id: unknown = 1): Record<string, unknown> {
-  return { jsonrpc: "2.0", id, method, ...(params === undefined ? {} : { params }) };
+function rpc(
+  method: string,
+  params?: unknown,
+  id: unknown = 1
+): Record<string, unknown> {
+  return {
+    jsonrpc: "2.0",
+    id,
+    method,
+    ...(params === undefined ? {} : { params }),
+  };
 }
 
 function textOf(body: unknown): unknown {
-  const result = (body as { result?: { content?: Array<{ text?: string }> } }).result;
+  const result = (body as { result?: { content?: Array<{ text?: string }> } })
+    .result;
   const text = result?.content?.[0]?.text;
   return typeof text === "string" ? JSON.parse(text) : undefined;
 }
@@ -81,6 +99,7 @@ describe("mcp route definition", () => {
       "omni_tool_route",
       "omni_tool_probe",
       "omni_tool_read",
+      "meta_events_status",
       "test_connect",
     ]);
     for (const tool of MCP_TOOLS) {
@@ -93,7 +112,9 @@ describe("mcp route definition", () => {
 describe("mcp surface binding", () => {
   it("is not reachable on the REST (api) surface", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+      const credential = await seedCredential(harness.store, {
+        scopes: ["projects:read"],
+      });
       const res = await edgeRequest(url, MCP_ENDPOINT, {
         method: "POST",
         host: API_HOST,
@@ -101,30 +122,42 @@ describe("mcp surface binding", () => {
         body: rpc("tools/list"),
       });
       expect(res.status).toBe(404);
-      expect((res.body as { error: { code: string } }).error.code).toBe("NOT_FOUND");
+      expect((res.body as { error: { code: string } }).error.code).toBe(
+        "NOT_FOUND"
+      );
     });
   });
 
   it("does not expose REST routes on the mcp surface", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+      const credential = await seedCredential(harness.store, {
+        scopes: ["projects:read"],
+      });
       const res = await edgeRequest(url, `${EDGE_MOUNT_PATH}/v1/context`, {
         host: MCP_HOST,
         headers: { authorization: `Bearer ${credential.secret}` },
       });
       expect(res.status).toBe(404);
-      expect((res.body as { error: { code: string } }).error.code).toBe("NOT_FOUND");
+      expect((res.body as { error: { code: string } }).error.code).toBe(
+        "NOT_FOUND"
+      );
     });
   });
 
   it("does not expose the write capability on the mcp surface", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["publication:execute"] });
-      const res = await edgeRequest(url, `${EDGE_MOUNT_PATH}/v1/publications/pub-1/execute`, {
-        method: "POST",
-        host: MCP_HOST,
-        headers: { authorization: `Bearer ${credential.secret}` },
+      const credential = await seedCredential(harness.store, {
+        scopes: ["publication:execute"],
       });
+      const res = await edgeRequest(
+        url,
+        `${EDGE_MOUNT_PATH}/v1/publications/pub-1/execute`,
+        {
+          method: "POST",
+          host: MCP_HOST,
+          headers: { authorization: `Bearer ${credential.secret}` },
+        }
+      );
       expect(res.status).toBe(404);
     });
   });
@@ -132,11 +165,17 @@ describe("mcp surface binding", () => {
   it("stays unreachable when the surface is disabled", async () => {
     await withMcp(
       async (_harness, url) => {
-        const res = await edgeRequest(url, MCP_ENDPOINT, { method: "POST", host: MCP_HOST, body: rpc("tools/list") });
+        const res = await edgeRequest(url, MCP_ENDPOINT, {
+          method: "POST",
+          host: MCP_HOST,
+          body: rpc("tools/list"),
+        });
         expect(res.status).toBe(501);
-        expect((res.body as { error: { code: string } }).error.code).toBe("SURFACE_NOT_ENABLED");
+        expect((res.body as { error: { code: string } }).error.code).toBe(
+          "SURFACE_NOT_ENABLED"
+        );
       },
-      { enabledSurfaces: ["api"] },
+      { enabledSurfaces: ["api"] }
     );
   });
 });
@@ -144,15 +183,23 @@ describe("mcp surface binding", () => {
 describe("mcp reuses the protected pipeline", () => {
   it("requires a credential", async () => {
     await withMcp(async (_harness, url) => {
-      const res = await edgeRequest(url, MCP_ENDPOINT, { method: "POST", host: MCP_HOST, body: rpc("tools/list") });
+      const res = await edgeRequest(url, MCP_ENDPOINT, {
+        method: "POST",
+        host: MCP_HOST,
+        body: rpc("tools/list"),
+      });
       expect(res.status).toBe(401);
-      expect((res.body as { error: { code: string } }).error.code).toBe("MISSING_CREDENTIAL");
+      expect((res.body as { error: { code: string } }).error.code).toBe(
+        "MISSING_CREDENTIAL"
+      );
     });
   });
 
   it("denies a credential without the read scope", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["publication:read"] });
+      const credential = await seedCredential(harness.store, {
+        scopes: ["publication:read"],
+      });
       const res = await edgeRequest(url, MCP_ENDPOINT, {
         method: "POST",
         host: MCP_HOST,
@@ -160,13 +207,17 @@ describe("mcp reuses the protected pipeline", () => {
         body: rpc("tools/list"),
       });
       expect(res.status).toBe(403);
-      expect((res.body as { error: { code: string } }).error.code).toBe("SCOPE_DENIED");
+      expect((res.body as { error: { code: string } }).error.code).toBe(
+        "SCOPE_DENIED"
+      );
     });
   });
 
   it("denies a cross-tenant request", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+      const credential = await seedCredential(harness.store, {
+        scopes: ["projects:read"],
+      });
       const res = await edgeRequest(url, MCP_ENDPOINT, {
         method: "POST",
         host: MCP_HOST,
@@ -177,13 +228,17 @@ describe("mcp reuses the protected pipeline", () => {
         body: rpc("tools/list"),
       });
       expect(res.status).toBe(403);
-      expect((res.body as { error: { code: string } }).error.code).toBe("TENANT_DENIED");
+      expect((res.body as { error: { code: string } }).error.code).toBe(
+        "TENANT_DENIED"
+      );
     });
   });
 
   it("audits an allowed MCP call as an mcp:rpc read", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+      const credential = await seedCredential(harness.store, {
+        scopes: ["projects:read"],
+      });
       await edgeRequest(url, MCP_ENDPOINT, {
         method: "POST",
         host: MCP_HOST,
@@ -194,7 +249,9 @@ describe("mcp reuses the protected pipeline", () => {
       expect(last?.decision).toBe("ALLOW");
       expect(last?.action).toBe("mcp:rpc");
       expect(last?.surface).toBe("mcp");
-      expect(JSON.stringify(harness.audit.entries)).not.toContain(credential.secret);
+      expect(JSON.stringify(harness.audit.entries)).not.toContain(
+        credential.secret
+      );
     });
   });
 });
@@ -202,7 +259,9 @@ describe("mcp reuses the protected pipeline", () => {
 describe("mcp protocol", () => {
   it("initializes and lists the read-only tools", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+      const credential = await seedCredential(harness.store, {
+        scopes: ["projects:read"],
+      });
       const auth = { authorization: `Bearer ${credential.secret}` };
 
       const init = await edgeRequest(url, MCP_ENDPOINT, {
@@ -212,9 +271,10 @@ describe("mcp protocol", () => {
         body: rpc("initialize", { protocolVersion: MCP_PROTOCOL_VERSION }),
       });
       expect(init.status).toBe(200);
-      expect((init.body as { result: { protocolVersion: string } }).result.protocolVersion).toBe(
-        MCP_PROTOCOL_VERSION,
-      );
+      expect(
+        (init.body as { result: { protocolVersion: string } }).result
+          .protocolVersion
+      ).toBe(MCP_PROTOCOL_VERSION);
 
       const list = await edgeRequest(url, MCP_ENDPOINT, {
         method: "POST",
@@ -222,7 +282,9 @@ describe("mcp protocol", () => {
         headers: auth,
         body: rpc("tools/list"),
       });
-      const tools = (list.body as { result: { tools: Array<{ name: string }> } }).result.tools;
+      const tools = (
+        list.body as { result: { tools: Array<{ name: string }> } }
+      ).result.tools;
       expect(tools.map(tool => tool.name)).toEqual([
         "optihub_context",
         "optihub_manifest",
@@ -231,6 +293,7 @@ describe("mcp protocol", () => {
         "omni_tool_route",
         "omni_tool_probe",
         "omni_tool_read",
+        "meta_events_status",
         "test_connect",
       ]);
     });
@@ -239,7 +302,9 @@ describe("mcp protocol", () => {
   it("calls the read-only tools", async () => {
     await withMcp(
       async (harness, url) => {
-        const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+        const credential = await seedCredential(harness.store, {
+          scopes: ["projects:read"],
+        });
         const auth = { authorization: `Bearer ${credential.secret}` };
 
         const context = await edgeRequest(url, MCP_ENDPOINT, {
@@ -265,7 +330,9 @@ describe("mcp protocol", () => {
           headers: auth,
           body: rpc("tools/call", { name: "optihub_manifest", arguments: {} }),
         });
-        expect((textOf(manifest.body) as { surfaces: unknown[] }).surfaces.length).toBeGreaterThan(0);
+        expect(
+          (textOf(manifest.body) as { surfaces: unknown[] }).surfaces.length
+        ).toBeGreaterThan(0);
 
         const readiness = await edgeRequest(url, MCP_ENDPOINT, {
           method: "POST",
@@ -273,15 +340,19 @@ describe("mcp protocol", () => {
           headers: auth,
           body: rpc("tools/call", { name: "optihub_readiness", arguments: {} }),
         });
-        expect((textOf(readiness.body) as { status: string }).status).toBe("ready");
+        expect((textOf(readiness.body) as { status: string }).status).toBe(
+          "ready"
+        );
       },
-      { readiness: () => true },
+      { readiness: () => true }
     );
   });
 
   it("answers a notification with 202 and no body", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+      const credential = await seedCredential(harness.store, {
+        scopes: ["projects:read"],
+      });
       const res = await edgeRequest(url, MCP_ENDPOINT, {
         method: "POST",
         host: MCP_HOST,
@@ -295,7 +366,9 @@ describe("mcp protocol", () => {
 
   it("rejects an unknown method and an unknown tool without leaking", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+      const credential = await seedCredential(harness.store, {
+        scopes: ["projects:read"],
+      });
       const auth = { authorization: `Bearer ${credential.secret}` };
 
       const method = await edgeRequest(url, MCP_ENDPOINT, {
@@ -304,7 +377,9 @@ describe("mcp protocol", () => {
         headers: auth,
         body: rpc("tools/execute"),
       });
-      expect((method.body as { error: { code: number } }).error.code).toBe(-32601);
+      expect((method.body as { error: { code: number } }).error.code).toBe(
+        -32601
+      );
 
       const tool = await edgeRequest(url, MCP_ENDPOINT, {
         method: "POST",
@@ -312,7 +387,9 @@ describe("mcp protocol", () => {
         headers: auth,
         body: rpc("tools/call", { name: "optihub_write_everything" }),
       });
-      expect((tool.body as { error: { code: number } }).error.code).toBe(-32602);
+      expect((tool.body as { error: { code: number } }).error.code).toBe(
+        -32602
+      );
 
       const invalid = await edgeRequest(url, MCP_ENDPOINT, {
         method: "POST",
@@ -320,13 +397,17 @@ describe("mcp protocol", () => {
         headers: auth,
         body: { jsonrpc: "2.0", id: 3 },
       });
-      expect((invalid.body as { error: { code: number } }).error.code).toBe(-32600);
+      expect((invalid.body as { error: { code: number } }).error.code).toBe(
+        -32600
+      );
     });
   });
 
   it("describes itself over GET", async () => {
     await withMcp(async (harness, url) => {
-      const credential = await seedCredential(harness.store, { scopes: ["projects:read"] });
+      const credential = await seedCredential(harness.store, {
+        scopes: ["projects:read"],
+      });
       const res = await edgeRequest(url, MCP_ENDPOINT, {
         host: MCP_HOST,
         headers: { authorization: `Bearer ${credential.secret}` },
@@ -340,6 +421,7 @@ describe("mcp protocol", () => {
         "omni_tool_route",
         "omni_tool_probe",
         "omni_tool_read",
+        "meta_events_status",
         "test_connect",
       ]);
     });

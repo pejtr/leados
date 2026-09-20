@@ -13,10 +13,15 @@
 
 import { randomUUID } from "node:crypto";
 
-import { resolveRequestedAlias, ALIAS_QUERY_PARAM, type AliasRegistry } from "./alias";
+import {
+  resolveRequestedAlias,
+  ALIAS_QUERY_PARAM,
+  type AliasRegistry,
+} from "./alias";
 import { edgeErrorBody, edgeErrorStatus } from "./errors";
 import type { EdgeHandlerContext, ProtectedEdgeRoute } from "./edge";
 import { edgeHandlerResponse } from "./handlerResponse";
+import { readMetaEventsBridgeStatus } from "./metaEvents";
 import { callOmniReadTool, probeOmniToolProvider } from "./toolFabric/broker";
 import { planOmniToolRoute } from "./toolFabric/catalog";
 import { resolveOmniToolProviders } from "./toolFabric/config";
@@ -60,7 +65,10 @@ const TEST_CONNECT_INPUT_SCHEMA: Record<string, unknown> = {
   type: "object",
   properties: {
     requestId: { type: "string", description: "Client-side correlation id." },
-    message: { type: "string", description: "Free-form probe message, echoed back." },
+    message: {
+      type: "string",
+      description: "Free-form probe message, echoed back.",
+    },
     client: { type: "string", description: "Client name, echoed back." },
   },
   additionalProperties: false,
@@ -112,28 +120,39 @@ export const MCP_TOOLS: readonly McpToolDefinition[] = [
   },
   {
     name: "optihub_readiness",
-    description: "Read OPTIHUB edge readiness (durable dependency health). Read-only status.",
+    description:
+      "Read OPTIHUB edge readiness (durable dependency health). Read-only status.",
     inputSchema: EMPTY_INPUT_SCHEMA,
   },
   {
     name: "omni_tool_catalog",
-    description: "Read OMNI Tool Fabric provider readiness without exposing credentials.",
+    description:
+      "Read OMNI Tool Fabric provider readiness without exposing credentials.",
     inputSchema: EMPTY_INPUT_SCHEMA,
   },
   {
     name: "omni_tool_route",
-    description: "Plan providers, risk and human-gate requirements for a supported intent.",
+    description:
+      "Plan providers, risk and human-gate requirements for a supported intent.",
     inputSchema: OMNI_ROUTE_INPUT_SCHEMA,
   },
   {
     name: "omni_tool_probe",
-    description: "Probe one enabled provider with MCP initialize + tools/list; no provider tool executes.",
+    description:
+      "Probe one enabled provider with MCP initialize + tools/list; no provider tool executes.",
     inputSchema: OMNI_PROBE_INPUT_SCHEMA,
   },
   {
     name: "omni_tool_read",
-    description: "Execute an explicitly allowlisted read-only provider tool through OPTIHUB.",
+    description:
+      "Execute an explicitly allowlisted read-only provider tool through OPTIHUB.",
     inputSchema: OMNI_READ_INPUT_SCHEMA,
+  },
+  {
+    name: "meta_events_status",
+    description:
+      "Read OMNIFORGE Meta Pixel/Conversions API bridge readiness. Returns configuration and test-mode status only; never exposes ids, tokens or credentials.",
+    inputSchema: EMPTY_INPUT_SCHEMA,
   },
   {
     name: "test_connect",
@@ -143,7 +162,9 @@ export const MCP_TOOLS: readonly McpToolDefinition[] = [
   },
 ];
 
-const MCP_TOOL_NAMES: ReadonlySet<string> = new Set(MCP_TOOLS.map(tool => tool.name));
+const MCP_TOOL_NAMES: ReadonlySet<string> = new Set(
+  MCP_TOOLS.map(tool => tool.name)
+);
 
 /**
  * The bits of the edge the adapter needs, injected as values so the module has
@@ -180,12 +201,19 @@ function jsonRpcResult(id: unknown, result: unknown): JsonRpcSuccess {
   return { jsonrpc: "2.0", id, result };
 }
 
-function jsonRpcError(id: unknown, code: number, message: string): JsonRpcFailure {
+function jsonRpcError(
+  id: unknown,
+  code: number,
+  message: string
+): JsonRpcFailure {
   return { jsonrpc: "2.0", id, error: { code, message } };
 }
 
 interface McpTextResult {
-  readonly content: ReadonlyArray<{ readonly type: "text"; readonly text: string }>;
+  readonly content: ReadonlyArray<{
+    readonly type: "text";
+    readonly text: string;
+  }>;
   readonly isError?: boolean;
 }
 
@@ -197,7 +225,7 @@ async function callTool(
   name: string,
   context: EdgeHandlerContext,
   ports: McpEdgePorts,
-  args: Record<string, unknown>,
+  args: Record<string, unknown>
 ): Promise<McpTextResult> {
   switch (name) {
     case "optihub_context":
@@ -213,7 +241,9 @@ async function callTool(
     case "optihub_manifest":
       return textResult(ports.manifest());
     case "optihub_readiness":
-      return textResult({ status: (await ports.readiness()) ? "ready" : "not_ready" });
+      return textResult({
+        status: (await ports.readiness()) ? "ready" : "not_ready",
+      });
     case "omni_tool_catalog":
       return textResult({
         providers: resolveOmniToolProviders(process.env).map(runtime => ({
@@ -233,8 +263,14 @@ async function callTool(
       });
     case "omni_tool_route": {
       const rawIntent = args["intent"];
-      if (typeof rawIntent !== "string" || !OMNI_TOOL_INTENTS.includes(rawIntent as OmniToolIntent)) {
-        return { content: [{ type: "text", text: "unsupported_intent" }], isError: true };
+      if (
+        typeof rawIntent !== "string" ||
+        !OMNI_TOOL_INTENTS.includes(rawIntent as OmniToolIntent)
+      ) {
+        return {
+          content: [{ type: "text", text: "unsupported_intent" }],
+          isError: true,
+        };
       }
       const plan = planOmniToolRoute(rawIntent as OmniToolIntent);
       const runtimes = resolveOmniToolProviders(process.env);
@@ -254,10 +290,18 @@ async function callTool(
     }
     case "omni_tool_probe": {
       const rawProvider = args["provider"];
-      if (typeof rawProvider !== "string" || !OMNI_TOOL_PROVIDER_IDS.includes(rawProvider as OmniToolProviderId)) {
-        return { content: [{ type: "text", text: "unsupported_provider" }], isError: true };
+      if (
+        typeof rawProvider !== "string" ||
+        !OMNI_TOOL_PROVIDER_IDS.includes(rawProvider as OmniToolProviderId)
+      ) {
+        return {
+          content: [{ type: "text", text: "unsupported_provider" }],
+          isError: true,
+        };
       }
-      return textResult(await probeOmniToolProvider(rawProvider as OmniToolProviderId));
+      return textResult(
+        await probeOmniToolProvider(rawProvider as OmniToolProviderId)
+      );
     }
     case "omni_tool_read": {
       const rawProvider = args["provider"];
@@ -269,22 +313,42 @@ async function callTool(
         typeof rawTool !== "string" ||
         !rawTool.trim() ||
         (rawArguments !== undefined &&
-          (typeof rawArguments !== "object" || rawArguments === null || Array.isArray(rawArguments)))
+          (typeof rawArguments !== "object" ||
+            rawArguments === null ||
+            Array.isArray(rawArguments)))
       ) {
-        return { content: [{ type: "text", text: "invalid_tool_request" }], isError: true };
+        return {
+          content: [{ type: "text", text: "invalid_tool_request" }],
+          isError: true,
+        };
       }
       try {
         const result = await callOmniReadTool(
           rawProvider as OmniToolProviderId,
           rawTool,
-          (rawArguments as Record<string, unknown> | undefined) ?? {},
+          (rawArguments as Record<string, unknown> | undefined) ?? {}
         );
-        return textResult({ provider: rawProvider, tool: rawTool, result, mutations: 0 });
+        return textResult({
+          provider: rawProvider,
+          tool: rawTool,
+          result,
+          mutations: 0,
+        });
       } catch (error) {
-        const message = error instanceof Error ? error.message : "omni_tool_read_failed";
-        return { content: [{ type: "text", text: message.slice(0, 512) }], isError: true };
+        const message =
+          error instanceof Error ? error.message : "omni_tool_read_failed";
+        return {
+          content: [{ type: "text", text: message.slice(0, 512) }],
+          isError: true,
+        };
       }
     }
+    case "meta_events_status":
+      return textResult({
+        ...(await readMetaEventsBridgeStatus()),
+        mutations: 0,
+        secretsExposed: false,
+      });
     case "test_connect":
       return textResult({
         ok: true,
@@ -297,14 +361,17 @@ async function callTool(
         mutations: 0,
       });
     default:
-      return { content: [{ type: "text", text: `unknown_tool:${name}` }], isError: true };
+      return {
+        content: [{ type: "text", text: `unknown_tool:${name}` }],
+        isError: true,
+      };
   }
 }
 
 function dispatchMcpMessage(
   raw: unknown,
   context: EdgeHandlerContext,
-  ports: McpEdgePorts,
+  ports: McpEdgePorts
 ): Promise<JsonRpcResponse | undefined> {
   if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
     return Promise.resolve(jsonRpcError(null, -32600, "Invalid Request"));
@@ -330,7 +397,7 @@ function dispatchMcpMessage(
           serverInfo: { name: MCP_SERVER_NAME, version: ports.version },
           instructions:
             "Read-only OPTIHUB control-plane context. No write, shell, deploy or payment tools.",
-        }),
+        })
       );
     case "ping":
       return Promise.resolve(jsonRpcResult(id, {}));
@@ -340,13 +407,17 @@ function dispatchMcpMessage(
       const params = (message["params"] ?? {}) as Record<string, unknown>;
       const name = typeof params["name"] === "string" ? params["name"] : "";
       if (!MCP_TOOL_NAMES.has(name)) {
-        return Promise.resolve(jsonRpcError(id, -32602, `Unknown tool: ${name}`));
+        return Promise.resolve(
+          jsonRpcError(id, -32602, `Unknown tool: ${name}`)
+        );
       }
       const args =
         typeof params["arguments"] === "object" && params["arguments"] !== null
           ? (params["arguments"] as Record<string, unknown>)
           : {};
-      return callTool(name, context, ports, args).then(result => jsonRpcResult(id, result));
+      return callTool(name, context, ports, args).then(result =>
+        jsonRpcResult(id, result)
+      );
     }
     default:
       return Promise.resolve(jsonRpcError(id, -32601, "Method not found"));
@@ -360,12 +431,15 @@ function dispatchMcpMessage(
  */
 function aliasDenial(
   context: EdgeHandlerContext,
-  ports: McpEdgePorts,
+  ports: McpEdgePorts
 ): { readonly status: number; readonly body: unknown } | null {
   const registry = ports.aliases;
   if (registry === undefined) return null;
 
-  const resolution = resolveRequestedAlias(registry, context.request.query[ALIAS_QUERY_PARAM]);
+  const resolution = resolveRequestedAlias(
+    registry,
+    context.request.query[ALIAS_QUERY_PARAM]
+  );
   if (resolution.kind === "none") return null;
   if (resolution.kind === "malformed") {
     return {
@@ -373,23 +447,35 @@ function aliasDenial(
       body: edgeErrorBody("BAD_REQUEST", "malformed_alias", context.requestId),
     };
   }
-  if (resolution.kind === "unknown" || resolution.oID !== context.principal.tenantId) {
+  if (
+    resolution.kind === "unknown" ||
+    resolution.oID !== context.principal.tenantId
+  ) {
     return {
       status: edgeErrorStatus("TENANT_DENIED"),
-      body: edgeErrorBody("TENANT_DENIED", "alias_identity_mismatch", context.requestId),
+      body: edgeErrorBody(
+        "TENANT_DENIED",
+        "alias_identity_mismatch",
+        context.requestId
+      ),
     };
   }
   return null;
 }
 
 /** Mint (or echo) the streamable-HTTP session id on `initialize` only. */
-function initializeSessionId(body: unknown, context: EdgeHandlerContext): string | null {
-  if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
+function initializeSessionId(
+  body: unknown,
+  context: EdgeHandlerContext
+): string | null {
+  if (typeof body !== "object" || body === null || Array.isArray(body))
+    return null;
   if ((body as Record<string, unknown>)["method"] !== "initialize") return null;
 
   const incoming = context.request.headers[MCP_SESSION_ID_HEADER];
   const candidate = Array.isArray(incoming) ? incoming[0] : incoming;
-  if (typeof candidate === "string" && SESSION_ID_PATTERN.test(candidate)) return candidate;
+  if (typeof candidate === "string" && SESSION_ID_PATTERN.test(candidate))
+    return candidate;
   return randomUUID();
 }
 
@@ -400,7 +486,7 @@ function initializeSessionId(body: unknown, context: EdgeHandlerContext): string
  */
 export async function handleMcpPost(
   context: EdgeHandlerContext,
-  ports: McpEdgePorts,
+  ports: McpEdgePorts
 ): Promise<unknown> {
   const denied = aliasDenial(context, ports);
   if (denied !== null) return edgeHandlerResponse(denied.status, denied.body);
@@ -413,14 +499,18 @@ export async function handleMcpPost(
 
   const sessionId = initializeSessionId(body, context);
   if (sessionId === null) return response;
-  return edgeHandlerResponse(200, response, { [MCP_SESSION_ID_HEADER]: sessionId });
+  return edgeHandlerResponse(200, response, {
+    [MCP_SESSION_ID_HEADER]: sessionId,
+  });
 }
 
 /**
  * The MCP surface route set: read risk, bound to the `mcp` surface, gated on the
  * same read scope and policy action as the REST read path.
  */
-export function defaultMcpEdgeRoutes(ports: McpEdgePorts): readonly ProtectedEdgeRoute[] {
+export function defaultMcpEdgeRoutes(
+  ports: McpEdgePorts
+): readonly ProtectedEdgeRoute[] {
   return [
     {
       method: "get",
