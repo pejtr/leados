@@ -175,7 +175,7 @@ export default function OptihubLanding() {
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   {[
-                    ["12", "kroků workflow"],
+                    ["N→1", "řízený tok vstup → výsledek"],
                     ["7", "technologických vrstev"],
                     ["1", "orchestration layer"],
                   ].map(([value, label]) => (
