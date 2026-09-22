@@ -18,7 +18,7 @@ import { PUBLIC_SITE_URL } from "@shared/brand-config";
 
 const NotFound = lazy(() => import("@/pages/NotFound"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
-const Home = lazy(() => import("./pages/Home"));
+const Home = lazy(() => import("./pages/Home"));\nconst OptihubLanding = lazy(() => import("./pages/OptihubLanding"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const AdminProjects = lazy(() => import("./pages/AdminProjects"));
 const ClientDashboard = lazy(() => import("./pages/ClientDashboard"));
@@ -208,7 +208,7 @@ function Router() {
     <Suspense fallback={<PageLoader />}>
       <Switch>
         <Route path="/login" component={LoginPage} />
-        <Route path="/">{() => <Home variant={variant} />}</Route>
+        <Route path="/optihub-preview" component={OptihubLanding} />\n        <Route path="/">{() => {\n          const host = window.location.hostname.toLowerCase();\n          return host === "optihub.cz" || host === "www.optihub.cz"\n            ? <OptihubLanding />\n            : <Home variant={variant} />;\n        }}</Route>
         <Route path="/v/:segment" component={VerticalLanding} />
         <Route path="/lp/:segment" component={SklikLandingPage} />
         <Route path="/admin/invoices" component={AdminDashboard} />
