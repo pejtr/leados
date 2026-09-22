@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  Bot,
   Boxes,
   Brain,
   CheckCircle2,
