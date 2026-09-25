@@ -2,7 +2,7 @@ name: OMNI ADS CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, feat/optihub-edge-boundary]
     paths:
       - "server/omni-ads/**"
       - "server/routers/omniAdsRouter.ts"
