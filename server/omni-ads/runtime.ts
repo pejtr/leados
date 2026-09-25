@@ -100,8 +100,10 @@ const RUNTIME_SOURCE = String.raw`(() => {
     const placement = slot.dataset.omniAdsSlot || "default";
     const wrapper = document.createElement("div");
     wrapper.dataset.omniAdsRendered = creative.creativeKey;
+    const portrait = Array.isArray(creative.tags) && creative.tags.includes("portrait");
     wrapper.style.cssText =
-      "width:100%;max-width:1200px;margin:24px auto;text-align:center;box-sizing:border-box";
+      "width:100%;max-width:" + (portrait ? "520px" : "1200px") +
+      ";margin:24px auto;text-align:center;box-sizing:border-box";
 
     const disclosure = document.createElement("div");
     disclosure.textContent = "Doporučení / reklama";
