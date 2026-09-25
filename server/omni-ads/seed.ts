@@ -8,6 +8,7 @@ const DEFAULT_SITES = [
   ["humandesignmapa.cz", "Human Design Mapa", "www.humandesignmapa.cz"],
   ["xmlvalidatoronline.com", "XML Validator Online", "xmlvalidatoronline.com"],
   ["akcni-letenky.com", "Akční Letenky", "www.akcni-letenky.com"],
+  ["lastminutedovolene.cz", "Last Minute Dovolené", "www.lastminutedovolene.cz"],
   ["ohorai.com", "OHORAI", "www.ohorai.com"],
 ] as const;
 
