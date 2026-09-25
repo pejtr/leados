@@ -32,7 +32,7 @@ export async function seedOmniAdsDefaults(pool: Pool): Promise<void> {
       "https://files.manuscdn.com/user_upload_by_module/session_file/89740521/kHMUXlMPeoZAzGhj.png",
       "https://www.ohorai.com/",
       "OHORAI — aromaterapeutické esence, ruční tvorba a muzikoterapie",
-      JSON.stringify(["ohorai", "aromaterapie", "wellbeing", "handmade"]),
+      JSON.stringify(["ohorai", "aromaterapie", "wellbeing", "handmade", "portrait"]),
       JSON.stringify([]),
       100,
       2,
