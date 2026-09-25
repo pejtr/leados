@@ -20,9 +20,9 @@ export async function seedOmniAdsDefaults(pool: Pool): Promise<void> {
   }
 
   await pool.execute(
-    \`INSERT IGNORE INTO omni_ad_creatives
+    `INSERT IGNORE INTO omni_ad_creatives
       (creativeKey, advertiserKey, stream, format, title, assetUrl, destinationUrl, altText, tags, targetSiteKeys, priority, frequencyCap, frequencyWindowHours, minRepeatMinutes, enabled)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)\`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, true)`,
     [
       "ohorai-essence-mainstream-001",
       "ohorai",
