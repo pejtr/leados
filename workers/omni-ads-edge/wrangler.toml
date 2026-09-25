@@ -1,0 +1,17 @@
+name = "omni-ads-edge"
+main = "src/index.js"
+compatibility_date = "2026-09-25"
+workers_dev = false
+
+[[routes]]
+pattern = "api.optihub.cz/omni-ads/*"
+zone_name = "optihub.cz"
+
+[[kv_namespaces]]
+binding = "OMNI_ADS_CONFIG"
+id = "53a1b9a0da754e568993594fda4364e7"
+
+[[d1_databases]]
+binding = "OMNI_ADS_DB"
+database_name = "omni-ads"
+database_id = "c26e06a8-fb91-4a4f-9c5c-dd8ef3f2976a"
