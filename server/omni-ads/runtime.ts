@@ -8,7 +8,7 @@ const SITE_KEY = /^[a-z0-9][a-z0-9.-]{1,95}$/;
 const CREATIVE_KEY = /^[a-z0-9][a-z0-9._-]{1,127}$/i;
 const EVENT_TYPE = new Set(["impression", "click"]);
 
-const RUNTIME_SOURCE = String.raw\`(() => {
+const RUNTIME_SOURCE = String.raw`(() => {
   "use strict";
 
   const script =
@@ -166,7 +166,7 @@ const RUNTIME_SOURCE = String.raw\`(() => {
     .catch(() => {
       // Fail closed: no config means no ad and no layout shift.
     });
-})();\`;
+})();`;
 
 function referrerHost(req: Request): string | null {
   const raw = req.get("referer");
