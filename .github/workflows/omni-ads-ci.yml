@@ -44,5 +44,5 @@ jobs:
       - name: Parse admin panel
         run: pnpm exec esbuild client/src/pages/AdminOmniAds.tsx --bundle --platform=browser --external:* --outfile=/tmp/omni-ads-admin.js
 
-      - name: OPTIHUB boot regression
-        run: pnpm exec vitest run server/optihub/runtime.boot.test.ts
+      - name: OMNI ADS runtime tests
+        run: pnpm exec vitest run server/omni-ads/runtime.test.ts server/optihub/primitives.test.ts
