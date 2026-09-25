@@ -1,0 +1,48 @@
+name: OMNI ADS CI
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "server/omni-ads/**"
+      - "server/routers/omniAdsRouter.ts"
+      - "client/src/pages/AdminOmniAds.tsx"
+      - "client/src/pages/AdminDashboard.tsx"
+      - "drizzle/schema/omni-ads.ts"
+      - "drizzle/0024_omni_ads_network.sql"
+      - "server/_core/index.ts"
+      - ".github/workflows/omni-ads-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "server/omni-ads/**"
+      - "server/routers/omniAdsRouter.ts"
+      - "client/src/pages/AdminOmniAds.tsx"
+      - "drizzle/schema/omni-ads.ts"
+
+jobs:
+  omni-ads:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Parse server runtime
+        run: pnpm exec esbuild server/omni-ads/runtime.ts --bundle --platform=node --packages=external --outfile=/tmp/omni-ads-runtime.mjs
+
+      - name: Parse control router
+        run: pnpm exec esbuild server/routers/omniAdsRouter.ts --bundle --platform=node --packages=external --outfile=/tmp/omni-ads-router.mjs
+
+      - name: Parse admin panel
+        run: pnpm exec esbuild client/src/pages/AdminOmniAds.tsx --bundle --platform=browser --external:* --outfile=/tmp/omni-ads-admin.js
+
+      - name: OPTIHUB boot regression
+        run: pnpm exec vitest run server/optihub/runtime.boot.test.ts
