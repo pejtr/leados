@@ -1,6 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
-import { omniAdCreatives, omniAdEvents, omniAdSites } from "../../drizzle/schema";
+import { omniAdCreatives, omniAdEvents, omniAdSites } from "../../drizzle/schema/omni-ads";
 import { getDb } from "../db";
 import { protectedProcedure, router } from "../_core/trpc";
 
