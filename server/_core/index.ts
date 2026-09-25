@@ -12,6 +12,7 @@ import { serveStatic, setupVite } from "./vite";
 import { registerSeoRoutes } from "../seo";
 import { registerStripeWebhook } from "../stripe-webhook";
 import { registerOptiHubEdgeRuntime, type EdgeRuntimeHandle } from "../optihub/runtime";
+import { registerOmniAdsRuntime } from "../omni-ads/runtime";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -61,6 +62,7 @@ export async function createApp(options: CreateAppOptions = {}): Promise<CreateA
   // shadow it and it never inherits the 50mb upload limit. The router owns its
   // own strict body limit.
   const edge = await registerOptiHubEdgeRuntime(app);
+  await registerOmniAdsRuntime(app, edge.pool);
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
