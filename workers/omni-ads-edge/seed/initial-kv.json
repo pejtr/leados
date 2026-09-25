@@ -1,0 +1,42 @@
+[
+  {
+    "key": "site:katastr-online.cz",
+    "value": "{\"siteKey\":\"katastr-online.cz\",\"name\":\"Katastr Online\",\"domain\":\"www.katastr-online.cz\",\"enabled\":false,\"customStreamEnabled\":true,\"mainstreamFallbackEnabled\":true,\"autoPlacement\":false,\"frequencyCap\":3,\"frequencyWindowHours\":168,\"minRepeatMinutes\":360}"
+  },
+  {
+    "key": "site:do-italie.cz",
+    "value": "{\"siteKey\":\"do-italie.cz\",\"name\":\"DO ITÁLIE\",\"domain\":\"www.do-italie.cz\",\"enabled\":false,\"customStreamEnabled\":true,\"mainstreamFallbackEnabled\":true,\"autoPlacement\":false,\"frequencyCap\":3,\"frequencyWindowHours\":168,\"minRepeatMinutes\":360}"
+  },
+  {
+    "key": "site:bezmasajidla.cz",
+    "value": "{\"siteKey\":\"bezmasajidla.cz\",\"name\":\"Bezmasá Jídla\",\"domain\":\"www.bezmasajidla.cz\",\"enabled\":false,\"customStreamEnabled\":true,\"mainstreamFallbackEnabled\":true,\"autoPlacement\":false,\"frequencyCap\":3,\"frequencyWindowHours\":168,\"minRepeatMinutes\":360}"
+  },
+  {
+    "key": "site:flightscanner24",
+    "value": "{\"siteKey\":\"flightscanner24\",\"name\":\"FlightScanner24\",\"domain\":null,\"enabled\":false,\"customStreamEnabled\":true,\"mainstreamFallbackEnabled\":true,\"autoPlacement\":false,\"frequencyCap\":3,\"frequencyWindowHours\":168,\"minRepeatMinutes\":360}"
+  },
+  {
+    "key": "site:humandesignmapa.cz",
+    "value": "{\"siteKey\":\"humandesignmapa.cz\",\"name\":\"Human Design Mapa\",\"domain\":\"www.humandesignmapa.cz\",\"enabled\":false,\"customStreamEnabled\":true,\"mainstreamFallbackEnabled\":true,\"autoPlacement\":false,\"frequencyCap\":3,\"frequencyWindowHours\":168,\"minRepeatMinutes\":360}"
+  },
+  {
+    "key": "site:xmlvalidatoronline.com",
+    "value": "{\"siteKey\":\"xmlvalidatoronline.com\",\"name\":\"XML Validator Online\",\"domain\":\"xmlvalidatoronline.com\",\"enabled\":false,\"customStreamEnabled\":true,\"mainstreamFallbackEnabled\":true,\"autoPlacement\":false,\"frequencyCap\":3,\"frequencyWindowHours\":168,\"minRepeatMinutes\":360}"
+  },
+  {
+    "key": "site:akcni-letenky.com",
+    "value": "{\"siteKey\":\"akcni-letenky.com\",\"name\":\"Akční Letenky\",\"domain\":\"www.akcni-letenky.com\",\"enabled\":false,\"customStreamEnabled\":true,\"mainstreamFallbackEnabled\":true,\"autoPlacement\":false,\"frequencyCap\":3,\"frequencyWindowHours\":168,\"minRepeatMinutes\":360}"
+  },
+  {
+    "key": "site:lastminutedovolene.cz",
+    "value": "{\"siteKey\":\"lastminutedovolene.cz\",\"name\":\"Last Minute Dovolené\",\"domain\":\"www.lastminutedovolene.cz\",\"enabled\":false,\"customStreamEnabled\":true,\"mainstreamFallbackEnabled\":true,\"autoPlacement\":false,\"frequencyCap\":3,\"frequencyWindowHours\":168,\"minRepeatMinutes\":360}"
+  },
+  {
+    "key": "site:ohorai.com",
+    "value": "{\"siteKey\":\"ohorai.com\",\"name\":\"OHORAI\",\"domain\":\"www.ohorai.com\",\"enabled\":false,\"customStreamEnabled\":true,\"mainstreamFallbackEnabled\":true,\"autoPlacement\":false,\"frequencyCap\":3,\"frequencyWindowHours\":168,\"minRepeatMinutes\":360}"
+  },
+  {
+    "key": "creatives",
+    "value": "[{\"creativeKey\":\"ohorai-essence-mainstream-001\",\"advertiserKey\":\"ohorai\",\"stream\":\"mainstream\",\"format\":\"image\",\"title\":\"Vůně, která vám rozzáří život\",\"assetUrl\":\"https://files.manuscdn.com/user_upload_by_module/session_file/89740521/kHMUXlMPeoZAzGhj.png\",\"destinationUrl\":\"https://www.ohorai.com/\",\"altText\":\"OHORAI — aromaterapeutické esence, ruční tvorba a muzikoterapie\",\"tags\":[\"ohorai\",\"aromaterapie\",\"wellbeing\",\"handmade\",\"portrait\"],\"targetSiteKeys\":[],\"priority\":100,\"frequencyCap\":2,\"frequencyWindowHours\":168,\"minRepeatMinutes\":1440,\"enabled\":true}]"
+  }
+]
