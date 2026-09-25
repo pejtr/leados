@@ -2,6 +2,7 @@ import express, { type Express, type Request } from "express";
 import type { Pool } from "mysql2/promise";
 import { getPublicOmniAdsConfig } from "./service";
 import { ensureOmniAdsSchema } from "./schema";
+import { seedOmniAdsDefaults } from "./seed";
 
 const SITE_KEY = /^[a-z0-9][a-z0-9.-]{1,95}$/;
 const CREATIVE_KEY = /^[a-z0-9][a-z0-9._-]{1,127}$/i;
@@ -181,7 +182,10 @@ export async function registerOmniAdsRuntime(
   app: Express,
   pool: Pool | null,
 ): Promise<void> {
-  if (pool) await ensureOmniAdsSchema(pool);
+  if (pool) {
+    await ensureOmniAdsSchema(pool);
+    await seedOmniAdsDefaults(pool);
+  }
 
   app.get("/omni-ads/runtime.js", (_req, res) => {
     res.setHeader("Content-Type", "application/javascript; charset=utf-8");
