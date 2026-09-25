@@ -3,7 +3,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Menu, X, LogOut, Package, Users, BarChart3, FolderKanban, CreditCard, ReceiptText, ContactRound } from "lucide-react";
+import { Menu, X, LogOut, Package, Users, BarChart3, FolderKanban, CreditCard, ReceiptText, ContactRound, Megaphone } from "lucide-react";
 import { useLocation } from "wouter";
 import AdminNichePackages from "./AdminNichePackages";
 import AdminSubscriptions from "./AdminSubscriptions";
@@ -12,6 +12,7 @@ import AdminProjects from "./AdminProjects";
 import AdminPayments from "./AdminPayments";
 import AdminInvoices from "./AdminInvoices";
 import AdminLeads from "./AdminLeads";
+import AdminOmniAds from "./AdminOmniAds";
 import { OptimateoLogo } from "@/components/OptimateoLogo";
 
 export default function AdminDashboard() {
@@ -101,7 +102,7 @@ export default function AdminDashboard() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs defaultValue={window.location.pathname === "/admin/invoices" ? "invoices" : "stats"} className="w-full">
-          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4 lg:grid-cols-7 mb-8">
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:grid-cols-4 lg:grid-cols-8 mb-8">
             <TabsTrigger value="stats" className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 hidden sm:inline" />
               Přehled
@@ -129,6 +130,10 @@ export default function AdminDashboard() {
             <TabsTrigger value="subscriptions" className="flex items-center gap-2">
               <Users className="w-4 h-4 hidden sm:inline" />
               Předplatná
+            </TabsTrigger>
+            <TabsTrigger value="omni-ads" className="flex items-center gap-2">
+              <Megaphone className="w-4 h-4 hidden sm:inline" />
+              OMNI ADS
             </TabsTrigger>
           </TabsList>
 
@@ -158,6 +163,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="subscriptions">
             <AdminSubscriptions />
+          </TabsContent>
+
+          <TabsContent value="omni-ads">
+            <AdminOmniAds />
           </TabsContent>
         </Tabs>
       </main>
