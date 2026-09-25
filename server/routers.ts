@@ -25,6 +25,7 @@ import { createSequence, activateSequence, sendStepMessage, executeSequences, ge
 import { generateOutreachMessage, createOutreachTemplate, getTemplatesByCategory, updateTemplatePerformance } from "./outreach-agent";
 import { runDailyProspectingQueue, advanceLeadState, markManuallySent } from "./leados/engine";
 import { startLeadOsScheduler } from "./leados/scheduler";
+import { omniAdsRouter } from "./routers/omniAdsRouter";
 import { type IcpContract } from "./prospecting";
 
 startLeadOsScheduler();
@@ -85,6 +86,7 @@ const createInquirySchema = z.object({
 
 export const appRouter = router({
   system: systemRouter,
+  omniAds: omniAdsRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {
