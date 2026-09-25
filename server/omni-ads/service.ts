@@ -1,6 +1,6 @@
 import { asc, eq } from "drizzle-orm";
 import { getDb } from "../db";
-import { omniAdCreatives, omniAdSites } from "../../drizzle/schema";
+import { omniAdCreatives, omniAdSites } from "../../drizzle/schema/omni-ads";
 
 const arrayOfStrings = (value: unknown): string[] => {
   if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
