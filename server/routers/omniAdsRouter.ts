@@ -115,7 +115,7 @@ export const omniAdsRouter = router({
         siteKey: omniAdEvents.siteKey,
         creativeKey: omniAdEvents.creativeKey,
         eventType: omniAdEvents.eventType,
-        count: sql<number>\`count(*)\`,
+        count: sql<number>`count(*)`,
       })
       .from(omniAdEvents)
       .groupBy(
@@ -123,6 +123,6 @@ export const omniAdsRouter = router({
         omniAdEvents.creativeKey,
         omniAdEvents.eventType,
       )
-      .orderBy(desc(sql\`count(*)\`));
+      .orderBy(desc(sql`count(*)`));
   }),
 });
