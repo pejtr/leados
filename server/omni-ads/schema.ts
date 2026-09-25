@@ -1,7 +1,7 @@
 import type { Pool } from "mysql2/promise";
 
 export const OMNI_ADS_DDL: readonly string[] = [
-  \`CREATE TABLE IF NOT EXISTS omni_ad_sites (
+  `CREATE TABLE IF NOT EXISTS omni_ad_sites (
     siteKey varchar(96) NOT NULL,
     name varchar(160) NOT NULL,
     domain varchar(255),
@@ -15,8 +15,8 @@ export const OMNI_ADS_DDL: readonly string[] = [
     createdAt timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updatedAt timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (siteKey)
-  )\`,
-  \`CREATE TABLE IF NOT EXISTS omni_ad_creatives (
+  )`,
+  `CREATE TABLE IF NOT EXISTS omni_ad_creatives (
     creativeKey varchar(128) NOT NULL,
     advertiserKey varchar(96) NOT NULL,
     stream varchar(32) NOT NULL DEFAULT 'mainstream',
@@ -36,8 +36,8 @@ export const OMNI_ADS_DDL: readonly string[] = [
     updatedAt timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (creativeKey),
     KEY omni_ad_creatives_stream_idx (stream, enabled, priority)
-  )\`,
-  \`CREATE TABLE IF NOT EXISTS omni_ad_events (
+  )`,
+  `CREATE TABLE IF NOT EXISTS omni_ad_events (
     id bigint unsigned NOT NULL AUTO_INCREMENT,
     timestamp bigint NOT NULL,
     siteKey varchar(96) NOT NULL,
@@ -49,7 +49,7 @@ export const OMNI_ADS_DDL: readonly string[] = [
     PRIMARY KEY (id),
     KEY omni_ad_events_site_time_idx (siteKey, timestamp),
     KEY omni_ad_events_creative_time_idx (creativeKey, timestamp)
-  )\`,
+  )`,
 ];
 
 export async function ensureOmniAdsSchema(pool: Pool): Promise<void> {
