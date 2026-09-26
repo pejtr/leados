@@ -1,0 +1,160 @@
+name: One-shot forge.optihub.cz Cloudflare cutover
+
+on:
+  push:
+    branches:
+      - ops/forge-cloudflare-cutover-run
+    paths:
+      - .github/workflows/forge-optihub-cutover.yml
+
+permissions:
+  contents: read
+
+jobs:
+  cutover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CF_ACCOUNT_ID: "94ff7c722ed74b9e613fb2d1b1315ed3"
+      CF_ZONE_NAME: "optihub.cz"
+      CF_HOSTNAME: "forge.optihub.cz"
+      CF_WORKER_SERVICE: "omniforge-api"
+      CF_TOKEN_OPTIHUB: ${{ secrets.CLOUDFLARE_API_TOKEN_OPTIHUB }}
+      CF_TOKEN_DEFAULT: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Transactional cutover
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          verify_token() {
+            candidate="$1"
+            for endpoint in               "https://api.cloudflare.com/client/v4/user/tokens/verify"               "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/tokens/verify"; do
+              response="$(curl -sS                 -H "Authorization: Bearer $candidate"                 -H "Content-Type: application/json"                 -w '\n%{http_code}'                 "$endpoint")"
+              http_code="$(tail -n1 <<<"$response")"
+              body="$(sed '$d' <<<"$response")"
+              if [ "$http_code" = "200" ]                 && jq -e '.success == true and (.result.status // "active") == "active"' <<<"$body" >/dev/null 2>&1; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          CLOUDFLARE_API_TOKEN=""
+          for candidate in "${CF_TOKEN_OPTIHUB:-}" "${CF_TOKEN_DEFAULT:-}"; do
+            [ -n "$candidate" ] || continue
+            if verify_token "$candidate"; then
+              CLOUDFLARE_API_TOKEN="$candidate"
+              break
+            fi
+          done
+          export CLOUDFLARE_API_TOKEN
+          test -n "$CLOUDFLARE_API_TOKEN" || {
+            echo "No valid Cloudflare token available in this repository."
+            exit 1
+          }
+
+          api() {
+            curl -fsS               -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"               -H "Content-Type: application/json"               "$@"
+          }
+
+          zone_json="$(api "https://api.cloudflare.com/client/v4/zones?name=$CF_ZONE_NAME&status=active")"
+          zone_id="$(jq -r '.result[0].id // empty' <<<"$zone_json")"
+          test -n "$zone_id" || {
+            echo "Token is valid but cannot access active zone $CF_ZONE_NAME; no mutation performed."
+            exit 1
+          }
+          echo "Zone access: OK"
+
+          worker_json="$(api "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/services/$CF_WORKER_SERVICE")"
+          jq -e '.success == true' <<<"$worker_json" >/dev/null
+          echo "Worker service: OK"
+
+          domains_json="$(api "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/domains")"
+          existing_domain_id="$(jq -r --arg h "$CF_HOSTNAME" --arg s "$CF_WORKER_SERVICE"             '.result[]? | select(.hostname==$h and .service==$s) | .id' <<<"$domains_json" | head -n1)"
+
+          if [ -n "$existing_domain_id" ]; then
+            echo "Worker Custom Domain already attached; skipping DNS mutation."
+          else
+            dns_json="$(api "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records?name=$CF_HOSTNAME")"
+            count="$(jq '.result | length' <<<"$dns_json")"
+
+            if [ "$count" -gt 1 ]; then
+              echo "Refusing cutover: multiple DNS records exist for $CF_HOSTNAME"
+              exit 1
+            fi
+
+            record_id="$(jq -r '.result[0].id // empty' <<<"$dns_json")"
+            old_type="$(jq -r '.result[0].type // empty' <<<"$dns_json")"
+            old_name="$(jq -r '.result[0].name // empty' <<<"$dns_json")"
+            old_content="$(jq -r '.result[0].content // empty' <<<"$dns_json")"
+            old_ttl="$(jq -r '.result[0].ttl // 1' <<<"$dns_json")"
+            old_proxied="$(jq -r '.result[0].proxied // false' <<<"$dns_json")"
+
+            if [ -n "$record_id" ]; then
+              if [ "$old_type" != "CNAME" ] || [ "$old_name" != "$CF_HOSTNAME" ] || [[ ! "$old_content" =~ railway\.app$ ]]; then
+                echo "Refusing cutover: current DNS record is not the expected Railway CNAME."
+                echo "type=$old_type name=$old_name content=$old_content"
+                exit 1
+              fi
+            fi
+
+            rollback_dns() {
+              if [ -n "$record_id" ] && [ -n "$old_content" ]; then
+                echo "ROLLBACK: restoring previous CNAME."
+                payload="$(jq -nc                   --arg type "$old_type"                   --arg name "$old_name"                   --arg content "$old_content"                   --argjson ttl "$old_ttl"                   --argjson proxied "$old_proxied"                   '{type:$type,name:$name,content:$content,ttl:$ttl,proxied:$proxied}')"
+                curl -fsS -X POST                   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"                   -H "Content-Type: application/json"                   "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records"                   --data "$payload" >/tmp/rollback.json || true
+                cat /tmp/rollback.json || true
+              fi
+            }
+
+            if [ -n "$record_id" ]; then
+              delete_result="$(curl -fsS -X DELETE                 -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"                 -H "Content-Type: application/json"                 "https://api.cloudflare.com/client/v4/zones/$zone_id/dns_records/$record_id")"
+              jq -e '.success == true' <<<"$delete_result" >/dev/null
+              echo "Removed legacy Railway CNAME."
+            fi
+
+            attach_payload="$(jq -nc               --arg hostname "$CF_HOSTNAME"               --arg service "$CF_WORKER_SERVICE"               --arg zone_id "$zone_id"               --arg zone_name "$CF_ZONE_NAME"               '{hostname:$hostname,service:$service,zone_id:$zone_id,zone_name:$zone_name}')"
+
+            attach_result="$(curl -sS -X PUT               -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"               -H "Content-Type: application/json"               "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/domains"               --data "$attach_payload")"
+
+            if ! jq -e '.success == true' <<<"$attach_result" >/dev/null 2>&1; then
+              echo "Worker Custom Domain attach failed."
+              jq '{success,errors,messages}' <<<"$attach_result" || true
+              rollback_dns
+              exit 1
+            fi
+
+            existing_domain_id="$(jq -r '.result.id' <<<"$attach_result")"
+            echo "Attached $CF_HOSTNAME to Worker $CF_WORKER_SERVICE."
+          fi
+
+          healthy=false
+          for attempt in {1..18}; do
+            if curl -fsS --max-time 15 "https://$CF_HOSTNAME/health" >/tmp/health.json               && curl -fsS --max-time 15 "https://$CF_HOSTNAME/ready" >/tmp/ready.json; then
+              healthy=true
+              echo "forge.optihub.cz is healthy."
+              cat /tmp/health.json
+              cat /tmp/ready.json
+              break
+            fi
+            echo "Waiting for DNS/TLS propagation ($attempt/18)..."
+            sleep 10
+          done
+
+          if [ "$healthy" != "true" ]; then
+            echo "Custom-domain smoke failed."
+            if [ -n "${existing_domain_id:-}" ]; then
+              curl -sS -X DELETE                 -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN"                 -H "Content-Type: application/json"                 "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/domains/$existing_domain_id"                 >/tmp/detach.json || true
+              cat /tmp/detach.json || true
+            fi
+            if declare -F rollback_dns >/dev/null; then
+              rollback_dns
+            fi
+            exit 1
+          fi
+
+          final_domains="$(api "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/workers/domains")"
+          jq -e --arg h "$CF_HOSTNAME" --arg s "$CF_WORKER_SERVICE"             '.result[] | select(.hostname==$h and .service==$s)' <<<"$final_domains" >/dev/null
+
+          echo "CUTOVER VERIFIED: $CF_HOSTNAME -> Cloudflare Worker $CF_WORKER_SERVICE"
